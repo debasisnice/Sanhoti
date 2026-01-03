@@ -1,0 +1,135 @@
+import { UserDataHelper } from '../data/UserDataHelper.js';
+import { hashPassword, comparePassword, generateToken } from '../utils/auth.js';
+import { User } from '../models/types.js';
+import { transformUserForFrontend } from '../utils/userTransform.js';
+
+export class AuthService {
+  private userDataHelper: UserDataHelper;
+
+  constructor() {
+    this.userDataHelper = new UserDataHelper();
+  }
+
+  async register(data: {
+    email_address: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+    phone_number: string;
+    address1?: string;
+    address2?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    country?: string;
+  }): Promise<{ user: any; token: string }> {
+    // Check if user exists
+    const existing = await this.userDataHelper.findByEmail(data.email_address);
+    if (existing) {
+      throw new Error('User already exists with this email');
+    }
+
+    // Hash password
+    const password_hash = await hashPassword(data.password);
+
+    // Create user with defaults
+    const user = await this.userDataHelper.create({
+      first_name: data.first_name,
+      last_name: data.last_name,
+      phone_number: data.phone_number,
+      email_address: data.email_address,
+      address1: data.address1,
+      address2: data.address2,
+      city: data.city,
+      state: data.state,
+      zip: data.zip,
+      country: data.country,
+      password_hash: password_hash,
+      user_type: 'user',
+      member_type: 'member',
+      is_active: true,
+    });
+
+    // Generate token (using user_type as role for compatibility)
+    const token = generateToken({
+      userId: user.user_id,
+      email: user.email_address,
+      role: user.user_type,
+    });
+
+    // Transform user to frontend format
+    return { user: transformUserForFrontend(user), token };
+  }
+
+  async login(email: string, password: string): Promise<{ user: any; token: string }> {
+    const user = await this.userDataHelper.findByEmail(email);
+    if (!user || !user.is_active) {
+      throw new Error('Invalid credentials');
+    }
+
+    const isValid = await comparePassword(password, user.password_hash);
+    if (!isValid) {
+      throw new Error('Invalid credentials');
+    }
+
+    const token = generateToken({
+      userId: user.user_id,
+      email: user.email_address,
+      role: user.user_type,
+    });
+
+    // Transform user to frontend format
+    return { user: transformUserForFrontend(user), token };
+  }
+
+  async getUserById(userId: string): Promise<any | null> {
+    const user = await this.userDataHelper.findById(userId);
+    if (!user) return null;
+    return transformUserForFrontend(user);
+  }
+
+  async getCommitteeMembers(): Promise<any[]> {
+    const committeeRoles = ['President', 'Secretary', 'Treasurer', 'Cultural Director'];
+    const committeeMembers = [];
+    
+    for (const role of committeeRoles) {
+      const users = await this.userDataHelper.findByMemberType(role);
+      if (users.length > 0) {
+        // Take the first active user with this member_type
+        const user = users[0];
+        committeeMembers.push({
+          ...transformUserForFrontend(user),
+          role: role,
+        });
+      }
+    }
+    
+    return committeeMembers;
+  }
+
+  async getAllUsers(): Promise<any[]> {
+    const users = await this.userDataHelper.findAll();
+    return users.map(user => transformUserForFrontend(user));
+  }
+
+  async updateUser(userId: string, updates: {
+    first_name?: string;
+    last_name?: string;
+    phone_number?: string;
+    email_address?: string;
+    address1?: string;
+    address2?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    country?: string;
+    user_type?: string;
+    member_type?: string;
+    is_active?: boolean;
+  }): Promise<any> {
+    const user = await this.userDataHelper.update(userId, updates);
+    if (!user) return null;
+    return transformUserForFrontend(user);
+  }
+}
+

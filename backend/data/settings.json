@@ -1,0 +1,15 @@
+[
+  {
+    "navbar": {
+      "home": true,
+      "about": true,
+      "events": true,
+      "noticeBoard": true,
+      "galleries": true,
+      "magazines": true,
+      "contactUs": true,
+      "committee": true
+    },
+    "updated_at": "2026-01-03T19:31:32.904Z"
+  }
+]

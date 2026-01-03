@@ -1,0 +1,201 @@
+export enum UserRole {
+  ADMIN = 'admin',
+  MEMBER = 'member',
+  PUBLIC = 'public',
+}
+
+export enum EventType {
+  POILA_BOISHAKH = 'Poila Boishakh',
+  ANNUAL_PICNIC = 'Annual Picnic',
+  DURGA_PUJA = 'Durga Puja',
+  DIWALI = 'Diwali',
+  HOLIDAY_PARTY = 'Holiday Party',
+  SARASWATI_PUJA = 'Saraswati Puja',
+  ADHOC = 'Adhoc',
+}
+
+export interface User {
+  user_id: string; // 12 digit alphanumeric
+  first_name: string;
+  last_name: string;
+  phone_number: string;
+  email_address: string;
+  address1?: string;
+  address2?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  country?: string;
+  password_hash: string;
+  user_type: string; // defaults to "user"
+  member_type: string; // defaults to "member"
+  is_active: boolean; // defaults to true
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Event {
+  event_id: string;
+  event_name: string;
+  event_start_dt: string;
+  event_end_dt: string;
+  year: number;
+  event_description: string;
+  location?: string;
+  photo_gallery_link?: string;
+  gallery_is_public?: boolean; // Whether the gallery for this event is public
+  event_image_path?: string; // Folder path for event flyer/image in Events_Flyers
+  is_active: boolean;
+  is_priority?: boolean;
+  created_at: string;
+  updated_at: string;
+  // Legacy fields for backward compatibility (optional)
+  id?: string;
+  title?: string;
+  description?: string;
+  type?: EventType;
+  date?: string;
+  time?: string;
+  imageUrl?: string;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+}
+
+export interface RSVP {
+  id: string;
+  eventId: string;
+  userId?: string; // optional for guest RSVPs
+  email: string;
+  name: string;
+  phone: string;
+  numberOfGuests?: number; // Legacy field for backward compatibility
+  numberOfAdults: number;
+  numberOfChildren: number;
+  status: 'confirmed' | 'cancelled';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Notice {
+  notice_id: string; // 12 digit alphanumeric, auto-generated
+  notice_name: string;
+  notice_body: string;
+  event_id?: string; // optional, links to an event
+  notice_image_path?: string; // optional image path
+  is_active: boolean; // defaults to true
+  is_published: boolean; // defaults to false
+  created_at: string;
+  updated_at: string;
+  // Legacy fields for backward compatibility (optional)
+  id?: string;
+  title?: string;
+  content?: string;
+  isPublic?: boolean;
+  priority?: 'low' | 'medium' | 'high';
+  expiryDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+}
+
+export interface Photo {
+  id: string;
+  url: string;
+  thumbnailUrl?: string;
+  caption?: string;
+  uploadedAt: string;
+  filename?: string; // For deletion purposes
+}
+
+export interface PhotoGallery {
+  id: string;
+  eventId?: string;
+  title: string;
+  description?: string;
+  isPublic: boolean;
+  specialAccessCode?: string;
+  photos: Photo[];
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  event_start_dt?: string; // Event start date for sorting
+}
+
+export interface Magazine {
+  id: string;
+  title: string;
+  description?: string;
+  fileUrl: string;
+  coverImageUrl?: string;
+  isPublic: boolean;
+  specialAccessCode?: string;
+  publishDate: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+}
+
+export interface Expense {
+  id: string;
+  eventId?: string;
+  title: string;
+  description?: string;
+  amount: number;
+  category: string;
+  date: string;
+  receiptUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+}
+
+export interface SpecialAccessCode {
+  id: string;
+  code: string;
+  description?: string;
+  isActive: boolean;
+  expiresAt?: string;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface Message {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  message: string;
+  userId?: string; // optional, if logged in user
+  createdAt: string;
+  read: boolean;
+}
+
+export interface AuditLog {
+  id: string;
+  userId: string;
+  userEmail: string;
+  action: string;
+  resource: string;
+  resourceId?: string;
+  details?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  timestamp: string;
+}
+
+export interface Settings {
+  navbar: {
+    home: boolean;
+    about: boolean;
+    events: boolean;
+    noticeBoard: boolean;
+    galleries: boolean;
+    magazines: boolean;
+    contactUs: boolean;
+    committee: boolean;
+  };
+  updated_at: string;
+}

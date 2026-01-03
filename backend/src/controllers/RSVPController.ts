@@ -1,0 +1,157 @@
+import { Response } from 'express';
+import { AuthRequest } from '../middleware/auth.js';
+import { RSVPService } from '../services/RSVPService.js';
+
+export class RSVPController {
+  private rsvpService: RSVPService;
+
+  constructor() {
+    this.rsvpService = new RSVPService();
+  }
+
+  async getAllRSVPs(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const rsvps = await this.rsvpService.getAllRSVPs();
+      res.json(rsvps);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch RSVPs' });
+    }
+  }
+
+  async getRSVPById(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const rsvp = await this.rsvpService.getRSVPById(id);
+      if (!rsvp) {
+        res.status(404).json({ error: 'RSVP not found' });
+        return;
+      }
+      res.json(rsvp);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch RSVP' });
+    }
+  }
+
+  async getRSVPsByEvent(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { eventId } = req.params;
+      const rsvps = await this.rsvpService.getRSVPsByEvent(eventId);
+      res.json(rsvps);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch RSVPs' });
+    }
+  }
+
+  async getMyRSVPs(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ error: 'Not authenticated' });
+        return;
+      }
+
+      const rsvps = await this.rsvpService.getRSVPsByUser(req.user.userId);
+      res.json(rsvps);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch RSVPs' });
+    }
+  }
+
+  async createRSVP(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { eventId, email, name, phone, numberOfGuests, numberOfAdults, numberOfChildren } = req.body;
+
+      if (!eventId || !email || !name || !phone) {
+        res.status(400).json({ error: 'Missing required fields' });
+        return;
+      }
+
+      // Support both new format (numberOfAdults, numberOfChildren) and legacy format (numberOfGuests)
+      let adults: number;
+      let children: number;
+
+      if (numberOfAdults !== undefined) {
+        adults = parseInt(numberOfAdults) || 1;
+        children = parseInt(numberOfChildren) || 0;
+      } else if (numberOfGuests !== undefined) {
+        // Legacy format: assume all guests are adults
+        adults = parseInt(numberOfGuests) || 1;
+        children = 0;
+      } else {
+        res.status(400).json({ error: 'Number of adults is required' });
+        return;
+      }
+
+      if (adults < 1) {
+        res.status(400).json({ error: 'At least 1 adult is required' });
+        return;
+      }
+
+      const rsvp = await this.rsvpService.createRSVP({
+        eventId,
+        userId: req.user?.userId,
+        email,
+        name,
+        phone,
+        numberOfAdults: adults,
+        numberOfChildren: children,
+      });
+
+      res.status(201).json(rsvp);
+    } catch (error: any) {
+      // Check if it's a duplicate RSVP error
+      if (error.message && error.message.includes('already RSVP')) {
+        res.status(400).json({ error: error.message });
+        return;
+      }
+      res.status(500).json({ error: 'Failed to create RSVP' });
+    }
+  }
+
+  async updateRSVP(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+
+      const rsvp = await this.rsvpService.updateRSVP(id, updates);
+      if (!rsvp) {
+        res.status(404).json({ error: 'RSVP not found' });
+        return;
+      }
+
+      res.json(rsvp);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update RSVP' });
+    }
+  }
+
+  async cancelRSVP(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const rsvp = await this.rsvpService.cancelRSVP(id);
+      if (!rsvp) {
+        res.status(404).json({ error: 'RSVP not found' });
+        return;
+      }
+
+      res.json(rsvp);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to cancel RSVP' });
+    }
+  }
+
+  async deleteRSVP(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const success = await this.rsvpService.deleteRSVP(id);
+      if (!success) {
+        res.status(404).json({ error: 'RSVP not found' });
+        return;
+      }
+
+      res.json({ message: 'RSVP deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete RSVP' });
+    }
+  }
+}
+
