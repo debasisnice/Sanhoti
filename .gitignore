@@ -56,6 +56,7 @@ backend/uploads/
 *.pem
 *.ppk
 AWS_ACCOUNT_INFO.md
+# Note: .github/ folder should be tracked (contains workflows)
 
 # Misc
 *.tar.gz

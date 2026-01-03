@@ -1,0 +1,110 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch: # Allows manual triggering from GitHub UI
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        env:
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << 'EOF'
+            set -e
+            
+            echo "🚀 Starting deployment..."
+            
+            APP_DIR="/var/www/sanhoti"
+            BACKEND_DIR="$APP_DIR/backend"
+            FRONTEND_DIR="$APP_DIR/frontend"
+            
+            # Navigate to app directory
+            cd "$APP_DIR"
+            
+            # Pull latest changes
+            echo "📥 Pulling latest changes from Git..."
+            git pull origin main || git pull origin master || true
+            
+            # Build backend
+            echo "🔨 Building backend..."
+            cd "$BACKEND_DIR"
+            npm ci --production=false
+            npm run build
+            
+            # Build frontend
+            echo "🎨 Building frontend..."
+            cd "$FRONTEND_DIR"
+            npm ci --production=false
+            npm run build
+            
+            # Restart backend with PM2
+            echo "🔄 Restarting backend..."
+            if pm2 list | grep -q "sanhoti-backend"; then
+              pm2 restart sanhoti-backend
+            else
+              cd "$BACKEND_DIR"
+              pm2 start dist/server.js --name sanhoti-backend
+              pm2 save
+            fi
+            
+            # Reload Nginx
+            echo "🔄 Reloading Nginx..."
+            sudo systemctl reload nginx || true
+            
+            # Check PM2 status
+            echo "📊 PM2 Status:"
+            pm2 status
+            
+            echo "✅ Deployment completed successfully!"
+          EOF
+
+      - name: Verify deployment
+        env:
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << 'EOF'
+            echo "🔍 Verifying deployment..."
+            
+            # Check if backend is running
+            if pm2 list | grep -q "sanhoti-backend.*online"; then
+              echo "✅ Backend is running"
+            else
+              echo "❌ Backend is not running"
+              exit 1
+            fi
+            
+            # Check Nginx status
+            if sudo systemctl is-active --quiet nginx; then
+              echo "✅ Nginx is running"
+            else
+              echo "⚠️  Nginx check failed (non-critical)"
+            fi
+            
+            echo "✅ Verification completed"
+          EOF
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f ~/.ssh/deploy_key
+
