@@ -26,10 +26,8 @@ jobs:
           ssh-keyscan ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || echo "Warning: Could not add host to known_hosts"
 
       - name: Deploy to EC2
-        env:
-          EC2_USER: ${{ secrets.EC2_USER }}
-          EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
+          # Create deployment script
           cat > /tmp/deploy.sh << 'DEPLOY_SCRIPT'
           #!/bin/bash
           set -e
@@ -81,12 +79,27 @@ jobs:
           DEPLOY_SCRIPT
           
           chmod +x /tmp/deploy.sh
+          
+          # Set variables for SSH commands
+          EC2_USER="${{ secrets.EC2_USER }}"
+          EC2_HOST="${{ secrets.EC2_HOST }}"
+          
+          echo "EC2_USER: $EC2_USER"
+          echo "EC2_HOST: $EC2_HOST"
+          
+          if [ -z "$EC2_USER" ] || [ -z "$EC2_HOST" ]; then
+            echo "❌ Error: EC2_USER or EC2_HOST is not set!"
+            exit 1
+          fi
+          
           echo "Copying deployment script to EC2..."
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 /tmp/deploy.sh "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/deploy.sh"
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 /tmp/deploy.sh "${EC2_USER}@${EC2_HOST}:/tmp/deploy.sh"
+          
           echo "Executing deployment script on EC2..."
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" 'bash /tmp/deploy.sh'
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${EC2_USER}@${EC2_HOST}" 'bash /tmp/deploy.sh'
+          
           echo "Cleaning up deployment script..."
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" 'rm -f /tmp/deploy.sh'
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${EC2_USER}@${EC2_HOST}" 'rm -f /tmp/deploy.sh'
           rm -f /tmp/deploy.sh
 
       - name: Verify deployment
