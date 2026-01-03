@@ -81,17 +81,19 @@ jobs:
           DEPLOY_SCRIPT
           
           chmod +x /tmp/deploy.sh
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no /tmp/deploy.sh ${EC2_USER}@${EC2_HOST}:/tmp/deploy.sh
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} 'bash /tmp/deploy.sh'
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} 'rm -f /tmp/deploy.sh'
+          echo "Copying deployment script to EC2..."
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 /tmp/deploy.sh "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/deploy.sh"
+          echo "Executing deployment script on EC2..."
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" 'bash /tmp/deploy.sh'
+          echo "Cleaning up deployment script..."
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" 'rm -f /tmp/deploy.sh'
+          rm -f /tmp/deploy.sh
 
       - name: Verify deployment
-        env:
-          EC2_USER: ${{ secrets.EC2_USER }}
-          EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} 'bash -s' << 'VERIFY_SCRIPT'
-            echo "🔍 Verifying deployment..."
+          echo "🔍 Verifying deployment..."
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" << 'VERIFY_SCRIPT'
+            echo "Checking backend status..."
             
             # Check if backend is running
             if pm2 list | grep -q "sanhoti-backend.*online"; then
