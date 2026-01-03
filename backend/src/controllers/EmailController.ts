@@ -71,9 +71,9 @@ export class EmailController {
       }
 
       const html = this.emailService.generateEventNotificationHTML(
-        event.title,
-        event.date,
-        event.description
+        event.title || event.event_name,
+        event.date || event.event_start_dt,
+        event.description || event.event_description
       );
 
       await this.emailService.sendToAllMembers(

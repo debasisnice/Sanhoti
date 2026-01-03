@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Users, UserCheck, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, UserCheck, ChevronDown, ChevronUp } from 'lucide-react';
 import { eventsAPI, rsvpAPI } from '../../services/api';
 import { Event, RSVP } from '../../types';
 import { format } from 'date-fns';
@@ -259,7 +259,7 @@ export default function AdminRSVP() {
                                       </td>
                                       <td className="py-3 px-4 text-sm text-gray-600">
                                         {format(
-                                          new Date(rsvp.created_at || rsvp.createdAt || ''),
+                                          new Date(rsvp.createdAt || ''),
                                           'MMM dd, yyyy'
                                         )}
                                       </td>

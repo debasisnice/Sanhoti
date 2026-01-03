@@ -13,6 +13,9 @@ export async function comparePassword(password: string, hashed: string): Promise
 }
 
 export function generateToken(payload: { userId: string; email: string; role: string }): string {
+  if (!JWT_SECRET || JWT_SECRET === 'your-secret-key-change-in-production') {
+    throw new Error('JWT_SECRET is not set or is using default value');
+  }
   return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 }
 

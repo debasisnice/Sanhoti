@@ -15,16 +15,15 @@ export class MessageDataHelper extends DatabaseHelper {
 
   async findByUserId(userId: string): Promise<Message[]> {
     const messages = await this.findAll();
-    return messages.filter(m => m.user_id === userId);
+    return messages.filter(m => m.userId === userId);
   }
 
-  async create(message: Omit<Message, 'id' | 'createdAt' | 'updatedAt'>): Promise<Message> {
+  async create(message: Omit<Message, 'id' | 'createdAt'>): Promise<Message> {
     const messages = await this.findAll();
     const newMessage: Message = {
       ...message,
       id: this.generateId(),
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     };
     messages.push(newMessage);
     this.writeFile(this.filename, messages);

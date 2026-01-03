@@ -10,6 +10,7 @@ export class AuditService {
 
   async logAction(data: {
     userId: string;
+    userEmail?: string;
     action: string;
     resource: string;
     resourceId?: string;
@@ -17,7 +18,11 @@ export class AuditService {
     ipAddress?: string;
     userAgent?: string;
   }): Promise<AuditLog> {
-    return this.auditDataHelper.create(data);
+    return this.auditDataHelper.create({
+      ...data,
+      userEmail: data.userEmail || '',
+      details: data.details ? JSON.stringify(data.details) : undefined,
+    });
   }
 
   async getAuditLogs(): Promise<AuditLog[]> {

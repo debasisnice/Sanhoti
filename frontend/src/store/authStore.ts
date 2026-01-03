@@ -25,8 +25,8 @@ export const useAuthStore = create<AuthState>()(
           user,
           token,
           isAuthenticated: true,
-          isAdmin: user.role === UserRole.ADMIN || user.userType === 'admin' || user.user_type === 'admin',
-          isMember: user.role === UserRole.MEMBER || user.role === UserRole.ADMIN || user.userType === 'user' || user.userType === 'admin',
+          isAdmin: user.role === UserRole.ADMIN,
+          isMember: user.role === UserRole.MEMBER || user.role === UserRole.ADMIN,
         }),
       logout: () =>
         set({

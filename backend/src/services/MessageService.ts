@@ -29,12 +29,13 @@ export class MessageService {
     user_id?: string;
   }): Promise<Message> {
     return this.messageDataHelper.create({
-      first_name: data.first_name,
-      last_name: data.last_name,
-      email_address: data.email_address,
-      phone_number: data.phone_number,
+      firstName: data.first_name,
+      lastName: data.last_name,
+      email: data.email_address,
+      phone: data.phone_number,
       message: data.message,
-      user_id: data.user_id,
+      userId: data.user_id,
+      read: false,
     });
   }
 

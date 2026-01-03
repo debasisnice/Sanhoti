@@ -243,6 +243,7 @@ export class GalleryController {
       res.json(Array.isArray(photos) ? photos : []);
     } catch (error: any) {
       // Log but don't treat as error - return empty array instead
+      const eventId = req.params.eventId || 'unknown';
       console.log(`No photos found for event ${eventId} (this is normal for empty galleries):`, error.message);
       res.json([]); // Return empty array instead of error
     }

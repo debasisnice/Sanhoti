@@ -32,6 +32,7 @@ export class GalleryService {
       
       for (const event of publicEvents) {
         const folderName = event.photo_gallery_link;
+        if (!folderName) continue;
         const folderPath = join(galleriesDir, folderName);
         
         // Get photos from the folder

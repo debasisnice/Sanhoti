@@ -34,26 +34,6 @@ export class EventDataHelper extends DatabaseHelper {
   }
 
   private sanitizeFolderName(name: string): string {
-    return name
-      .replace(/[^a-zA-Z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
-      .toLowerCase()
-      .trim();
-  }
-
-  private createEventImageFolder(event: Event): string {
-    const folderName = `${this.sanitizeFolderName(event.event_name)}-${event.event_id}`;
-    const folderPath = join(this.eventsFlyersDir, folderName);
-    
-    if (!existsSync(folderPath)) {
-      mkdirSync(folderPath, { recursive: true });
-    }
-    
-    return folderName;
-  }
-
-  private sanitizeFolderName(name: string): string {
     // Replace invalid characters with hyphens
     return name
       .replace(/[<>:"/\\|?*]/g, '-')  // Replace invalid filename characters

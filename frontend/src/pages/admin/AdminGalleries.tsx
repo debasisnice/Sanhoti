@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Folder, Calendar, Eye, EyeOff, Upload, Trash2, X, Image as ImageIcon, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Folder, Calendar, Eye, EyeOff, Upload, Trash2, X, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { eventsAPI, galleriesAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -28,7 +28,7 @@ interface Photo {
 // Component to handle thumbnail image loading with blob URLs
 function ThumbnailImage({ 
   photo, 
-  folder,
+  folder: _folder,
   photoBlobUrls, 
   setPhotoBlobUrls 
 }: { 
@@ -485,38 +485,6 @@ export default function AdminGalleries() {
     }
   };
 
-  const fetchPhotoAsBlob = async (photo: Photo): Promise<string | null> => {
-    try {
-      const imageUrl = photo.thumbnailUrl || photo.url;
-      const fullUrl = imageUrl.startsWith('http') 
-        ? imageUrl 
-        : `http://localhost:5001${imageUrl}`;
-      
-      // Check if blob URL already exists
-      if (photoBlobUrls[photo.id]) {
-        return photoBlobUrls[photo.id];
-      }
-      
-      // Fetch image with auth token
-      const token = localStorage.getItem('token');
-      const response = await fetch(fullUrl, {
-        headers: token ? {
-          'Authorization': `Bearer ${token}`
-        } : {}
-      });
-      
-      if (response.ok) {
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        setPhotoBlobUrls(prev => ({ ...prev, [photo.id]: blobUrl }));
-        return blobUrl;
-      }
-      return null;
-    } catch (error) {
-      console.error(`Error fetching image for photo ${photo.id}:`, error);
-      return null;
-    }
-  };
 
   const fetchPhotos = async (eventId: string) => {
     if (!eventId) return;
@@ -704,25 +672,6 @@ export default function AdminGalleries() {
     }
   };
 
-  const handleDeletePhoto = async (folder: GalleryFolder, filename: string) => {
-    if (!folder.event_id) {
-      toast.error('Cannot delete photo without event ID');
-      return;
-    }
-
-    if (!window.confirm('Are you sure you want to delete this photo?')) {
-      return;
-    }
-
-    try {
-      await galleriesAPI.deletePhoto(folder.event_id, filename);
-      toast.success('Photo deleted successfully');
-      // Refresh photos
-      await fetchPhotos(folder.event_id);
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to delete photo');
-    }
-  };
 
   // Get unique years from folders, sorted descending
   const availableYears = [...new Set(folders.filter(f => f.year).map(f => f.year!))].sort((a, b) => b - a);

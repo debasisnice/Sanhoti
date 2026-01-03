@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, Clock, ArrowLeft } from 'lucide-react';
+import { Calendar, MapPin, ArrowLeft } from 'lucide-react';
 import { eventsAPI } from '../services/api';
 import { Event } from '../types';
 import { format } from 'date-fns';

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Edit, Trash2, Eye, EyeOff, Calendar, X, Image as ImageIcon, Star } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, EyeOff, X, Image as ImageIcon, Star } from 'lucide-react';
 import { eventsAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -560,7 +560,6 @@ export default function AdminEvents() {
                         {event.is_priority && (
                           <Star 
                             className="w-5 h-5 text-yellow-500 fill-yellow-500 flex-shrink-0" 
-                            title="Priority Event"
                           />
                         )}
                       </div>

@@ -28,7 +28,11 @@ export class NoticeService {
     is_active?: boolean;
     is_published?: boolean;
   }): Promise<Notice> {
-    return this.noticeDataHelper.create(data);
+    return this.noticeDataHelper.create({
+      ...data,
+      is_active: data.is_active ?? true,
+      is_published: data.is_published ?? false,
+    });
   }
 
   async updateNotice(noticeId: string, updates: Partial<Omit<Notice, 'notice_id' | 'created_at'>>): Promise<Notice | null> {

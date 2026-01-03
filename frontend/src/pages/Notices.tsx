@@ -45,23 +45,7 @@ export default function Notices() {
       .finally(() => setLoading(false));
   }, []);
 
-  const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return <AlertCircle className="w-5 h-5 text-red-500" />;
-      case 'medium':
-        return <Info className="w-5 h-5 text-yellow-500" />;
-      default:
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'border-red-200 bg-red-50';
-      case 'medium':
-        return 'border-yellow-200 bg-yellow-50';
+  // Priority functions removed - not currently used
       default:
         return 'border-green-200 bg-green-50';
     }

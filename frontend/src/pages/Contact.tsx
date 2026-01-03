@@ -37,10 +37,10 @@ export default function Contact() {
   // Pre-populate form if user is logged in
   useEffect(() => {
     if (isAuthenticated && user) {
-      setValue('firstName', user.firstName || user.first_name || '');
-      setValue('lastName', user.lastName || user.last_name || '');
-      setValue('email', user.email || user.email_address || '');
-      setValue('phone', user.phone || user.phone_number || '');
+      setValue('firstName', user.firstName || '');
+      setValue('lastName', user.lastName || '');
+      setValue('email', user.email || '');
+      setValue('phone', user.phone || '');
     }
   }, [isAuthenticated, user, setValue]);
 
@@ -56,10 +56,10 @@ export default function Contact() {
       });
       toast.success('Your message has been sent successfully!');
       reset({
-        firstName: isAuthenticated && user ? (user.firstName || user.first_name || '') : '',
-        lastName: isAuthenticated && user ? (user.lastName || user.last_name || '') : '',
-        email: isAuthenticated && user ? (user.email || user.email_address || '') : '',
-        phone: isAuthenticated && user ? (user.phone || user.phone_number || '') : '',
+        firstName: isAuthenticated && user ? (user.firstName || '') : '',
+        lastName: isAuthenticated && user ? (user.lastName || '') : '',
+        email: isAuthenticated && user ? (user.email || '') : '',
+        phone: isAuthenticated && user ? (user.phone || '') : '',
         message: '',
       });
     } catch (error: any) {

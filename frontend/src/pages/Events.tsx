@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, Clock, ArrowRight, Star } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, Star } from 'lucide-react';
 import { eventsAPI } from '../services/api';
 import { Event } from '../types';
 import { format } from 'date-fns';
@@ -152,7 +152,6 @@ export default function Events() {
           
           // Determine layout based on image orientation
           const isPortrait = imageOrientation === 'portrait' && eventImage;
-          const isLandscape = imageOrientation === 'landscape' && eventImage;
           
           return (
             <motion.div

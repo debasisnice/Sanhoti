@@ -189,7 +189,7 @@ export default function Navbar() {
                   className="flex items-center space-x-1.5 hover:text-primary-200 transition-colors font-medium whitespace-nowrap px-2.5 py-2 rounded-lg hover:bg-primary-800 text-base"
                 >
                   <User className="w-4 h-4" />
-                  <span>{user.firstName || user.first_name || 'User'}</span>
+                  <span>{user.firstName || 'User'}</span>
                   <ChevronDown className={`w-4 h-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
 
@@ -306,7 +306,7 @@ export default function Navbar() {
                 <>
                   <div className="border-t border-primary-600 pt-4 mt-4">
                     <div className="text-sm font-medium text-primary-200 mb-2">
-                      {user.firstName || user.first_name || 'User'}
+                      {user.firstName || 'User'}
                     </div>
                     <Link
                       to="/dashboard"

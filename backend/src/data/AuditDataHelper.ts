@@ -16,7 +16,7 @@ export class AuditDataHelper extends DatabaseHelper {
   async findByUserId(userId: string): Promise<AuditLog[]> {
     const logs = await this.findAll();
     return logs.filter(l => l.userId === userId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }
 
   async findByResource(resource: string, resourceId?: string): Promise<AuditLog[]> {
@@ -25,15 +25,16 @@ export class AuditDataHelper extends DatabaseHelper {
       if (l.resource !== resource) return false;
       if (resourceId && l.resourceId !== resourceId) return false;
       return true;
-    }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }
 
-  async create(log: Omit<AuditLog, 'id' | 'createdAt'>): Promise<AuditLog> {
+  async create(log: Omit<AuditLog, 'id' | 'timestamp'>): Promise<AuditLog> {
     const logs = await this.findAll();
     const newLog: AuditLog = {
       ...log,
       id: this.generateId(),
-      createdAt: new Date().toISOString(),
+      timestamp: new Date().toISOString(),
+      userEmail: log.userEmail || '',
     };
     logs.push(newLog);
     this.writeFile(this.filename, logs);
@@ -43,7 +44,7 @@ export class AuditDataHelper extends DatabaseHelper {
   async getRecent(limit: number = 100): Promise<AuditLog[]> {
     const logs = await this.findAll();
     return logs
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, limit);
   }
 }

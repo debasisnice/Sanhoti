@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, Edit, Trash2, Eye, EyeOff, Bell, X, Calendar } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, EyeOff, X } from 'lucide-react';
 import { noticesAPI, eventsAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 

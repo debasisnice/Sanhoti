@@ -137,7 +137,7 @@ export default function AdminMessages() {
                       {message.message}
                     </p>
                     <p className="text-xs text-gray-400 mt-2">
-                      {formatDate(message.createdAt || message.created_at)}
+                      {formatDate(message.createdAt)}
                     </p>
                   </motion.div>
                 ))}
