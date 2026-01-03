@@ -30,61 +30,67 @@ jobs:
           EC2_USER: ${{ secrets.EC2_USER }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=~/.ssh/known_hosts ${EC2_USER}@${EC2_HOST} << 'EOF'
-            set -e
-            
-            echo "🚀 Starting deployment..."
-            
-            APP_DIR="/var/www/sanhoti"
-            BACKEND_DIR="$APP_DIR/backend"
-            FRONTEND_DIR="$APP_DIR/frontend"
-            
-            # Navigate to app directory
-            cd "$APP_DIR"
-            
-            # Pull latest changes
-            echo "📥 Pulling latest changes from Git..."
-            git pull origin main || git pull origin master || true
-            
-            # Build backend
-            echo "🔨 Building backend..."
+          cat > /tmp/deploy.sh << 'DEPLOY_SCRIPT'
+          #!/bin/bash
+          set -e
+          
+          echo "🚀 Starting deployment..."
+          
+          APP_DIR="/var/www/sanhoti"
+          BACKEND_DIR="$APP_DIR/backend"
+          FRONTEND_DIR="$APP_DIR/frontend"
+          
+          # Navigate to app directory
+          cd "$APP_DIR"
+          
+          # Pull latest changes
+          echo "📥 Pulling latest changes from Git..."
+          git pull origin main || git pull origin master || true
+          
+          # Build backend
+          echo "🔨 Building backend..."
+          cd "$BACKEND_DIR"
+          npm ci --production=false
+          npm run build
+          
+          # Build frontend
+          echo "🎨 Building frontend..."
+          cd "$FRONTEND_DIR"
+          npm ci --production=false
+          npm run build
+          
+          # Restart backend with PM2
+          echo "🔄 Restarting backend..."
+          if pm2 list | grep -q "sanhoti-backend"; then
+            pm2 restart sanhoti-backend
+          else
             cd "$BACKEND_DIR"
-            npm ci --production=false
-            npm run build
-            
-            # Build frontend
-            echo "🎨 Building frontend..."
-            cd "$FRONTEND_DIR"
-            npm ci --production=false
-            npm run build
-            
-            # Restart backend with PM2
-            echo "🔄 Restarting backend..."
-            if pm2 list | grep -q "sanhoti-backend"; then
-              pm2 restart sanhoti-backend
-            else
-              cd "$BACKEND_DIR"
-              pm2 start dist/server.js --name sanhoti-backend
-              pm2 save
-            fi
-            
-            # Reload Nginx
-            echo "🔄 Reloading Nginx..."
-            sudo systemctl reload nginx || true
-            
-            # Check PM2 status
-            echo "📊 PM2 Status:"
-            pm2 status
-            
-            echo "✅ Deployment completed successfully!"
-          EOF
+            pm2 start dist/server.js --name sanhoti-backend
+            pm2 save
+          fi
+          
+          # Reload Nginx
+          echo "🔄 Reloading Nginx..."
+          sudo systemctl reload nginx || true
+          
+          # Check PM2 status
+          echo "📊 PM2 Status:"
+          pm2 status
+          
+          echo "✅ Deployment completed successfully!"
+          DEPLOY_SCRIPT
+          
+          chmod +x /tmp/deploy.sh
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no /tmp/deploy.sh ${EC2_USER}@${EC2_HOST}:/tmp/deploy.sh
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} 'bash /tmp/deploy.sh'
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} 'rm -f /tmp/deploy.sh'
 
       - name: Verify deployment
         env:
           EC2_USER: ${{ secrets.EC2_USER }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=~/.ssh/known_hosts ${EC2_USER}@${EC2_HOST} << 'EOF'
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} 'bash -s' << 'VERIFY_SCRIPT'
             echo "🔍 Verifying deployment..."
             
             # Check if backend is running
@@ -103,7 +109,7 @@ jobs:
             fi
             
             echo "✅ Verification completed"
-          EOF
+          VERIFY_SCRIPT
 
       - name: Cleanup
         if: always()
