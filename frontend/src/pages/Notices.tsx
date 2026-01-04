@@ -45,12 +45,6 @@ export default function Notices() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Priority functions removed - not currently used
-      default:
-        return 'border-green-200 bg-green-50';
-    }
-  };
-
   return (
     <div className="py-12 pb-32">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -99,7 +93,7 @@ export default function Notices() {
                       <h3 className="text-2xl font-bold text-gray-900">{noticeName}</h3>
                     </div>
                     <div className="text-sm text-gray-500">
-                      Posted on {format(new Date(createdAt), 'MMMM dd, yyyy')}
+                      Posted on {createdAt ? format(new Date(createdAt), 'MMMM dd, yyyy') : ''}
                     </div>
                   </div>
                   <div className="prose max-w-none mb-4">
