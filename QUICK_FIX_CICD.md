@@ -122,3 +122,4 @@ Tell me the exact error message from GitHub Actions, and I can help you fix it!
 Common locations:
 - GitHub Actions → Latest run → Click on "Deploy to EC2" step
 
+

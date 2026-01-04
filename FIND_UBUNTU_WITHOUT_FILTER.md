@@ -134,3 +134,4 @@ OR
 
 **The Quick Start method is usually the easiest and safest way to find free tier eligible Ubuntu AMIs!**
 
+

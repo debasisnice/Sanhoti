@@ -64,3 +64,4 @@ export class GalleryDataHelper extends DatabaseHelper {
   }
 }
 
+

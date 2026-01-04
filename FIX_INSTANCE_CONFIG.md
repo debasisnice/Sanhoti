@@ -81,3 +81,4 @@ For your application, `t2.micro` is perfectly fine!
 
 **The main issue: Change from `t3.micro` to `t2.micro`!**
 
+

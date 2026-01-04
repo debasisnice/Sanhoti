@@ -124,3 +124,4 @@ echo "   ssh -i ${EC2_KEY} ${EC2_USER}@${EC2_HOST}"
 echo "   pm2 logs sanhoti-backend"
 echo ""
 
+

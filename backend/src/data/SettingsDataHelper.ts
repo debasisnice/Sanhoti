@@ -49,3 +49,4 @@ export class SettingsDataHelper extends DatabaseHelper {
   }
 }
 
+

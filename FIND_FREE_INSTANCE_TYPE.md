@@ -168,3 +168,4 @@ If after switching to US East (N. Virginia) you still don't see free tier:
 
 **The region is almost always the issue! Switch to US East (N. Virginia) first!**
 
+

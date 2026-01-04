@@ -275,3 +275,4 @@ If you encounter any issues:
 3. Ensure all dependencies are installed
 4. Check that ports 5000 and 3000 are available
 
+

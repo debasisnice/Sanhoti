@@ -280,3 +280,4 @@ ls -la /var/www/sanhoti/frontend/dist
 
 **That's it! Your application should now be deployed manually.**
 
+
