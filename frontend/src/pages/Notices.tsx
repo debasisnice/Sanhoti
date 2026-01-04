@@ -107,9 +107,9 @@ export default function Notices() {
                       return (
                         <div className={`mb-4 grid ${gridCols} gap-6`}>
                           {images.map((image, imgIndex) => {
-                            const imageUrl = image.url.startsWith('http') 
-                              ? image.url 
-                              : `http://localhost:5001${image.url}`;
+                            // Backend returns URLs like "/api/notices/{id}/images/{filename}"
+                            // These relative URLs will work correctly with nginx proxy
+                            const imageUrl = image.url;
                             console.log(`Rendering image ${imgIndex + 1} for notice ${noticeId}:`, imageUrl);
                             return (
                               <div key={imgIndex} className="w-full overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow">
