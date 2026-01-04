@@ -59,6 +59,18 @@ export class EventDataHelper extends DatabaseHelper {
     return folderPath;
   }
 
+  private createEventImageFolder(event: Event): string {
+    const folderName = `${this.sanitizeFolderName(event.event_name)}-${event.event_id}`;
+    const folderPath = join(this.eventsFlyersDir, folderName);
+    
+    if (!existsSync(folderPath)) {
+      mkdirSync(folderPath, { recursive: true });
+      console.log(`Created event image folder: ${folderPath}`);
+    }
+    
+    return folderName;
+  }
+
   async findAll(): Promise<Event[]> {
     const events = this.readFile<Event>(this.filename);
     console.log(`EventDataHelper.findAll(): Returning ${events.length} events (${events.filter(e => e.is_active === false).length} inactive)`);

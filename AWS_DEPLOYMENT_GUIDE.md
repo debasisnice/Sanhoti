@@ -90,8 +90,8 @@ Complete guide to deploy your Sanhoti Bengali Community website on AWS EC2 free 
 
 ### 1.4 Get Your Instance Details
 1. Go to **Instances** → Select your instance
-2. Note the **Public IPv4 address** (e.g., `54.123.45.67`)
-3. Note the **Public IPv4 DNS** (e.g., `ec2-54-123-45-67.compute-1.amazonaws.com`)
+2. Note the **Public IPv4 address** (e.g., `44.220.179.207`)
+3. Note the **Public IPv4 DNS** (e.g., `ec2-44-220-179-207.compute-1.amazonaws.com`)
 
 ---
 

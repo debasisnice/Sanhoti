@@ -159,7 +159,7 @@ export default function AdminEvents() {
       event_end_dt: event.event_end_dt.split('T')[0],
       year: event.year,
       event_description: event.event_description,
-      location: event.location || '',
+      location: (event as any).location || '',
       is_priority: event.is_priority || false,
     });
     
@@ -577,7 +577,7 @@ export default function AdminEvents() {
                       {event.year}
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-500 align-top break-words">
-                      {event.location || '-'}
+                      {(event as any).location || '-'}
                     </td>
                     <td className="px-4 py-4 align-top">
                       <span

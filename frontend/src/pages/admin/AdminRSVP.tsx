@@ -15,7 +15,7 @@ interface EventRSVPData {
 }
 
 export default function AdminRSVP() {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [, setEvents] = useState<Event[]>([]);
   const [eventRSVPData, setEventRSVPData] = useState<EventRSVPData[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());

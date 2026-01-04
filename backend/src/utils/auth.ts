@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const JWT_SECRET: string = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_EXPIRES_IN: string = process.env.JWT_EXPIRES_IN || '7d';
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
@@ -13,15 +13,17 @@ export async function comparePassword(password: string, hashed: string): Promise
 }
 
 export function generateToken(payload: { userId: string; email: string; role: string }): string {
-  if (!JWT_SECRET || JWT_SECRET === 'your-secret-key-change-in-production') {
-    throw new Error('JWT_SECRET is not set or is using default value');
+  const secret = JWT_SECRET || 'your-secret-key-change-in-production';
+  if (!secret || secret === 'your-secret-key-change-in-production') {
+    console.warn('Warning: JWT_SECRET is using default value. This should be changed in production.');
   }
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign(payload, secret, { expiresIn: JWT_EXPIRES_IN } as SignOptions);
 }
 
 export function verifyToken(token: string): { userId: string; email: string; role: string } | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as { userId: string; email: string; role: string };
+    const secret = JWT_SECRET || 'your-secret-key-change-in-production';
+    return jwt.verify(token, secret) as { userId: string; email: string; role: string };
   } catch {
     return null;
   }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, AlertCircle, Info, CheckCircle } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { noticesAPI } from '../services/api';
 import { Notice } from '../types';
 import { format } from 'date-fns';
