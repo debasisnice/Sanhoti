@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import { GalleryService } from '../services/GalleryService.js';
 import multer from 'multer';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { existsSync, mkdirSync } from 'fs';
@@ -399,7 +399,9 @@ export class GalleryController {
       
       res.setHeader('Content-Type', contentType);
       res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
-      res.sendFile(filePath);
+      // sendFile requires an absolute path
+      const absolutePath = resolve(filePath);
+      res.sendFile(absolutePath);
     } catch (error: any) {
       console.error('Error in servePhoto:', error);
       res.status(500).json({ error: 'Failed to serve photo', details: error.message });

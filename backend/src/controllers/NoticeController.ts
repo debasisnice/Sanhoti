@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import { NoticeService } from '../services/NoticeService.js';
 import multer from 'multer';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { existsSync, mkdirSync, renameSync, unlinkSync, readdirSync, statSync } from 'fs';
@@ -323,7 +323,9 @@ export class NoticeController {
       const contentType = contentTypeMap[ext || ''] || 'image/jpeg';
       res.setHeader('Content-Type', contentType);
       
-      res.sendFile(imagePath);
+      // sendFile requires an absolute path
+      const absolutePath = resolve(imagePath);
+      res.sendFile(absolutePath);
     } catch (error) {
       res.status(500).json({ error: 'Failed to retrieve image' });
     }

@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import { EventService } from '../services/EventService.js';
 import multer from 'multer';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { existsSync, mkdirSync, renameSync, unlinkSync, readdirSync, statSync } from 'fs';
@@ -374,7 +374,9 @@ export class EventController {
       };
       const contentType = contentTypeMap[ext || ''] || 'image/jpeg';
 
-      res.sendFile(imagePath, {
+      // sendFile requires an absolute path
+      const absolutePath = resolve(imagePath);
+      res.sendFile(absolutePath, {
         headers: {
           'Content-Type': contentType,
         },
