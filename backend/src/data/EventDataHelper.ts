@@ -236,43 +236,92 @@ export class EventDataHelper extends DatabaseHelper {
   }
 
   // List all gallery folders with event data
+  // This method now returns ALL events, creating missing folders automatically
   async listGalleryFolders(): Promise<Array<{ folderName: string; folderPath: string; event_id?: string; event_name?: string; year?: number; gallery_is_public?: boolean; is_active?: boolean; event_start_dt?: string }>> {
     const folders: Array<{ folderName: string; folderPath: string; event_id?: string; event_name?: string; year?: number; gallery_is_public?: boolean; is_active?: boolean; event_start_dt?: string }> = [];
     
-    if (!existsSync(this.galleriesDir)) {
-      console.warn(`Gallery directory does not exist: ${this.galleriesDir}`);
-      return folders;
-    }
+    // Ensure galleries directory exists
+    this.ensureGalleriesDir();
 
-    // Get all events to match with folders
+    // Get all events
     const events = await this.findAll();
     const eventsMap = new Map(events.map(e => [e.event_id, e]));
+    const processedEventIds = new Set<string>();
 
-    const entries = readdirSync(this.galleriesDir, { withFileTypes: true });
+    // First, process existing folders in the file system
+    if (existsSync(this.galleriesDir)) {
+      const entries = readdirSync(this.galleriesDir, { withFileTypes: true });
 
-    for (const entry of entries) {
-      if (entry.isDirectory()) {
-        const folderPath = join(this.galleriesDir, entry.name);
-        // Parse folder name: event_name-year-event_id
-        const parts = entry.name.match(/^(.+)-(\d{4})-(.+)$/);
-        if (parts) {
-          const event_id = parts[3];
-          const event = eventsMap.get(event_id);
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          const folderPath = join(this.galleriesDir, entry.name);
+          // Parse folder name: event_name-year-event_id
+          const parts = entry.name.match(/^(.+)-(\d{4})-(.+)$/);
+          if (parts) {
+            const event_id = parts[3];
+            const event = eventsMap.get(event_id);
+            if (event) {
+              processedEventIds.add(event_id);
+              folders.push({
+                folderName: entry.name,
+                folderPath,
+                event_name: parts[1].replace(/-/g, ' '),
+                year: parseInt(parts[2]),
+                event_id: event_id,
+                gallery_is_public: event.gallery_is_public ?? false,
+                is_active: event.is_active ?? false,
+                event_start_dt: event.event_start_dt,
+              });
+            }
+          } else {
+            // For folders that don't match the pattern, just include the name
+            folders.push({
+              folderName: entry.name,
+              folderPath,
+            });
+          }
+        }
+      }
+    }
+
+    // Second, create folders for events that don't have one yet
+    for (const event of events) {
+      if (!processedEventIds.has(event.event_id)) {
+        try {
+          // Create the folder if it doesn't exist
+          const folderPath = this.createEventGalleryFolder(event);
+          const folderName = `${this.sanitizeFolderName(event.event_name)}-${event.year}-${event.event_id}`;
+          
+          // Set photo_gallery_link if not already set
+          if (!event.photo_gallery_link) {
+            event.photo_gallery_link = folderName;
+            // Update the event in the database
+            await this.update(event.event_id, { photo_gallery_link: folderName });
+          }
+          
           folders.push({
-            folderName: entry.name,
+            folderName,
             folderPath,
-            event_name: parts[1].replace(/-/g, ' '),
-            year: parseInt(parts[2]),
-            event_id: event_id,
-            gallery_is_public: event?.gallery_is_public ?? false,
-            is_active: event?.is_active ?? false,
-            event_start_dt: event?.event_start_dt,
+            event_name: event.event_name,
+            year: event.year,
+            event_id: event.event_id,
+            gallery_is_public: event.gallery_is_public ?? false,
+            is_active: event.is_active ?? false,
+            event_start_dt: event.event_start_dt,
           });
-        } else {
-          // For folders that don't match the pattern, just include the name
+        } catch (error) {
+          console.error(`Failed to create folder for event ${event.event_id}:`, error);
+          // Still add the event to the list even if folder creation failed
+          const folderName = event.photo_gallery_link || `${this.sanitizeFolderName(event.event_name)}-${event.year}-${event.event_id}`;
           folders.push({
-            folderName: entry.name,
-            folderPath,
+            folderName,
+            folderPath: join(this.galleriesDir, folderName),
+            event_name: event.event_name,
+            year: event.year,
+            event_id: event.event_id,
+            gallery_is_public: event.gallery_is_public ?? false,
+            is_active: event.is_active ?? false,
+            event_start_dt: event.event_start_dt,
           });
         }
       }
