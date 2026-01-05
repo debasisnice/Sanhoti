@@ -151,13 +151,16 @@ export default function Events() {
     // This places past events on the left side of the carousel
     const chronological = [...pastEvents, ...upcomingEvents];
     
+    // Reverse the sequence so the carousel flows in opposite direction
+    const reversed = [...chronological].reverse();
+    
     // Find priority event
-    const priority = chronological.find(e => e.is_priority === true);
+    const priority = reversed.find(e => e.is_priority === true);
     
     // If priority event exists, rotate the array so priority is at index 0
-    // This maintains the chronological order while ensuring priority is at front
+    // This maintains the reversed chronological order while ensuring priority is at front
     if (priority) {
-      const priorityIndex = chronological.findIndex(e => {
+      const priorityIndex = reversed.findIndex(e => {
         const eventId = e.event_id || e.id;
         const priorityId = priority.event_id || priority.id;
         return eventId === priorityId;
@@ -165,13 +168,13 @@ export default function Events() {
       
       if (priorityIndex !== -1 && priorityIndex !== 0) {
         // Rotate array: move everything after priority to the end, then priority, then everything before priority
-        const beforePriority = chronological.slice(0, priorityIndex);
-        const afterPriority = chronological.slice(priorityIndex + 1);
+        const beforePriority = reversed.slice(0, priorityIndex);
+        const afterPriority = reversed.slice(priorityIndex + 1);
         return [priority, ...afterPriority, ...beforePriority];
       }
     }
     
-    return chronological;
+    return reversed;
   })();
 
   // Get visible cards - show one card in front, with side cards for smooth scrolling effect
