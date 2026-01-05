@@ -162,8 +162,8 @@ export default function Sponsors() {
                           : 'shadow-lg'
                       }`}
                       style={{
-                        width: (card.position === 0 || card.position === 1) ? '280px' : '200px',
-                        height: (card.position === 0 || card.position === 1) ? '320px' : '240px',
+                        width: card.position === 0 ? '280px' : '200px',
+                        height: card.position === 0 ? '320px' : '240px',
                       }}
                     >
                       <div className="w-full h-full bg-gray-50 relative overflow-hidden">

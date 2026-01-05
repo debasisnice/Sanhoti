@@ -489,8 +489,8 @@ export default function Events() {
                               : 'shadow-lg'
                           }`}
                           style={{
-                            width: (card.position === 0 || card.position === 1) ? '240px' : '180px',
-                            height: (card.position === 0 || card.position === 1) ? '300px' : '220px',
+                            width: card.position === 0 ? '240px' : '180px',
+                            height: card.position === 0 ? '300px' : '220px',
                           }}
                         >
                           {/* Event Image */}
