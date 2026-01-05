@@ -7,13 +7,14 @@ import toast from 'react-hot-toast';
 
 interface Message {
   id: string;
-  first_name: string;
-  last_name: string;
-  email_address: string;
-  phone_number?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
   message: string;
+  userId?: string;
+  read: boolean;
   createdAt: string;
-  updatedAt: string;
 }
 
 export default function AdminMessages() {
@@ -31,7 +32,7 @@ export default function AdminMessages() {
       const allMessages = await messagesAPI.getAll();
       // Sort by date descending (newest first)
       const sorted = allMessages.sort((a, b) => 
-        convertPSTToLocal(b.createdAt || b.created_at).getTime() - convertPSTToLocal(a.createdAt || a.created_at).getTime()
+        convertPSTToLocal(b.createdAt).getTime() - convertPSTToLocal(a.createdAt).getTime()
       );
       setMessages(sorted);
     } catch (error: any) {
@@ -119,9 +120,9 @@ export default function AdminMessages() {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-gray-900 truncate">
-                          {message.first_name} {message.last_name}
+                          {message.firstName} {message.lastName}
                         </h3>
-                        <p className="text-sm text-gray-500 truncate">{message.email_address}</p>
+                        <p className="text-sm text-gray-500 truncate">{message.email}</p>
                       </div>
                       <button
                         onClick={(e) => {
@@ -138,7 +139,7 @@ export default function AdminMessages() {
                       {message.message}
                     </p>
                     <p className="text-xs text-gray-400 mt-2">
-                      {formatDate(message.createdAt || message.created_at)}
+                      {formatDate(message.createdAt)}
                     </p>
                   </motion.div>
                 ))}
@@ -175,7 +176,7 @@ export default function AdminMessages() {
                         <div>
                           <p className="text-sm text-gray-500">Name</p>
                           <p className="font-medium text-gray-900">
-                            {selectedMessage.first_name} {selectedMessage.last_name}
+                            {selectedMessage.firstName} {selectedMessage.lastName}
                           </p>
                         </div>
                       </div>
@@ -184,23 +185,23 @@ export default function AdminMessages() {
                         <div>
                           <p className="text-sm text-gray-500">Email</p>
                           <a
-                            href={`mailto:${selectedMessage.email_address}`}
+                            href={`mailto:${selectedMessage.email}`}
                             className="font-medium text-primary-600 hover:text-primary-700"
                           >
-                            {selectedMessage.email_address}
+                            {selectedMessage.email}
                           </a>
                         </div>
                       </div>
-                      {selectedMessage.phone_number && (
+                      {selectedMessage.phone && (
                         <div className="flex items-start space-x-3">
                           <Phone className="w-5 h-5 text-gray-400 mt-1" />
                           <div>
                             <p className="text-sm text-gray-500">Phone</p>
                             <a
-                              href={`tel:${selectedMessage.phone_number}`}
+                              href={`tel:${selectedMessage.phone}`}
                               className="font-medium text-gray-900"
                             >
-                              {selectedMessage.phone_number}
+                              {selectedMessage.phone}
                             </a>
                           </div>
                         </div>
@@ -210,7 +211,7 @@ export default function AdminMessages() {
                         <div>
                           <p className="text-sm text-gray-500">Date</p>
                           <p className="font-medium text-gray-900">
-                            {formatDate(selectedMessage.createdAt || selectedMessage.created_at)}
+                            {formatDate(selectedMessage.createdAt)}
                           </p>
                         </div>
                       </div>
@@ -231,7 +232,7 @@ export default function AdminMessages() {
                   {/* Actions */}
                   <div className="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200">
                     <a
-                      href={`mailto:${selectedMessage.email_address}?subject=Re: Your Message from Sanhoti Website`}
+                      href={`mailto:${selectedMessage.email}?subject=Re: Your Message from Sanhoti Website`}
                       className="flex items-center space-x-2 bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
                     >
                       <Mail className="w-4 h-4" />
