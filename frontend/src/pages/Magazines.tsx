@@ -5,9 +5,14 @@ import { magazinesAPI } from '../services/api';
 import { Magazine } from '../types';
 import { format } from 'date-fns';
 import PDFThumbnail from '../components/PDFThumbnail';
-import { Document, Page } from 'react-pdf';
+import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
+
+// Set up the PDF.js worker - use local worker file for better reliability
+if (typeof window !== 'undefined') {
+  pdfjs.GlobalWorkerOptions.workerSrc = '/pdfjs/pdf.worker.min.mjs';
+}
 
 export default function Magazines() {
   const [magazines, setMagazines] = useState<Magazine[]>([]);
@@ -174,7 +179,6 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
             <Document
               file={pdfUrl}
               onLoadSuccess={({ numPages }) => {
-                console.log('PDF loaded successfully, numPages:', numPages);
                 setNumPages(numPages);
                 setPdfLoading(false);
                 setPdfError(null);
@@ -187,7 +191,6 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                 }, 200);
               }}
               onLoadError={(error) => {
-                console.error('PDF load error:', error);
                 setPdfError('Failed to load PDF');
                 setPdfLoading(false);
               }}
