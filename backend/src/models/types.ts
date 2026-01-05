@@ -203,5 +203,7 @@ export interface Settings {
   zellePhoneNumber?: string;
   facebookLink?: string;
   whatsappLink?: string;
+  emailAddress?: string;
+  emailPassword?: string;
   updated_at: string;
 }

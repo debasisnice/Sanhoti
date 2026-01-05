@@ -72,6 +72,38 @@ export class SettingsController {
       res.status(500).json({ error: 'Failed to update social links', details: error.message });
     }
   }
+
+  async updateEmailSettings(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { emailAddress, emailPassword } = req.body;
+      
+      if (emailAddress !== undefined && typeof emailAddress !== 'string') {
+        res.status(400).json({ error: 'Invalid email address' });
+        return;
+      }
+      
+      if (emailPassword !== undefined && typeof emailPassword !== 'string') {
+        res.status(400).json({ error: 'Invalid email password' });
+        return;
+      }
+
+      const settings = await this.settingsService.updateEmailSettings(emailAddress, emailPassword);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error updating email settings:', error);
+      res.status(500).json({ error: 'Failed to update email settings', details: error.message });
+    }
+  }
+
+  async getEmailSettings(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const emailSettings = await this.settingsService.getEmailSettings();
+      res.json(emailSettings);
+    } catch (error: any) {
+      console.error('Error fetching email settings:', error);
+      res.status(500).json({ error: 'Failed to fetch email settings', details: error.message });
+    }
+  }
 }
 
 

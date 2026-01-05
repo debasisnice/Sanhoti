@@ -2028,5 +2028,16 @@
     "userEmail": "",
     "id": "1767644076551-x22sy4emb",
     "timestamp": "2026-01-05T20:14:36.551Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "social_links",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/social-links\",\"body\":{\"facebookLink\":\"https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr\",\"whatsappLink\":\"https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767645247121-0skt28nii",
+    "timestamp": "2026-01-05T20:34:07.121Z"
   }
 ]

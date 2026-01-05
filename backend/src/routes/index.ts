@@ -488,6 +488,15 @@ router.put('/settings/social-links',
   auditLog('UPDATE', 'social_links'),
   bindController(settingsController, 'updateSocialLinks')
 );
+router.put('/settings/email',
+  requireAdmin,
+  auditLog('UPDATE', 'email_settings'),
+  bindController(settingsController, 'updateEmailSettings')
+);
+router.get('/settings/email',
+  requireAdmin,
+  bindController(settingsController, 'getEmailSettings')
+);
 
 export default router;
 

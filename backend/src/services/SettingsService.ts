@@ -28,6 +28,18 @@ export class SettingsService {
   async updateSocialLinks(facebookLink?: string, whatsappLink?: string): Promise<Settings> {
     return this.settingsDataHelper.updateSocialLinks(facebookLink, whatsappLink);
   }
+
+  async updateEmailSettings(emailAddress?: string, emailPassword?: string): Promise<Settings> {
+    return this.settingsDataHelper.updateEmailSettings(emailAddress, emailPassword);
+  }
+
+  async getEmailSettings(): Promise<{ emailAddress?: string; emailPassword?: string }> {
+    const settings = await this.settingsDataHelper.get();
+    return {
+      emailAddress: settings?.emailAddress,
+      emailPassword: settings?.emailPassword,
+    };
+  }
 }
 
 

@@ -77,13 +77,58 @@ export class EmailController {
       );
 
       await this.emailService.sendToAllMembers(
-        `Upcoming Event: ${event.title}`,
+        `Upcoming Event: ${event.title || event.event_name}`,
         html
       );
 
       res.json({ message: 'Event notification sent successfully to all members' });
     } catch (error) {
       res.status(500).json({ error: 'Failed to send event notification' });
+    }
+  }
+
+  async testEmail(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { to } = req.body;
+      
+      if (!to || typeof to !== 'string') {
+        res.status(400).json({ error: 'Recipient email address is required' });
+        return;
+      }
+
+      // Refresh transporter to use latest settings
+      await this.emailService.refreshTransporter();
+
+      const testHtml = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+              .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Email Test</h1>
+              </div>
+              <div class="content">
+                <p>This is a test email from Sanhoti Bengali Association of Orange County.</p>
+                <p>If you received this email, your email configuration is working correctly!</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      await this.emailService.sendEmail(to, 'Test Email from Sanhoti', testHtml);
+      res.json({ message: 'Test email sent successfully' });
+    } catch (error: any) {
+      console.error('Test email failed:', error);
+      res.status(500).json({ error: 'Failed to send test email', details: error.message });
     }
   }
 }

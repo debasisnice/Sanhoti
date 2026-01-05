@@ -547,6 +547,38 @@ export const settingsAPI = {
     const response = await api.put('/settings/social-links', { facebookLink, whatsappLink });
     return response.data;
   },
+  updateEmailSettings: async (emailAddress: string, emailPassword: string): Promise<any> => {
+    const response = await api.put('/settings/email', { emailAddress, emailPassword });
+    return response.data;
+  },
+  getEmailSettings: async (): Promise<any> => {
+    const response = await api.get('/settings/email');
+    return response.data;
+  },
+};
+
+// Email API
+export const emailAPI = {
+  sendToMembers: async (subject: string, html: string): Promise<any> => {
+    const response = await api.post('/email/members', { subject, html });
+    return response.data;
+  },
+  sendToAdmins: async (subject: string, html: string): Promise<any> => {
+    const response = await api.post('/email/admins', { subject, html });
+    return response.data;
+  },
+  sendToOrganizations: async (organizations: string[], subject: string, html: string): Promise<any> => {
+    const response = await api.post('/email/organizations', { organizations, subject, html });
+    return response.data;
+  },
+  sendEventNotification: async (eventId: string): Promise<any> => {
+    const response = await api.post(`/email/events/${eventId}/notify`);
+    return response.data;
+  },
+  testEmail: async (to: string): Promise<any> => {
+    const response = await api.post('/email/test', { to });
+    return response.data;
+  },
 };
 
 // Users API

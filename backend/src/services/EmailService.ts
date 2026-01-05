@@ -1,27 +1,66 @@
 import nodemailer from 'nodemailer';
 import { UserDataHelper } from '../data/UserDataHelper.js';
+import { SettingsDataHelper } from '../data/SettingsDataHelper.js';
 
 export class EmailService {
-  private transporter: nodemailer.Transporter;
+  private transporter: nodemailer.Transporter | null = null;
   private userDataHelper: UserDataHelper;
+  private settingsDataHelper: SettingsDataHelper;
 
   constructor() {
     this.userDataHelper = new UserDataHelper();
-    this.transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.EMAIL_PORT || '587'),
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    this.settingsDataHelper = new SettingsDataHelper();
+    this.initializeTransporter();
+  }
+
+  private async initializeTransporter(): Promise<void> {
+    try {
+      const settings = await this.settingsDataHelper.get();
+      const emailAddress = settings?.emailAddress || process.env.EMAIL_USER;
+      const emailPassword = settings?.emailPassword || process.env.EMAIL_PASS;
+
+      if (!emailAddress || !emailPassword) {
+        console.warn('Email credentials not configured. Email functionality will not work.');
+        return;
+      }
+
+      this.transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.EMAIL_PORT || '587'),
+        secure: false,
+        auth: {
+          user: emailAddress,
+          pass: emailPassword,
+        },
+      });
+    } catch (error) {
+      console.error('Failed to initialize email transporter:', error);
+    }
+  }
+
+  async refreshTransporter(): Promise<void> {
+    await this.initializeTransporter();
   }
 
   async sendEmail(to: string, subject: string, html: string): Promise<void> {
+    if (!this.transporter) {
+      await this.initializeTransporter();
+    }
+
+    if (!this.transporter) {
+      throw new Error('Email transporter not initialized. Please configure email settings.');
+    }
+
     try {
+      const settings = await this.settingsDataHelper.get();
+      const emailAddress = settings?.emailAddress || process.env.EMAIL_USER;
+      
+      if (!emailAddress) {
+        throw new Error('Email address not configured');
+      }
+
       await this.transporter.sendMail({
-        from: process.env.EMAIL_USER,
+        from: emailAddress,
         to,
         subject,
         html,
