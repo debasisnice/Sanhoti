@@ -103,7 +103,6 @@ export default function Dashboard() {
                   const event = rsvp.event;
                   const eventName = event?.event_name || event?.title || 'Event';
                   const eventDate = event?.event_start_dt || event?.date || '';
-                  const totalGuests = (rsvp.numberOfAdults || 0) + (rsvp.numberOfChildren || 0);
                   const guestsText = rsvp.numberOfAdults && rsvp.numberOfChildren
                     ? `${rsvp.numberOfAdults} adult${rsvp.numberOfAdults > 1 ? 's' : ''}, ${rsvp.numberOfChildren} child${rsvp.numberOfChildren > 1 ? 'ren' : ''}`
                     : rsvp.numberOfAdults

@@ -5,7 +5,7 @@ import { magazinesAPI } from '../services/api';
 import { Magazine } from '../types';
 import { format } from 'date-fns';
 import PDFThumbnail from '../components/PDFThumbnail';
-import { Document, Page, pdfjs } from 'react-pdf';
+import { Document, Page } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -201,7 +201,7 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                 </div>
               ) : !pdfLoading && numPages && numPages > 0 ? (
                 <div className="flex flex-col items-center space-y-4">
-                  {Array.from(new Array(numPages), (el, index) => (
+                  {Array.from(new Array(numPages), (_el, index) => (
                     <div key={`page_${index + 1}`} className="bg-white shadow-lg">
                       <Page
                         pageNumber={index + 1}

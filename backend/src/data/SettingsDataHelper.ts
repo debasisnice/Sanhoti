@@ -61,6 +61,8 @@ export class SettingsDataHelper extends DatabaseHelper {
         magazines: true,
         contactUs: true,
         committee: true,
+        donate: true,
+        joinUs: true,
       },
       updated_at: new Date().toISOString(),
     };

@@ -17,7 +17,7 @@ interface PDFThumbnailProps {
   className?: string;
 }
 
-export default function PDFThumbnail({ fileUrl, alt, className = '' }: PDFThumbnailProps) {
+export default function PDFThumbnail({ fileUrl, alt: _alt, className = '' }: PDFThumbnailProps) {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
