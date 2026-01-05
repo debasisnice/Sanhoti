@@ -772,9 +772,12 @@ export default function Events() {
                                   onClick={handleMonthClick}
                                 >
                                   <div className="w-2.5 h-2.5 bg-primary-400 rounded-full border-2 border-white shadow-md group-hover:bg-primary-500 transition-colors"></div>
-                                  <div className="mt-1.5 text-center whitespace-nowrap">
-                                    <p className="text-xs font-medium text-gray-600 group-hover:text-primary-600 transition-colors">
-                                      {format(monthData.date, 'MMM yyyy')}
+                                  <div className="mt-1.5 text-center">
+                                    <p className="text-xs font-medium text-gray-600 group-hover:text-primary-600 transition-colors hidden md:block">
+                                      {format(monthData.date, 'MMM')}
+                                    </p>
+                                    <p className="text-xs font-medium text-gray-600 group-hover:text-primary-600 transition-colors md:hidden" style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}>
+                                      {format(monthData.date, 'MMM')}
                                     </p>
                               </div>
                                 </div>
