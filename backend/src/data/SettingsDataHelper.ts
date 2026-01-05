@@ -66,6 +66,23 @@ export class SettingsDataHelper extends DatabaseHelper {
     return updated;
   }
 
+  async updateSocialLinks(facebookLink?: string, whatsappLink?: string): Promise<Settings> {
+    let current = await this.get();
+    if (!current) {
+      current = this.getDefaultSettings();
+    }
+
+    const updated: Settings = {
+      ...current,
+      facebookLink: facebookLink !== undefined ? facebookLink : current.facebookLink,
+      whatsappLink: whatsappLink !== undefined ? whatsappLink : current.whatsappLink,
+      updated_at: new Date().toISOString(),
+    };
+
+    this.writeFile(this.filename, [updated]);
+    return updated;
+  }
+
   private getDefaultSettings(): Settings {
     return {
       navbar: {
@@ -80,6 +97,8 @@ export class SettingsDataHelper extends DatabaseHelper {
         donate: true,
         joinUs: true,
       },
+      facebookLink: 'https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr',
+      whatsappLink: 'https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH',
       updated_at: new Date().toISOString(),
     };
   }

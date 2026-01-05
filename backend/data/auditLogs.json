@@ -2005,5 +2005,28 @@
     "userEmail": "",
     "id": "1767634334945-ythc35p63",
     "timestamp": "2026-01-05T17:32:14.945Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "user",
+    "details": "{\"method\":\"PUT\",\"path\":\"/users/JAYWA9HP294L\",\"body\":{\"first_name\":\"Anindya\",\"last_name\":\"Chatterjee\",\"email_address\":\"Treasurer@sanhoti.org\",\"phone_number\":\"2137122049\",\"address1\":\"\",\"address2\":\"\",\"city\":\"\",\"state\":\"\",\"zip\":\"\",\"country\":\"USA\",\"user_type\":\"admin\",\"member_type\":\"Treasurer\",\"is_active\":true}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767642010674-a6naceq2v",
+    "timestamp": "2026-01-05T19:40:10.674Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DELETE",
+    "resource": "message",
+    "resourceId": "1767576803605-izms84zo0",
+    "details": "{\"method\":\"DELETE\",\"path\":\"/messages/1767576803605-izms84zo0\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767644076551-x22sy4emb",
+    "timestamp": "2026-01-05T20:14:36.551Z"
   }
 ]

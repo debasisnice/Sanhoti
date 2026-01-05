@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { settingsAPI } from '../services/api';
 import { Mail, Phone, MapPin } from 'lucide-react';
 
 export default function Footer() {
@@ -75,7 +77,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr"
+                  href={facebookLink}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center space-x-2 hover:text-white transition-colors"
@@ -88,7 +90,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH"
+                  href={whatsappLink}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center space-x-2 hover:text-white transition-colors"

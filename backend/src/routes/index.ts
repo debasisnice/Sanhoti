@@ -483,6 +483,11 @@ router.put('/settings/zelle-phone',
   auditLog('UPDATE', 'zelle_phone'),
   bindController(settingsController, 'updateZellePhoneNumber')
 );
+router.put('/settings/social-links',
+  requireAdmin,
+  auditLog('UPDATE', 'social_links'),
+  bindController(settingsController, 'updateSocialLinks')
+);
 
 export default router;
 

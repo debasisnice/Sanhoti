@@ -201,5 +201,7 @@ export interface Settings {
     joinUs: boolean;
   };
   zellePhoneNumber?: string;
+  facebookLink?: string;
+  whatsappLink?: string;
   updated_at: string;
 }

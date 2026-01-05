@@ -50,6 +50,28 @@ export class SettingsController {
       res.status(500).json({ error: 'Failed to update Zelle phone number', details: error.message });
     }
   }
+
+  async updateSocialLinks(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { facebookLink, whatsappLink } = req.body;
+      
+      if (facebookLink !== undefined && typeof facebookLink !== 'string') {
+        res.status(400).json({ error: 'Invalid Facebook link' });
+        return;
+      }
+      
+      if (whatsappLink !== undefined && typeof whatsappLink !== 'string') {
+        res.status(400).json({ error: 'Invalid WhatsApp link' });
+        return;
+      }
+
+      const settings = await this.settingsService.updateSocialLinks(facebookLink, whatsappLink);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error updating social links:', error);
+      res.status(500).json({ error: 'Failed to update social links', details: error.message });
+    }
+  }
 }
 
 

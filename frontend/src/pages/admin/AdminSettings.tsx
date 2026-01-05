@@ -87,6 +87,8 @@ export default function AdminSettings() {
   const [hasPaymentQRImage, setHasPaymentQRImage] = useState<boolean>(false);
   const [zellePhoneNumber, setZellePhoneNumber] = useState<string>('');
   const [selectedPaymentQRFile, setSelectedPaymentQRFile] = useState<File | null>(null);
+  const [facebookLink, setFacebookLink] = useState<string>('');
+  const [whatsappLink, setWhatsappLink] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -931,6 +933,55 @@ export default function AdminSettings() {
                 <p className="text-gray-600">
                   Upload and manage homepage images. These images will be stored in the HomePage_Images directory.
                 </p>
+              </div>
+
+              {/* Social Links Section */}
+              <div className="mb-8 p-6 bg-white rounded-lg border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Social Media Links</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Facebook Link
+                    </label>
+                    <input
+                      type="url"
+                      value={facebookLink}
+                      onChange={(e) => setFacebookLink(e.target.value)}
+                      placeholder="https://m.facebook.com/groups/..."
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      WhatsApp Link
+                    </label>
+                    <input
+                      type="url"
+                      value={whatsappLink}
+                      onChange={(e) => setWhatsappLink(e.target.value)}
+                      placeholder="https://chat.whatsapp.com/..."
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+                  <button
+                    onClick={async () => {
+                      try {
+                        setSaving(true);
+                        await settingsAPI.updateSocialLinks(facebookLink, whatsappLink);
+                        toast.success('Social links updated successfully');
+                        await fetchSettings();
+                      } catch (error: any) {
+                        toast.error(error.response?.data?.error || 'Failed to update social links');
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
+                    disabled={saving}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {saving ? 'Saving...' : 'Save Links'}
+                  </button>
+                </div>
               </div>
 
               {/* Upload Section */}

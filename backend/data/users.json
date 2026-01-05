@@ -68,12 +68,12 @@
     "zip": "",
     "country": "USA",
     "password_hash": "$2a$10$ZSTSh0KroG8R8LW9.SMKOe3CDXXzeFYA.R3DnqngpNqpCmpZWJNTO",
-    "user_type": "user",
+    "user_type": "admin",
     "member_type": "Treasurer",
     "is_active": true,
     "user_id": "JAYWA9HP294L",
     "created_at": "2026-01-03T06:53:09.084Z",
-    "updated_at": "2026-01-03T06:53:09.084Z"
+    "updated_at": "2026-01-05T19:40:10.671Z"
   },
   {
     "first_name": "Dhiman",

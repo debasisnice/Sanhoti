@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Users, Image, BookOpen, ArrowRight, Eye, Star, MapPin } from 'lucide-react';
-import { eventsAPI, homepageAPI } from '../services/api';
+import { eventsAPI, homepageAPI, settingsAPI } from '../services/api';
 import { Event } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal } from '../utils/dateUtils';
@@ -15,6 +15,8 @@ export default function Home() {
   const [imageOrientation, setImageOrientation] = useState<'portrait' | 'landscape' | null>(null);
   const [slideshowImages, setSlideshowImages] = useState<string[]>([]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [facebookLink, setFacebookLink] = useState<string>('https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr');
+  const [whatsappLink, setWhatsappLink] = useState<string>('https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH');
 
   // Function to detect image orientation
   const detectImageOrientation = (imageUrl: string): Promise<'portrait' | 'landscape'> => {
@@ -112,7 +114,7 @@ export default function Home() {
       icon: Users,
       title: 'Community',
       description: 'Connect with Bengali families across the USA',
-      link: 'https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr',
+      link: facebookLink,
       isExternal: true,
       color: 'from-blue-500 to-blue-600',
     },
@@ -228,7 +230,7 @@ export default function Home() {
               Join our Facebook Page
             </a>
             <a
-              href="https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH"
+              href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-green-400 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-green-500 transition-all transform hover:scale-105 shadow-xl inline-block"
@@ -719,7 +721,7 @@ export default function Home() {
               Become a Facebook Member
             </a>
             <a
-              href="https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH"
+              href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block bg-green-400 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-green-500 transition-all transform hover:scale-105 shadow-xl"
