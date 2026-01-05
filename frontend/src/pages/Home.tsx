@@ -208,7 +208,8 @@ export default function Home() {
             transition={{ delay: 0.4 }}
             className="text-xl md:text-2xl mb-8 text-primary-100"
           >
-            Celebrating Culture, Building Connections, Creating Memories
+            Welcome to Sanhoti<br />
+            The Bengali Association of Orange County, CA
           </motion.p>
           <motion.div
             initial={{ opacity: 0 }}
