@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Users, Award, Home, Upload, Trash2, X } from 'lucide-react';
-import { settingsAPI, usersAPI, sponsorsAPI, homepageAPI } from '../../services/api';
+import { Settings, Users, Award, Home, Upload, Trash2, X, UserCircle, QrCode } from 'lucide-react';
+import { settingsAPI, usersAPI, sponsorsAPI, homepageAPI, boardMembersAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 interface NavbarSettings {
@@ -55,7 +55,7 @@ const menuItemLabels: Record<keyof NavbarSettings, string> = {
   joinUs: 'Join Us',
 };
 
-type TabType = 'navbar' | 'users' | 'sponsors' | 'homepage';
+type TabType = 'navbar' | 'users' | 'sponsors' | 'homepage' | 'boardmembers' | 'paymentqr';
 
 interface SponsorImage {
   filename: string;
@@ -67,17 +67,27 @@ interface HomePageImage {
   url: string;
 }
 
+interface BoardMemberImage {
+  postName: string;
+  filename: string;
+  url: string;
+}
+
 export default function AdminSettings() {
   const [activeTab, setActiveTab] = useState<TabType>('navbar');
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [sponsorImages, setSponsorImages] = useState<SponsorImage[]>([]);
   const [homePageImages, setHomePageImages] = useState<HomePageImage[]>([]);
+  const [boardMemberImages, setBoardMemberImages] = useState<BoardMemberImage[]>([]);
+  const [selectedPostName, setSelectedPostName] = useState<string>('President');
+  const [postNames, setPostNames] = useState<string[]>(['President', 'Secretary', 'Treasurer', 'Cultural Director', 'Executive Member']);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [selectedBoardMemberFile, setSelectedBoardMemberFile] = useState<File | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<User>>({});
 
@@ -89,6 +99,9 @@ export default function AdminSettings() {
       fetchSponsorImages();
     } else if (activeTab === 'homepage') {
       fetchHomePageImages();
+    } else if (activeTab === 'boardmembers') {
+      fetchBoardMemberImages();
+      fetchPostNames();
     }
   }, [activeTab]);
 
@@ -130,6 +143,28 @@ export default function AdminSettings() {
     }
   };
 
+  const fetchBoardMemberImages = async () => {
+    try {
+      const images = await boardMembersAPI.getImages();
+      setBoardMemberImages(images);
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to fetch board member images');
+    }
+  };
+
+  const fetchPostNames = async () => {
+    try {
+      const names = await boardMembersAPI.getPostNames();
+      setPostNames(names);
+      if (names.length > 0 && !names.includes(selectedPostName)) {
+        setSelectedPostName(names[0]);
+      }
+    } catch (error: any) {
+      // Use default post names if API fails
+      console.error('Failed to fetch post names:', error);
+    }
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
@@ -160,6 +195,17 @@ export default function AdminSettings() {
         const fileInput = document.getElementById('homepage-file-input') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
         await fetchHomePageImages();
+      } else if (activeTab === 'boardmembers') {
+        if (!selectedBoardMemberFile) {
+          toast.error('Please select an image file');
+          return;
+        }
+        await boardMembersAPI.uploadImage(selectedBoardMemberFile, selectedPostName);
+        toast.success('Image uploaded successfully');
+        setSelectedBoardMemberFile(null);
+        const fileInput = document.getElementById('boardmember-file-input') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+        await fetchBoardMemberImages();
       }
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to upload images');
@@ -183,6 +229,10 @@ export default function AdminSettings() {
         await homepageAPI.deleteImage(filename);
         toast.success('Image deleted successfully');
         await fetchHomePageImages();
+      } else if (activeTab === 'boardmembers') {
+        await boardMembersAPI.deleteImageByPostName(filename);
+        toast.success('Image deleted successfully');
+        await fetchBoardMemberImages();
       }
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to delete image');
@@ -378,6 +428,32 @@ export default function AdminSettings() {
               <div className="flex items-center gap-2">
                 <Home className="w-5 h-5" />
                 <span>Home Page</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('boardmembers')}
+              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'boardmembers'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <UserCircle className="w-5 h-5" />
+                <span>Board Members</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('paymentqr')}
+              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'paymentqr'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <QrCode className="w-5 h-5" />
+                <span>Payment QR</span>
               </div>
             </button>
           </nav>
@@ -895,6 +971,145 @@ export default function AdminSettings() {
                     ))}
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'boardmembers' && (
+            <div>
+              <div className="mb-6">
+                <p className="text-gray-600">
+                  Upload and manage board member images. Select a post name from the dropdown and upload an image. The image will be stored in the BoardMembers directory with the post name as the filename.
+                </p>
+              </div>
+
+              {/* Upload Section */}
+              <div className="mb-8 p-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Upload New Image</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Select Post Name
+                    </label>
+                    <select
+                      value={selectedPostName}
+                      onChange={(e) => setSelectedPostName(e.target.value)}
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                    >
+                      {postNames.map((name) => (
+                        <option key={name} value={name}>
+                          {name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Select Image (jpg, png, gif, webp - Max 20MB)
+                    </label>
+                    <input
+                      id="boardmember-file-input"
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setSelectedBoardMemberFile(e.target.files[0]);
+                        }
+                      }}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-600 file:text-white hover:file:bg-primary-700"
+                    />
+                  </div>
+
+                  {selectedBoardMemberFile && (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Selected File:</p>
+                      <div className="flex items-center justify-between p-2 bg-white rounded border">
+                        <span className="text-sm text-gray-700 truncate">{selectedBoardMemberFile.name}</span>
+                        <button
+                          onClick={() => {
+                            setSelectedBoardMemberFile(null);
+                            const fileInput = document.getElementById('boardmember-file-input') as HTMLInputElement;
+                            if (fileInput) fileInput.value = '';
+                          }}
+                          className="ml-2 text-red-600 hover:text-red-800"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <button
+                        onClick={handleUpload}
+                        disabled={uploading}
+                        className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        <Upload className="w-4 h-4" />
+                        {uploading ? 'Uploading...' : 'Upload Image'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Existing Images Section */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Existing Images ({boardMemberImages.length})
+                  </h3>
+                </div>
+
+                {boardMemberImages.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <p className="text-gray-500">No board member images uploaded yet.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {boardMemberImages.map((image) => (
+                      <div key={image.postName} className="relative group bg-white rounded-lg border border-gray-200 overflow-hidden">
+                        <div className="aspect-square relative bg-gray-100">
+                          <img
+                            src={image.url}
+                            alt={image.postName}
+                            className="w-full h-full object-contain p-2"
+                            onError={(e) => {
+                              console.error('Failed to load image:', image.url);
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                          <button
+                            onClick={() => handleDeleteImage(image.postName)}
+                            disabled={deleting}
+                            className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700 disabled:opacity-50"
+                            title="Delete image"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="p-2">
+                          <p className="text-xs font-semibold text-gray-900 truncate" title={image.postName}>
+                            {image.postName}
+                          </p>
+                          <p className="text-xs text-gray-600 truncate" title={image.filename}>
+                            {image.filename}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'paymentqr' && (
+            <div>
+              <div className="mb-6">
+                <p className="text-gray-600">
+                  Payment QR code management will be available here. This feature is coming soon.
+                </p>
+              </div>
+              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                <QrCode className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">Payment QR feature coming soon</p>
               </div>
             </div>
           )}

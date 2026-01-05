@@ -1773,5 +1773,104 @@
     "userEmail": "",
     "id": "1767575138964-pzmxmxvtu",
     "timestamp": "2026-01-05T01:05:38.964Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/api/homepage/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767626086206-00ar83jou",
+    "timestamp": "2026-01-05T15:14:46.206Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/api/homepage/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767626205470-9l52uy5ms",
+    "timestamp": "2026-01-05T15:16:45.470Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/api/homepage/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767626217904-44et7gdcr",
+    "timestamp": "2026-01-05T15:16:57.904Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/api/homepage/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767626322296-rilkiejlj",
+    "timestamp": "2026-01-05T15:18:42.296Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/homepage/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767626421488-xjztnrbpv",
+    "timestamp": "2026-01-05T15:20:21.488Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DELETE_ALL",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"DELETE\",\"path\":\"/homepage/images\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767628202571-eklyw4jzz",
+    "timestamp": "2026-01-05T15:50:02.571Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/homepage/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767628230211-yrjxbvc6l",
+    "timestamp": "2026-01-05T15:50:30.211Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/homepage/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767628525555-z43nnlbps",
+    "timestamp": "2026-01-05T15:55:25.555Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DELETE",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"DELETE\",\"path\":\"/homepage/images/1767628230206-Durga2.jpeg\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767628534399-1odrgswtb",
+    "timestamp": "2026-01-05T15:55:34.399Z"
   }
 ]

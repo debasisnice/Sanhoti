@@ -333,6 +333,38 @@ export const homepageAPI = {
   },
 };
 
+// Board Members API
+export const boardMembersAPI = {
+  getImages: async (): Promise<Array<{ postName: string; filename: string; url: string }>> => {
+    const response = await api.get('/boardmembers/images');
+    return response.data;
+  },
+  getImageByPostName: async (postName: string): Promise<string> => {
+    return `/api/boardmembers/post/${encodeURIComponent(postName)}`;
+  },
+  getPostNames: async (): Promise<string[]> => {
+    const response = await api.get('/boardmembers/postnames');
+    return response.data.postNames;
+  },
+  uploadImage: async (file: File, postName: string): Promise<any> => {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('postName', postName);
+    const response = await api.post('/boardmembers/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+  deleteImageByPostName: async (postName: string): Promise<void> => {
+    await api.delete(`/boardmembers/post/${encodeURIComponent(postName)}`);
+  },
+  deleteImage: async (filename: string): Promise<void> => {
+    await api.delete(`/boardmembers/images/${encodeURIComponent(filename)}`);
+  },
+};
+
 // Galleries API
 export const galleriesAPI = {
   getPublic: async (): Promise<PhotoGallery[]> => {

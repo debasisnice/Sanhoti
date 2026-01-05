@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Phone, Mail, Users } from 'lucide-react';
-import { committeeAPI } from '../services/api';
+import { committeeAPI, boardMembersAPI } from '../services/api';
 
 interface CommitteeMember {
   role: string;
@@ -14,22 +14,22 @@ interface CommitteeMember {
 const committeeMembersConfig: Omit<CommitteeMember, 'firstName' | 'lastName'>[] = [
   {
     role: 'President',
-    image: '/images/president.jpg',
+    image: '',
     alt: 'President',
   },
   {
     role: 'Secretary',
-    image: '/images/secretary.jpg',
+    image: '',
     alt: 'Secretary',
   },
   {
     role: 'Treasurer',
-    image: '/images/treasurer.jpg',
+    image: '',
     alt: 'Treasurer',
   },
   {
     role: 'Cultural Director',
-    image: '/images/cultural.jpg',
+    image: '',
     alt: 'Cultural Director',
   },
 ];
@@ -40,7 +40,11 @@ export default function Committee() {
   useEffect(() => {
     const fetchCommitteeMembers = async () => {
       try {
-        const members = await committeeAPI.getMembers();
+        // Fetch member names and images in parallel
+        const [members, boardMemberImages] = await Promise.all([
+          committeeAPI.getMembers(),
+          boardMembersAPI.getImages(),
+        ]);
         
         // Create a map of role to member data
         const membersMap = new Map<string, { firstName: string; lastName: string }>();
@@ -51,11 +55,19 @@ export default function Committee() {
           });
         });
 
-        // Merge the fetched names with the configuration
+        // Create a map of role to image URL
+        const imagesMap = new Map<string, string>();
+        boardMemberImages.forEach((img: any) => {
+          imagesMap.set(img.postName, img.url);
+        });
+
+        // Merge the fetched names and images with the configuration
         const updatedMembers = committeeMembersConfig.map(config => {
           const memberData = membersMap.get(config.role);
+          const imageUrl = imagesMap.get(config.role) || '';
           return {
             ...config,
+            image: imageUrl,
             firstName: memberData?.firstName || '',
             lastName: memberData?.lastName || '',
           };
@@ -117,16 +129,21 @@ export default function Committee() {
               className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
             >
               <div className="aspect-[3/4] relative overflow-hidden bg-gray-100">
-                <img
-                  src={member.image}
-                  alt={member.alt}
-                  className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = '/images/placeholder.jpg';
-                    target.alt = 'Placeholder';
-                  }}
-                />
+                {member.image ? (
+                  <img
+                    src={member.image}
+                    alt={member.alt}
+                    className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                    <Users className="w-16 h-16 text-gray-400" />
+                  </div>
+                )}
               </div>
               <div className="p-7 text-center">
                 {(member.firstName || member.lastName) && (
