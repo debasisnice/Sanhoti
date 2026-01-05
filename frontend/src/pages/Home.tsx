@@ -2,25 +2,16 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Users, Image, BookOpen, ArrowRight, Eye, Star, MapPin } from 'lucide-react';
-import { eventsAPI } from '../services/api';
+import { eventsAPI, homepageAPI } from '../services/api';
 import { Event } from '../types';
 import { format } from 'date-fns';
-
-// Background slideshow images from /images/Slidshow/ folder
-// Add your high-resolution images to frontend/public/images/Slidshow/ and update this array
-const slideshowImages: string[] = [
-  '/images/Slidshow/249627e4-33cb-4cf3-8db6-16f9b20a1faa.jpeg',
-  '/images/Slidshow/celebration-1.jpg',
-  '/images/Slidshow/community-together-1.jpg',
-  '/images/Slidshow/cultural-event-1.jpg',
-  '/images/Slidshow/e322dcab-dc90-43df-8a0f-87ad01bb6d72.jpeg',
-];
 
 export default function Home() {
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [priorityEvent, setPriorityEvent] = useState<Event | null>(null);
   const [priorityEventImage, setPriorityEventImage] = useState<string | null>(null);
   const [imageOrientation, setImageOrientation] = useState<'portrait' | 'landscape' | null>(null);
+  const [slideshowImages, setSlideshowImages] = useState<string[]>([]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
   // Function to detect image orientation
@@ -37,6 +28,23 @@ export default function Home() {
       img.src = imageUrl;
     });
   };
+
+  // Fetch slideshow images from backend
+  useEffect(() => {
+    const fetchSlideshowImages = async () => {
+      try {
+        const images = await homepageAPI.getImages();
+        // Extract URLs from the response
+        const imageUrls = images.map(img => img.url);
+        setSlideshowImages(imageUrls);
+      } catch (error) {
+        // Silently fail if no images are found - fallback to gradient background
+        setSlideshowImages([]);
+      }
+    };
+    
+    fetchSlideshowImages();
+  }, []);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -88,7 +96,7 @@ export default function Home() {
     }, 8000); // Change slide every 8 seconds
 
     return () => clearInterval(interval);
-  }, []);
+  }, [slideshowImages.length]);
 
   const features = [
     {
