@@ -210,7 +210,7 @@ export default function AdminMessages() {
                         <div>
                           <p className="text-sm text-gray-500">Date</p>
                           <p className="font-medium text-gray-900">
-                            {formatDate(selectedMessage.createdAt)}
+                            {formatDate(selectedMessage.createdAt || selectedMessage.created_at)}
                           </p>
                         </div>
                       </div>
