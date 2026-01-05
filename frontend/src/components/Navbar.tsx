@@ -135,7 +135,7 @@ export default function Navbar() {
           }}
         >
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center justify-end">
+          <div className="hidden md:flex items-center justify-end relative">
             {navLinks.map((link, index) => {
               // Check if current path matches the link path
               const isActive = link.path === '/' 
@@ -198,7 +198,7 @@ export default function Navbar() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl py-2 border border-gray-200 z-50"
+                      className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl py-2 border border-gray-200 z-[100]"
                     >
                       <Link
                         to="/dashboard"
