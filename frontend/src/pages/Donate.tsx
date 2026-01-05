@@ -5,7 +5,7 @@ import { paymentQRAPI, settingsAPI } from '../services/api';
 
 export default function Donate() {
   const [paymentQRImage, setPaymentQRImage] = useState<string | null>(null);
-  const [zellePhoneNumber, setZellePhoneNumber] = useState<string>('949-378-6425');
+  const [zellePhoneNumber, setZellePhoneNumber] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,19 +16,20 @@ export default function Donate() {
         if (hasImage.hasImage) {
           setPaymentQRImage(paymentQRAPI.getImageUrl());
         } else {
-          // Fallback to default image if no image uploaded
-          setPaymentQRImage('/images/QR.jpeg');
+          setPaymentQRImage(null);
         }
 
         // Fetch Zelle phone number from settings
         const settings = await settingsAPI.getSettings();
         if (settings.zellePhoneNumber) {
           setZellePhoneNumber(settings.zellePhoneNumber);
+        } else {
+          setZellePhoneNumber('');
         }
       } catch (error) {
         console.error('Failed to fetch payment data:', error);
-        // Use fallback values on error
-        setPaymentQRImage('/images/QR.jpeg');
+        setPaymentQRImage(null);
+        setZellePhoneNumber('');
       } finally {
         setLoading(false);
       }
@@ -83,53 +84,57 @@ export default function Donate() {
             </div>
             
             <div className="bg-amber-50 rounded-lg p-6 mb-6">
-              <p className="text-lg text-gray-800 leading-relaxed mb-6 text-center">
-                You can donate to Sanhoti via Zelle. Scan the QR code or use the phone number below:
-              </p>
-              
-              {/* QR Code Section */}
-              <div className="flex flex-col md:flex-row items-center justify-center gap-8 mb-6">
-                {loading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="bg-white rounded-lg p-6 shadow-md">
-                      {paymentQRImage ? (
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+                </div>
+              ) : (paymentQRImage || zellePhoneNumber) ? (
+                <>
+                  <p className="text-lg text-gray-800 leading-relaxed mb-6 text-center">
+                    You can donate to Sanhoti via Zelle. {paymentQRImage && 'Scan the QR code'} {paymentQRImage && zellePhoneNumber && 'or'} {zellePhoneNumber && 'use the phone number below'}:
+                  </p>
+                  
+                  {/* QR Code Section */}
+                  <div className="flex flex-col md:flex-row items-center justify-center gap-8 mb-6">
+                    {paymentQRImage && (
+                      <div className="bg-white rounded-lg p-6 shadow-md">
                         <img 
                           src={paymentQRImage} 
                           alt="Zelle QR Code - Send Money to Sanhoti"
                           className="w-64 h-64 object-contain"
                           onError={(e) => {
-                            // Fallback to default image if backend image fails to load
-                            (e.target as HTMLImageElement).src = '/images/QR.jpeg';
+                            (e.target as HTMLImageElement).style.display = 'none';
                           }}
                         />
-                      ) : (
-                        <div className="w-64 h-64 flex items-center justify-center bg-gray-100 rounded">
-                          <CreditCard className="w-16 h-16 text-gray-400" />
-                        </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                     
-                    <div className="text-center md:text-left">
-                      <p className="text-sm text-gray-600 mb-2">Send Money with Zelle®</p>
-                      <p className="text-lg font-semibold text-gray-900 mb-3">SANHOTI INC</p>
-                      <div className="bg-white rounded-lg p-4 border-2 border-primary-200">
-                        <div className="flex items-center justify-center md:justify-start space-x-3">
-                          <DollarSign className="w-6 h-6 text-primary-600" />
-                          <div>
-                            <p className="text-sm text-gray-600 mb-1">Zelle Phone Number</p>
-                            <p className="text-2xl font-bold text-primary-600">{zellePhoneNumber}</p>
+                    {zellePhoneNumber && (
+                      <div className="text-center md:text-left">
+                        <p className="text-sm text-gray-600 mb-2">Send Money with Zelle®</p>
+                        <p className="text-lg font-semibold text-gray-900 mb-3">SANHOTI INC</p>
+                        <div className="bg-white rounded-lg p-4 border-2 border-primary-200">
+                          <div className="flex items-center justify-center md:justify-start space-x-3">
+                            <DollarSign className="w-6 h-6 text-primary-600" />
+                            <div>
+                              <p className="text-sm text-gray-600 mb-1">Zelle Phone Number</p>
+                              <p className="text-2xl font-bold text-primary-600">{zellePhoneNumber}</p>
+                            </div>
                           </div>
                         </div>
+                        {paymentQRImage && (
+                          <p className="text-sm text-gray-600 mt-3">Scan in your banking app to pay</p>
+                        )}
                       </div>
-                      <p className="text-sm text-gray-600 mt-3">Scan in your banking app to pay</p>
-                    </div>
-                  </>
-                )}
-              </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-12">
+                  <CreditCard className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500 text-lg">Payment information will be available here once configured by the administrator.</p>
+                </div>
+              )}
             </div>
 
             <div className="space-y-3">
@@ -195,7 +200,7 @@ export default function Donate() {
                 </li>
                 <li className="flex items-start">
                   <span className="flex-shrink-0 w-8 h-8 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center font-bold mr-3">3</span>
-                  <span>Enter the phone number: <strong>{zellePhoneNumber}</strong></span>
+                  <span>Enter the phone number: <strong>{zellePhoneNumber || '[Phone number not configured]'}</strong></span>
                 </li>
                 <li className="flex items-start">
                   <span className="flex-shrink-0 w-8 h-8 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center font-bold mr-3">4</span>
