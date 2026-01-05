@@ -61,3 +61,6 @@ docs/AWS_ACCOUNT_INFO.md
 # Misc
 *.tar.gz
 *.zip
+
+# Data files with sensitive information
+backend/data/settings.json
