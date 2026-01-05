@@ -86,7 +86,6 @@ export default function AdminEvents() {
     try {
       setLoading(true);
       const allEvents = await eventsAPI.getAll();
-      console.log(`Fetched ${allEvents.length} events (${allEvents.filter(e => e.is_active === false).length} inactive)`);
       setEvents(allEvents);
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to fetch events');

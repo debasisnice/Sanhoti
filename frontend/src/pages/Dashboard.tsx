@@ -22,7 +22,6 @@ export default function Dashboard() {
     const fetchData = async () => {
       try {
         const rsvps = await rsvpAPI.getMyRSVPs();
-        console.log('Fetched RSVPs:', rsvps);
         
         if (!rsvps || rsvps.length === 0) {
           setMyRSVPs([]);
@@ -43,7 +42,6 @@ export default function Dashboard() {
           })
         );
         
-        console.log('RSVPs with events:', rsvpsWithEvents);
         setMyRSVPs(rsvpsWithEvents);
       } catch (error) {
         console.error('Error fetching RSVPs:', error);

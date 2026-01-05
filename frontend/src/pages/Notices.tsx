@@ -28,16 +28,12 @@ export default function Notices() {
           const noticeId = notice.notice_id || notice.id;
           if (noticeId && notice.notice_image_path) {
             try {
-              console.log(`Fetching images for notice ${noticeId}, folder: ${notice.notice_image_path}`);
               const images = await noticesAPI.getImages(noticeId);
-              console.log(`Received ${images.length} images for notice ${noticeId}:`, images);
               imagesMap[noticeId] = images;
             } catch (error) {
               console.error(`Failed to load images for notice ${noticeId}:`, error);
               imagesMap[noticeId] = [];
             }
-          } else {
-            console.log(`Notice ${noticeId} has no notice_image_path`);
           }
         }
         setNoticeImages(imagesMap);
@@ -111,7 +107,6 @@ export default function Notices() {
                             // Backend returns URLs like "/api/notices/{id}/images/{filename}"
                             // These relative URLs will work correctly with nginx proxy
                             const imageUrl = image.url;
-                            console.log(`Rendering image ${imgIndex + 1} for notice ${noticeId}:`, imageUrl);
                             return (
                               <div key={imgIndex} className="w-full overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow">
                                 <img
@@ -124,7 +119,6 @@ export default function Notices() {
                                     (e.target as HTMLImageElement).style.display = 'none';
                                   }}
                                   onLoad={() => {
-                                    console.log('Successfully loaded image:', imageUrl);
                                   }}
                                 />
                               </div>

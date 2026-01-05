@@ -49,7 +49,6 @@ export class EventDataHelper extends DatabaseHelper {
     
     if (!existsSync(folderPath)) {
       mkdirSync(folderPath, { recursive: true });
-      console.log(`Created gallery folder: ${folderPath}`);
     }
     
     // Set photo_gallery_link to the folder name (relative path from Galleries directory)
@@ -65,7 +64,6 @@ export class EventDataHelper extends DatabaseHelper {
     
     if (!existsSync(folderPath)) {
       mkdirSync(folderPath, { recursive: true });
-      console.log(`Created event image folder: ${folderPath}`);
     }
     
     return folderName;
@@ -73,7 +71,6 @@ export class EventDataHelper extends DatabaseHelper {
 
   async findAll(): Promise<Event[]> {
     const events = this.readFile<Event>(this.filename);
-    console.log(`EventDataHelper.findAll(): Returning ${events.length} events (${events.filter(e => e.is_active === false).length} inactive)`);
     return events;
   }
 
@@ -184,7 +181,6 @@ export class EventDataHelper extends DatabaseHelper {
       if (existsSync(folderPath)) {
         try {
           rmSync(folderPath, { recursive: true, force: true });
-          console.log(`Deleted event image folder: ${folderPath}`);
         } catch (error) {
           console.error(`Error deleting event image folder ${folderPath}:`, error);
           // Continue with event deletion even if folder deletion fails

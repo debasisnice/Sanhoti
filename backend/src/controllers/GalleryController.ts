@@ -244,7 +244,6 @@ export class GalleryController {
     } catch (error: any) {
       // Log but don't treat as error - return empty array instead
       const eventId = req.params.eventId || 'unknown';
-      console.log(`No photos found for event ${eventId} (this is normal for empty galleries):`, error.message);
       res.json([]); // Return empty array instead of error
     }
   }
@@ -257,18 +256,14 @@ export class GalleryController {
   async handlePhotoUpload(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { eventId } = req.params;
-      console.log(`Upload request for eventId: ${eventId}`);
-      console.log(`Files received:`, req.files);
       
       const files = req.files as Express.Multer.File[];
       
       if (!files || files.length === 0) {
-        console.log('No files in request');
         res.status(400).json({ error: 'No files uploaded' });
         return;
       }
 
-      console.log(`Processing ${files.length} file(s)`);
 
       // Get event to find the folder name
       const eventDataHelper = new EventDataHelper();
@@ -285,7 +280,6 @@ export class GalleryController {
 
       // Ensure folder exists
       if (!existsSync(folderPath)) {
-        console.log(`Creating folder: ${folderPath}`);
         mkdirSync(folderPath, { recursive: true });
       }
 
@@ -296,7 +290,6 @@ export class GalleryController {
       for (const file of files) {
         try {
           const destPath = join(folderPath, file.filename);
-          console.log(`Moving file from ${file.path} to ${destPath}`);
           
           // Check if source file exists
           if (!existsSync(file.path)) {
@@ -306,7 +299,6 @@ export class GalleryController {
           
           await fs.rename(file.path, destPath);
           uploadedFiles.push(file.filename);
-          console.log(`Successfully moved: ${file.filename}`);
         } catch (fileError: any) {
           console.error(`Error moving file ${file.filename}:`, fileError);
           // Continue with other files
@@ -352,7 +344,6 @@ export class GalleryController {
     try {
       const { eventId, filename } = req.params;
       const decodedFilename = decodeURIComponent(filename);
-      console.log(`Serving photo: eventId=${eventId}, filename=${decodedFilename}`);
       
       // Try to authenticate if token is provided, but don't require it
       // This allows images to load with auth when available
@@ -381,7 +372,6 @@ export class GalleryController {
 
       const folderName = event.photo_gallery_link;
       const filePath = join(galleriesDir, folderName, decodedFilename);
-      console.log(`Looking for photo at: ${filePath}`);
 
       if (!existsSync(filePath)) {
         console.error(`Photo file not found: ${filePath}`);

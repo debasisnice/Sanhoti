@@ -359,34 +359,28 @@ export class NoticeController {
   async getNoticeImages(req: AuthRequest, res: Response): Promise<void> {
     try {
       const noticeId = req.params.noticeId || req.params.id;
-      console.log(`Getting images for notice: ${noticeId}`);
       
       const notice = await this.noticeService.getNoticeById(noticeId);
       
       if (!notice) {
-        console.log(`Notice not found: ${noticeId}`);
         res.json([]);
         return;
       }
 
       if (!notice.notice_image_path) {
-        console.log(`Notice ${noticeId} has no notice_image_path`);
         res.json([]);
         return;
       }
 
       const folderPath = join(noticeFlyersDir, notice.notice_image_path);
-      console.log(`Looking for images in folder: ${folderPath}`);
       
       if (!existsSync(folderPath)) {
-        console.log(`Folder does not exist: ${folderPath}`);
         res.json([]);
         return;
       }
 
       // Read all files in the folder
       const files = readdirSync(folderPath);
-      console.log(`Found ${files.length} files in folder:`, files);
       
       const imageFiles = files
         .filter(file => {
@@ -397,7 +391,6 @@ export class NoticeController {
             const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(file);
             const result = stats.isFile() && isImage;
             if (result) {
-              console.log(`Including image file: ${file}`);
             }
             return result;
           } catch (error) {
@@ -407,7 +400,6 @@ export class NoticeController {
         })
         .map(filename => {
           const url = `/api/notices/${noticeId}/images/${encodeURIComponent(filename)}`;
-          console.log(`Image URL for ${filename}: ${url}`);
           return {
             filename,
             url,
@@ -415,7 +407,6 @@ export class NoticeController {
         })
         .sort((a, b) => a.filename.localeCompare(b.filename));
 
-      console.log(`Returning ${imageFiles.length} images for notice ${noticeId}`);
       res.json(imageFiles);
     } catch (error: any) {
       console.error(`Error getting images for notice ${req.params.noticeId || req.params.id}:`, error);

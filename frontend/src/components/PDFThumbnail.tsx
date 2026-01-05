@@ -54,7 +54,6 @@ export default function PDFThumbnail({ fileUrl, alt: _alt, className = '' }: PDF
   }, [fileUrl]);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    console.log('PDFThumbnail - Document loaded successfully, numPages:', numPages);
     setNumPages(numPages);
     setLoading(false);
     setError(false);
@@ -75,7 +74,6 @@ export default function PDFThumbnail({ fileUrl, alt: _alt, className = '' }: PDF
   }
 
   if (error) {
-    console.log('PDFThumbnail - Rendering error state');
     return (
       <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-400 to-primary-600 ${className}`}>
         <BookOpen className="w-16 h-16 text-white opacity-50" />

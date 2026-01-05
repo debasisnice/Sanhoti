@@ -301,7 +301,6 @@ export default function AdminGalleries() {
     // Check for eventId in URL query params first, before fetching folders
     const eventId = searchParams.get('eventId');
     if (eventId) {
-      console.log('Found eventId in URL:', eventId);
       targetEventIdRef.current = eventId;
       // Remove query param from URL after storing
       setSearchParams({}, { replace: true });
@@ -318,8 +317,6 @@ export default function AdminGalleries() {
     }
 
     const eventIdToFind = targetEventIdRef.current;
-    console.log('Attempting to scroll to eventId:', eventIdToFind);
-    console.log('Available folders:', folders.map(f => ({ event_id: f.event_id, name: f.event_name, year: f.year })));
     
     // Find the target folder
     const targetFolder = folders.find(f => f.event_id === eventIdToFind);
@@ -330,8 +327,6 @@ export default function AdminGalleries() {
       return;
     }
 
-    console.log('Found target folder:', targetFolder);
-    console.log('Current selectedYear:', selectedYear, 'Target year:', targetFolder.year);
 
     // Get filtered folders (what's actually rendered)
     const filteredFoldersForScroll = selectedYear
@@ -340,7 +335,6 @@ export default function AdminGalleries() {
 
     // If year filter needs to be set, do that first and wait
     if (targetFolder.year && selectedYear !== targetFolder.year) {
-      console.log(`Setting year filter to ${targetFolder.year}`);
       setSelectedYear(targetFolder.year);
       // Don't clear the ref yet - let the next effect run handle the scroll
       return;
@@ -361,14 +355,12 @@ export default function AdminGalleries() {
     // Use a longer delay to ensure React has finished rendering
     setTimeout(() => {
       const elementId = `gallery-${eventIdToFind}`;
-      console.log('Looking for element with ID:', elementId);
       
       // Wait for next frame to ensure DOM is fully updated
       requestAnimationFrame(() => {
         const targetElement = document.getElementById(elementId);
         
         if (targetElement) {
-          console.log('Found target element, scrolling...');
           targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
           // Highlight the card temporarily
           targetElement.classList.add('ring-4', 'ring-blue-500', 'ring-opacity-75');
@@ -379,13 +371,11 @@ export default function AdminGalleries() {
         } else {
           console.error('Target element not found in DOM:', elementId);
           const allGalleryIds = Array.from(document.querySelectorAll('[id^="gallery-"]')).map(el => el.id);
-          console.log('All elements with gallery- prefix:', allGalleryIds);
           
           // Retry after a longer delay in case DOM hasn't rendered yet
           setTimeout(() => {
             const retryElement = document.getElementById(elementId);
             if (retryElement) {
-              console.log('Found element on retry, scrolling...');
               retryElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
               retryElement.classList.add('ring-4', 'ring-blue-500', 'ring-opacity-75');
               setTimeout(() => {
@@ -469,9 +459,7 @@ export default function AdminGalleries() {
   const fetchFolders = async () => {
     try {
       setLoading(true);
-      console.log('Fetching gallery folders...');
       const allFolders = await eventsAPI.getGalleryFolders();
-      console.log('Received folders:', allFolders);
       setFolders(allFolders);
       if (allFolders.length === 0) {
         toast.error('No gallery folders found. Create an event to generate gallery folders.');
@@ -491,15 +479,12 @@ export default function AdminGalleries() {
     
     try {
       setLoadingPhotos(prev => ({ ...prev, [eventId]: true }));
-      console.log(`Fetching photos for event: ${eventId}`);
       const folderPhotos = await galleriesAPI.getGalleryPhotos(eventId);
-      console.log(`Received ${folderPhotos?.length || 0} photos for event ${eventId}:`, folderPhotos);
       // Always set photos, even if empty array (no error, just no photos)
       setPhotos(prev => ({ ...prev, [eventId]: Array.isArray(folderPhotos) ? folderPhotos : [] }));
     } catch (error: any) {
       // Don't show error toast - treat empty folder as normal case
       // Only log for debugging
-      console.log(`No photos found for event ${eventId} (this is normal for empty galleries):`, error);
       // Set empty array on error (treat as no photos)
       setPhotos(prev => ({ ...prev, [eventId]: [] }));
     } finally {
@@ -512,11 +497,8 @@ export default function AdminGalleries() {
     if (folder.event_id) {
       try {
         setLoadingPhotos(prev => ({ ...prev, [folder.event_id!]: true }));
-        console.log(`Loading photos for viewer, eventId: ${folder.event_id}`);
-        
         // Always fetch fresh photos from API to ensure we get all photos
         const folderPhotos = await galleriesAPI.getGalleryPhotos(folder.event_id);
-        console.log(`Fetched ${folderPhotos?.length || 0} photos for viewer:`, folderPhotos);
         
         // Update photos state with ALL photos
         const allPhotos = Array.isArray(folderPhotos) ? folderPhotos : [];
@@ -524,7 +506,6 @@ export default function AdminGalleries() {
         
         // Open viewer with ALL photos (including stacked ones)
         if (allPhotos.length > 0) {
-          console.log(`Opening viewer with ${allPhotos.length} photos`);
           setViewingPhotos(allPhotos);
           setCurrentPhotoIndex(0);
           setViewingEventId(folder.event_id);
@@ -654,9 +635,7 @@ export default function AdminGalleries() {
 
     setUploading(true);
     try {
-      console.log(`Uploading ${selectedFiles.length} file(s) for event ${selectedFolder.event_id}`);
       const result = await galleriesAPI.uploadPhotos(selectedFolder.event_id, selectedFiles);
-      console.log('Upload result:', result);
       toast.success(result.message || `${selectedFiles.length} photo(s) uploaded successfully`);
       setShowUploadModal(false);
       setSelectedFolder(null);
@@ -849,9 +828,6 @@ export default function AdminGalleries() {
             const isLoading = folder.event_id ? loadingPhotos[folder.event_id] : false;
             
             // Debug log for Durgotsav folder
-            if (folder.folderName?.includes('Durgotsav')) {
-              console.log('Durgotsav folder:', folder, 'Photos:', folderPhotos, 'Loading:', isLoading);
-            }
 
             return (
               <motion.div

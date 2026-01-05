@@ -134,7 +134,6 @@ export class NoticeDataHelper extends DatabaseHelper {
       if (existsSync(folderPath)) {
         try {
           rmSync(folderPath, { recursive: true, force: true });
-          console.log(`Deleted notice folder: ${folderPath}`);
         } catch (error) {
           console.error(`Error deleting notice folder ${folderPath}:`, error);
           // Continue with notice deletion even if folder deletion fails

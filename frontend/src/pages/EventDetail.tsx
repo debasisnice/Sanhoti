@@ -35,7 +35,6 @@ export default function EventDetail() {
               }
             } catch (error) {
               // Silently fail if no images are found - image is optional
-              console.log('No event image found');
             }
           }
           
@@ -79,7 +78,6 @@ export default function EventDetail() {
               }
             } catch (error) {
               // Silently fail if notices/galleries can't be loaded
-              console.log('Error loading related notices/galleries:', error);
             }
           }
         } catch (err) {

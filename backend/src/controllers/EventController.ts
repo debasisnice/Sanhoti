@@ -55,7 +55,6 @@ export class EventController {
   async getAllEvents(req: AuthRequest, res: Response): Promise<void> {
     try {
       const events = await this.eventService.getAllEvents();
-      console.log(`Returning ${events.length} events (${events.filter(e => e.is_active === false).length} inactive)`);
       res.json(events);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch events' });
@@ -208,7 +207,6 @@ export class EventController {
   async getGalleryFolders(req: AuthRequest, res: Response): Promise<void> {
     try {
       const folders = await this.eventService.getGalleryFolders();
-      console.log(`Returning ${folders.length} gallery folders`);
       res.json(folders);
     } catch (error: any) {
       console.error('Error in getGalleryFolders:', error);
@@ -311,7 +309,6 @@ export class EventController {
           const stats = statSync(filePath);
           if (stats.isFile() && /\.(jpg|jpeg|png|gif|webp)$/i.test(existingFile)) {
             unlinkSync(filePath);
-            console.log(`Deleted old image: ${existingFile}`);
           }
         });
       } catch (error) {

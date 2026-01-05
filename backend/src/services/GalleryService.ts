@@ -25,7 +25,6 @@ export class GalleryService {
       const events = await this.eventDataHelper.findAll();
       const publicEvents = events.filter(e => e.gallery_is_public === true && e.photo_gallery_link);
       
-      console.log(`Found ${publicEvents.length} public events with galleries`);
       
       // Convert events to PhotoGallery format
       const galleries: PhotoGallery[] = [];
@@ -74,7 +73,6 @@ export class GalleryService {
         });
       }
       
-      console.log(`Returning ${galleries.length} public galleries`);
       return galleries;
     } catch (error: any) {
       console.error('Error in getPublicGalleries:', error);
