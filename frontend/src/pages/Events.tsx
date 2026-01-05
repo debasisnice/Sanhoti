@@ -115,11 +115,14 @@ export default function Events() {
     fetchEventsAndImages();
   }, []);
 
-  // Reorganize events to show nearest upcoming and most recent past first (include all events including priority)
+  // Reorganize events to show priority event first, then nearest upcoming and most recent past
   const eventsForCarousel = (() => {
     const filtered = allEvents; // Include all events, including priority events
     
     if (filtered.length === 0) return [];
+    
+    // Find priority event
+    const priority = filtered.find(e => e.is_priority === true);
     
     // Find nearest upcoming event and most recently completed event
     const now = new Date();
@@ -145,20 +148,25 @@ export default function Events() {
     const nearestUpcoming = upcomingEvents[0];
     const mostRecentPast = pastEvents[0];
     
-    // Reorganize array: most recent past at index 0 (left), nearest upcoming at index 1 (right), then rest
+    // Reorganize array: priority event first (if exists), then most recent past, nearest upcoming, then rest
     const reorganized: Event[] = [];
     const remainingEvents = filtered.filter(e => {
       const eventId = e.event_id || e.id;
+      const priorityId = priority?.event_id || priority?.id;
       const nearestUpcomingId = nearestUpcoming?.event_id || nearestUpcoming?.id;
       const mostRecentPastId = mostRecentPast?.event_id || mostRecentPast?.id;
-      return eventId !== nearestUpcomingId && eventId !== mostRecentPastId;
+      return eventId !== priorityId && eventId !== nearestUpcomingId && eventId !== mostRecentPastId;
     });
     
-    // Reverse order: past events on left, upcoming events on right
-    if (mostRecentPast) {
+    // Priority event first (front card)
+    if (priority) {
+      reorganized.push(priority);
+    }
+    // Then most recent past and nearest upcoming
+    if (mostRecentPast && (!priority || (mostRecentPast.event_id || mostRecentPast.id) !== (priority.event_id || priority.id))) {
       reorganized.push(mostRecentPast);
     }
-    if (nearestUpcoming) {
+    if (nearestUpcoming && (!priority || (nearestUpcoming.event_id || nearestUpcoming.id) !== (priority.event_id || priority.id))) {
       reorganized.push(nearestUpcoming);
     }
     reorganized.push(...remainingEvents);
