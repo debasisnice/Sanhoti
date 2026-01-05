@@ -29,18 +29,25 @@ export default function PDFThumbnail({ fileUrl, alt: _alt, className = '' }: PDF
     if (!fileUrl.startsWith('http://') && !fileUrl.startsWith('https://')) {
       // Use relative path in production (when served by Nginx), absolute URL in development
       const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
-      // If fileUrl already starts with /api/, use it as-is (backend already includes /api)
+      // If fileUrl already starts with /api/, backend already includes /api
       if (fileUrl.startsWith('/api/')) {
-        // In production, use as-is. In development, prepend base URL if needed
-        constructedUrl = API_BASE_URL ? `${API_BASE_URL}${fileUrl}` : fileUrl;
+        // In production (API_BASE_URL is empty), use as-is
+        // In development (API_BASE_URL is http://localhost:5001), prepend it
+        if (API_BASE_URL && !API_BASE_URL.endsWith('/api')) {
+          // Only prepend if API_BASE_URL doesn't already end with /api
+          constructedUrl = `${API_BASE_URL}${fileUrl}`;
+        } else {
+          // In production, use as-is (fileUrl already has /api/)
+          constructedUrl = fileUrl;
+        }
       } else if (fileUrl.startsWith('/')) {
         // If it starts with / but not /api/, add /api prefix
         const fullPath = `/api${fileUrl}`;
-        constructedUrl = API_BASE_URL ? `${API_BASE_URL}${fullPath}` : fullPath;
+        constructedUrl = API_BASE_URL && !API_BASE_URL.endsWith('/api') ? `${API_BASE_URL}${fullPath}` : fullPath;
       } else {
         // If it's a relative path without /, add /api/ prefix
         const fullPath = `/api/${fileUrl}`;
-        constructedUrl = API_BASE_URL ? `${API_BASE_URL}${fullPath}` : fullPath;
+        constructedUrl = API_BASE_URL && !API_BASE_URL.endsWith('/api') ? `${API_BASE_URL}${fullPath}` : fullPath;
       }
     }
     setFullUrl(constructedUrl);
