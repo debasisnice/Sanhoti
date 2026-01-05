@@ -708,6 +708,7 @@ export default function Home() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.4 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <a
               href="https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr"
@@ -716,6 +717,14 @@ export default function Home() {
               className="inline-block bg-white text-primary-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-primary-50 transition-all transform hover:scale-105 shadow-xl"
             >
               Become a Facebook Member
+            </a>
+            <a
+              href="https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-green-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-green-700 transition-all transform hover:scale-105 shadow-xl"
+            >
+              Join us in WhatsApp
             </a>
           </motion.div>
         </div>
