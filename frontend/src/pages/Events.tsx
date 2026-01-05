@@ -117,63 +117,57 @@ export default function Events() {
     fetchEventsAndImages();
   }, []);
 
-  // Reorganize events to show priority event first, then nearest upcoming and most recent past
+  // Sort events chronologically: past events first (newest to oldest), then upcoming events (nearest to farthest)
   const eventsForCarousel = (() => {
     const filtered = allEvents; // Include all events, including priority events
     
     if (filtered.length === 0) return [];
     
-    // Find priority event
-    const priority = filtered.find(e => e.is_priority === true);
-    
-    // Find nearest upcoming event and most recently completed event
     const now = new Date();
-    const upcomingEvents = filtered.filter(e => {
-      const eventDate = new Date(e.event_start_dt || e.date || 0);
-      return eventDate >= now;
-    }).sort((a, b) => {
-      const dateA = new Date(a.event_start_dt || a.date || 0);
-      const dateB = new Date(b.event_start_dt || b.date || 0);
-      return dateA.getTime() - dateB.getTime(); // Ascending: nearest first
-    });
     
+    // Separate past and upcoming events
     const pastEvents = filtered.filter(e => {
       const eventDate = e.event_end_dt ? new Date(e.event_end_dt) : new Date(e.event_start_dt || e.date || 0);
       return eventDate < now;
     }).sort((a, b) => {
-      // Use event_end_dt for most recently completed, fallback to event_start_dt
+      // Sort past events by end date (or start date) descending (newest first)
       const dateA = a.event_end_dt ? new Date(a.event_end_dt) : new Date(a.event_start_dt || a.date || 0);
       const dateB = b.event_end_dt ? new Date(b.event_end_dt) : new Date(b.event_start_dt || b.date || 0);
-      return dateB.getTime() - dateA.getTime(); // Descending: most recent first
+      return dateB.getTime() - dateA.getTime();
     });
     
-    const nearestUpcoming = upcomingEvents[0];
-    const mostRecentPast = pastEvents[0];
-    
-    // Reorganize array: priority event first (if exists), then most recent past, nearest upcoming, then rest
-    const reorganized: Event[] = [];
-    const remainingEvents = filtered.filter(e => {
-      const eventId = e.event_id || e.id;
-      const priorityId = priority?.event_id || priority?.id;
-      const nearestUpcomingId = nearestUpcoming?.event_id || nearestUpcoming?.id;
-      const mostRecentPastId = mostRecentPast?.event_id || mostRecentPast?.id;
-      return eventId !== priorityId && eventId !== nearestUpcomingId && eventId !== mostRecentPastId;
+    const upcomingEvents = filtered.filter(e => {
+      const eventDate = new Date(e.event_start_dt || e.date || 0);
+      return eventDate >= now;
+    }).sort((a, b) => {
+      // Sort upcoming events by start date ascending (nearest first)
+      const dateA = new Date(a.event_start_dt || a.date || 0);
+      const dateB = new Date(b.event_start_dt || b.date || 0);
+      return dateA.getTime() - dateB.getTime();
     });
     
-    // Priority event first (front card)
+    // Combine: past events first (newest to oldest), then upcoming events (nearest to farthest)
+    // Priority event will still appear in its chronological position, but we'll ensure it's at the front
+    const chronological = [...pastEvents, ...upcomingEvents];
+    
+    // Find priority event
+    const priority = chronological.find(e => e.is_priority === true);
+    
+    // If priority event exists, move it to the front while maintaining chronological order for others
     if (priority) {
-      reorganized.push(priority);
+      const priorityIndex = chronological.findIndex(e => {
+        const eventId = e.event_id || e.id;
+        const priorityId = priority.event_id || priority.id;
+        return eventId === priorityId;
+      });
+      
+      if (priorityIndex !== -1) {
+        chronological.splice(priorityIndex, 1);
+        chronological.unshift(priority);
+      }
     }
-    // Then most recent past and nearest upcoming
-    if (mostRecentPast && (!priority || (mostRecentPast.event_id || mostRecentPast.id) !== (priority.event_id || priority.id))) {
-      reorganized.push(mostRecentPast);
-    }
-    if (nearestUpcoming && (!priority || (nearestUpcoming.event_id || nearestUpcoming.id) !== (priority.event_id || priority.id))) {
-      reorganized.push(nearestUpcoming);
-    }
-    reorganized.push(...remainingEvents);
     
-    return reorganized;
+    return chronological;
   })();
 
   // Get visible cards - show one card in front, with side cards for smooth scrolling effect
