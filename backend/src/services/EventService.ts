@@ -37,6 +37,7 @@ export class EventService {
     location?: string;
     photo_gallery_link?: string;
     is_priority?: boolean;
+    rsvp_link?: string;
   }): Promise<Event> {
     // Validate that end date is not before start date
     const startDate = new Date(data.event_start_dt);
@@ -54,6 +55,7 @@ export class EventService {
       event_description: data.event_description,
       location: data.location,
       photo_gallery_link: data.photo_gallery_link,
+      rsvp_link: data.rsvp_link,
       is_active: true,
       is_priority: data.is_priority !== undefined ? data.is_priority : false,
     });

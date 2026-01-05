@@ -27,6 +27,7 @@ interface EventForm {
   event_description: string;
   location: string;
   is_priority?: boolean;
+  rsvp_link?: string;
 }
 
 interface EventImage {
@@ -53,6 +54,7 @@ export default function AdminEvents() {
     event_description: '',
     location: '',
     is_priority: false,
+    rsvp_link: '',
   });
 
   useEffect(() => {
@@ -161,6 +163,7 @@ export default function AdminEvents() {
       event_description: event.event_description,
       location: (event as any).location || '',
       is_priority: event.is_priority || false,
+      rsvp_link: (event as any).rsvp_link || '',
     });
     
     // Load existing images for this event
@@ -229,6 +232,7 @@ export default function AdminEvents() {
       event_description: '',
       location: '',
       is_priority: false,
+      rsvp_link: '',
     });
     setEditingEvent(null);
     setSelectedImage(null);
@@ -424,6 +428,22 @@ export default function AdminEvents() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Enter event location"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    RSVP Link (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.rsvp_link || ''}
+                    onChange={(e) => setFormData({ ...formData, rsvp_link: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="https://example.com/rsvp"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    If provided, clicking RSVP will open this link instead of the default RSVP form
+                  </p>
                 </div>
 
                 <div className="flex items-center space-x-2">

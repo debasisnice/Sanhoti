@@ -45,6 +45,7 @@ export interface Event {
   photo_gallery_link?: string;
   gallery_is_public?: boolean; // Whether the gallery for this event is public
   event_image_path?: string; // Folder path for event flyer/image in Events_Flyers
+  rsvp_link?: string; // Optional external RSVP link
   is_active: boolean;
   is_priority?: boolean;
   created_at: string;

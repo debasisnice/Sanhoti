@@ -1971,5 +1971,27 @@
     "userEmail": "",
     "id": "1767631003224-gd6vkjz4v",
     "timestamp": "2026-01-05T16:36:43.224Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "zelle_phone",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/zelle-phone\",\"body\":{\"phoneNumber\":\"949-378-6425\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767633507606-per6bq9tk",
+    "timestamp": "2026-01-05T17:18:27.606Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "paymentqr_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/paymentqr/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767633652644-mm7a0dvv9",
+    "timestamp": "2026-01-05T17:20:52.644Z"
   }
 ]

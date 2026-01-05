@@ -204,16 +204,30 @@ export default function EventDetail() {
                     const now = new Date();
                     const eventEndDate = event.event_end_dt ? new Date(event.event_end_dt) : new Date(eventDate);
                     const isPastEvent = eventEndDate < now;
+                    const rsvpLink = (event as any).rsvp_link;
                     
                     if (!isPastEvent) {
-                      return (
-                        <Link
-                          to={`/events/${eventId}/rsvp`}
-                          className="inline-block bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
-                        >
-                          RSVP for This Event
-                        </Link>
-                      );
+                      if (rsvpLink) {
+                        return (
+                          <a
+                            href={rsvpLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+                          >
+                            RSVP for This Event
+                          </a>
+                        );
+                      } else {
+                        return (
+                          <Link
+                            to={`/events/${eventId}/rsvp`}
+                            className="inline-block bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+                          >
+                            RSVP for This Event
+                          </Link>
+                        );
+                      }
                     }
                     return null;
                   })()}

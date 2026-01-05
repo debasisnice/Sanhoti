@@ -299,16 +299,30 @@ export default function Events() {
                           const now = new Date();
                           const eventEndDate = priorityEvent.event_end_dt ? new Date(priorityEvent.event_end_dt) : new Date(eventDate);
                           const isPastEvent = eventEndDate < now;
+                          const rsvpLink = (priorityEvent as any).rsvp_link;
                           
                           if (!isPastEvent) {
-                            return (
-                              <Link
-                                to={`/events/${eventId}/rsvp`}
-                                className="inline-flex items-center justify-center bg-white border-2 border-primary-600 text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors text-lg"
-                              >
-                                RSVP for This Event
-                              </Link>
-                            );
+                            if (rsvpLink) {
+                              return (
+                                <a
+                                  href={rsvpLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center justify-center bg-white border-2 border-primary-600 text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors text-lg"
+                                >
+                                  RSVP for This Event
+                                </a>
+                              );
+                            } else {
+                              return (
+                                <Link
+                                  to={`/events/${eventId}/rsvp`}
+                                  className="inline-flex items-center justify-center bg-white border-2 border-primary-600 text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors text-lg"
+                                >
+                                  RSVP for This Event
+                                </Link>
+                              );
+                            }
                           }
                           return null;
                         })()}
@@ -368,16 +382,30 @@ export default function Events() {
                           const now = new Date();
                           const eventEndDate = priorityEvent.event_end_dt ? new Date(priorityEvent.event_end_dt) : new Date(eventDate);
                           const isPastEvent = eventEndDate < now;
+                          const rsvpLink = (priorityEvent as any).rsvp_link;
                           
                           if (!isPastEvent) {
-                            return (
-                              <Link
-                                to={`/events/${eventId}/rsvp`}
-                                className="inline-flex items-center justify-center bg-white border-2 border-primary-600 text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors text-lg"
-                              >
-                                RSVP for This Event
-                              </Link>
-                            );
+                            if (rsvpLink) {
+                              return (
+                                <a
+                                  href={rsvpLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center justify-center bg-white border-2 border-primary-600 text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors text-lg"
+                                >
+                                  RSVP for This Event
+                                </a>
+                              );
+                            } else {
+                              return (
+                                <Link
+                                  to={`/events/${eventId}/rsvp`}
+                                  className="inline-flex items-center justify-center bg-white border-2 border-primary-600 text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors text-lg"
+                                >
+                                  RSVP for This Event
+                                </Link>
+                              );
+                            }
                           }
                           return null;
                         })()}
