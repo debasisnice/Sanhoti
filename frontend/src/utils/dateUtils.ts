@@ -17,7 +17,7 @@ export function convertPSTToLocal(dateString: string): Date {
     // PST is UTC-8, PDT is UTC-7
     // We need to determine if it's PST or PDT based on the date
     // For simplicity, we'll check if DST is likely in effect (roughly March-November)
-    const [year, month] = dateString.split('-').map(Number);
+    const [_year, month] = dateString.split('-').map(Number);
     const isDST = month >= 3 && month <= 11; // Rough DST period (March to November)
     const offset = isDST ? '-07:00' : '-08:00'; // PDT or PST
     
@@ -34,7 +34,7 @@ export function convertPSTToLocal(dateString: string): Date {
     if (dateString.includes('T')) {
       // Has time component, append PST/PDT offset
       const datePart = dateString.split('T')[0];
-      const [year, month] = datePart.split('-').map(Number);
+      const [_year, month] = datePart.split('-').map(Number);
       const isDST = month >= 3 && month <= 11;
       const offset = isDST ? '-07:00' : '-08:00';
       return new Date(`${dateString}${offset}`);
@@ -72,7 +72,7 @@ export function convertLocalToPST(dateInput: Date | string): string {
     const utcTime = localMidnight.getTime();
     
     // Determine if DST is likely in effect for this date
-    const [year, month] = dateInput.split('-').map(Number);
+    const [_year, month] = dateInput.split('-').map(Number);
     const isDST = month >= 3 && month <= 11; // Rough DST period
     const pstOffsetHours = isDST ? -7 : -8; // PDT is UTC-7, PST is UTC-8
     

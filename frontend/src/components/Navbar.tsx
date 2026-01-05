@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, User, LogOut, Mail, Phone, MapPin, ChevronDown, Shield } from 'lucide-react';
+import { Menu, X, User, LogOut, Mail, Phone, ChevronDown, Shield } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { authAPI, settingsAPI } from '../services/api';
 
