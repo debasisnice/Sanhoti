@@ -190,53 +190,45 @@ export default function Navbar() {
                   <ChevronDown className={`w-4 h-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-                {/* Dropdown Menu - Rendered via Portal to escape overflow */}
-                {typeof window !== 'undefined' && createPortal(
-                  <AnimatePresence>
-                    {isUserMenuOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                        className="fixed w-48 bg-white rounded-lg shadow-xl py-2 border border-gray-200"
-                        style={{
-                          top: `${dropdownPosition.top}px`,
-                          right: `${dropdownPosition.right}px`,
-                          zIndex: 9999,
-                        }}
+                {/* Dropdown Menu - Attached to navbar */}
+                <AnimatePresence>
+                  {isUserMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl py-2 border border-gray-200 z-50"
+                    >
+                      <Link
+                        to="/dashboard"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
                       >
+                        <User className="w-4 h-4" />
+                        <span>Profile</span>
+                      </Link>
+                      {isAdmin && (
                         <Link
-                          to="/dashboard"
+                          to="/admin"
                           onClick={() => setIsUserMenuOpen(false)}
                           className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
                         >
-                          <User className="w-4 h-4" />
-                          <span>Profile</span>
+                          <Shield className="w-4 h-4" />
+                          <span>Admin Portal</span>
                         </Link>
-                        {isAdmin && (
-                          <Link
-                            to="/admin"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
-                          >
-                            <Shield className="w-4 h-4" />
-                            <span>Admin Portal</span>
-                          </Link>
-                        )}
-                        <div className="border-t border-gray-200 my-1"></div>
-                        <button
-                          onClick={handleLogout}
-                          className="flex items-center space-x-2 w-full px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          <span>Logout</span>
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>,
-                  document.body
-                )}
+                      )}
+                      <div className="border-t border-gray-200 my-1"></div>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center space-x-2 w-full px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Logout</span>
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ) : (
               <Link
