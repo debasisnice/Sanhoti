@@ -1,7 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { LayoutDashboard, Calendar, Bell, Image, BookOpen, Mail, Settings, MessageSquare, Users, ClipboardList } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LayoutDashboard, Calendar, Bell, Image, BookOpen, Mail, Settings, MessageSquare, Users, ClipboardList, Menu, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { eventsAPI, rsvpAPI, noticesAPI } from '../../services/api';
 import { Event, RSVP } from '../../types';
@@ -15,6 +15,7 @@ import AdminMagazines from './AdminMagazines';
 
 export default function AdminDashboard() {
   const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuItems = [
     { icon: LayoutDashboard, label: 'Overview', path: '/admin' },
     { icon: Calendar, label: 'Events', path: '/admin/events' },
@@ -30,8 +31,19 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen">
       <div className="flex">
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="md:hidden fixed top-20 left-4 z-50 p-2 bg-white rounded-lg shadow-lg text-gray-700 hover:bg-gray-100 transition-colors"
+          aria-label="Toggle menu"
+        >
+          {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+
         {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-lg min-h-screen">
+        <aside className={`w-64 bg-white shadow-lg min-h-screen fixed md:static z-40 transition-transform duration-300 ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}>
           <div className="p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-8">Admin Panel</h2>
             <nav className="space-y-2">
@@ -42,6 +54,7 @@ export default function AdminDashboard() {
                   <Link
                     key={item.path}
                     to={item.path}
+                    onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                       isActive
                         ? 'bg-primary-600 text-white'
@@ -57,8 +70,21 @@ export default function AdminDashboard() {
           </div>
         </aside>
 
+        {/* Mobile Overlay */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+            />
+          )}
+        </AnimatePresence>
+
         {/* Main Content */}
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-4 md:p-8 w-full md:w-auto">
           <Routes>
             <Route path="/" element={<AdminOverview />} />
             <Route path="/events" element={<AdminEvents />} />
