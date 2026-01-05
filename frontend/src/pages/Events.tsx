@@ -196,13 +196,13 @@ export default function Events() {
   const visibleCards = getVisibleCards();
 
   const handlePrevious = () => {
-    // Previous event: go to next index (because carousel rotates right-to-left visually)
-    setCurrentIndex((prev) => (prev + 1) % eventsForCarousel.length);
+    // Go to previous event in chronological sequence (left arrow)
+    setCurrentIndex((prev) => (prev - 1 + eventsForCarousel.length) % eventsForCarousel.length);
   };
 
   const handleNext = () => {
-    // Next event: go to previous index (because carousel rotates right-to-left visually)
-    setCurrentIndex((prev) => (prev - 1 + eventsForCarousel.length) % eventsForCarousel.length);
+    // Go to next event in chronological sequence (right arrow)
+    setCurrentIndex((prev) => (prev + 1) % eventsForCarousel.length);
   };
 
   return (
