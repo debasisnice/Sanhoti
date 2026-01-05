@@ -104,7 +104,8 @@ export default function AdminEmail() {
       setHtmlContent('');
       setOrganizations('');
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to send email');
+      const errorMsg = error.response?.data?.error || error.response?.data?.details || 'Failed to send email';
+      toast.error(errorMsg, { duration: 6000 });
     } finally {
       setSending(false);
     }
@@ -168,9 +169,19 @@ export default function AdminEmail() {
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-            <p className="mt-1 text-sm text-gray-500">
-              For Gmail, you may need to use an App Password instead of your regular password.
-            </p>
+            <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800 font-medium mb-1">Gmail App Password Required</p>
+              <p className="text-xs text-blue-700">
+                Gmail requires an App Password for SMTP access. To generate one:
+              </p>
+              <ol className="text-xs text-blue-700 mt-1 ml-4 list-decimal space-y-1">
+                <li>Go to your Google Account settings</li>
+                <li>Enable 2-Step Verification (if not already enabled)</li>
+                <li>Go to Security → App Passwords</li>
+                <li>Generate a new App Password for "Mail"</li>
+                <li>Use the 16-character App Password (not your regular password)</li>
+              </ol>
+            </div>
           </div>
           <button
             onClick={handleSaveEmailSettings}

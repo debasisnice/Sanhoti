@@ -128,7 +128,8 @@ export class EmailController {
       res.json({ message: 'Test email sent successfully' });
     } catch (error: any) {
       console.error('Test email failed:', error);
-      res.status(500).json({ error: 'Failed to send test email', details: error.message });
+      const errorMessage = error.message || 'Failed to send test email';
+      res.status(500).json({ error: errorMessage, details: error.message });
     }
   }
 }

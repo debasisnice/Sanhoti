@@ -65,9 +65,15 @@ export class EmailService {
         subject,
         html,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Email sending failed:', error);
-      throw new Error('Failed to send email');
+      
+      // Provide more helpful error messages for common Gmail issues
+      if (error.code === 'EAUTH' || error.responseCode === 535) {
+        throw new Error('Gmail authentication failed. Please use an App Password instead of your regular password. Enable 2-Step Verification and generate an App Password from your Google Account settings.');
+      }
+      
+      throw new Error(error.message || 'Failed to send email');
     }
   }
 
