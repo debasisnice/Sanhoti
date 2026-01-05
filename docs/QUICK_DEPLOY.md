@@ -71,7 +71,7 @@ pm2 save
 ```bash
 cd /var/www/sanhoti
 git pull origin main
-./deploy.sh
+../scripts/deploy.sh
 ```
 
 Or manually:

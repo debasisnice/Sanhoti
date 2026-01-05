@@ -122,6 +122,6 @@ echo "[]" > specialAccessCodes.json
 4. **Login**: Access admin panel at http://localhost:3000/admin
 5. **Create Events**: Start adding your Bengali community events!
 
-For detailed documentation, see [SETUP.md](./SETUP.md) and [README.md](./README.md)
+For detailed documentation, see [SETUP.md](./SETUP.md) and [README.md](../README.md)
 
 

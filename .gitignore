@@ -55,7 +55,7 @@ backend/uploads/
 .aws/
 *.pem
 *.ppk
-AWS_ACCOUNT_INFO.md
+docs/AWS_ACCOUNT_INFO.md
 # Note: .github/ folder should be tracked (contains workflows)
 
 # Misc

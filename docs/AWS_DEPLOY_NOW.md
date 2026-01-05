@@ -31,7 +31,7 @@ curl http://localhost:5001/health
 
 ```bash
 cd /var/www/sanhoti
-bash deploy.sh
+bash ../scripts/deploy.sh
 ```
 
 ## Verify deployment:

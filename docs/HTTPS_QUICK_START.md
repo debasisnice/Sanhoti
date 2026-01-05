@@ -19,7 +19,7 @@ ssh -i your-key.pem ubuntu@44.220.179.207
 ### Step 2: Upload and run the setup script
 ```bash
 # If you have the script file, upload it first, then:
-sudo bash setup-https.sh
+sudo bash ../scripts/setup-https.sh
 
 # Or install Certbot manually:
 sudo apt update

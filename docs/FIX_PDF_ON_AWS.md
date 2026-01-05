@@ -246,7 +246,7 @@ After applying fixes:
 
 ## Quick Fix Script
 
-Save this as `fix-pdf-aws.sh` and run on AWS server:
+The script is available at `../scripts/fix-pdf-aws.sh`. Run on AWS server:
 
 ```bash
 #!/bin/bash

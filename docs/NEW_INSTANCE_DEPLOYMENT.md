@@ -434,7 +434,7 @@ Copy the deploy script to your server:
 ```bash
 cd /var/www/sanhoti
 # The deploy.sh script will pull from Git and rebuild
-./deploy.sh
+../scripts/deploy.sh
 ```
 
 ### Manual Update

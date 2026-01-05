@@ -6,7 +6,7 @@
 
 ```bash
 cd "/Users/debasispramanik/Library/Mobile Documents/com~apple~CloudDocs/Project/Sanhoti"
-./manual_deploy.sh
+../scripts/manual_deploy.sh
 ```
 
 The script will:

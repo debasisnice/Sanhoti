@@ -71,7 +71,7 @@ sanhoti/
 
 ### Quick Start
 
-See **[QUICK_START.md](./QUICK_START.md)** for the fastest way to get up and running!
+See **[QUICK_START.md](./docs/QUICK_START.md)** for the fastest way to get up and running!
 
 ### Prerequisites
 - Node.js 18+
