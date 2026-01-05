@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Lock, X } from 'lucide-react';
+import { BookOpen, Lock, X, ExternalLink } from 'lucide-react';
 import { magazinesAPI } from '../services/api';
 import { Magazine } from '../types';
 import { format } from 'date-fns';
