@@ -6,6 +6,7 @@ import { eventsAPI, noticesAPI, galleriesAPI } from '../services/api';
 import { Event, Notice, PhotoGallery } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal } from '../utils/dateUtils';
+import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
 
 export default function EventDetail() {
@@ -210,14 +211,26 @@ export default function EventDetail() {
                     if (!isPastEvent) {
                       if (rsvpLink) {
                         return (
-                          <a
-                            href={rsvpLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
-                          >
-                            RSVP for This Event
-                          </a>
+                          <div className="flex flex-col items-center">
+                            <a
+                              href={rsvpLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-block bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+                            >
+                              RSVP for This Event
+                            </a>
+                            <div className="mt-4 flex flex-col items-center">
+                              <QRCodeSVG 
+                                value={rsvpLink} 
+                                size={150}
+                                level="M"
+                                includeMargin={true}
+                                className="bg-white p-2 rounded-lg"
+                              />
+                              <p className="text-sm text-gray-600 mt-2">Scan to RSVP</p>
+                            </div>
+                          </div>
                         );
                       } else {
                         return (

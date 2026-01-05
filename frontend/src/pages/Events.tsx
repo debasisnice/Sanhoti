@@ -6,6 +6,7 @@ import { eventsAPI } from '../services/api';
 import { Event } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal } from '../utils/dateUtils';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function Events() {
   const [allEvents, setAllEvents] = useState<Event[]>([]);
@@ -305,14 +306,26 @@ export default function Events() {
                           if (!isPastEvent) {
                             if (rsvpLink) {
                               return (
-                                <a
-                                  href={rsvpLink}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center justify-center bg-white border-2 border-primary-600 text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors text-lg"
-                                >
-                                  RSVP for This Event
-                                </a>
+                                <div className="flex flex-col items-center">
+                                  <a
+                                    href={rsvpLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center bg-white border-2 border-primary-600 text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors text-lg"
+                                  >
+                                    RSVP for This Event
+                                  </a>
+                                  <div className="mt-4 flex flex-col items-center">
+                                    <QRCodeSVG 
+                                      value={rsvpLink} 
+                                      size={150}
+                                      level="M"
+                                      includeMargin={true}
+                                      className="bg-white p-2 rounded-lg"
+                                    />
+                                    <p className="text-sm text-gray-600 mt-2">Scan to RSVP</p>
+                                  </div>
+                                </div>
                               );
                             } else {
                               return (
@@ -388,14 +401,26 @@ export default function Events() {
                           if (!isPastEvent) {
                             if (rsvpLink) {
                               return (
-                                <a
-                                  href={rsvpLink}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center justify-center bg-white border-2 border-primary-600 text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors text-lg"
-                                >
-                                  RSVP for This Event
-                                </a>
+                                <div className="flex flex-col items-center">
+                                  <a
+                                    href={rsvpLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center bg-white border-2 border-primary-600 text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors text-lg"
+                                  >
+                                    RSVP for This Event
+                                  </a>
+                                  <div className="mt-4 flex flex-col items-center">
+                                    <QRCodeSVG 
+                                      value={rsvpLink} 
+                                      size={150}
+                                      level="M"
+                                      includeMargin={true}
+                                      className="bg-white p-2 rounded-lg"
+                                    />
+                                    <p className="text-sm text-gray-600 mt-2">Scan to RSVP</p>
+                                  </div>
+                                </div>
                               );
                             } else {
                               return (
