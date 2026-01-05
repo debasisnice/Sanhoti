@@ -91,6 +91,20 @@ export default function Home() {
     fetchEvents();
   }, []);
 
+  useEffect(() => {
+    const fetchSocialLinks = async () => {
+      try {
+        const settings = await settingsAPI.getSettings();
+        if (settings.facebookLink) setFacebookLink(settings.facebookLink);
+        if (settings.whatsappLink) setWhatsappLink(settings.whatsappLink);
+      } catch (error) {
+        // Use default links if fetch fails
+      }
+    };
+    
+    fetchSocialLinks();
+  }, []);
+
   // Slideshow auto-advance
   useEffect(() => {
     if (slideshowImages.length <= 1) return;
