@@ -5,6 +5,7 @@ import { Calendar, Users, Image, BookOpen, ArrowRight, Eye, Star, MapPin } from 
 import { eventsAPI, homepageAPI } from '../services/api';
 import { Event } from '../types';
 import { format } from 'date-fns';
+import { convertPSTToLocal } from '../utils/dateUtils';
 
 export default function Home() {
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
