@@ -714,7 +714,7 @@ export default function Home() {
               href="https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-all transform hover:scale-105 shadow-xl"
+              className="inline-block bg-blue-400 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-500 transition-all transform hover:scale-105 shadow-xl"
             >
               Become a Facebook Member
             </a>
@@ -722,7 +722,7 @@ export default function Home() {
               href="https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block bg-green-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-green-700 transition-all transform hover:scale-105 shadow-xl"
+              className="inline-block bg-green-400 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-green-500 transition-all transform hover:scale-105 shadow-xl"
             >
               Join us in WhatsApp
             </a>
