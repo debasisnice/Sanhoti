@@ -24,15 +24,30 @@ export default function Navbar() {
     setIsUserMenuOpen(false);
   };
 
-  // Update dropdown position when menu opens
+  // Update dropdown position when menu opens or scrolls
   useEffect(() => {
-    if (isUserMenuOpen && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setDropdownPosition({
-        top: rect.bottom + window.scrollY + 8,
-        right: window.innerWidth - rect.right,
-      });
+    const updatePosition = () => {
+      if (isUserMenuOpen && buttonRef.current) {
+        const rect = buttonRef.current.getBoundingClientRect();
+        setDropdownPosition({
+          top: rect.bottom + window.scrollY + 8,
+          right: window.innerWidth - rect.right,
+        });
+      }
+    };
+
+    if (isUserMenuOpen) {
+      updatePosition();
+      // Update position on scroll
+      window.addEventListener('scroll', updatePosition, true);
+      // Update position on resize
+      window.addEventListener('resize', updatePosition);
     }
+
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+    };
   }, [isUserMenuOpen]);
 
   // Close dropdown when clicking outside
