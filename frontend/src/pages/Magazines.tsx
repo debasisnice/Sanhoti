@@ -114,11 +114,13 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
     if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
       return fileUrl;
     }
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+    // Use relative path in production (when served by Nginx), absolute URL in development
+    const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
     if (fileUrl.startsWith('/api/')) {
-      return `${API_BASE_URL}${fileUrl}`;
+      return API_BASE_URL ? `${API_BASE_URL}${fileUrl}` : fileUrl;
     }
-    return `${API_BASE_URL}/api${fileUrl.startsWith('/') ? fileUrl : `/${fileUrl}`}`;
+    const fullPath = `/api${fileUrl.startsWith('/') ? fileUrl : `/${fileUrl}`}`;
+    return API_BASE_URL ? `${API_BASE_URL}${fullPath}` : fullPath;
   })();
 
   // Reset scroll position when PDF loads
