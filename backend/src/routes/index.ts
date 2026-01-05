@@ -19,6 +19,7 @@ import { SettingsController } from '../controllers/SettingsController.js';
 import { SponsorController } from '../controllers/SponsorController.js';
 import { HomePageController } from '../controllers/HomePageController.js';
 import { BoardMembersController } from '../controllers/BoardMembersController.js';
+import { PaymentQRController } from '../controllers/PaymentQRController.js';
 
 const router = Router();
 
@@ -38,6 +39,7 @@ const settingsController = new SettingsController();
 const sponsorController = new SponsorController();
 const homePageController = new HomePageController();
 const boardMembersController = new BoardMembersController();
+const paymentQRController = new PaymentQRController();
 
 // Helper to bind controller methods
 function bindController(controller: any, methodName: string) {
@@ -116,6 +118,10 @@ router.get('/boardmembers/images', bindController(boardMembersController, 'getIm
 router.get('/boardmembers/images/:filename', bindController(boardMembersController, 'getImage'));
 router.get('/boardmembers/post/:postName', bindController(boardMembersController, 'getImageByPostName'));
 router.get('/boardmembers/postnames', bindController(boardMembersController, 'getPostNames'));
+
+// Payment QR - Public routes
+router.get('/paymentqr/image', bindController(paymentQRController, 'getImage'));
+router.get('/paymentqr/has-image', bindController(paymentQRController, 'hasImage'));
 
 // Protected routes (require authentication)
 router.use(authenticate);
@@ -456,6 +462,26 @@ router.delete('/boardmembers/images/:filename',
   requireAdmin,
   auditLog('DELETE', 'boardmember_image'),
   bindController(boardMembersController, 'deleteImage')
+);
+
+// Payment QR - Admin routes
+router.post('/paymentqr/upload',
+  requireAdmin,
+  auditLog('UPLOAD', 'paymentqr_image'),
+  paymentQRController.uploadImage(),
+  bindController(paymentQRController, 'handleImageUpload')
+);
+router.delete('/paymentqr/image',
+  requireAdmin,
+  auditLog('DELETE', 'paymentqr_image'),
+  bindController(paymentQRController, 'deleteImage')
+);
+
+// Settings - Admin routes
+router.put('/settings/zelle-phone',
+  requireAdmin,
+  auditLog('UPDATE', 'zelle_phone'),
+  bindController(settingsController, 'updateZellePhoneNumber')
 );
 
 export default router;

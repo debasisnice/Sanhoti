@@ -1,7 +1,41 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, DollarSign, CreditCard, Mail } from 'lucide-react';
+import { paymentQRAPI, settingsAPI } from '../services/api';
 
 export default function Donate() {
+  const [paymentQRImage, setPaymentQRImage] = useState<string | null>(null);
+  const [zellePhoneNumber, setZellePhoneNumber] = useState<string>('949-378-6425');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch payment QR image
+        const hasImage = await paymentQRAPI.hasImage();
+        if (hasImage.hasImage) {
+          setPaymentQRImage(paymentQRAPI.getImageUrl());
+        } else {
+          // Fallback to default image if no image uploaded
+          setPaymentQRImage('/images/QR.jpeg');
+        }
+
+        // Fetch Zelle phone number from settings
+        const settings = await settingsAPI.getSettings();
+        if (settings.zellePhoneNumber) {
+          setZellePhoneNumber(settings.zellePhoneNumber);
+        }
+      } catch (error) {
+        console.error('Failed to fetch payment data:', error);
+        // Use fallback values on error
+        setPaymentQRImage('/images/QR.jpeg');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
   return (
     <div className="py-12 pb-32">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -55,28 +89,46 @@ export default function Donate() {
               
               {/* QR Code Section */}
               <div className="flex flex-col md:flex-row items-center justify-center gap-8 mb-6">
-                <div className="bg-white rounded-lg p-6 shadow-md">
-                  <img 
-                    src="/images/QR.jpeg" 
-                    alt="Zelle QR Code - Send Money to Sanhoti"
-                    className="w-64 h-64 object-contain"
-                  />
-                </div>
-                
-                <div className="text-center md:text-left">
-                  <p className="text-sm text-gray-600 mb-2">Send Money with Zelle®</p>
-                  <p className="text-lg font-semibold text-gray-900 mb-3">SANHOTI INC</p>
-                  <div className="bg-white rounded-lg p-4 border-2 border-primary-200">
-                    <div className="flex items-center justify-center md:justify-start space-x-3">
-                      <DollarSign className="w-6 h-6 text-primary-600" />
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Zelle Phone Number</p>
-                        <p className="text-2xl font-bold text-primary-600">949-378-6425</p>
-                      </div>
-                    </div>
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
                   </div>
-                  <p className="text-sm text-gray-600 mt-3">Scan in your banking app to pay</p>
-                </div>
+                ) : (
+                  <>
+                    <div className="bg-white rounded-lg p-6 shadow-md">
+                      {paymentQRImage ? (
+                        <img 
+                          src={paymentQRImage} 
+                          alt="Zelle QR Code - Send Money to Sanhoti"
+                          className="w-64 h-64 object-contain"
+                          onError={(e) => {
+                            // Fallback to default image if backend image fails to load
+                            (e.target as HTMLImageElement).src = '/images/QR.jpeg';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-64 h-64 flex items-center justify-center bg-gray-100 rounded">
+                          <CreditCard className="w-16 h-16 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="text-center md:text-left">
+                      <p className="text-sm text-gray-600 mb-2">Send Money with Zelle®</p>
+                      <p className="text-lg font-semibold text-gray-900 mb-3">SANHOTI INC</p>
+                      <div className="bg-white rounded-lg p-4 border-2 border-primary-200">
+                        <div className="flex items-center justify-center md:justify-start space-x-3">
+                          <DollarSign className="w-6 h-6 text-primary-600" />
+                          <div>
+                            <p className="text-sm text-gray-600 mb-1">Zelle Phone Number</p>
+                            <p className="text-2xl font-bold text-primary-600">{zellePhoneNumber}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-3">Scan in your banking app to pay</p>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -143,7 +195,7 @@ export default function Donate() {
                 </li>
                 <li className="flex items-start">
                   <span className="flex-shrink-0 w-8 h-8 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center font-bold mr-3">3</span>
-                  <span>Enter the phone number: <strong>949-378-6425</strong></span>
+                  <span>Enter the phone number: <strong>{zellePhoneNumber}</strong></span>
                 </li>
                 <li className="flex items-start">
                   <span className="flex-shrink-0 w-8 h-8 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center font-bold mr-3">4</span>

@@ -34,6 +34,22 @@ export class SettingsController {
       res.status(500).json({ error: 'Failed to update navbar settings', details: error.message });
     }
   }
+
+  async updateZellePhoneNumber(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { phoneNumber } = req.body;
+      if (typeof phoneNumber !== 'string') {
+        res.status(400).json({ error: 'Invalid phone number' });
+        return;
+      }
+
+      const settings = await this.settingsService.updateZellePhoneNumber(phoneNumber);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error updating Zelle phone number:', error);
+      res.status(500).json({ error: 'Failed to update Zelle phone number', details: error.message });
+    }
+  }
 }
 
 

@@ -365,6 +365,30 @@ export const boardMembersAPI = {
   },
 };
 
+// Payment QR API
+export const paymentQRAPI = {
+  getImageUrl: (): string => {
+    return '/api/paymentqr/image';
+  },
+  hasImage: async (): Promise<{ hasImage: boolean }> => {
+    const response = await api.get('/paymentqr/has-image');
+    return response.data;
+  },
+  uploadImage: async (file: File): Promise<any> => {
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await api.post('/paymentqr/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+  deleteImage: async (): Promise<void> => {
+    await api.delete('/paymentqr/image');
+  },
+};
+
 // Galleries API
 export const galleriesAPI = {
   getPublic: async (): Promise<PhotoGallery[]> => {
@@ -513,6 +537,10 @@ export const settingsAPI = {
   },
   updateNavbarSettings: async (navbar: any): Promise<any> => {
     const response = await api.put('/settings/navbar', { navbar });
+    return response.data;
+  },
+  updateZellePhoneNumber: async (phoneNumber: string): Promise<any> => {
+    const response = await api.put('/settings/zelle-phone', { phoneNumber });
     return response.data;
   },
 };

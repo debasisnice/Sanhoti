@@ -1872,5 +1872,104 @@
     "userEmail": "",
     "id": "1767628534399-1odrgswtb",
     "timestamp": "2026-01-05T15:55:34.399Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/api/boardmembers/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767630669041-t7t99t06x",
+    "timestamp": "2026-01-05T16:31:09.041Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"President\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767630927007-j6zliyghj",
+    "timestamp": "2026-01-05T16:35:27.007Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"Secretary\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767630936624-9zqms4ve8",
+    "timestamp": "2026-01-05T16:35:36.624Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"Treasurer\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767630945725-khucsnxk7",
+    "timestamp": "2026-01-05T16:35:45.725Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DELETE",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"DELETE\",\"path\":\"/boardmembers/post/Treasurer\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767630967510-fko81f8jx",
+    "timestamp": "2026-01-05T16:36:07.510Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"Treasurer\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767630976940-fevljo6hw",
+    "timestamp": "2026-01-05T16:36:16.940Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DELETE",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"DELETE\",\"path\":\"/boardmembers/post/Treasurer\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767630984768-v9sfs0ba6",
+    "timestamp": "2026-01-05T16:36:24.768Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"Treasurer\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767630994300-59flzc4ik",
+    "timestamp": "2026-01-05T16:36:34.300Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"Cultural Director\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767631003224-gd6vkjz4v",
+    "timestamp": "2026-01-05T16:36:43.224Z"
   }
 ]

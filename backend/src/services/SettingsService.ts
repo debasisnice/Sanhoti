@@ -20,6 +20,10 @@ export class SettingsService {
   async updateNavbarSettings(updates: Partial<Settings['navbar']>): Promise<Settings> {
     return this.settingsDataHelper.update(updates);
   }
+
+  async updateZellePhoneNumber(phoneNumber: string): Promise<Settings> {
+    return this.settingsDataHelper.updateZellePhoneNumber(phoneNumber);
+  }
 }
 
 

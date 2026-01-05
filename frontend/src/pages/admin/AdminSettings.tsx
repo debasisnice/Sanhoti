@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Settings, Users, Award, Home, Upload, Trash2, X, UserCircle, QrCode } from 'lucide-react';
-import { settingsAPI, usersAPI, sponsorsAPI, homepageAPI, boardMembersAPI } from '../../services/api';
+import { settingsAPI, usersAPI, sponsorsAPI, homepageAPI, boardMembersAPI, paymentQRAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 interface NavbarSettings {
@@ -82,6 +82,10 @@ export default function AdminSettings() {
   const [boardMemberImages, setBoardMemberImages] = useState<BoardMemberImage[]>([]);
   const [selectedPostName, setSelectedPostName] = useState<string>('President');
   const [postNames, setPostNames] = useState<string[]>(['President', 'Secretary', 'Treasurer', 'Cultural Director', 'Executive Member']);
+  const [paymentQRImage, setPaymentQRImage] = useState<string | null>(null);
+  const [hasPaymentQRImage, setHasPaymentQRImage] = useState<boolean>(false);
+  const [zellePhoneNumber, setZellePhoneNumber] = useState<string>('');
+  const [selectedPaymentQRFile, setSelectedPaymentQRFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -102,6 +106,9 @@ export default function AdminSettings() {
     } else if (activeTab === 'boardmembers') {
       fetchBoardMemberImages();
       fetchPostNames();
+    } else if (activeTab === 'paymentqr') {
+      fetchPaymentQRImage();
+      fetchZellePhoneNumber();
     }
   }, [activeTab]);
 
@@ -162,6 +169,30 @@ export default function AdminSettings() {
     } catch (error: any) {
       // Use default post names if API fails
       console.error('Failed to fetch post names:', error);
+    }
+  };
+
+  const fetchPaymentQRImage = async () => {
+    try {
+      const result = await paymentQRAPI.hasImage();
+      setHasPaymentQRImage(result.hasImage);
+      if (result.hasImage) {
+        setPaymentQRImage(paymentQRAPI.getImageUrl());
+      } else {
+        setPaymentQRImage(null);
+      }
+    } catch (error: any) {
+      setHasPaymentQRImage(false);
+      setPaymentQRImage(null);
+    }
+  };
+
+  const fetchZellePhoneNumber = async () => {
+    try {
+      const settings = await settingsAPI.getSettings();
+      setZellePhoneNumber(settings.zellePhoneNumber || '');
+    } catch (error: any) {
+      console.error('Failed to fetch Zelle phone number:', error);
     }
   };
 
@@ -237,6 +268,10 @@ export default function AdminSettings() {
         await boardMembersAPI.deleteImageByPostName(filename);
         toast.success('Image deleted successfully');
         await fetchBoardMemberImages();
+      } else if (activeTab === 'paymentqr') {
+        await paymentQRAPI.deleteImage();
+        toast.success('Image deleted successfully');
+        await fetchPaymentQRImage();
       }
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to delete image');
@@ -1108,12 +1143,124 @@ export default function AdminSettings() {
             <div>
               <div className="mb-6">
                 <p className="text-gray-600">
-                  Payment QR code management will be available here. This feature is coming soon.
+                  Upload and manage the payment QR code image. Only one image can be stored at a time. Uploading a new image will replace the existing one.
                 </p>
               </div>
-              <div className="text-center py-12 bg-gray-50 rounded-lg">
-                <QrCode className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">Payment QR feature coming soon</p>
+
+              {/* Zelle Phone Number Section */}
+              <div className="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Zelle Phone Number</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Phone Number
+                    </label>
+                    <input
+                      type="text"
+                      value={zellePhoneNumber}
+                      onChange={(e) => setZellePhoneNumber(e.target.value)}
+                      placeholder="e.g., +1 949-378-6425"
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+                  <button
+                    onClick={handleSaveZellePhoneNumber}
+                    disabled={saving}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {saving ? 'Saving...' : 'Save Phone Number'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Upload Section */}
+              <div className="mb-8 p-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Upload Payment QR Image</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Select Image (jpg, png, gif, webp - Max 20MB)
+                    </label>
+                    <input
+                      id="paymentqr-file-input"
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setSelectedPaymentQRFile(e.target.files[0]);
+                        }
+                      }}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-600 file:text-white hover:file:bg-primary-700"
+                    />
+                  </div>
+
+                  {selectedPaymentQRFile && (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Selected File:</p>
+                      <div className="flex items-center justify-between p-2 bg-white rounded border">
+                        <span className="text-sm text-gray-700 truncate">{selectedPaymentQRFile.name}</span>
+                        <button
+                          onClick={() => {
+                            setSelectedPaymentQRFile(null);
+                            const fileInput = document.getElementById('paymentqr-file-input') as HTMLInputElement;
+                            if (fileInput) fileInput.value = '';
+                          }}
+                          className="ml-2 text-red-600 hover:text-red-800"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <button
+                        onClick={handleUpload}
+                        disabled={uploading}
+                        className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        <Upload className="w-4 h-4" />
+                        {uploading ? 'Uploading...' : 'Upload Image'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Existing Image Section */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Current Payment QR Image
+                  </h3>
+                  {hasPaymentQRImage && (
+                    <button
+                      onClick={() => handleDeleteImage('paymentqr')}
+                      disabled={deleting}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete Image
+                    </button>
+                  )}
+                </div>
+
+                {!hasPaymentQRImage ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <QrCode className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500">No payment QR image uploaded yet.</p>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                    <div className="p-4">
+                      <img
+                        src={paymentQRImage || ''}
+                        alt="Payment QR Code"
+                        className="w-full max-w-md mx-auto object-contain"
+                        onError={(e) => {
+                          console.error('Failed to load image:', paymentQRImage);
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

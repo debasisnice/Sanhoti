@@ -199,5 +199,6 @@ export interface Settings {
     donate: boolean;
     joinUs: boolean;
   };
+  zellePhoneNumber?: string;
   updated_at: string;
 }
