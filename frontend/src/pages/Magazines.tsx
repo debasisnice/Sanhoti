@@ -169,18 +169,29 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
         <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
-            <div>
+            <div className="flex-1">
               <h2 className="text-2xl font-bold text-gray-900">{magazine.title}</h2>
               {magazine.description && (
                 <p className="text-gray-600 text-sm mt-1">{magazine.description}</p>
               )}
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <X className="w-6 h-6 text-gray-600" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => window.open(pdfUrl, '_blank', 'noopener,noreferrer')}
+                className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+                title="Open in a new window"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Open in a new window
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                title="Close"
+              >
+                <X className="w-6 h-6 text-gray-600" />
+              </button>
+            </div>
           </div>
 
           {/* PDF Viewer */}
