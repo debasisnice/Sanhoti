@@ -116,7 +116,7 @@ export default function Navbar() {
         <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-primary-600 z-20"></div>
         {/* Left Section - Beige */}
         <div className="bg-amber-50 w-auto max-w-md relative pr-16">
-          <div className="h-full px-4 sm:px-6 lg:px-8 flex items-center space-x-4 lg:space-x-6">
+          <div className="h-full px-2 sm:px-4 lg:px-8 flex items-center space-x-2 sm:space-x-4 lg:space-x-6">
             <Link to="/" className="flex items-center hover:opacity-90 transition-opacity">
               <img
                 src="/images/logo.png"
@@ -139,20 +139,20 @@ export default function Navbar() {
             </Link>
 
             {/* Contact Information */}
-            <div className="hidden lg:flex flex-col space-y-1.5 text-xs text-gray-800">
-              <div className="flex items-center space-x-2">
+            <div className="flex flex-col space-y-1 text-xs text-gray-800">
+              <div className="flex items-center space-x-1.5">
                 <Mail className="w-3 h-3 text-primary-600 flex-shrink-0" />
                 <a href="mailto:info@sanhoti.org" className="hover:text-primary-600 transition-colors whitespace-nowrap">
                   info@sanhoti.org
                 </a>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1.5">
                 <Phone className="w-3 h-3 text-primary-600 flex-shrink-0" />
                 <a href="tel:+19493786425" className="hover:text-primary-600 transition-colors whitespace-nowrap">
                   +1 949-378-6425
                 </a>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1.5">
                 <span className="text-primary-600 font-semibold whitespace-nowrap">EIN:</span>
                 <span className="whitespace-nowrap">39-2903777</span>
               </div>
