@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, User, LogOut, Mail, Phone, MapPin, ChevronDown, Shield } from 'lucide-react';
@@ -9,7 +8,6 @@ import { authAPI, settingsAPI } from '../services/api';
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const userMenuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const { isAuthenticated, user, logout: logoutStore, isAdmin } = useAuthStore();
@@ -23,17 +21,6 @@ export default function Navbar() {
     setIsOpen(false);
     setIsUserMenuOpen(false);
   };
-
-  // Update dropdown position when menu opens
-  useEffect(() => {
-    if (isUserMenuOpen && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setDropdownPosition({
-        top: rect.bottom + window.scrollY + 8,
-        right: window.innerWidth - rect.right,
-      });
-    }
-  }, [isUserMenuOpen]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
