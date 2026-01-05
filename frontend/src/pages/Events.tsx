@@ -166,15 +166,14 @@ export default function Events() {
     return reorganized;
   })();
 
-  // Get visible cards - show 7 cards for smooth scrolling effect
+  // Get visible cards - show one card in front, with side cards for smooth scrolling effect
   const getVisibleCards = () => {
     if (eventsForCarousel.length === 0) return [];
     
     const visible: Array<{ event: Event; index: number; position: number }> = [];
     
-    // Show 7 cards: 3 on left, 2 middle, 2 on right
-    // currentIndex should be 0 to show index 0 and 1 in positions 0 and 1
-    for (let i = -3; i <= 3; i++) {
+    // Show 5 cards: 2 on left, 1 middle (front), 2 on right
+    for (let i = -2; i <= 2; i++) {
       const eventIndex = (currentIndex + i + eventsForCarousel.length) % eventsForCarousel.length;
       visible.push({
         event: eventsForCarousel[eventIndex],
@@ -432,35 +431,34 @@ export default function Events() {
               const eventImageOrientation = eventImageOrientations[eventId];
               const isPortrait = eventImageOrientation === 'portrait' && eventImage;
 
-                  const isMiddle = card.position === 0 || card.position === 1;
+                  const isMiddle = card.position === 0;
                   const isLeft = card.position < 0;
-                  const isRight = card.position > 1;
+                  const isRight = card.position > 0;
 
                   // Calculate styles - cards flow from right to left
-                  const scale = (card.position === 0 || card.position === 1) ? 1.3 : 0.7;
+                  // Only position 0 is the front card
+                  const scale = card.position === 0 ? 1.3 : 0.7;
                   
                   // Continuous horizontal positioning
                   let xOffset;
                   if (card.position === 0) {
-                    xOffset = -170; // First middle card
-                  } else if (card.position === 1) {
-                    xOffset = 170; // Second middle card
+                    xOffset = 0; // Front card centered
                   } else {
                     // Side cards: maintain continuous spacing
                     const baseSpacing = 240;
                     if (card.position < 0) {
                       // Left side cards
-                      xOffset = -170 - baseSpacing + (card.position + 1) * baseSpacing;
+                      xOffset = card.position * baseSpacing;
                     } else {
                       // Right side cards
-                      xOffset = 170 + (card.position - 1) * baseSpacing;
+                      xOffset = card.position * baseSpacing;
                     }
                   }
                   
-                  // Create wheel effect: middle cards forward, side cards go back
+                  // Create wheel effect: front card forward, side cards go back
                   const zOffset = isMiddle ? 100 : -Math.abs(card.position) * 80 - 50;
                   const rotateY = isLeft ? 15 : isRight ? -15 : 0;
-                  const opacity = Math.abs(card.position) > 3 ? 0.3 : isMiddle ? 1 : 0.7;
+                  const opacity = isMiddle ? 1 : 0.7;
               
               return (
                 <motion.div
@@ -500,7 +498,7 @@ export default function Events() {
                             <div 
                               className="bg-gradient-to-br from-primary-400 to-primary-600 relative overflow-hidden flex items-center justify-center"
                               style={{
-                                height: (card.position === 0 || card.position === 1) 
+                                height: card.position === 0 
                                   ? (isPortrait ? '180px' : '140px')
                                   : (isPortrait ? '120px' : '90px'),
                               }}
