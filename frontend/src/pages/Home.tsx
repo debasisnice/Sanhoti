@@ -102,7 +102,8 @@ export default function Home() {
       icon: Users,
       title: 'Community',
       description: 'Connect with Bengali families across the USA',
-      link: '/register',
+      link: 'https://www.facebook.com/profile.php?id=61577899858876&mibextid=wwXIfr&mibextid=wwXIfr',
+      isExternal: true,
       color: 'from-blue-500 to-blue-600',
     },
     {
@@ -599,12 +600,23 @@ export default function Home() {
                 </div>
                 <h3 className="text-xl font-semibold mb-2 text-gray-900">{feature.title}</h3>
                 <p className="text-gray-600 mb-4">{feature.description}</p>
-                <Link
-                  to={feature.link}
-                  className="text-primary-600 font-medium flex items-center hover:text-primary-700"
-                >
-                  Learn more <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
+                {feature.isExternal ? (
+                  <a
+                    href={feature.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary-600 font-medium flex items-center hover:text-primary-700"
+                  >
+                    Learn more <ArrowRight className="w-4 h-4 ml-1" />
+                  </a>
+                ) : (
+                  <Link
+                    to={feature.link}
+                    className="text-primary-600 font-medium flex items-center hover:text-primary-700"
+                  >
+                    Learn more <ArrowRight className="w-4 h-4 ml-1" />
+                  </Link>
+                )}
               </motion.div>
             ))}
           </div>
