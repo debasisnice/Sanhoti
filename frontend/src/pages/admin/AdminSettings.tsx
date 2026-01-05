@@ -442,7 +442,7 @@ export default function AdminSettings() {
       {/* Tabs */}
       <div className="bg-white rounded-xl shadow-lg">
         <div className="border-b border-gray-200">
-          <nav className="flex -mb-px">
+          <nav className="flex -mb-px overflow-x-auto">
             <button
               onClick={() => setActiveTab('navbar')}
               className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
@@ -606,7 +606,7 @@ export default function AdminSettings() {
                           {editingUserId === user.id ? (
                             <td colSpan={7} className="py-4 px-4">
                               <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
                                     <input
@@ -628,7 +628,7 @@ export default function AdminSettings() {
                                     />
                                   </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                                     <input
@@ -650,7 +650,7 @@ export default function AdminSettings() {
                                     />
                                   </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Address 1</label>
                                     <input
@@ -670,7 +670,7 @@ export default function AdminSettings() {
                                     />
                                   </div>
                                 </div>
-                                <div className="grid grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                   <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
                                     <input
@@ -708,7 +708,7 @@ export default function AdminSettings() {
                                     className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
                                   />
                                 </div>
-                                <div className="grid grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                   <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">User Type *</label>
                                     <select
@@ -801,6 +801,7 @@ export default function AdminSettings() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               )}
             </div>

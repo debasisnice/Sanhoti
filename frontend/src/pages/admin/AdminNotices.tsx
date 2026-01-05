@@ -404,8 +404,9 @@ export default function AdminNotices() {
 
       {/* Notices List */}
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full table-fixed min-w-full max-w-full">
+        <div className="overflow-x-auto -mx-4 md:mx-0">
+          <div className="inline-block min-w-full align-middle px-4 md:px-0">
+            <table className="w-full min-w-[800px] md:min-w-0">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -527,6 +528,7 @@ export default function AdminNotices() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>

@@ -356,7 +356,7 @@ export default function AdminEvents() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Start Date *
@@ -542,8 +542,9 @@ export default function AdminEvents() {
 
       {/* Events List */}
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full table-fixed min-w-full max-w-full">
+        <div className="overflow-x-auto -mx-4 md:mx-0">
+          <div className="inline-block min-w-full align-middle px-4 md:px-0">
+            <table className="w-full min-w-[800px] md:min-w-0">
             <thead className="bg-gray-50">
               <tr>
                 <th className="w-[25%] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -664,6 +665,7 @@ export default function AdminEvents() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>
