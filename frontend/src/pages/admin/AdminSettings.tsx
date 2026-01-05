@@ -174,9 +174,17 @@ export default function AdminSettings() {
   };
 
   const handleUpload = async () => {
-    if (selectedFiles.length === 0) {
-      toast.error('Please select at least one image file');
-      return;
+    // Validate based on active tab
+    if (activeTab === 'boardmembers') {
+      if (!selectedBoardMemberFile) {
+        toast.error('Please select an image file');
+        return;
+      }
+    } else {
+      if (selectedFiles.length === 0) {
+        toast.error('Please select at least one image file');
+        return;
+      }
     }
 
     try {
@@ -196,11 +204,7 @@ export default function AdminSettings() {
         if (fileInput) fileInput.value = '';
         await fetchHomePageImages();
       } else if (activeTab === 'boardmembers') {
-        if (!selectedBoardMemberFile) {
-          toast.error('Please select an image file');
-          return;
-        }
-        await boardMembersAPI.uploadImage(selectedBoardMemberFile, selectedPostName);
+        await boardMembersAPI.uploadImage(selectedBoardMemberFile!, selectedPostName);
         toast.success('Image uploaded successfully');
         setSelectedBoardMemberFile(null);
         const fileInput = document.getElementById('boardmember-file-input') as HTMLInputElement;
