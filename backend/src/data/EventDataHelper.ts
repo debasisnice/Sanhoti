@@ -246,11 +246,9 @@ export class EventDataHelper extends DatabaseHelper {
 
     // Get all events to match with folders
     const events = await this.findAll();
-    console.log(`Found ${events.length} events to match with folders`);
     const eventsMap = new Map(events.map(e => [e.event_id, e]));
 
     const entries = readdirSync(this.galleriesDir, { withFileTypes: true });
-    console.log(`Found ${entries.length} entries in gallery directory`);
 
     for (const entry of entries) {
       if (entry.isDirectory()) {

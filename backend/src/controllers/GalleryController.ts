@@ -276,7 +276,6 @@ export class GalleryController {
 
       const folderName = event.photo_gallery_link;
       const folderPath = join(galleriesDir, folderName);
-      console.log(`Target folder: ${folderPath}`);
 
       // Ensure folder exists
       if (!existsSync(folderPath)) {
