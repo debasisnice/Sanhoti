@@ -311,6 +311,19 @@ export default function AdminSettings() {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleSaveZellePhoneNumber = async () => {
+    try {
+      setSaving(true);
+      await settingsAPI.updateZellePhoneNumber(zellePhoneNumber);
+      toast.success('Zelle phone number updated successfully');
+      await fetchZellePhoneNumber();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to update Zelle phone number');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleToggle = async (key: keyof NavbarSettings) => {
     if (!settings) return;
 
