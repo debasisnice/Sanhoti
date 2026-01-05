@@ -367,6 +367,10 @@ router.post('/email/events/:eventId/notify',
   auditLog('SEND_EVENT_NOTIFICATION', 'event'),
   bindController(emailController, 'sendEventNotification')
 );
+router.post('/email/test',
+  requireAdmin,
+  bindController(emailController, 'testEmail')
+);
 
 // Messages - Admin routes
 router.get('/messages', requireAdmin, bindController(messageController, 'getAllMessages'));
