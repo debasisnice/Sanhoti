@@ -102,8 +102,8 @@ export default function AdminEvents() {
     ? events.filter(e => e.year === selectedYear)
     : events
   ).sort((a, b) => {
-    const dateA = new Date(a.event_start_dt).getTime();
-    const dateB = new Date(b.event_start_dt).getTime();
+    const dateA = convertPSTToLocal(a.event_start_dt).getTime();
+    const dateB = convertPSTToLocal(b.event_start_dt).getTime();
     return dateB - dateA; // Descending order (newest first)
   });
 
@@ -112,8 +112,8 @@ export default function AdminEvents() {
     
     // Validate that end date is not before start date
     if (formData.event_start_dt && formData.event_end_dt) {
-      const startDate = new Date(formData.event_start_dt);
-      const endDate = new Date(formData.event_end_dt);
+      const startDate = convertPSTToLocal(formData.event_start_dt);
+      const endDate = convertPSTToLocal(formData.event_end_dt);
       
       if (endDate < startDate) {
         toast.error('End date cannot be prior to start date');
@@ -239,7 +239,7 @@ export default function AdminEvents() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return convertPSTToLocal(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -382,7 +382,7 @@ export default function AdminEvents() {
                       }}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
-                    {formData.event_start_dt && formData.event_end_dt && new Date(formData.event_end_dt) < new Date(formData.event_start_dt) && (
+                    {formData.event_start_dt && formData.event_end_dt && convertPSTToLocal(formData.event_end_dt) < convertPSTToLocal(formData.event_start_dt) && (
                       <p className="mt-1 text-sm text-red-600">End date cannot be prior to start date</p>
                     )}
                   </div>

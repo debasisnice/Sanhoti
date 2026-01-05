@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/authStore';
 import { rsvpAPI, galleriesAPI, magazinesAPI, eventsAPI } from '../services/api';
 import { RSVP, PhotoGallery, Magazine, Event } from '../types';
 import { format } from 'date-fns';
+import { convertPSTToLocal } from '../utils/dateUtils';
 
 interface RSVPWithEvent extends RSVP {
   event?: Event;
@@ -122,7 +123,7 @@ export default function Dashboard() {
                           <h3 className="font-semibold text-gray-900 mb-1">{eventName}</h3>
                           {eventDate && (
                             <p className="text-sm text-gray-600 mb-1">
-                              {format(new Date(eventDate), 'MMMM dd, yyyy')}
+                              {format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}
                             </p>
                           )}
                           <p className="text-sm text-gray-500">{guestsText}</p>
@@ -241,7 +242,7 @@ export default function Dashboard() {
                   <div key={magazine.id} className="p-2 hover:bg-gray-50 rounded transition-colors">
                     <p className="font-medium text-gray-900 text-sm">{magazine.title}</p>
                     <p className="text-xs text-gray-500">
-                      {format(new Date(magazine.publishDate), 'MMM dd, yyyy')}
+                      {format(convertPSTToLocal(magazine.publishDate), 'MMM dd, yyyy')}
                     </p>
                   </div>
                 ))}

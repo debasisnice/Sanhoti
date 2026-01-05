@@ -5,6 +5,7 @@ import { Image, Lock, ArrowRight } from 'lucide-react';
 import { galleriesAPI } from '../services/api';
 import { PhotoGallery } from '../types';
 import { format } from 'date-fns';
+import { convertPSTToLocal } from '../utils/dateUtils';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
@@ -19,8 +20,8 @@ export default function Galleries() {
       .then((galleries) => {
         // Sort galleries by event start date in descending order (newest first)
         const sorted = galleries.sort((a, b) => {
-          const dateA = a.event_start_dt ? new Date(a.event_start_dt).getTime() : 0;
-          const dateB = b.event_start_dt ? new Date(b.event_start_dt).getTime() : 0;
+          const dateA = a.event_start_dt ? convertPSTToLocal(a.event_start_dt).getTime() : 0;
+          const dateB = b.event_start_dt ? convertPSTToLocal(b.event_start_dt).getTime() : 0;
           return dateB - dateA; // Descending order
         });
         setGalleries(sorted);
@@ -132,7 +133,7 @@ export default function Galleries() {
                   )}
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-500">
-                      {format(new Date(gallery.createdAt), 'MMM dd, yyyy')}
+                      {format(convertPSTToLocal(gallery.createdAt), 'MMM dd, yyyy')}
                     </span>
                     <Link
                       to={`/galleries/${gallery.id}`}

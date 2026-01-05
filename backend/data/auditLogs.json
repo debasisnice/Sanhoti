@@ -1993,5 +1993,17 @@
     "userEmail": "",
     "id": "1767633652644-mm7a0dvv9",
     "timestamp": "2026-01-05T17:20:52.644Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event",
+    "resourceId": "WJWYE0NC4IIY",
+    "details": "{\"method\":\"PUT\",\"path\":\"/events/WJWYE0NC4IIY\",\"body\":{\"event_name\":\"Saraswati Puja\",\"event_start_dt\":\"2026-01-24\",\"event_end_dt\":\"2026-01-24\",\"year\":2026,\"event_description\":\"Saraswati Puja, also known as Vasant Panchami, is a Hindu festival celebrating the goddess of knowledge, wisdom, music, and arts, where devotees pray for enlightenment, creativity, and success in learning, marking the arrival of spring with offerings of flowers, books, and instruments to invoke her blessings. \",\"location\":\"Davis Magnet School, CostaMesa, CA\",\"is_priority\":true,\"rsvp_link\":\"https://forms.gle/3pbCr8pFFAZiGWbA6\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767634334945-ythc35p63",
+    "timestamp": "2026-01-05T17:32:14.945Z"
   }
 ]

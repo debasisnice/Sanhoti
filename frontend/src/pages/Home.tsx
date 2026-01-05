@@ -398,7 +398,7 @@ export default function Home() {
                           <div className="grid grid-cols-1 gap-4 mb-6">
                             <div className="flex items-center text-gray-700">
                               <Calendar className="w-5 h-5 mr-3 text-primary-600" />
-                              <span className="text-lg">{format(new Date(eventDate), 'MMMM dd, yyyy')}</span>
+                              <span className="text-lg">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</span>
                             </div>
                             {eventLocation && (
                               <div className="flex items-center text-gray-700">
@@ -481,7 +481,7 @@ export default function Home() {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <div className="flex items-center text-gray-700">
                               <Calendar className="w-5 h-5 mr-3 text-primary-600" />
-                              <span className="text-lg">{format(new Date(eventDate), 'MMMM dd, yyyy')}</span>
+                              <span className="text-lg">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</span>
                             </div>
                             {eventLocation && (
                               <div className="flex items-center text-gray-700">
@@ -571,7 +571,7 @@ export default function Home() {
                               {eventYear}
                             </span>
                             <span className="text-primary-700 font-semibold">
-                              {format(new Date(eventDate), 'MMM dd')}
+                              {format(convertPSTToLocal(eventDate), 'MMM dd')}
                             </span>
                           </div>
                           <h3 className="text-2xl font-bold text-gray-900 mb-2">{eventName}</h3>

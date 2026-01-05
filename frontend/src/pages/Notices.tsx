@@ -4,6 +4,7 @@ import { Bell } from 'lucide-react';
 import { noticesAPI } from '../services/api';
 import { Notice } from '../types';
 import { format } from 'date-fns';
+import { convertPSTToLocal } from '../utils/dateUtils';
 
 interface NoticeImage {
   filename: string;
@@ -93,7 +94,7 @@ export default function Notices() {
                       <h3 className="text-2xl font-bold text-gray-900">{noticeName}</h3>
                     </div>
                     <div className="text-sm text-gray-500">
-                      Posted on {createdAt ? format(new Date(createdAt), 'MMMM dd, yyyy') : ''}
+                      Posted on {createdAt ? format(convertPSTToLocal(createdAt), 'MMMM dd, yyyy') : ''}
                     </div>
                   </div>
                   <div className="prose max-w-none mb-4">

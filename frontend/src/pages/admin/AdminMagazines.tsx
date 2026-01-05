@@ -5,6 +5,7 @@ import { magazinesAPI } from '../../services/api';
 import { Magazine } from '../../types';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
+import { convertPSTToLocal } from '../../utils/dateUtils';
 
 export default function AdminMagazines() {
   const [magazines, setMagazines] = useState<Magazine[]>([]);
@@ -27,7 +28,7 @@ export default function AdminMagazines() {
       setLoading(true);
       const data = await magazinesAPI.getAll();
       // Sort by publish date descending
-      data.sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
+      data.sort((a, b) => convertPSTToLocal(b.publishDate).getTime() - convertPSTToLocal(a.publishDate).getTime());
       setMagazines(data);
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to fetch magazines');
@@ -279,7 +280,7 @@ export default function AdminMagazines() {
                     </td>
                     <td className="py-4 px-6">
                       <span className="text-sm text-gray-600">
-                        {format(new Date(magazine.publishDate), 'MMM dd, yyyy')}
+                        {format(convertPSTToLocal(magazine.publishDate), 'MMM dd, yyyy')}
                       </span>
                     </td>
                     <td className="py-4 px-6">

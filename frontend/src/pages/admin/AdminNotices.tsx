@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Plus, Edit, Trash2, Eye, EyeOff, X } from 'lucide-react';
 import { noticesAPI, eventsAPI } from '../../services/api';
 import toast from 'react-hot-toast';
+import { convertPSTToLocal } from '../../utils/dateUtils';
 
 interface Notice {
   notice_id: string;
@@ -71,8 +72,8 @@ export default function AdminNotices() {
       const allNotices = await noticesAPI.getAll();
       // Sort by created_at descending (newest first)
       const sorted = allNotices.sort((a, b) => 
-        new Date(b.created_at || b.createdAt || '').getTime() - 
-        new Date(a.created_at || a.createdAt || '').getTime()
+        convertPSTToLocal(b.created_at || b.createdAt || '').getTime() - 
+        convertPSTToLocal(a.created_at || a.createdAt || '').getTime()
       );
       setNotices(sorted);
     } catch (error: any) {
@@ -197,7 +198,7 @@ export default function AdminNotices() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return convertPSTToLocal(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

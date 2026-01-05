@@ -5,6 +5,7 @@ import { Calendar, MapPin, ArrowLeft, Bell, Image as ImageIcon, ArrowRight } fro
 import { eventsAPI, noticesAPI, galleriesAPI } from '../services/api';
 import { Event, Notice, PhotoGallery } from '../types';
 import { format } from 'date-fns';
+import { convertPSTToLocal } from '../utils/dateUtils';
 import toast from 'react-hot-toast';
 
 export default function EventDetail() {
@@ -169,7 +170,7 @@ export default function EventDetail() {
                       <Calendar className="w-5 h-5 mr-3 text-primary-600" />
                       <div>
                         <p className="text-sm text-gray-500">Start Date</p>
-                        <p className="font-semibold">{format(new Date(eventDate), 'MMMM dd, yyyy')}</p>
+                        <p className="font-semibold">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</p>
                       </div>
                     </div>
                     {event.event_end_dt && (
@@ -177,7 +178,7 @@ export default function EventDetail() {
                         <Calendar className="w-5 h-5 mr-3 text-primary-600" />
                         <div>
                           <p className="text-sm text-gray-500">End Date</p>
-                          <p className="font-semibold">{format(new Date(event.event_end_dt), 'MMMM dd, yyyy')}</p>
+                          <p className="font-semibold">{format(convertPSTToLocal(event.event_end_dt), 'MMMM dd, yyyy')}</p>
                         </div>
                       </div>
                     )}
@@ -266,7 +267,7 @@ export default function EventDetail() {
                         <h3 className="text-2xl font-bold text-gray-900">{noticeName}</h3>
                       </div>
                       <div className="text-sm text-gray-500">
-                        Posted on {createdAt ? format(new Date(createdAt), 'MMMM dd, yyyy') : ''}
+                        Posted on {createdAt ? format(convertPSTToLocal(createdAt), 'MMMM dd, yyyy') : ''}
                       </div>
                     </div>
                     <div className="prose max-w-none mb-4">

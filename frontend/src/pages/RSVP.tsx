@@ -6,6 +6,7 @@ import { Calendar, CheckCircle } from 'lucide-react';
 import { eventsAPI, rsvpAPI } from '../services/api';
 import { Event } from '../types';
 import { format } from 'date-fns';
+import { convertPSTToLocal } from '../utils/dateUtils';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 
@@ -131,7 +132,7 @@ export default function RSVP() {
                   <span>
                     <span className="font-semibold">{eventName}</span>
                     <span className="mx-2">•</span>
-                    <span>{format(new Date(eventDate), 'MMMM dd, yyyy')}</span>
+                    <span>{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</span>
                   </span>
                 );
               })()}

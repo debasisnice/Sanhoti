@@ -30,7 +30,7 @@ export default function AdminMessages() {
       const allMessages = await messagesAPI.getAll();
       // Sort by date descending (newest first)
       const sorted = allMessages.sort((a, b) => 
-        new Date(b.createdAt || b.created_at).getTime() - new Date(a.createdAt || a.created_at).getTime()
+        convertPSTToLocal(b.createdAt || b.created_at).getTime() - convertPSTToLocal(a.createdAt || a.created_at).getTime()
       );
       setMessages(sorted);
     } catch (error: any) {
@@ -58,7 +58,7 @@ export default function AdminMessages() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return convertPSTToLocal(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

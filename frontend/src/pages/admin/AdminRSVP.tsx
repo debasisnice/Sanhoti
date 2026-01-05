@@ -4,6 +4,7 @@ import { Calendar, UserCheck, ChevronDown, ChevronUp } from 'lucide-react';
 import { eventsAPI, rsvpAPI } from '../../services/api';
 import { Event, RSVP } from '../../types';
 import { format } from 'date-fns';
+import { convertPSTToLocal } from '../../utils/dateUtils';
 import toast from 'react-hot-toast';
 
 interface EventRSVPData {
@@ -78,8 +79,8 @@ export default function AdminRSVP() {
       const rsvpData = await Promise.all(rsvpDataPromises);
       // Sort by event start date descending (newest first)
       rsvpData.sort((a, b) => {
-        const dateA = new Date(a.event.event_start_dt).getTime();
-        const dateB = new Date(b.event.event_start_dt).getTime();
+        const dateA = convertPSTToLocal(a.event.event_start_dt).getTime();
+        const dateB = convertPSTToLocal(b.event.event_start_dt).getTime();
         return dateB - dateA;
       });
       setEventRSVPData(rsvpData);
@@ -152,9 +153,9 @@ export default function AdminRSVP() {
                       </div>
                       <div className="ml-8 text-sm text-gray-600">
                         <p>
-                          {format(new Date(data.event.event_start_dt), 'MMMM dd, yyyy')}
+                          {format(convertPSTToLocal(data.event.event_start_dt), 'MMMM dd, yyyy')}
                           {data.event.event_end_dt !== data.event.event_start_dt && (
-                            <> - {format(new Date(data.event.event_end_dt), 'MMMM dd, yyyy')}</>
+                            <> - {format(convertPSTToLocal(data.event.event_end_dt), 'MMMM dd, yyyy')}</>
                           )}
                         </p>
                         {data.event.location && (
@@ -259,7 +260,7 @@ export default function AdminRSVP() {
                                       </td>
                                       <td className="py-3 px-4 text-sm text-gray-600">
                                         {format(
-                                          new Date(rsvp.createdAt || ''),
+                                          convertPSTToLocal(rsvp.createdAt || ''),
                                           'MMM dd, yyyy'
                                         )}
                                       </td>

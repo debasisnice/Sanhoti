@@ -5,6 +5,7 @@ import { Calendar, MapPin, ArrowRight, Star, ChevronLeft, ChevronRight } from 'l
 import { eventsAPI } from '../services/api';
 import { Event } from '../types';
 import { format } from 'date-fns';
+import { convertPSTToLocal } from '../utils/dateUtils';
 
 export default function Events() {
   const [allEvents, setAllEvents] = useState<Event[]>([]);
@@ -276,7 +277,7 @@ export default function Events() {
                       <div className="grid grid-cols-1 gap-4 mb-6">
                         <div className="flex items-center text-gray-700">
                           <Calendar className="w-5 h-5 mr-3 text-primary-600" />
-                          <span className="text-lg">{format(new Date(eventDate), 'MMMM dd, yyyy')}</span>
+                          <span className="text-lg">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</span>
                         </div>
                         {eventLocation && (
                           <div className="flex items-center text-gray-700">
@@ -359,7 +360,7 @@ export default function Events() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div className="flex items-center text-gray-700">
                           <Calendar className="w-5 h-5 mr-3 text-primary-600" />
-                          <span className="text-lg">{format(new Date(eventDate), 'MMMM dd, yyyy')}</span>
+                          <span className="text-lg">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</span>
                         </div>
                         {eventLocation && (
                           <div className="flex items-center text-gray-700">
@@ -561,7 +562,7 @@ export default function Events() {
                               <div className="flex items-center text-gray-600">
                                 <Calendar className={`${isMiddle ? 'w-3 h-3' : 'w-3 h-3'} mr-2 flex-shrink-0`} />
                                 <span className={`truncate ${isMiddle ? 'text-xs' : 'text-xs'}`}>
-                                  {format(new Date(eventDate), 'MMM dd, yyyy')}
+                                  {format(convertPSTToLocal(eventDate), 'MMM dd, yyyy')}
                                 </span>
                               </div>
                               {event.location && (
@@ -586,7 +587,7 @@ export default function Events() {
                       {/* Month and Year - Outside and below the card */}
                       <div className="mt-3 text-center">
                         <p className={`text-primary-600 font-semibold ${isMiddle ? 'text-base' : 'text-sm'}`}>
-                          {format(new Date(eventDate), 'MMMM yyyy')}
+                          {format(convertPSTToLocal(eventDate), 'MMMM yyyy')}
                         </p>
                       </div>
                     </motion.div>
@@ -611,7 +612,7 @@ export default function Events() {
               // Group events by year, then by month
               const eventsByYearMonth: Record<string, Record<string, Date[]>> = {};
               eventsForCarousel.forEach(e => {
-                const eventDate = new Date(e.event_start_dt || e.date || 0);
+                const eventDate = convertPSTToLocal(e.event_start_dt || e.date || '');
                 if (!isNaN(eventDate.getTime())) {
                   const year = format(eventDate, 'yyyy');
                   const monthYear = format(eventDate, 'yyyy-MM');
@@ -709,7 +710,7 @@ export default function Events() {
                               
                               // Find events for this month-year
                               const eventsInMonth = eventsForCarousel.filter(e => {
-                                const eventDate = new Date(e.event_start_dt || e.date || 0);
+                                const eventDate = convertPSTToLocal(e.event_start_dt || e.date || '');
                                 if (isNaN(eventDate.getTime())) return false;
                                 const eventMonthYear = format(eventDate, 'yyyy-MM');
                                 return eventMonthYear === monthData.monthYear;

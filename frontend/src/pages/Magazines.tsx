@@ -4,6 +4,7 @@ import { BookOpen, Lock, X, ExternalLink } from 'lucide-react';
 import { magazinesAPI } from '../services/api';
 import { Magazine } from '../types';
 import { format } from 'date-fns';
+import { convertPSTToLocal } from '../utils/dateUtils';
 import PDFThumbnail from '../components/PDFThumbnail';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -83,7 +84,7 @@ export default function Magazines() {
                   )}
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-500">
-                      {format(new Date(magazine.publishDate), 'MMM dd, yyyy')}
+                      {format(convertPSTToLocal(magazine.publishDate), 'MMM dd, yyyy')}
                     </span>
                   </div>
                 </div>

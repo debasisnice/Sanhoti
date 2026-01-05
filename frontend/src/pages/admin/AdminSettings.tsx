@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Settings, Users, Award, Home, Upload, Trash2, X, UserCircle, QrCode } from 'lucide-react';
 import { settingsAPI, usersAPI, sponsorsAPI, homepageAPI, boardMembersAPI, paymentQRAPI } from '../../services/api';
 import toast from 'react-hot-toast';
+import { convertPSTToLocal } from '../../utils/dateUtils';
 
 interface NavbarSettings {
   home: boolean;
@@ -565,7 +566,7 @@ export default function AdminSettings() {
               {settings.updated_at && (
                 <div className="mt-6 pt-6 border-t border-gray-200">
                   <p className="text-sm text-gray-500">
-                    Last updated: {new Date(settings.updated_at).toLocaleString()}
+                    Last updated: {convertPSTToLocal(settings.updated_at).toLocaleString()}
                   </p>
                 </div>
               )}
