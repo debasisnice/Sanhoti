@@ -55,9 +55,11 @@ function ThumbnailImage({
 
       // Fetch new image as blob with auth token
       const imageUrl = photo.thumbnailUrl || photo.url;
+      // Use relative path in production, absolute URL in development
+      const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
       const fullUrl = imageUrl.startsWith('http') 
         ? imageUrl 
-        : `http://localhost:5001${imageUrl}`;
+        : `${API_BASE_URL}${imageUrl}`;
       
       try {
         const token = localStorage.getItem('token');
@@ -186,9 +188,11 @@ function PhotoViewerImage({
 
       // Fetch new image as blob with auth token
       const imageUrl = photo.thumbnailUrl || photo.url;
+      // Use relative path in production, absolute URL in development
+      const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
       const fullUrl = imageUrl.startsWith('http') 
         ? imageUrl 
-        : `http://localhost:5001${imageUrl}`;
+        : `${API_BASE_URL}${imageUrl}`;
       
       try {
         const token = localStorage.getItem('token');
