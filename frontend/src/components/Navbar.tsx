@@ -81,7 +81,7 @@ export default function Navbar() {
   const navLinks = allNavLinks.filter(link => navbarSettings[link.key]);
 
   return (
-    <nav className="relative shadow-lg sticky top-0 z-50 overflow-hidden">
+    <nav className="relative shadow-lg sticky top-0 z-50 overflow-x-hidden overflow-y-visible">
       <div className="flex min-h-[6rem] relative">
         {/* Full-width red underline spanning both sections */}
         <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-primary-600 z-20"></div>
