@@ -4,7 +4,7 @@ import multer from 'multer';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { existsSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, statSync, unlinkSync, renameSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -24,19 +24,10 @@ const storage = multer.diskStorage({
     cb(null, boardMembersDir);
   },
   filename: (req, file, cb) => {
-    // Get post name from request body
-    const postName = (req.body.postName || '').trim();
-    
-    if (!postName || !VALID_POST_NAMES.includes(postName)) {
-      return cb(new Error('Invalid post name. Must be one of: ' + VALID_POST_NAMES.join(', ')));
-    }
-    
-    // Get file extension
+    // Use temporary filename - will be renamed in handleImageUpload after postName validation
     const ext = file.originalname.split('.').pop()?.toLowerCase() || 'jpg';
-    
-    // Use post name as filename (replace spaces with underscores for filename)
-    const filename = `${postName.replace(/\s+/g, '_')}.${ext}`;
-    cb(null, filename);
+    const tempFilename = `temp_${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
+    cb(null, tempFilename);
   },
 });
 
@@ -219,12 +210,41 @@ export class BoardMembersController {
         return;
       }
 
+      // Get file extension from temp file
+      const ext = file.filename.split('.').pop()?.toLowerCase() || 'jpg';
+      
+      // Generate final filename based on post name
+      const finalFilename = `${postName.replace(/\s+/g, '_')}.${ext}`;
+      const finalPath = join(boardMembersDir, finalFilename);
+      
+      // Delete existing file with same post name if it exists
+      if (existsSync(finalPath)) {
+        try {
+          unlinkSync(finalPath);
+        } catch (e) {
+          console.error('Error deleting existing file:', e);
+        }
+      }
+      
+      // Rename temp file to final filename
+      try {
+        renameSync(file.path, finalPath);
+      } catch (error: any) {
+        // If rename fails, try to delete temp file
+        try {
+          unlinkSync(file.path);
+        } catch (e) {
+          // Ignore deletion errors
+        }
+        throw new Error('Failed to save file: ' + error.message);
+      }
+
       res.json({
         message: 'Image uploaded successfully',
         uploaded: {
           postName: postName,
-          filename: file.filename,
-          url: `/api/boardmembers/images/${encodeURIComponent(file.filename)}`,
+          filename: finalFilename,
+          url: `/api/boardmembers/images/${encodeURIComponent(finalFilename)}`,
         },
       });
     } catch (error: any) {
