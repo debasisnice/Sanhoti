@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Edit, Trash2, Eye, EyeOff, X, Image as ImageIcon, Star } from 'lucide-react';
 import { eventsAPI } from '../../services/api';
 import toast from 'react-hot-toast';
+import { convertPSTToLocal, convertLocalToPST } from '../../utils/dateUtils';
 
 interface Event {
   event_id: string;
@@ -122,12 +123,19 @@ export default function AdminEvents() {
     }
     
     try {
+      // Convert dates from local timezone to PST before sending to backend
+      const formDataWithPST = {
+        ...formData,
+        event_start_dt: formData.event_start_dt ? convertLocalToPST(formData.event_start_dt) : formData.event_start_dt,
+        event_end_dt: formData.event_end_dt ? convertLocalToPST(formData.event_end_dt) : formData.event_end_dt,
+      };
+      
       let savedEvent: Event;
       if (editingEvent) {
-        savedEvent = await eventsAPI.update(editingEvent.event_id, formData);
+        savedEvent = await eventsAPI.update(editingEvent.event_id, formDataWithPST);
         toast.success('Event updated successfully');
       } else {
-        savedEvent = await eventsAPI.create(formData);
+        savedEvent = await eventsAPI.create(formDataWithPST);
         toast.success('Event created successfully');
       }
 
