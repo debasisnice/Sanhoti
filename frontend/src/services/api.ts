@@ -307,6 +307,32 @@ export const sponsorsAPI = {
   },
 };
 
+// Homepage Images API
+export const homepageAPI = {
+  getImages: async (): Promise<Array<{ filename: string; url: string }>> => {
+    const response = await api.get('/homepage/images');
+    return response.data;
+  },
+  uploadImages: async (files: File[]): Promise<any> => {
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('images', file);
+    });
+    const response = await api.post('/homepage/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+  deleteImage: async (filename: string): Promise<void> => {
+    await api.delete(`/homepage/images/${encodeURIComponent(filename)}`);
+  },
+  deleteAllImages: async (): Promise<void> => {
+    await api.delete('/homepage/images');
+  },
+};
+
 // Galleries API
 export const galleriesAPI = {
   getPublic: async (): Promise<PhotoGallery[]> => {

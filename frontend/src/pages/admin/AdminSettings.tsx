@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Users, Award, Upload, Trash2, X } from 'lucide-react';
-import { settingsAPI, usersAPI, sponsorsAPI } from '../../services/api';
+import { Settings, Users, Award, Home, Upload, Trash2, X } from 'lucide-react';
+import { settingsAPI, usersAPI, sponsorsAPI, homepageAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 interface NavbarSettings {
@@ -55,9 +55,14 @@ const menuItemLabels: Record<keyof NavbarSettings, string> = {
   joinUs: 'Join Us',
 };
 
-type TabType = 'navbar' | 'users' | 'sponsors';
+type TabType = 'navbar' | 'users' | 'sponsors' | 'homepage';
 
 interface SponsorImage {
+  filename: string;
+  url: string;
+}
+
+interface HomePageImage {
   filename: string;
   url: string;
 }
@@ -67,6 +72,7 @@ export default function AdminSettings() {
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [sponsorImages, setSponsorImages] = useState<SponsorImage[]>([]);
+  const [homePageImages, setHomePageImages] = useState<HomePageImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -81,6 +87,8 @@ export default function AdminSettings() {
       fetchUsers();
     } else if (activeTab === 'sponsors') {
       fetchSponsorImages();
+    } else if (activeTab === 'homepage') {
+      fetchHomePageImages();
     }
   }, [activeTab]);
 
@@ -113,6 +121,15 @@ export default function AdminSettings() {
     }
   };
 
+  const fetchHomePageImages = async () => {
+    try {
+      const images = await homepageAPI.getImages();
+      setHomePageImages(images);
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to fetch homepage images');
+    }
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
@@ -129,13 +146,21 @@ export default function AdminSettings() {
 
     try {
       setUploading(true);
-      await sponsorsAPI.uploadImages(selectedFiles);
-      toast.success('Images uploaded successfully');
-      setSelectedFiles([]);
-      // Reset file input
-      const fileInput = document.getElementById('sponsor-file-input') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
-      await fetchSponsorImages();
+      if (activeTab === 'sponsors') {
+        await sponsorsAPI.uploadImages(selectedFiles);
+        toast.success('Images uploaded successfully');
+        setSelectedFiles([]);
+        const fileInput = document.getElementById('sponsor-file-input') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+        await fetchSponsorImages();
+      } else if (activeTab === 'homepage') {
+        await homepageAPI.uploadImages(selectedFiles);
+        toast.success('Images uploaded successfully');
+        setSelectedFiles([]);
+        const fileInput = document.getElementById('homepage-file-input') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+        await fetchHomePageImages();
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to upload images');
     } finally {
@@ -150,9 +175,15 @@ export default function AdminSettings() {
 
     try {
       setDeleting(true);
-      await sponsorsAPI.deleteImage(filename);
-      toast.success('Image deleted successfully');
-      await fetchSponsorImages();
+      if (activeTab === 'sponsors') {
+        await sponsorsAPI.deleteImage(filename);
+        toast.success('Image deleted successfully');
+        await fetchSponsorImages();
+      } else if (activeTab === 'homepage') {
+        await homepageAPI.deleteImage(filename);
+        toast.success('Image deleted successfully');
+        await fetchHomePageImages();
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to delete image');
     } finally {
@@ -161,15 +192,25 @@ export default function AdminSettings() {
   };
 
   const handleDeleteAll = async () => {
-    if (!window.confirm('Are you sure you want to delete ALL sponsor images? This action cannot be undone.')) {
+    const confirmMessage = activeTab === 'sponsors' 
+      ? 'Are you sure you want to delete ALL sponsor images? This action cannot be undone.'
+      : 'Are you sure you want to delete ALL homepage images? This action cannot be undone.';
+    
+    if (!window.confirm(confirmMessage)) {
       return;
     }
 
     try {
       setDeleting(true);
-      await sponsorsAPI.deleteAllImages();
-      toast.success('All images deleted successfully');
-      await fetchSponsorImages();
+      if (activeTab === 'sponsors') {
+        await sponsorsAPI.deleteAllImages();
+        toast.success('All images deleted successfully');
+        await fetchSponsorImages();
+      } else if (activeTab === 'homepage') {
+        await homepageAPI.deleteAllImages();
+        toast.success('All images deleted successfully');
+        await fetchHomePageImages();
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to delete images');
     } finally {
@@ -324,6 +365,19 @@ export default function AdminSettings() {
               <div className="flex items-center gap-2">
                 <Award className="w-5 h-5" />
                 <span>Sponsors</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('homepage')}
+              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'homepage'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Home className="w-5 h-5" />
+                <span>Home Page</span>
               </div>
             </button>
           </nav>

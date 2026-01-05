@@ -17,6 +17,7 @@ import { SpecialAccessController } from '../controllers/SpecialAccessController.
 import { MessageController } from '../controllers/MessageController.js';
 import { SettingsController } from '../controllers/SettingsController.js';
 import { SponsorController } from '../controllers/SponsorController.js';
+import { HomePageController } from '../controllers/HomePageController.js';
 
 const router = Router();
 
@@ -34,6 +35,7 @@ const specialAccessController = new SpecialAccessController();
 const messageController = new MessageController();
 const settingsController = new SettingsController();
 const sponsorController = new SponsorController();
+const homePageController = new HomePageController();
 
 // Helper to bind controller methods
 function bindController(controller: any, methodName: string) {
@@ -102,6 +104,10 @@ router.get('/settings', bindController(settingsController, 'getSettings'));
 // Sponsors - Public routes
 router.get('/sponsors/images', bindController(sponsorController, 'getImages'));
 router.get('/sponsors/images/:filename', bindController(sponsorController, 'getImage'));
+
+// Homepage Images - Public routes
+router.get('/homepage/images', bindController(homePageController, 'getImages'));
+router.get('/homepage/images/:filename', bindController(homePageController, 'getImage'));
 
 // Protected routes (require authentication)
 router.use(authenticate);
@@ -406,6 +412,24 @@ router.delete('/sponsors/images',
   requireAdmin,
   auditLog('DELETE_ALL', 'sponsor_image'),
   bindController(sponsorController, 'deleteAllImages')
+);
+
+// Homepage Images - Admin routes
+router.post('/homepage/upload',
+  requireAdmin,
+  auditLog('UPLOAD', 'homepage_image'),
+  homePageController.uploadImages(),
+  bindController(homePageController, 'handleImageUpload')
+);
+router.delete('/homepage/images/:filename',
+  requireAdmin,
+  auditLog('DELETE', 'homepage_image'),
+  bindController(homePageController, 'deleteImage')
+);
+router.delete('/homepage/images',
+  requireAdmin,
+  auditLog('DELETE_ALL', 'homepage_image'),
+  bindController(homePageController, 'deleteAllImages')
 );
 
 export default router;
