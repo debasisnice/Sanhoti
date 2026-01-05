@@ -83,6 +83,16 @@ export default function Footer() {
                   Join our Facebook Page
                 </a>
               </li>
+              <li>
+                <a
+                  href="https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors"
+                >
+                  Join us in WhatsApp
+                </a>
+              </li>
             </ul>
           </div>
         </div>
