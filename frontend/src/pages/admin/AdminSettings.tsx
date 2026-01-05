@@ -106,6 +106,7 @@ export default function AdminSettings() {
       fetchSponsorImages();
     } else if (activeTab === 'homepage') {
       fetchHomePageImages();
+      fetchSettings(); // Fetch settings to load social links
     } else if (activeTab === 'boardmembers') {
       fetchBoardMemberImages();
       fetchPostNames();
