@@ -297,7 +297,7 @@ export default function Navbar() {
                     key={link.path}
                     to={link.path}
                     onClick={() => setIsOpen(false)}
-                    className={`block hover:text-primary-200 transition-colors pb-1 ${
+                    className={`block text-white hover:text-primary-200 transition-colors pb-1 ${
                       isActive ? 'border-b-2 border-white' : ''
                     }`}
                   >
@@ -336,7 +336,7 @@ export default function Navbar() {
                     <Link
                       to="/dashboard"
                       onClick={() => setIsOpen(false)}
-                      className="flex items-center space-x-2 py-2 hover:text-primary-200 transition-colors"
+                      className="flex items-center space-x-2 py-2 text-white hover:text-primary-200 transition-colors"
                     >
                       <User className="w-4 h-4" />
                       <span>Profile</span>
@@ -345,7 +345,7 @@ export default function Navbar() {
                       <Link
                         to="/admin"
                         onClick={() => setIsOpen(false)}
-                        className="flex items-center space-x-2 py-2 hover:text-primary-200 transition-colors"
+                        className="flex items-center space-x-2 py-2 text-white hover:text-primary-200 transition-colors"
                       >
                         <Shield className="w-4 h-4" />
                         <span>Admin Portal</span>
@@ -364,7 +364,7 @@ export default function Navbar() {
                 <Link
                   to="/login"
                   onClick={() => setIsOpen(false)}
-                  className="block hover:text-primary-200 transition-colors"
+                  className="block text-white hover:text-primary-200 transition-colors"
                 >
                   Login
                 </Link>
