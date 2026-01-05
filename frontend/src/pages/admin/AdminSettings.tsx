@@ -587,8 +587,9 @@ export default function AdminSettings() {
                   <p className="text-gray-600">No users found</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
+                <div className="overflow-x-auto -mx-4 md:mx-0">
+                  <div className="inline-block min-w-full align-middle px-4 md:px-0">
+                    <table className="w-full min-w-[800px] md:min-w-0">
                     <thead>
                       <tr className="border-b border-gray-200">
                         <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Name</th>
