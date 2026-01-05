@@ -4,6 +4,22 @@ import { settingsAPI } from '../services/api';
 import { Mail, Phone, MapPin } from 'lucide-react';
 
 export default function Footer() {
+  const [facebookLink, setFacebookLink] = useState<string>('https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr');
+  const [whatsappLink, setWhatsappLink] = useState<string>('https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH');
+
+  useEffect(() => {
+    const fetchSocialLinks = async () => {
+      try {
+        const settings = await settingsAPI.getSettings();
+        if (settings.facebookLink) setFacebookLink(settings.facebookLink);
+        if (settings.whatsappLink) setWhatsappLink(settings.whatsappLink);
+      } catch (error) {
+        // Use default links if fetch fails
+      }
+    };
+    fetchSocialLinks();
+  }, []);
+
   return (
     <footer className="bg-gray-900 text-gray-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
