@@ -227,6 +227,14 @@ export default function Home() {
             >
               Join our Facebook Page
             </a>
+            <a
+              href="https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-green-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-green-700 transition-all transform hover:scale-105 shadow-xl inline-block"
+            >
+              Join us in WhatsApp
+            </a>
             <Link
               to="/events"
               className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105"
