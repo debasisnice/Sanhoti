@@ -211,6 +211,11 @@ export default function AdminSettings() {
         toast.error('Please select an image file');
         return;
       }
+    } else if (activeTab === 'paymentqr') {
+      if (!selectedPaymentQRFile) {
+        toast.error('Please select an image file');
+        return;
+      }
     } else {
       if (selectedFiles.length === 0) {
         toast.error('Please select at least one image file');
@@ -241,6 +246,13 @@ export default function AdminSettings() {
         const fileInput = document.getElementById('boardmember-file-input') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
         await fetchBoardMemberImages();
+      } else if (activeTab === 'paymentqr') {
+        await paymentQRAPI.uploadImage(selectedPaymentQRFile!);
+        toast.success('Image uploaded successfully');
+        setSelectedPaymentQRFile(null);
+        const fileInput = document.getElementById('paymentqr-file-input') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+        await fetchPaymentQRImage();
       }
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to upload images');
