@@ -136,10 +136,6 @@ export default function Navbar() {
                   +1 949-378-6425
                 </a>
               </div>
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-3 h-3 text-primary-600 flex-shrink-0" />
-                <span className="whitespace-nowrap">23 Calle Alamitos, Rcho Sta Marg, CA 92688</span>
-              </div>
             </div>
           </div>
         </div>
