@@ -252,7 +252,7 @@ export default function Home() {
       </section>
 
       {/* About Us Section - Moved from About page */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-amber-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -331,7 +331,7 @@ export default function Home() {
 
       {/* Upcoming Events Section */}
       {upcomingEvents.length > 0 && (
-        <section className="py-20 bg-gray-50">
+        <section className="py-20 bg-amber-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -581,7 +581,7 @@ export default function Home() {
       )}
 
       {/* Features Section - What We Offer */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-amber-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
