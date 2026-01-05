@@ -459,14 +459,14 @@ export default function Events() {
           <div className="relative">
             {/* Navigation Arrows */}
             <button
-              onClick={handlePrevious}
+              onClick={handleNext}
               className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors border-2 border-primary-600"
               aria-label="Previous events"
             >
               <ChevronLeft className="w-6 h-6 text-primary-600" />
             </button>
             <button
-              onClick={handleNext}
+              onClick={handlePrevious}
               className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors border-2 border-primary-600"
               aria-label="Next events"
             >
