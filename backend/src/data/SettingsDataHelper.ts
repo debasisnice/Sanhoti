@@ -5,12 +5,30 @@ export class SettingsDataHelper extends DatabaseHelper {
   private readonly filename = 'settings.json';
 
   async get(): Promise<Settings | null> {
-    const settings = this.readFile<Settings>(this.filename);
+    const settings = this.readFile<any>(this.filename);
     if (settings.length === 0) {
       // Return default settings if none exist
       return this.getDefaultSettings();
     }
-    return settings[0];
+    
+    let currentSettings = settings[0];
+    
+    // Migrate old "about" to "sponsors" if needed
+    if (currentSettings.navbar && 'about' in currentSettings.navbar && !('sponsors' in currentSettings.navbar)) {
+      currentSettings = {
+        ...currentSettings,
+        navbar: {
+          ...currentSettings.navbar,
+          sponsors: currentSettings.navbar.about,
+        },
+      };
+      // Remove old "about" key
+      delete currentSettings.navbar.about;
+      // Save migrated settings
+      this.writeFile(this.filename, [currentSettings]);
+    }
+    
+    return currentSettings as Settings;
   }
 
   async update(updates: Partial<Settings['navbar']>): Promise<Settings> {
@@ -36,7 +54,7 @@ export class SettingsDataHelper extends DatabaseHelper {
     return {
       navbar: {
         home: true,
-        about: true,
+        sponsors: true,
         events: true,
         noticeBoard: true,
         galleries: true,

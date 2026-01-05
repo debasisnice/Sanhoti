@@ -189,13 +189,15 @@ export interface AuditLog {
 export interface Settings {
   navbar: {
     home: boolean;
-    about: boolean;
+    sponsors: boolean;
     events: boolean;
     noticeBoard: boolean;
     galleries: boolean;
     magazines: boolean;
     contactUs: boolean;
     committee: boolean;
+    donate: boolean;
+    joinUs: boolean;
   };
   updated_at: string;
 }

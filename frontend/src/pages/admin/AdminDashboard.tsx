@@ -11,6 +11,7 @@ import AdminMessages from './AdminMessages';
 import AdminNotices from './AdminNotices';
 import AdminRSVP from './AdminRSVP';
 import AdminSettings from './AdminSettings';
+import AdminMagazines from './AdminMagazines';
 
 export default function AdminDashboard() {
   const location = useLocation();
@@ -63,7 +64,7 @@ export default function AdminDashboard() {
             <Route path="/events" element={<AdminEvents />} />
             <Route path="/notices" element={<AdminNotices />} />
             <Route path="/galleries" element={<AdminGalleries />} />
-            <Route path="/magazines" element={<div>Magazines Management - Coming Soon</div>} />
+            <Route path="/magazines" element={<AdminMagazines />} />
             <Route path="/messages" element={<AdminMessages />} />
             <Route path="/rsvps" element={<AdminRSVP />} />
             <Route path="/email" element={<div>Email Management - Coming Soon</div>} />

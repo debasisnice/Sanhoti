@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, User, LogOut, Mail, Phone, MapPin, ChevronDown, Shield } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
@@ -14,6 +14,7 @@ export default function Navbar() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const { isAuthenticated, user, logout: logoutStore, isAdmin } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     authAPI.logout();
@@ -52,13 +53,15 @@ export default function Navbar() {
 
   const [navbarSettings, setNavbarSettings] = useState({
     home: true,
-    about: true,
+    sponsors: true,
     events: true,
     noticeBoard: true,
     galleries: true,
     magazines: true,
     contactUs: true,
     committee: true,
+    donate: true,
+    joinUs: true,
   });
 
   useEffect(() => {
@@ -78,7 +81,7 @@ export default function Navbar() {
 
   const allNavLinks = [
     { path: '/', label: 'Home', key: 'home' as const },
-    { path: '/about', label: 'About', key: 'about' as const },
+    { path: '/sponsors', label: 'Sponsors', key: 'sponsors' as const },
     { path: '/events', label: 'Events', key: 'events' as const },
     { path: '/notices', label: 'Notice Board', key: 'noticeBoard' as const },
     { path: '/galleries', label: 'Galleries', key: 'galleries' as const },
@@ -150,28 +153,39 @@ export default function Navbar() {
         >
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center justify-end">
-            {navLinks.map((link, index) => (
-              <div key={link.path} className="flex items-center">
-                {index > 0 && (
-                  <span className="mx-1 lg:mx-1.5 font-bold" style={{ color: '#8B0000' }}>|</span>
-                )}
-                <Link
-                  to={link.path}
-                  className="hover:text-primary-200 transition-colors font-medium whitespace-nowrap text-base lg:text-lg"
-                >
-                  {link.label}
-                </Link>
-              </div>
-            ))}
+            {navLinks.map((link, index) => {
+              // Check if current path matches the link path
+              const isActive = link.path === '/' 
+                ? location.pathname === '/' 
+                : location.pathname === link.path || location.pathname.startsWith(link.path + '/');
+              
+              return (
+                <div key={link.path} className="flex items-center">
+                  {index > 0 && (
+                    <span className="mx-1 lg:mx-1.5 font-bold" style={{ color: '#8B0000' }}>|</span>
+                  )}
+                  <Link
+                    to={link.path}
+                    className={`hover:text-primary-200 transition-colors font-medium whitespace-nowrap text-base relative pb-1 ${
+                      isActive ? 'border-b-2 border-white' : ''
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                </div>
+              );
+            })}
             
             {/* Donate and Join Us Buttons */}
-            <Link
-              to="/donate"
-              className="bg-white text-primary-600 px-3 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors whitespace-nowrap text-base ml-3 lg:ml-4"
-            >
-              Donate
-            </Link>
-            {!isAuthenticated && (
+            {navbarSettings.donate && (
+              <Link
+                to="/donate"
+                className="bg-white text-primary-600 px-3 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors whitespace-nowrap text-base ml-3 lg:ml-4"
+              >
+                Donate
+              </Link>
+            )}
+            {!isAuthenticated && navbarSettings.joinUs && (
               <Link
                 to="/register"
                 className="bg-white text-primary-600 px-3 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors whitespace-nowrap text-base ml-1"
@@ -272,26 +286,37 @@ export default function Navbar() {
             className="md:hidden bg-primary-700 border-t border-primary-600"
           >
             <div className="px-4 py-4 space-y-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => setIsOpen(false)}
-                  className="block hover:text-primary-200 transition-colors"
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                // Check if current path matches the link path
+                const isActive = link.path === '/' 
+                  ? location.pathname === '/' 
+                  : location.pathname === link.path || location.pathname.startsWith(link.path + '/');
+                
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={() => setIsOpen(false)}
+                    className={`block hover:text-primary-200 transition-colors pb-1 ${
+                      isActive ? 'border-b-2 border-white' : ''
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
               
               {/* Donate and Join Us Buttons */}
-              <Link
-                to="/donate"
-                onClick={() => setIsOpen(false)}
-                className="block bg-white text-primary-600 px-4 py-2 rounded-lg font-medium text-center"
-              >
-                Donate
-              </Link>
-              {!isAuthenticated && (
+              {navbarSettings.donate && (
+                <Link
+                  to="/donate"
+                  onClick={() => setIsOpen(false)}
+                  className="block bg-white text-primary-600 px-4 py-2 rounded-lg font-medium text-center"
+                >
+                  Donate
+                </Link>
+              )}
+              {!isAuthenticated && navbarSettings.joinUs && (
                 <Link
                   to="/register"
                   onClick={() => setIsOpen(false)}

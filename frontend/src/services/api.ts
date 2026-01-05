@@ -280,6 +280,32 @@ export const noticesAPI = {
   },
 };
 
+// Sponsors API
+export const sponsorsAPI = {
+  getImages: async (): Promise<Array<{ filename: string; url: string }>> => {
+    const response = await api.get('/sponsors/images');
+    return response.data;
+  },
+  uploadImages: async (files: File[]): Promise<any> => {
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('images', file);
+    });
+    const response = await api.post('/sponsors/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+  deleteImage: async (filename: string): Promise<void> => {
+    await api.delete(`/sponsors/images/${encodeURIComponent(filename)}`);
+  },
+  deleteAllImages: async (): Promise<void> => {
+    await api.delete('/sponsors/images');
+  },
+};
+
 // Galleries API
 export const galleriesAPI = {
   getPublic: async (): Promise<PhotoGallery[]> => {
@@ -350,6 +376,28 @@ export const magazinesAPI = {
   getAll: async (): Promise<Magazine[]> => {
     const response = await api.get('/magazines');
     return response.data;
+  },
+
+  uploadMagazine: async (file: File, title: string, description?: string, isPublic?: boolean): Promise<Magazine> => {
+    const formData = new FormData();
+    formData.append('magazine', file);
+    formData.append('title', title);
+    if (description) formData.append('description', description);
+    if (isPublic !== undefined) formData.append('isPublic', String(isPublic));
+    const response = await api.post('/magazines/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  deleteMagazine: async (id: string): Promise<void> => {
+    await api.delete(`/magazines/${id}`);
+  },
+
+  getFileUrl: (filename: string): string => {
+    return `${API_BASE_URL}/magazines/files/${encodeURIComponent(filename)}`;
   },
 };
 

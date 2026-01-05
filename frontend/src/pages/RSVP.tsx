@@ -17,6 +17,17 @@ interface RSVPForm {
   numberOfChildren: number;
 }
 
+// Simple profanity filter - common inappropriate words
+const profanityWords = [
+  'damn', 'hell', 'crap', 'bitch', 'bastard', 'ass', 'piss', 'fuck', 'shit',
+  // Add more if needed - keeping it minimal for basic filtering
+];
+
+function containsProfanity(text: string): boolean {
+  const lowerText = text.toLowerCase();
+  return profanityWords.some(word => lowerText.includes(word));
+}
+
 export default function RSVP() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -133,7 +144,23 @@ export default function RSVP() {
                 Full Name *
               </label>
               <input
-                {...register('name', { required: 'Name is required' })}
+                {...register('name', {
+                  required: 'Name is required',
+                  maxLength: {
+                    value: 40,
+                    message: 'Name must be 40 characters or less',
+                  },
+                  pattern: {
+                    value: /^[A-Za-z\s\-'\.]+$/,
+                    message: 'Name cannot contain numbers or special characters',
+                  },
+                  validate: (value) => {
+                    if (containsProfanity(value)) {
+                      return 'Name contains inappropriate language. Please use appropriate language.';
+                    }
+                    return true;
+                  },
+                })}
                 type="text"
                 id="name"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -173,6 +200,18 @@ export default function RSVP() {
               <input
                 {...register('phone', {
                   required: 'Phone number is required',
+                  pattern: {
+                    value: /^[\d\s\-\+\(\)]+$/,
+                    message: 'Please enter a valid phone number',
+                  },
+                  validate: (value) => {
+                    // Remove all non-digit characters for validation
+                    const digitsOnly = value.replace(/\D/g, '');
+                    if (digitsOnly.length < 10 || digitsOnly.length > 15) {
+                      return 'Phone number must be between 10 and 15 digits';
+                    }
+                    return true;
+                  },
                 })}
                 type="tel"
                 id="phone"

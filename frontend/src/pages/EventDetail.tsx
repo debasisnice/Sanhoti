@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, ArrowLeft } from 'lucide-react';
-import { eventsAPI } from '../services/api';
-import { Event } from '../types';
+import { Calendar, MapPin, ArrowLeft, Bell, Image as ImageIcon, ArrowRight } from 'lucide-react';
+import { eventsAPI, noticesAPI, galleriesAPI } from '../services/api';
+import { Event, Notice, PhotoGallery } from '../types';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
@@ -11,6 +11,9 @@ export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
   const [event, setEvent] = useState<Event | null>(null);
   const [eventImage, setEventImage] = useState<string | null>(null);
+  const [relatedNotices, setRelatedNotices] = useState<Notice[]>([]);
+  const [relatedGalleries, setRelatedGalleries] = useState<PhotoGallery[]>([]);
+  const [noticeImages, setNoticeImages] = useState<Record<string, Array<{ filename: string; url: string }>>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,6 +34,50 @@ export default function EventDetail() {
             } catch (error) {
               // Silently fail if no images are found - image is optional
               console.log('No event image found');
+            }
+          }
+          
+          // Fetch related notices and galleries
+          if (fetchedEvent.event_id) {
+            try {
+              // Fetch all public notices and filter by event_id
+              const allNotices = await noticesAPI.getPublic();
+              const notices = allNotices
+                .filter(n => n.event_id === fetchedEvent.event_id)
+                .sort((a, b) => {
+                  const dateA = a.created_at || a.createdAt || '';
+                  const dateB = b.created_at || b.createdAt || '';
+                  return new Date(dateB).getTime() - new Date(dateA).getTime(); // Descending order (newest first)
+                });
+              setRelatedNotices(notices);
+              
+              // Fetch images for notices
+              const imagesMap: Record<string, Array<{ filename: string; url: string }>> = {};
+              for (const notice of notices) {
+                const noticeId = notice.notice_id || notice.id;
+                if (noticeId && notice.notice_image_path) {
+                  try {
+                    const images = await noticesAPI.getImages(noticeId);
+                    imagesMap[noticeId] = images;
+                  } catch (error) {
+                    imagesMap[noticeId] = [];
+                  }
+                }
+              }
+              setNoticeImages(imagesMap);
+              
+              // Fetch galleries by event (use public endpoint and filter)
+              try {
+                const allGalleries = await galleriesAPI.getPublic();
+                const galleries = allGalleries.filter(g => g.eventId === fetchedEvent.event_id);
+                setRelatedGalleries(galleries);
+              } catch (error) {
+                // Silently fail if no galleries found
+                setRelatedGalleries([]);
+              }
+            } catch (error) {
+              // Silently fail if notices/galleries can't be loaded
+              console.log('Error loading related notices/galleries:', error);
             }
           }
         } catch (err) {
@@ -68,7 +115,7 @@ export default function EventDetail() {
 
   return (
     <div className="py-12 pb-32">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Link
           to="/events"
           className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-6"
@@ -80,7 +127,7 @@ export default function EventDetail() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl shadow-lg overflow-hidden"
+          className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl shadow-2xl overflow-hidden border-4 border-yellow-400"
         >
           {(() => {
             const eventId = event.event_id || event.id || '';
@@ -175,6 +222,123 @@ export default function EventDetail() {
             );
           })()}
         </motion.div>
+
+        {/* Related Notices */}
+        {relatedNotices.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+              <Bell className="w-8 h-8 text-primary-600" />
+              Related Notices
+            </h2>
+            <div className="space-y-6">
+              {relatedNotices.map((notice, index) => {
+                const noticeId = notice.notice_id || notice.id;
+                const noticeName = notice.notice_name || notice.title || 'Untitled Notice';
+                const noticeBody = notice.notice_body || notice.content || '';
+                const createdAt = notice.created_at || notice.createdAt || '';
+                const images = noticeId ? noticeImages[noticeId] || [] : [];
+                
+                return (
+                  <motion.div
+                    key={noticeId}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl shadow-2xl overflow-hidden border-4 border-yellow-400 p-6"
+                  >
+                    <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                      <div className="flex items-center space-x-3">
+                        <Bell className="w-6 h-6 text-primary-600" />
+                        <h3 className="text-2xl font-bold text-gray-900">{noticeName}</h3>
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Posted on {createdAt ? format(new Date(createdAt), 'MMMM dd, yyyy') : ''}
+                      </div>
+                    </div>
+                    <div className="prose max-w-none mb-4">
+                      <p className="text-gray-700 whitespace-pre-line">{noticeBody}</p>
+                    </div>
+                    {images.length > 0 && (
+                      <div className={`grid ${images.length === 1 ? 'grid-cols-1' : images.length === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-3'} gap-6`}>
+                        {images.map((image, imgIndex) => (
+                          <div key={imgIndex} className="w-full overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                            <img
+                              src={image.url}
+                              alt={`${noticeName} - Image ${imgIndex + 1}`}
+                              className="w-full h-auto object-contain max-h-[600px] mx-auto"
+                              style={{ display: 'block' }}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Related Galleries */}
+        {relatedGalleries.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+              <ImageIcon className="w-8 h-8 text-primary-600" />
+              Related Photo Galleries
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {relatedGalleries.map((gallery, index) => {
+                const firstPhoto = gallery.photos.length > 0 ? gallery.photos[0] : null;
+                const imageUrl = firstPhoto?.thumbnailUrl || firstPhoto?.url || '';
+                
+                return (
+                  <motion.div
+                    key={gallery.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-2"
+                  >
+                    <Link to={`/galleries/${gallery.id}`}>
+                      <div className="relative h-48 bg-gradient-to-br from-primary-400 to-primary-600">
+                        {imageUrl ? (
+                          <img
+                            src={imageUrl}
+                            alt={gallery.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <ImageIcon className="w-16 h-16 text-white opacity-50" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-6">
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">{gallery.title}</h3>
+                        {gallery.description && (
+                          <p className="text-gray-600 text-sm mb-4 line-clamp-2">{gallery.description}</p>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500">
+                            {gallery.photos.length} {gallery.photos.length === 1 ? 'photo' : 'photos'}
+                          </span>
+                          <ArrowRight className="w-5 h-5 text-primary-600" />
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

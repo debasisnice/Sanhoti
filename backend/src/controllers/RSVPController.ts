@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import { RSVPService } from '../services/RSVPService.js';
+import { RSVP } from '../models/types.js';
 
 export class RSVPController {
   private rsvpService: RSVPService;
@@ -49,8 +50,23 @@ export class RSVPController {
         return;
       }
 
-      const rsvps = await this.rsvpService.getRSVPsByUser(req.user.userId);
-      res.json(rsvps);
+      // Get RSVPs by userId (for logged-in users)
+      const rsvpsByUserId = await this.rsvpService.getRSVPsByUser(req.user.userId);
+      
+      // Also get RSVPs by email (for guest RSVPs made with the same email)
+      const userEmail = req.user.email;
+      let rsvpsByEmail: RSVP[] = [];
+      if (userEmail) {
+        rsvpsByEmail = await this.rsvpService.getRSVPsByEmail(userEmail);
+      }
+      
+      // Combine and deduplicate by RSVP id
+      const allRSVPs = [...rsvpsByUserId, ...rsvpsByEmail];
+      const uniqueRSVPs = Array.from(
+        new Map(allRSVPs.map(rsvp => [rsvp.id, rsvp])).values()
+      );
+      
+      res.json(uniqueRSVPs);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch RSVPs' });
     }

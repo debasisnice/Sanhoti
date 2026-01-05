@@ -3,19 +3,58 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, Image, BookOpen, User } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { rsvpAPI, galleriesAPI, magazinesAPI } from '../services/api';
-import { RSVP, PhotoGallery, Magazine } from '../types';
+import { rsvpAPI, galleriesAPI, magazinesAPI, eventsAPI } from '../services/api';
+import { RSVP, PhotoGallery, Magazine, Event } from '../types';
 import { format } from 'date-fns';
+
+interface RSVPWithEvent extends RSVP {
+  event?: Event;
+}
 
 export default function Dashboard() {
   const { user } = useAuthStore();
-  const [myRSVPs, setMyRSVPs] = useState<RSVP[]>([]);
+  const [myRSVPs, setMyRSVPs] = useState<RSVPWithEvent[]>([]);
   const [galleries, setGalleries] = useState<PhotoGallery[]>([]);
   const [magazines, setMagazines] = useState<Magazine[]>([]);
 
   useEffect(() => {
-    rsvpAPI.getMyRSVPs().then(setMyRSVPs).catch(console.error);
-    galleriesAPI.getAll().then(setGalleries).catch(console.error);
+    const fetchData = async () => {
+      try {
+        const rsvps = await rsvpAPI.getMyRSVPs();
+        console.log('Fetched RSVPs:', rsvps);
+        
+        if (!rsvps || rsvps.length === 0) {
+          setMyRSVPs([]);
+          return;
+        }
+        
+        // Fetch event details for each RSVP
+        const rsvpsWithEvents = await Promise.all(
+          rsvps.map(async (rsvp) => {
+            try {
+              const event = await eventsAPI.getById(rsvp.eventId);
+              return { ...rsvp, event };
+            } catch (error) {
+              console.error(`Error fetching event ${rsvp.eventId} for RSVP:`, error);
+              // If event fetch fails, just return RSVP without event
+              return { ...rsvp, event: undefined };
+            }
+          })
+        );
+        
+        console.log('RSVPs with events:', rsvpsWithEvents);
+        setMyRSVPs(rsvpsWithEvents);
+      } catch (error) {
+        console.error('Error fetching RSVPs:', error);
+        setMyRSVPs([]);
+      }
+    };
+    
+    fetchData();
+    galleriesAPI.getPublic().then(setGalleries).catch((error) => {
+      console.error('Error fetching galleries:', error);
+      setGalleries([]);
+    });
     magazinesAPI.getAll().then(setMagazines).catch(console.error);
   }, []);
 
@@ -60,30 +99,48 @@ export default function Dashboard() {
               <p className="text-gray-500">You haven't RSVPed to any events yet.</p>
             ) : (
               <div className="space-y-4">
-                {myRSVPs.map((rsvp) => (
-                  <div
-                    key={rsvp.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-semibold text-gray-900">Event RSVP</h3>
-                        <p className="text-sm text-gray-600">
-                          {rsvp.numberOfGuests} {rsvp.numberOfGuests === 1 ? 'guest' : 'guests'}
-                        </p>
+                {myRSVPs.map((rsvp) => {
+                  const event = rsvp.event;
+                  const eventName = event?.event_name || event?.title || 'Event';
+                  const eventDate = event?.event_start_dt || event?.date || '';
+                  const totalGuests = (rsvp.numberOfAdults || 0) + (rsvp.numberOfChildren || 0);
+                  const guestsText = rsvp.numberOfAdults && rsvp.numberOfChildren
+                    ? `${rsvp.numberOfAdults} adult${rsvp.numberOfAdults > 1 ? 's' : ''}, ${rsvp.numberOfChildren} child${rsvp.numberOfChildren > 1 ? 'ren' : ''}`
+                    : rsvp.numberOfAdults
+                    ? `${rsvp.numberOfAdults} adult${rsvp.numberOfAdults > 1 ? 's' : ''}`
+                    : rsvp.numberOfGuests
+                    ? `${rsvp.numberOfGuests} guest${rsvp.numberOfGuests > 1 ? 's' : ''}`
+                    : 'No guests';
+                  
+                  return (
+                    <Link
+                      key={rsvp.id}
+                      to={`/events/${rsvp.eventId}`}
+                      className="block border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 mb-1">{eventName}</h3>
+                          {eventDate && (
+                            <p className="text-sm text-gray-600 mb-1">
+                              {format(new Date(eventDate), 'MMMM dd, yyyy')}
+                            </p>
+                          )}
+                          <p className="text-sm text-gray-500">{guestsText}</p>
+                        </div>
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm font-medium ml-4 ${
+                            rsvp.status === 'confirmed'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-red-100 text-red-700'
+                          }`}
+                        >
+                          {rsvp.status}
+                        </span>
                       </div>
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          rsvp.status === 'confirmed'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-red-100 text-red-700'
-                        }`}
-                      >
-                        {rsvp.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </motion.div>

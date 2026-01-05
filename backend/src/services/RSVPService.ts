@@ -24,6 +24,10 @@ export class RSVPService {
     return this.rsvpDataHelper.findByUserId(userId);
   }
 
+  async getRSVPsByEmail(email: string): Promise<RSVP[]> {
+    return this.rsvpDataHelper.findByEmail(email);
+  }
+
   async createRSVP(data: {
     eventId: string;
     userId?: string;

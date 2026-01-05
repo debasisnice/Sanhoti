@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, ArrowRight, Star } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { eventsAPI } from '../services/api';
 import { Event } from '../types';
 import { format } from 'date-fns';
 
 export default function Events() {
-  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
-  const [pastEvents, setPastEvents] = useState<Event[]>([]);
+  const [allEvents, setAllEvents] = useState<Event[]>([]);
   const [priorityEvent, setPriorityEvent] = useState<Event | null>(null);
   const [priorityEventImage, setPriorityEventImage] = useState<string | null>(null);
   const [imageOrientation, setImageOrientation] = useState<'portrait' | 'landscape' | null>(null);
   const [eventImages, setEventImages] = useState<Record<string, string>>({});
   const [eventImageOrientations, setEventImageOrientations] = useState<Record<string, 'portrait' | 'landscape'>>({});
-  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [expandedYear, setExpandedYear] = useState<string | null>(null);
 
   // Function to detect image orientation
   const detectImageOrientation = (imageUrl: string): Promise<'portrait' | 'landscape'> => {
@@ -33,7 +33,7 @@ export default function Events() {
   };
 
   useEffect(() => {
-    // Fetch upcoming and past events
+    // Fetch all events (upcoming + past)
     const fetchEventsAndImages = async () => {
       try {
         const [upcoming, past] = await Promise.all([
@@ -41,9 +41,12 @@ export default function Events() {
           eventsAPI.getPast(),
         ]);
         
-        // Find priority event from both lists
-        const allEvents = [...upcoming, ...past];
-        const priority = allEvents.find(e => e.is_priority === true);
+        // Combine all events
+        const combined = [...upcoming, ...past];
+        setAllEvents(combined);
+        
+        // Find priority event
+        const priority = combined.find(e => e.is_priority === true);
         
         if (priority) {
           setPriorityEvent(priority);
@@ -70,13 +73,8 @@ export default function Events() {
           }
         }
         
-        // Keep priority event in the lists (it will show both at top and in the list)
-        setUpcomingEvents(upcoming);
-        setPastEvents(past);
-        
         // Fetch images for all events
-        const allEventsList = [...upcoming, ...past];
-        const imagePromises = allEventsList
+        const imagePromises = combined
           .filter(e => e.event_id && e.event_image_path)
           .map(async (event) => {
             try {
@@ -117,8 +115,86 @@ export default function Events() {
     fetchEventsAndImages();
   }, []);
 
-  // Display events based on active tab (priority event is already filtered out)
-  const events = activeTab === 'upcoming' ? upcomingEvents : pastEvents;
+  // Reorganize events to show nearest upcoming and most recent past first (include all events including priority)
+  const eventsForCarousel = (() => {
+    const filtered = allEvents; // Include all events, including priority events
+    
+    if (filtered.length === 0) return [];
+    
+    // Find nearest upcoming event and most recently completed event
+    const now = new Date();
+    const upcomingEvents = filtered.filter(e => {
+      const eventDate = new Date(e.event_start_dt || e.date || 0);
+      return eventDate >= now;
+    }).sort((a, b) => {
+      const dateA = new Date(a.event_start_dt || a.date || 0);
+      const dateB = new Date(b.event_start_dt || b.date || 0);
+      return dateA.getTime() - dateB.getTime(); // Ascending: nearest first
+    });
+    
+    const pastEvents = filtered.filter(e => {
+      const eventDate = e.event_end_dt ? new Date(e.event_end_dt) : new Date(e.event_start_dt || e.date || 0);
+      return eventDate < now;
+    }).sort((a, b) => {
+      // Use event_end_dt for most recently completed, fallback to event_start_dt
+      const dateA = a.event_end_dt ? new Date(a.event_end_dt) : new Date(a.event_start_dt || a.date || 0);
+      const dateB = b.event_end_dt ? new Date(b.event_end_dt) : new Date(b.event_start_dt || b.date || 0);
+      return dateB.getTime() - dateA.getTime(); // Descending: most recent first
+    });
+    
+    const nearestUpcoming = upcomingEvents[0];
+    const mostRecentPast = pastEvents[0];
+    
+    // Reorganize array: most recent past at index 0 (left), nearest upcoming at index 1 (right), then rest
+    const reorganized: Event[] = [];
+    const remainingEvents = filtered.filter(e => {
+      const eventId = e.event_id || e.id;
+      const nearestUpcomingId = nearestUpcoming?.event_id || nearestUpcoming?.id;
+      const mostRecentPastId = mostRecentPast?.event_id || mostRecentPast?.id;
+      return eventId !== nearestUpcomingId && eventId !== mostRecentPastId;
+    });
+    
+    // Reverse order: past events on left, upcoming events on right
+    if (mostRecentPast) {
+      reorganized.push(mostRecentPast);
+    }
+    if (nearestUpcoming) {
+      reorganized.push(nearestUpcoming);
+    }
+    reorganized.push(...remainingEvents);
+    
+    return reorganized;
+  })();
+
+  // Get visible cards - show 7 cards for smooth scrolling effect
+  const getVisibleCards = () => {
+    if (eventsForCarousel.length === 0) return [];
+    
+    const visible: Array<{ event: Event; index: number; position: number }> = [];
+    
+    // Show 7 cards: 3 on left, 2 middle, 2 on right
+    // currentIndex should be 0 to show index 0 and 1 in positions 0 and 1
+    for (let i = -3; i <= 3; i++) {
+      const eventIndex = (currentIndex + i + eventsForCarousel.length) % eventsForCarousel.length;
+      visible.push({
+        event: eventsForCarousel[eventIndex],
+        index: eventIndex,
+        position: i,
+      });
+    }
+    
+    return visible;
+  };
+
+  const visibleCards = getVisibleCards();
+
+  const handlePrevious = () => {
+    setCurrentIndex((prev) => (prev - 1 + eventsForCarousel.length) % eventsForCarousel.length);
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % eventsForCarousel.length);
+  };
 
   return (
     <div className="py-12 pb-32">
@@ -307,65 +383,128 @@ export default function Events() {
           );
         })()}
 
-        {/* Tabs */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-white rounded-lg p-1 shadow-md inline-flex">
-            <button
-              onClick={() => setActiveTab('upcoming')}
-              className={`px-6 py-2 rounded-md font-medium transition-all ${
-                activeTab === 'upcoming'
-                  ? 'bg-primary-600 text-white shadow-md'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Upcoming
-            </button>
-            <button
-              onClick={() => setActiveTab('past')}
-              className={`px-6 py-2 rounded-md font-medium transition-all ${
-                activeTab === 'past'
-                  ? 'bg-primary-600 text-white shadow-md'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Past Events
-            </button>
+        {/* All Events Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-center gap-3">
+            <Calendar className="w-8 h-8 text-primary-600" />
+            <h2 className="text-2xl font-bold text-gray-900">All Events</h2>
           </div>
         </div>
 
-        {/* Events Grid */}
-        {events.length === 0 ? (
+        {/* Events Carousel */}
+        {eventsForCarousel.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No {activeTab} events at this time.</p>
+            <p className="text-gray-500 text-lg">No events available at this time.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" style={{ gridAutoRows: '1fr' }}>
-            {events.map((event, index) => {
+          <div className="relative">
+            {/* Navigation Arrows */}
+            <button
+              onClick={handlePrevious}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors border-2 border-primary-600"
+              aria-label="Previous events"
+            >
+              <ChevronLeft className="w-6 h-6 text-primary-600" />
+            </button>
+            <button
+              onClick={handleNext}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors border-2 border-primary-600"
+              aria-label="Next events"
+            >
+              <ChevronRight className="w-6 h-6 text-primary-600" />
+            </button>
+
+            {/* Carousel Container */}
+            <div className="relative h-[500px] flex items-center justify-center overflow-hidden py-12 px-16">
+              <div
+                className="relative w-full h-full flex items-center justify-center"
+                style={{
+                  perspective: '1200px',
+                  perspectiveOrigin: 'center center',
+                }}
+              >
+                {visibleCards.map((card) => {
+                  const event = card.event;
               const eventId = event.event_id || event.id || '';
               const eventName = event.event_name || event.title || 'Untitled Event';
-              const eventDescription = event.event_description || event.description || '';
               const eventDate = event.event_start_dt || event.date || '';
-              const eventLocation = event.location || '';
-              // Use event image from Events_Flyers if available, otherwise use fallback
-              const eventImage = eventImages[eventId] || event.photo_gallery_link || event.imageUrl;
+              const eventImage = eventImages[eventId]; // Only use images from eventImages state
               const eventImageOrientation = eventImageOrientations[eventId];
               const isPortrait = eventImageOrientation === 'portrait' && eventImage;
+
+                  const isMiddle = card.position === 0 || card.position === 1;
+                  const isLeft = card.position < 0;
+                  const isRight = card.position > 1;
+
+                  // Calculate styles - cards flow from right to left
+                  const scale = (card.position === 0 || card.position === 1) ? 1.3 : 0.7;
+                  
+                  // Continuous horizontal positioning
+                  let xOffset;
+                  if (card.position === 0) {
+                    xOffset = -170; // First middle card
+                  } else if (card.position === 1) {
+                    xOffset = 170; // Second middle card
+                  } else {
+                    // Side cards: maintain continuous spacing
+                    const baseSpacing = 240;
+                    if (card.position < 0) {
+                      // Left side cards
+                      xOffset = -170 - baseSpacing + (card.position + 1) * baseSpacing;
+                    } else {
+                      // Right side cards
+                      xOffset = 170 + (card.position - 1) * baseSpacing;
+                    }
+                  }
+                  
+                  // Create wheel effect: middle cards forward, side cards go back
+                  const zOffset = isMiddle ? 100 : -Math.abs(card.position) * 80 - 50;
+                  const rotateY = isLeft ? 15 : isRight ? -15 : 0;
+                  const opacity = Math.abs(card.position) > 3 ? 0.3 : isMiddle ? 1 : 0.7;
               
               return (
                 <motion.div
-                  key={eventId}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-2 flex flex-col"
-                  style={{ minHeight: '450px', maxHeight: '450px', height: '450px' }}
-                >
+                      key={`event-${eventId}`}
+                      animate={{
+                        opacity,
+                        x: xOffset,
+                        scale,
+                        rotateY,
+                        z: zOffset,
+                      }}
+                      transition={{
+                        duration: 1.0,
+                        ease: [0.25, 0.1, 0.25, 1],
+                      }}
+                      style={{
+                        position: 'absolute',
+                        transformStyle: 'preserve-3d',
+                        zIndex: isMiddle ? 10 : 5 - Math.abs(card.position),
+                      }}
+                      className="will-change-transform flex flex-col items-center"
+                    >
+                      <Link to={`/events/${eventId}`} className="flex flex-col items-center">
+                        <div
+                          className={`bg-white rounded-xl overflow-hidden transition-all duration-300 cursor-pointer ${
+                            isMiddle
+                              ? 'shadow-2xl ring-4 ring-primary-200 ring-opacity-50'
+                              : 'shadow-lg'
+                          }`}
+                          style={{
+                            width: (card.position === 0 || card.position === 1) ? '240px' : '180px',
+                            height: (card.position === 0 || card.position === 1) ? '300px' : '220px',
+                          }}
+                        >
+                          {/* Event Image */}
                   {eventImage && (
-                    <>
-                      {/* Portrait Layout: Image on left, details on right */}
-                      {isPortrait ? (
-                        <div className="flex flex-col md:flex-row h-full">
-                          <div className="md:w-1/2 bg-gradient-to-br from-primary-400 to-primary-600 relative overflow-hidden flex items-center justify-center" style={{ minHeight: '200px' }}>
+                            <div 
+                              className="bg-gradient-to-br from-primary-400 to-primary-600 relative overflow-hidden flex items-center justify-center"
+                              style={{
+                                height: (card.position === 0 || card.position === 1) 
+                                  ? (isPortrait ? '180px' : '140px')
+                                  : (isPortrait ? '120px' : '90px'),
+                              }}
+                            >
                             <img
                               src={eventImage}
                               alt={eventName}
@@ -375,120 +514,220 @@ export default function Events() {
                               }}
                             />
                           </div>
-                          <div className="md:w-1/2 p-6 flex flex-col justify-center flex-1" style={{ minHeight: '200px' }}>
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-sm font-medium">
-                                {event.year || new Date(eventDate).getFullYear()}
-                              </span>
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-2">{eventName}</h3>
-                            <p className="text-gray-600 mb-4 line-clamp-3 text-sm flex-1">{eventDescription}</p>
-                            
-                            <div className="space-y-2 mb-4">
+                          )}
+
+                          {/* Event Details */}
+                          <div className={`p-3 ${eventImage ? '' : 'pt-4'}`}>
+                            <h3 className={`font-bold text-gray-900 mb-1.5 ${isMiddle ? 'text-lg' : 'text-sm'} line-clamp-2`}>
+                              {eventName}
+                            </h3>
+
+                            {/* Date and Location */}
+                            <div className="space-y-0.5 mb-2">
                               <div className="flex items-center text-gray-600">
-                                <Calendar className="w-4 h-4 mr-2" />
-                                <span className="text-sm">{format(new Date(eventDate), 'MMM dd, yyyy')}</span>
+                                <Calendar className={`${isMiddle ? 'w-3 h-3' : 'w-3 h-3'} mr-2 flex-shrink-0`} />
+                                <span className={`truncate ${isMiddle ? 'text-xs' : 'text-xs'}`}>
+                                  {format(new Date(eventDate), 'MMM dd, yyyy')}
+                                </span>
                               </div>
-                              {eventLocation && (
+                              {event.location && (
                                 <div className="flex items-center text-gray-600">
-                                  <MapPin className="w-4 h-4 mr-2" />
-                                  <span className="truncate text-sm">{eventLocation}</span>
+                                  <MapPin className={`${isMiddle ? 'w-3 h-3' : 'w-3 h-3'} mr-2 flex-shrink-0`} />
+                                  <span className={`truncate ${isMiddle ? 'text-xs' : 'text-xs'}`}>
+                                    {event.location}
+                                  </span>
                                 </div>
                               )}
                             </div>
 
-                            <Link
-                              to={`/events/${eventId}`}
-                              className="inline-flex items-center text-primary-600 font-medium hover:text-primary-700 text-sm"
-                            >
-                              View Details <ArrowRight className="w-4 h-4 ml-1" />
-                            </Link>
+                            {/* View Details Link */}
+                            <div className="flex items-center text-primary-600 font-medium mt-auto">
+                              <span className="text-xs">View Details</span>
+                              <ArrowRight className="w-3 h-3 ml-1" />
+                            </div>
                           </div>
                         </div>
-                      ) : (
-                        /* Landscape Layout: Image on top, details on bottom */
-                        <>
-                          <div className="h-48 bg-gradient-to-br from-primary-400 to-primary-600 relative overflow-hidden flex-shrink-0 flex items-center justify-center">
-                            <img
-                              src={eventImage}
-                              alt={eventName}
-                              className="w-full h-full object-contain"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                              }}
-                            />
-                          </div>
-                          <div className="p-6 flex-1 flex flex-col">
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-sm font-medium">
-                                {event.year || new Date(eventDate).getFullYear()}
-                              </span>
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-2">{eventName}</h3>
-                            <p className="text-gray-600 mb-4 line-clamp-2 text-sm flex-1">{eventDescription}</p>
-                            
-                            <div className="space-y-2 mb-4">
-                              <div className="flex items-center text-gray-600">
-                                <Calendar className="w-4 h-4 mr-2" />
-                                <span className="text-sm">{format(new Date(eventDate), 'MMM dd, yyyy')}</span>
-                              </div>
-                              {eventLocation && (
-                                <div className="flex items-center text-gray-600">
-                                  <MapPin className="w-4 h-4 mr-2" />
-                                  <span className="truncate text-sm">{eventLocation}</span>
-                                </div>
-                              )}
-                            </div>
-
-                            <Link
-                              to={`/events/${eventId}`}
-                              className="inline-flex items-center text-primary-600 font-medium hover:text-primary-700 text-sm"
-                            >
-                              View Details <ArrowRight className="w-4 h-4 ml-1" />
-                            </Link>
-                          </div>
-                        </>
-                      )}
-                    </>
-                  )}
-                  {!eventImage && (
-                    <div className="p-6 flex-1 flex flex-col" style={{ height: '100%' }}>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-sm font-medium">
-                          {event.year || new Date(eventDate).getFullYear()}
-                        </span>
-                      </div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">{eventName}</h3>
-                      <p className="text-gray-600 mb-4 line-clamp-2 text-sm flex-1">{eventDescription}</p>
-                      
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center text-gray-600">
-                          <Calendar className="w-4 h-4 mr-2" />
-                          <span className="text-sm">{format(new Date(eventDate), 'MMM dd, yyyy')}</span>
-                        </div>
-                        {eventLocation && (
-                          <div className="flex items-center text-gray-600">
-                            <MapPin className="w-4 h-4 mr-2" />
-                            <span className="truncate text-sm">{eventLocation}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <Link
-                        to={`/events/${eventId}`}
-                        className="inline-flex items-center text-primary-600 font-medium hover:text-primary-700 text-sm"
-                      >
-                        View Details <ArrowRight className="w-4 h-4 ml-1" />
                       </Link>
+                      
+                      {/* Month and Year - Outside and below the card */}
+                      <div className="mt-3 text-center">
+                        <p className={`text-primary-600 font-semibold ${isMiddle ? 'text-base' : 'text-sm'}`}>
+                          {format(new Date(eventDate), 'MMMM yyyy')}
+                        </p>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Timeline */}
+            {eventsForCarousel.length > 0 && (() => {
+              // Find earliest and latest event dates
+              const eventDates = eventsForCarousel
+                .map(e => new Date(e.event_start_dt || e.date || 0))
+                .filter(date => !isNaN(date.getTime()))
+                .sort((a, b) => a.getTime() - b.getTime());
+              
+              if (eventDates.length === 0) return null;
+              
+              const earliestDate = eventDates[0];
+              const latestDate = eventDates[eventDates.length - 1];
+              
+              // Group events by year, then by month
+              const eventsByYearMonth: Record<string, Record<string, Date[]>> = {};
+              eventsForCarousel.forEach(e => {
+                const eventDate = new Date(e.event_start_dt || e.date || 0);
+                if (!isNaN(eventDate.getTime())) {
+                  const year = format(eventDate, 'yyyy');
+                  const monthYear = format(eventDate, 'yyyy-MM');
+                  const [y, m] = monthYear.split('-');
+                  
+                  if (!eventsByYearMonth[year]) {
+                    eventsByYearMonth[year] = {};
+                  }
+                  if (!eventsByYearMonth[year][monthYear]) {
+                    eventsByYearMonth[year][monthYear] = [];
+                  }
+                  eventsByYearMonth[year][monthYear].push(new Date(parseInt(y), parseInt(m) - 1, 1));
+                }
+              });
+              
+              // Get unique years and sort
+              const years = Object.keys(eventsByYearMonth)
+                .map(y => parseInt(y))
+                .sort((a, b) => a - b);
+              
+              // Calculate total time range in milliseconds
+              const totalRange = latestDate.getTime() - earliestDate.getTime();
+              
+              // Helper to get year position
+              const getYearPosition = (year: number) => {
+                const yearDate = new Date(year, 0, 1); // January 1st of the year
+                if (totalRange === 0) return 50;
+                let position = ((yearDate.getTime() - earliestDate.getTime()) / totalRange) * 100;
+                return Math.max(2, Math.min(98, position));
+              };
+              
+              // Helper to get month position within a year
+              const getMonthPosition = (year: number, month: number) => {
+                const yearStart = new Date(year, 0, 1);
+                const yearEnd = new Date(year, 11, 31);
+                const monthDate = new Date(year, month - 1, 1);
+                const yearRange = yearEnd.getTime() - yearStart.getTime();
+                if (yearRange === 0) return 0;
+                return ((monthDate.getTime() - yearStart.getTime()) / yearRange) * 100;
+              };
+              
+              return (
+                <div className="mt-12 mb-8 px-8">
+                  <div className="relative">
+                    {/* Timeline line */}
+                    <div className="absolute top-1/2 left-0 right-0 h-1 bg-primary-200 transform -translate-y-1/2"></div>
+                    
+                    {/* Year markers */}
+                    <div className="relative">
+                      {years.map((year) => {
+                        const yearPosition = getYearPosition(year);
+                        const isExpanded = expandedYear === year.toString();
+                        const yearMonths = Object.keys(eventsByYearMonth[year.toString()])
+                          .map(my => {
+                            const [y, m] = my.split('-');
+                            return { monthYear: my, month: parseInt(m), date: new Date(parseInt(y), parseInt(m) - 1, 1) };
+                          })
+                          .sort((a, b) => a.month - b.month);
+                        
+                        return (
+                          <div key={year}>
+                            {/* Year marker */}
+                            <div
+                              className="absolute flex flex-col items-center z-20 cursor-pointer group"
+                              style={{
+                                left: `${yearPosition}%`,
+                                transform: 'translate(-50%, -50%)',
+                                top: '50%',
+                              }}
+                              onClick={() => setExpandedYear(isExpanded ? null : year.toString())}
+                            >
+                              <div className={`w-4 h-4 bg-primary-600 rounded-full border-2 border-white shadow-lg transition-all ${isExpanded ? 'ring-2 ring-primary-400' : ''}`}></div>
+                              <div className="mt-2 text-center whitespace-nowrap">
+                                <p className="text-sm font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
+                                  {year}
+                                </p>
+                                {yearMonths.length > 0 && (
+                                  <p className="text-xs text-gray-500 mt-0.5">
+                                    {yearMonths.length} {yearMonths.length === 1 ? 'month' : 'months'}
+                                  </p>
+                                )}
+                          </div>
+                            </div>
+                            
+                            {/* Month markers (shown when year is expanded) */}
+                            {isExpanded && yearMonths.map((monthData) => {
+                              const monthPosition = getMonthPosition(year, monthData.month);
+                              // Position relative to year marker
+                              const yearStartPos = getYearPosition(year);
+                              const yearEndPos = year < years[years.length - 1] 
+                                ? getYearPosition(year + 1) 
+                                : 98;
+                              const yearWidth = yearEndPos - yearStartPos;
+                              const absolutePosition = yearStartPos + (monthPosition / 100) * yearWidth;
+                              
+                              // Find events for this month-year
+                              const eventsInMonth = eventsForCarousel.filter(e => {
+                                const eventDate = new Date(e.event_start_dt || e.date || 0);
+                                if (isNaN(eventDate.getTime())) return false;
+                                const eventMonthYear = format(eventDate, 'yyyy-MM');
+                                return eventMonthYear === monthData.monthYear;
+                              });
+                              
+                              // Find the index of the first event in this month
+                              const firstEventIndex = eventsInMonth.length > 0 
+                                ? eventsForCarousel.findIndex(e => {
+                                    const eventId = e.event_id || e.id;
+                                    return eventId === (eventsInMonth[0].event_id || eventsInMonth[0].id);
+                                  })
+                                : -1;
+                              
+                              const handleMonthClick = () => {
+                                if (firstEventIndex >= 0) {
+                                  // Rotate to show the event at position 0 (left front card)
+                                  setCurrentIndex(firstEventIndex);
+                                }
+                              };
+                              
+                              return (
+                                <div
+                                  key={monthData.monthYear}
+                                  className="absolute flex flex-col items-center z-10 cursor-pointer group"
+                                  style={{
+                                    left: `${Math.max(2, Math.min(98, absolutePosition))}%`,
+                                    transform: 'translate(-50%, -50%)',
+                                    top: '50%',
+                                    marginTop: '40px', // Position below year marker
+                                  }}
+                                  onClick={handleMonthClick}
+                                >
+                                  <div className="w-2.5 h-2.5 bg-primary-400 rounded-full border-2 border-white shadow-md group-hover:bg-primary-500 transition-colors"></div>
+                                  <div className="mt-1.5 text-center whitespace-nowrap">
+                                    <p className="text-xs font-medium text-gray-600 group-hover:text-primary-600 transition-colors">
+                                      {format(monthData.date, 'MMM yyyy')}
+                                    </p>
+                              </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
                     </div>
-                  )}
-                </motion.div>
+                  </div>
+                </div>
               );
-            })}
+            })()}
           </div>
         )}
       </div>
     </div>
   );
 }
-

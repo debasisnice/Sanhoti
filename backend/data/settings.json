@@ -2,14 +2,16 @@
   {
     "navbar": {
       "home": true,
-      "about": true,
+      "sponsors": true,
       "events": true,
       "noticeBoard": true,
       "galleries": true,
       "magazines": true,
       "contactUs": true,
-      "committee": true
+      "committee": true,
+      "donate": true,
+      "joinUs": false
     },
-    "updated_at": "2026-01-03T19:31:32.904Z"
+    "updated_at": "2026-01-05T01:05:38.961Z"
   }
 ]

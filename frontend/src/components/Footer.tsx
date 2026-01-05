@@ -10,14 +10,14 @@ export default function Footer() {
             <div className="flex items-center space-x-3 mb-4">
               <img 
                 src="/images/logo.png" 
-                alt="সংহতি"
+                alt="Sanhoti (সংহতি) Bengali Association of Orange County"
                 className="h-12 w-12 object-contain"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}
               />
               <h3 className="text-2xl font-bold text-white">
-                <span className="font-bengali">সংহতি</span> Bengali Community
+                <span className="font-bengali">Sanhoti (সংহতি) Bengali Association of Orange County</span>
               </h3>
             </div>
             <p className="text-gray-400 mb-4">
@@ -70,21 +70,21 @@ export default function Footer() {
             <h4 className="text-white font-semibold mb-4">Community</h4>
             <ul className="space-y-2">
               <li>
-                <Link to="/register" className="hover:text-white transition-colors">
-                  Become a Member
-                </Link>
-              </li>
-              <li>
-                <Link to="/login" className="hover:text-white transition-colors">
-                  Member Login
-                </Link>
+                <a
+                  href="https://www.facebook.com/profile.php?id=61577899858876&mibextid=wwXIfr&mibextid=wwXIfr"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors"
+                >
+                  Join our Facebook Page
+                </a>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-          <p>&copy; {new Date().getFullYear()} Sanhoti Bengali Community. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Sanhoti (সংহতি) Bengali Association of Orange County. All rights reserved.</p>
         </div>
       </div>
     </footer>

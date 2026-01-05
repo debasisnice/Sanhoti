@@ -58,7 +58,7 @@
     "is_active": true,
     "event_id": "YHO7NY9I7CRU",
     "created_at": "2026-01-03T13:28:00.517Z",
-    "updated_at": "2026-01-03T18:25:00.272Z",
+    "updated_at": "2026-01-05T01:04:32.832Z",
     "gallery_is_public": true,
     "is_priority": false,
     "event_image_path": "durgotsav-YHO7NY9I7CRU"
@@ -94,5 +94,21 @@
     "gallery_is_public": false,
     "is_priority": true,
     "event_image_path": "saraswati-puja-WJWYE0NC4IIY"
+  },
+  {
+    "event_name": "Holiday Party 2025",
+    "event_start_dt": "2025-12-06",
+    "event_end_dt": "2025-12-06",
+    "year": 2025,
+    "event_description": "Sanhoti presents Holiday Party 2025",
+    "location": "Village Square Clubhouse 130 Outwest, Irvine, CA 92618",
+    "photo_gallery_link": "Holiday-Party-2025-2025-XWVI1XL35369",
+    "is_active": true,
+    "is_priority": false,
+    "event_id": "XWVI1XL35369",
+    "created_at": "2026-01-05T00:30:32.871Z",
+    "updated_at": "2026-01-05T01:04:09.785Z",
+    "gallery_is_public": false,
+    "event_image_path": "Holiday-Party-2025-XWVI1XL35369"
   }
 ]

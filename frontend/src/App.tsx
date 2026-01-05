@@ -4,7 +4,7 @@ import { useAuthStore } from './store/authStore';
 import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
-import About from './pages/About';
+import Sponsors from './pages/Sponsors';
 import Donate from './pages/Donate';
 import Contact from './pages/Contact';
 import Committee from './pages/Committee';
@@ -36,7 +36,7 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
+          <Route path="/sponsors" element={<Sponsors />} />
           <Route path="/donate" element={<Donate />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/committee" element={<Committee />} />

@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Users } from 'lucide-react';
-import { settingsAPI, usersAPI } from '../../services/api';
+import { Settings, Users, Award, Upload, Trash2, X } from 'lucide-react';
+import { settingsAPI, usersAPI, sponsorsAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 interface NavbarSettings {
   home: boolean;
-  about: boolean;
+  sponsors: boolean;
   events: boolean;
   noticeBoard: boolean;
   galleries: boolean;
   magazines: boolean;
   contactUs: boolean;
   committee: boolean;
+  donate: boolean;
+  joinUs: boolean;
 }
 
 interface SettingsData {
@@ -42,23 +44,34 @@ interface User {
 
 const menuItemLabels: Record<keyof NavbarSettings, string> = {
   home: 'Home',
-  about: 'About',
+  sponsors: 'Sponsors',
   events: 'Events',
   noticeBoard: 'Notice Board',
   galleries: 'Galleries',
   magazines: 'Magazines',
   contactUs: 'Contact Us',
   committee: 'Committee',
+  donate: 'Donate',
+  joinUs: 'Join Us',
 };
 
-type TabType = 'navbar' | 'users';
+type TabType = 'navbar' | 'users' | 'sponsors';
+
+interface SponsorImage {
+  filename: string;
+  url: string;
+}
 
 export default function AdminSettings() {
   const [activeTab, setActiveTab] = useState<TabType>('navbar');
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const [users, setUsers] = useState<User[]>([]);
+  const [sponsorImages, setSponsorImages] = useState<SponsorImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<User>>({});
 
@@ -66,6 +79,8 @@ export default function AdminSettings() {
     fetchSettings();
     if (activeTab === 'users') {
       fetchUsers();
+    } else if (activeTab === 'sponsors') {
+      fetchSponsorImages();
     }
   }, [activeTab]);
 
@@ -87,6 +102,83 @@ export default function AdminSettings() {
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to fetch users');
     }
+  };
+
+  const fetchSponsorImages = async () => {
+    try {
+      const images = await sponsorsAPI.getImages();
+      setSponsorImages(images);
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to fetch sponsor images');
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      const imageFiles = files.filter(file => /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name));
+      setSelectedFiles(imageFiles);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (selectedFiles.length === 0) {
+      toast.error('Please select at least one image file');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      await sponsorsAPI.uploadImages(selectedFiles);
+      toast.success('Images uploaded successfully');
+      setSelectedFiles([]);
+      // Reset file input
+      const fileInput = document.getElementById('sponsor-file-input') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+      await fetchSponsorImages();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to upload images');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDeleteImage = async (filename: string) => {
+    if (!window.confirm('Are you sure you want to delete this image?')) {
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      await sponsorsAPI.deleteImage(filename);
+      toast.success('Image deleted successfully');
+      await fetchSponsorImages();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to delete image');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (!window.confirm('Are you sure you want to delete ALL sponsor images? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      await sponsorsAPI.deleteAllImages();
+      toast.success('All images deleted successfully');
+      await fetchSponsorImages();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to delete images');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const removeSelectedFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleToggle = async (key: keyof NavbarSettings) => {
@@ -219,6 +311,19 @@ export default function AdminSettings() {
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
                 <span>Users</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('sponsors')}
+              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'sponsors'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5" />
+                <span>Sponsors</span>
               </div>
             </button>
           </nav>
@@ -505,6 +610,124 @@ export default function AdminSettings() {
               )}
             </div>
           )}
+
+          {activeTab === 'sponsors' && (
+            <div>
+              <div className="mb-6">
+                <p className="text-gray-600">
+                  Upload and manage sponsor images. These images will be displayed on the public Sponsors page.
+                </p>
+              </div>
+
+              {/* Upload Section */}
+              <div className="mb-8 p-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Upload New Images</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Select Images (jpg, png, gif, webp - Max 10MB each)
+                    </label>
+                    <input
+                      id="sponsor-file-input"
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                      multiple
+                      onChange={handleFileSelect}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-600 file:text-white hover:file:bg-primary-700"
+                    />
+                  </div>
+
+                  {selectedFiles.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Selected Files ({selectedFiles.length}):</p>
+                      <div className="space-y-2">
+                        {selectedFiles.map((file, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
+                            <span className="text-sm text-gray-700 truncate">{file.name}</span>
+                            <button
+                              onClick={() => removeSelectedFile(index)}
+                              className="ml-2 text-red-600 hover:text-red-800"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        onClick={handleUpload}
+                        disabled={uploading}
+                        className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        <Upload className="w-4 h-4" />
+                        {uploading ? 'Uploading...' : 'Upload Images'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Existing Images Section */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Existing Images ({sponsorImages.length})
+                  </h3>
+                  {sponsorImages.length > 0 && (
+                    <button
+                      onClick={handleDeleteAll}
+                      disabled={deleting}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete All
+                    </button>
+                  )}
+                </div>
+
+                {sponsorImages.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <Award className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">No sponsor images uploaded yet</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {sponsorImages.map((image) => (
+                      <div
+                        key={image.filename}
+                        className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow relative group"
+                      >
+                        <div className="aspect-square bg-gray-100 relative overflow-hidden">
+                          <img
+                            src={image.url}
+                            alt={image.filename}
+                            className="w-full h-full object-contain p-2"
+                            onError={(e) => {
+                              console.error('Failed to load image:', image.url);
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                          <button
+                            onClick={() => handleDeleteImage(image.filename)}
+                            disabled={deleting}
+                            className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700 disabled:opacity-50"
+                            title="Delete image"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="p-2">
+                          <p className="text-xs text-gray-600 truncate" title={image.filename}>
+                            {image.filename}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
     </motion.div>

@@ -14,6 +14,17 @@ interface ContactForm {
   message: string;
 }
 
+// Simple profanity filter - common inappropriate words
+const profanityWords = [
+  'damn', 'hell', 'crap', 'bitch', 'bastard', 'ass', 'piss', 'fuck', 'shit',
+  // Add more if needed - keeping it minimal for basic filtering
+];
+
+function containsProfanity(text: string): boolean {
+  const lowerText = text.toLowerCase();
+  return profanityWords.some(word => lowerText.includes(word));
+}
+
 export default function Contact() {
   const { isAuthenticated, user } = useAuthStore();
   const [loading, setLoading] = useState(false);
@@ -102,7 +113,17 @@ export default function Contact() {
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
-                    {...register('firstName', { required: 'First name is required' })}
+                    {...register('firstName', {
+                      required: 'First name is required',
+                      maxLength: {
+                        value: 20,
+                        message: 'First name must be 20 characters or less',
+                      },
+                      pattern: {
+                        value: /^[A-Za-z\s\-'\.]+$/,
+                        message: 'First name cannot contain numbers or special characters',
+                      },
+                    })}
                     type="text"
                     id="firstName"
                     disabled={isAuthenticated}
@@ -125,7 +146,17 @@ export default function Contact() {
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
-                    {...register('lastName', { required: 'Last name is required' })}
+                    {...register('lastName', {
+                      required: 'Last name is required',
+                      maxLength: {
+                        value: 20,
+                        message: 'Last name must be 20 characters or less',
+                      },
+                      pattern: {
+                        value: /^[A-Za-z\s\-'\.]+$/,
+                        message: 'Last name cannot contain numbers or special characters',
+                      },
+                    })}
                     type="text"
                     id="lastName"
                     disabled={isAuthenticated}
@@ -178,7 +209,21 @@ export default function Contact() {
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
-                  {...register('phone')}
+                  {...register('phone', {
+                    pattern: {
+                      value: /^[\d\s\-\+\(\)]+$/,
+                      message: 'Please enter a valid phone number',
+                    },
+                    validate: (value) => {
+                      if (!value) return true; // Optional field
+                      // Remove all non-digit characters for validation
+                      const digitsOnly = value.replace(/\D/g, '');
+                      if (digitsOnly.length < 10 || digitsOnly.length > 15) {
+                        return 'Phone number must be between 10 and 15 digits';
+                      }
+                      return true;
+                    },
+                  })}
                   type="tel"
                   id="phone"
                   disabled={isAuthenticated}
@@ -187,6 +232,9 @@ export default function Contact() {
                   }`}
                   placeholder="Enter your phone number"
                 />
+                {errors.phone && (
+                  <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+                )}
               </div>
             </div>
 
@@ -198,7 +246,19 @@ export default function Contact() {
               <div className="relative">
                 <MessageSquare className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
                 <textarea
-                  {...register('message', { required: 'Message is required' })}
+                  {...register('message', {
+                    required: 'Message is required',
+                    maxLength: {
+                      value: 500,
+                      message: 'Message cannot exceed 500 characters',
+                    },
+                    validate: (value) => {
+                      if (containsProfanity(value)) {
+                        return 'Message contains inappropriate language. Please use appropriate language.';
+                      }
+                      return true;
+                    },
+                  })}
                   id="message"
                   rows={6}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"

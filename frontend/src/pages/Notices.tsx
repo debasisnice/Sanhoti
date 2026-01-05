@@ -47,7 +47,7 @@ export default function Notices() {
 
   return (
     <div className="py-12 pb-32">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -85,7 +85,7 @@ export default function Notices() {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-white rounded-xl shadow-lg border-l-4 border-l-primary-600 p-6"
+                  className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl shadow-2xl overflow-hidden border-4 border-yellow-400 p-6"
                 >
                   <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                     <div className="flex items-center space-x-3">

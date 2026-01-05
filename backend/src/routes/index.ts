@@ -16,6 +16,7 @@ import { AuditController } from '../controllers/AuditController.js';
 import { SpecialAccessController } from '../controllers/SpecialAccessController.js';
 import { MessageController } from '../controllers/MessageController.js';
 import { SettingsController } from '../controllers/SettingsController.js';
+import { SponsorController } from '../controllers/SponsorController.js';
 
 const router = Router();
 
@@ -32,6 +33,7 @@ const auditController = new AuditController();
 const specialAccessController = new SpecialAccessController();
 const messageController = new MessageController();
 const settingsController = new SettingsController();
+const sponsorController = new SponsorController();
 
 // Helper to bind controller methods
 function bindController(controller: any, methodName: string) {
@@ -79,6 +81,8 @@ router.get('/galleries/:eventId/photos/:filename', bindController(galleryControl
 // Magazines - Public routes
 router.get('/magazines/public', bindController(magazineController, 'getPublicMagazines'));
 router.get('/magazines/access-code/:code', bindController(magazineController, 'getMagazineByAccessCode'));
+// Serve PDF files (public)
+router.get('/magazines/files/:filename', bindController(magazineController, 'serveMagazineFile'));
 
 // RSVP - Public (guest RSVP)
 router.post('/rsvps', bindController(rsvpController, 'createRSVP'));
@@ -94,6 +98,10 @@ router.get('/committee', bindController(authController, 'getCommitteeMembers'));
 
 // Settings - Public (for navbar visibility, accessible to all users)
 router.get('/settings', bindController(settingsController, 'getSettings'));
+
+// Sponsors - Public routes
+router.get('/sponsors/images', bindController(sponsorController, 'getImages'));
+router.get('/sponsors/images/:filename', bindController(sponsorController, 'getImage'));
 
 // Protected routes (require authentication)
 router.use(authenticate);
@@ -270,6 +278,16 @@ router.get('/magazines', requireMember, bindController(magazineController, 'getA
 router.get('/magazines/:id', requireMember, bindController(magazineController, 'getMagazineById'));
 
 // Magazines - Admin routes
+router.get('/magazines/files',
+  requireAdmin,
+  bindController(magazineController, 'getMagazineFiles')
+);
+router.post('/magazines/upload',
+  requireAdmin,
+  auditLog('UPLOAD', 'magazine'),
+  magazineController.uploadMagazine(),
+  bindController(magazineController, 'handleMagazineUpload')
+);
 router.post('/magazines',
   requireAdmin,
   auditLog('CREATE', 'magazine'),
@@ -283,7 +301,7 @@ router.put('/magazines/:id',
 router.delete('/magazines/:id',
   requireAdmin,
   auditLog('DELETE', 'magazine'),
-  bindController(magazineController, 'deleteMagazine')
+  bindController(magazineController, 'deleteMagazineWithFile')
 );
 
 // Expenses - Admin routes
@@ -370,6 +388,24 @@ router.put('/settings/navbar',
   requireAdmin,
   auditLog('UPDATE', 'settings'),
   bindController(settingsController, 'updateNavbarSettings')
+);
+
+// Sponsors - Admin routes (upload, delete)
+router.post('/sponsors/upload',
+  requireAdmin,
+  auditLog('UPLOAD', 'sponsor_image'),
+  sponsorController.uploadImages(),
+  bindController(sponsorController, 'handleImageUpload')
+);
+router.delete('/sponsors/images/:filename',
+  requireAdmin,
+  auditLog('DELETE', 'sponsor_image'),
+  bindController(sponsorController, 'deleteImage')
+);
+router.delete('/sponsors/images',
+  requireAdmin,
+  auditLog('DELETE_ALL', 'sponsor_image'),
+  bindController(sponsorController, 'deleteAllImages')
 );
 
 export default router;
