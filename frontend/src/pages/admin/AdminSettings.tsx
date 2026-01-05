@@ -782,6 +782,123 @@ export default function AdminSettings() {
             </div>
           )}
 
+          {activeTab === 'homepage' && (
+            <div>
+              <div className="mb-6">
+                <p className="text-gray-600">
+                  Upload and manage homepage images. These images will be stored in the HomePage_Images directory.
+                </p>
+              </div>
+
+              {/* Upload Section */}
+              <div className="mb-8 p-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Upload New Images</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Select Images (jpg, png, gif, webp - Max 10MB each)
+                    </label>
+                    <input
+                      id="homepage-file-input"
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                      multiple
+                      onChange={handleFileSelect}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-600 file:text-white hover:file:bg-primary-700"
+                    />
+                  </div>
+
+                  {selectedFiles.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Selected Files ({selectedFiles.length}):</p>
+                      <div className="space-y-2">
+                        {selectedFiles.map((file, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
+                            <span className="text-sm text-gray-700 truncate">{file.name}</span>
+                            <button
+                              onClick={() => removeSelectedFile(index)}
+                              className="ml-2 text-red-600 hover:text-red-800"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        onClick={handleUpload}
+                        disabled={uploading}
+                        className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        <Upload className="w-4 h-4" />
+                        {uploading ? 'Uploading...' : 'Upload Images'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Existing Images Section */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Existing Images ({homePageImages.length})
+                  </h3>
+                  {homePageImages.length > 0 && (
+                    <button
+                      onClick={handleDeleteAll}
+                      disabled={deleting}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete All
+                    </button>
+                  )}
+                </div>
+
+                {homePageImages.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <Home className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">No homepage images uploaded yet</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {homePageImages.map((image) => (
+                      <div
+                        key={image.filename}
+                        className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow relative group"
+                      >
+                        <div className="aspect-square bg-gray-100 relative overflow-hidden">
+                          <img
+                            src={image.url}
+                            alt={image.filename}
+                            className="w-full h-full object-contain p-2"
+                            onError={(e) => {
+                              console.error('Failed to load image:', image.url);
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                          <button
+                            onClick={() => handleDeleteImage(image.filename)}
+                            disabled={deleting}
+                            className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700 disabled:opacity-50"
+                            title="Delete image"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="p-2">
+                          <p className="text-xs text-gray-600 truncate" title={image.filename}>
+                            {image.filename}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
     </motion.div>
