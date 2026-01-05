@@ -50,7 +50,8 @@ export default function AdminEmail() {
       toast.success('Email settings saved successfully');
       setEmailPassword(''); // Clear password field after saving
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to save email settings');
+      const errorMsg = error.response?.data?.error || error.response?.data?.details || 'Failed to save email settings';
+      toast.error(errorMsg, { duration: 6000 });
     } finally {
       setSaving(false);
     }
