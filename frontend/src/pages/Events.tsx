@@ -146,9 +146,10 @@ export default function Events() {
       return dateA.getTime() - dateB.getTime();
     });
     
-    // Combine: upcoming events first (nearest to farthest), then past events (newest to oldest)
+    // Combine: past events first (newest to oldest), then upcoming events (nearest to farthest)
+    // This places past events on the left side of the carousel
     // Priority event will still appear in its chronological position, but we'll ensure it's at the front
-    const chronological = [...upcomingEvents, ...pastEvents];
+    const chronological = [...pastEvents, ...upcomingEvents];
     
     // Find priority event
     const priority = chronological.find(e => e.is_priority === true);
