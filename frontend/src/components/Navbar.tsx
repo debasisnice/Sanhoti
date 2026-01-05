@@ -152,6 +152,10 @@ export default function Navbar() {
                   +1 949-378-6425
                 </a>
               </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-primary-600 font-semibold whitespace-nowrap">EIN:</span>
+                <span className="whitespace-nowrap">39-2903777</span>
+              </div>
             </div>
           </div>
         </div>
