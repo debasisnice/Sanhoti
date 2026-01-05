@@ -14,33 +14,45 @@ export class EmailController {
 
   async sendToMembers(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const { subject, html } = req.body;
+      const { emails, subject, html } = req.body;
 
       if (!subject || !html) {
         res.status(400).json({ error: 'Subject and HTML content are required' });
         return;
       }
 
-      await this.emailService.sendToAllMembers(subject, html);
-      res.json({ message: 'Emails sent successfully to all members' });
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to send emails' });
+      if (!emails || !Array.isArray(emails) || emails.length === 0) {
+        res.status(400).json({ error: 'At least one recipient email is required' });
+        return;
+      }
+
+      await this.emailService.sendBulkEmail(emails, subject, html);
+      res.json({ message: `Emails sent successfully to ${emails.length} recipient(s)` });
+    } catch (error: any) {
+      const errorMessage = error.message || 'Failed to send emails';
+      res.status(500).json({ error: errorMessage, details: error.message });
     }
   }
 
   async sendToAdmins(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const { subject, html } = req.body;
+      const { emails, subject, html } = req.body;
 
       if (!subject || !html) {
         res.status(400).json({ error: 'Subject and HTML content are required' });
         return;
       }
 
-      await this.emailService.sendToAdmins(subject, html);
-      res.json({ message: 'Emails sent successfully to all admins' });
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to send emails' });
+      if (!emails || !Array.isArray(emails) || emails.length === 0) {
+        res.status(400).json({ error: 'At least one recipient email is required' });
+        return;
+      }
+
+      await this.emailService.sendBulkEmail(emails, subject, html);
+      res.json({ message: `Emails sent successfully to ${emails.length} recipient(s)` });
+    } catch (error: any) {
+      const errorMessage = error.message || 'Failed to send emails';
+      res.status(500).json({ error: errorMessage, details: error.message });
     }
   }
 
@@ -130,6 +142,24 @@ export class EmailController {
       console.error('Test email failed:', error);
       const errorMessage = error.message || 'Failed to send test email';
       res.status(500).json({ error: errorMessage, details: error.message });
+    }
+  }
+
+  async getMemberEmails(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const emails = await this.emailService.getMemberEmails();
+      res.json({ emails });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch member emails' });
+    }
+  }
+
+  async getAdminEmails(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const emails = await this.emailService.getAdminEmails();
+      res.json({ emails });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch admin emails' });
     }
   }
 }

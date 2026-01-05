@@ -516,6 +516,10 @@ export const messagesAPI = {
     const response = await api.get(`/messages/${id}`);
     return response.data;
   },
+  markAsResponded: async (id: string): Promise<any> => {
+    const response = await api.put(`/messages/${id}/responded`);
+    return response.data;
+  },
   delete: async (id: string): Promise<void> => {
     await api.delete(`/messages/${id}`);
   },
@@ -559,12 +563,20 @@ export const settingsAPI = {
 
 // Email API
 export const emailAPI = {
-  sendToMembers: async (subject: string, html: string): Promise<any> => {
-    const response = await api.post('/email/members', { subject, html });
+  getMemberEmails: async (): Promise<string[]> => {
+    const response = await api.get('/email/members');
+    return response.data.emails || [];
+  },
+  getAdminEmails: async (): Promise<string[]> => {
+    const response = await api.get('/email/admins');
+    return response.data.emails || [];
+  },
+  sendToMembers: async (emails: string[], subject: string, html: string): Promise<any> => {
+    const response = await api.post('/email/members', { emails, subject, html });
     return response.data;
   },
-  sendToAdmins: async (subject: string, html: string): Promise<any> => {
-    const response = await api.post('/email/admins', { subject, html });
+  sendToAdmins: async (emails: string[], subject: string, html: string): Promise<any> => {
+    const response = await api.post('/email/admins', { emails, subject, html });
     return response.data;
   },
   sendToOrganizations: async (organizations: string[], subject: string, html: string): Promise<any> => {
@@ -585,6 +597,10 @@ export const emailAPI = {
 export const usersAPI = {
   getAll: async (): Promise<any[]> => {
     const response = await api.get('/users');
+    return response.data;
+  },
+  create: async (data: any): Promise<any> => {
+    const response = await api.post('/users', data);
     return response.data;
   },
   update: async (userId: string, data: any): Promise<any> => {

@@ -130,6 +130,11 @@ router.get('/auth/profile', bindController(authController, 'getProfile'));
 
 // Users - Admin routes
 router.get('/users', requireAdmin, bindController(authController, 'getAllUsers'));
+router.post('/users',
+  requireAdmin,
+  auditLog('CREATE', 'user'),
+  bindController(authController, 'createUser')
+);
 router.put('/users/:userId',
   requireAdmin,
   auditLog('UPDATE', 'user'),
@@ -347,6 +352,14 @@ router.delete('/expenses/:id',
 );
 
 // Email - Admin routes
+router.get('/email/members',
+  requireAdmin,
+  bindController(emailController, 'getMemberEmails')
+);
+router.get('/email/admins',
+  requireAdmin,
+  bindController(emailController, 'getAdminEmails')
+);
 router.post('/email/members',
   requireAdmin,
   auditLog('SEND_EMAIL', 'members'),
@@ -376,6 +389,11 @@ router.post('/email/test',
 router.get('/messages', requireAdmin, bindController(messageController, 'getAllMessages'));
 router.get('/messages/my', bindController(messageController, 'getMyMessages'));
 router.get('/messages/:id', requireAdmin, bindController(messageController, 'getMessageById'));
+router.put('/messages/:id/responded',
+  requireAdmin,
+  auditLog('MARK_RESPONDED', 'message'),
+  bindController(messageController, 'markAsResponded')
+);
 router.delete('/messages/:id',
   requireAdmin,
   auditLog('DELETE', 'message'),

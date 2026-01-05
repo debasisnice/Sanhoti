@@ -90,6 +90,21 @@ export class MessageController {
       res.status(500).json({ error: message });
     }
   }
+
+  async markAsResponded(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const updatedMessage = await this.messageService.markAsResponded(id);
+      if (!updatedMessage) {
+        res.status(404).json({ error: 'Message not found' });
+        return;
+      }
+      res.json(updatedMessage);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to mark message as responded';
+      res.status(500).json({ error: message });
+    }
+  }
 }
 
 

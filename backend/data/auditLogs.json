@@ -2050,5 +2050,128 @@
     "userEmail": "",
     "id": "1767645628552-xx30yxyhe",
     "timestamp": "2026-01-05T20:40:28.552Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "email_settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/email\",\"body\":{\"emailAddress\":\"sanhoti.info@gmail.com\",\"emailPassword\":\"hysb yijb neyt fzf\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767647729449-s1fesjcj4",
+    "timestamp": "2026-01-05T21:15:29.449Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "email_settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/email\",\"body\":{\"emailAddress\":\"sanhoti.info@gmail.com\",\"emailPassword\":\"hysb yijb neyt fzfk\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767647773756-2vvqplk0l",
+    "timestamp": "2026-01-05T21:16:13.756Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "user",
+    "details": "{\"method\":\"PUT\",\"path\":\"/users/TJNAX4TBBZHG\",\"body\":{\"first_name\":\"Tarasankar\",\"last_name\":\"Panda\",\"email_address\":\"tarasankar02@gmail.com\",\"phone_number\":\"3109568956\",\"address1\":\"352 Santa Louisa\",\"address2\":\"\",\"city\":\"Irvine\",\"state\":\"CA\",\"zip\":\"92606\",\"country\":\"USA\",\"user_type\":\"user\",\"member_type\":\"member\",\"is_active\":true}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767648870868-2ipnjodn0",
+    "timestamp": "2026-01-05T21:34:30.868Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "SEND_EMAIL",
+    "resource": "members",
+    "details": "{\"method\":\"POST\",\"path\":\"/email/members\",\"body\":{\"emails\":[\"debasis.nice@gmail.com\",\"tarasankar02@gmail.com\",\"president@sanhoti.org\",\"Treasurer@sanhoti.org\",\"Secretary@sanhoti.org\",\"Cultural@sanhoti.org\"],\"subject\":\"Test Email\",\"html\":\"Sanhoti Test Email\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767649617511-0cw6qj6x0",
+    "timestamp": "2026-01-05T21:46:57.511Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "SEND_EMAIL",
+    "resource": "members",
+    "details": "{\"method\":\"POST\",\"path\":\"/email/members\",\"body\":{\"emails\":[\"debasis.nice@gmail.com\"],\"subject\":\"test\",\"html\":\"test123\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767649709365-p9s4hsgkt",
+    "timestamp": "2026-01-05T21:48:29.365Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "user",
+    "details": "{\"method\":\"PUT\",\"path\":\"/users/F2Z85Q668ATD\",\"body\":{\"first_name\":\"Suvendu\",\"last_name\":\"Laha\",\"email_address\":\"laha.suvendu@gmail.com\",\"phone_number\":\"7046414901\",\"address1\":\"\",\"address2\":\"\",\"city\":\"\",\"state\":\"\",\"zip\":\"\",\"country\":\"USA\",\"user_type\":\"user\",\"member_type\":\"President\",\"is_active\":true}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767649740352-hz11cbc3g",
+    "timestamp": "2026-01-05T21:49:00.352Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "user",
+    "details": "{\"method\":\"PUT\",\"path\":\"/users/JAYWA9HP294L\",\"body\":{\"first_name\":\"Anindya\",\"last_name\":\"Chatterjee\",\"email_address\":\"anindya.chatterjee@gmail.com\",\"phone_number\":\"2137122049\",\"address1\":\"\",\"address2\":\"\",\"city\":\"\",\"state\":\"\",\"zip\":\"\",\"country\":\"USA\",\"user_type\":\"admin\",\"member_type\":\"Treasurer\",\"is_active\":true}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767649921478-bwoqxzguu",
+    "timestamp": "2026-01-05T21:52:01.478Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "CREATE",
+    "resource": "user",
+    "details": "{\"method\":\"POST\",\"path\":\"/users\",\"body\":{\"first_name\":\"Sourav\",\"last_name\":\"Nag\",\"email_address\":\"snag75@gmail.com\",\"phone_number\":\"9493576536\",\"password\":\"Sanhoti\",\"address1\":\"\",\"address2\":\"\",\"city\":\"\",\"state\":\"\",\"zip\":\"\",\"country\":\"\",\"user_type\":\"user\",\"member_type\":\"member\",\"is_active\":true}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767650264942-51idncbm5",
+    "timestamp": "2026-01-05T21:57:44.942Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DELETE",
+    "resource": "message",
+    "resourceId": "1767422435931-q12c951xg",
+    "details": "{\"method\":\"DELETE\",\"path\":\"/messages/1767422435931-q12c951xg\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767651527739-o7vbmrvhx",
+    "timestamp": "2026-01-05T22:18:47.739Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "SEND_EMAIL",
+    "resource": "organizations",
+    "details": "{\"method\":\"POST\",\"path\":\"/email/organizations\",\"body\":{\"organizations\":[\"debasis.nicy@gmail.com\"],\"subject\":\"Re: Your Message from Sanhoti Website\",\"html\":\"responded\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767651803878-7mhxaqrxw",
+    "timestamp": "2026-01-05T22:23:23.878Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "MARK_RESPONDED",
+    "resource": "message",
+    "resourceId": "1767651560466-d7kjg49vb",
+    "details": "{\"method\":\"PUT\",\"path\":\"/messages/1767651560466-d7kjg49vb/responded\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767651803887-tysqlh0mu",
+    "timestamp": "2026-01-05T22:23:23.887Z"
   }
 ]

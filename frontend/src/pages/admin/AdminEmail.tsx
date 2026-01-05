@@ -20,10 +20,20 @@ export default function AdminEmail() {
   const [subject, setSubject] = useState<string>('');
   const [htmlContent, setHtmlContent] = useState<string>('');
   const [organizations, setOrganizations] = useState<string>('');
+  const [recipientEmails, setRecipientEmails] = useState<string>('');
+  const [loadingEmails, setLoadingEmails] = useState(false);
 
   useEffect(() => {
     fetchEmailSettings();
   }, []);
+
+  useEffect(() => {
+    if (recipientType === 'members' || recipientType === 'admins') {
+      fetchRecipientEmails();
+    } else {
+      setRecipientEmails('');
+    }
+  }, [recipientType]);
 
   const fetchEmailSettings = async () => {
     try {
@@ -75,6 +85,26 @@ export default function AdminEmail() {
     }
   };
 
+  const fetchRecipientEmails = async () => {
+    try {
+      setLoadingEmails(true);
+      let emails: string[] = [];
+      
+      if (recipientType === 'members') {
+        emails = await emailAPI.getMemberEmails();
+      } else if (recipientType === 'admins') {
+        emails = await emailAPI.getAdminEmails();
+      }
+      
+      setRecipientEmails(emails.join(', '));
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to fetch recipient emails');
+      setRecipientEmails('');
+    } finally {
+      setLoadingEmails(false);
+    }
+  };
+
   const handleSendEmail = async () => {
     if (!subject || !htmlContent) {
       toast.error('Please enter both subject and email content');
@@ -85,11 +115,21 @@ export default function AdminEmail() {
       setSending(true);
       
       if (recipientType === 'members') {
-        await emailAPI.sendToMembers(subject, htmlContent);
-        toast.success('Email sent successfully to all members');
+        const emailList = recipientEmails.split(',').map(email => email.trim()).filter(email => email);
+        if (emailList.length === 0) {
+          toast.error('Please enter at least one recipient email address');
+          return;
+        }
+        await emailAPI.sendToMembers(emailList, subject, htmlContent);
+        toast.success(`Email sent successfully to ${emailList.length} recipient(s)`);
       } else if (recipientType === 'admins') {
-        await emailAPI.sendToAdmins(subject, htmlContent);
-        toast.success('Email sent successfully to all admins');
+        const emailList = recipientEmails.split(',').map(email => email.trim()).filter(email => email);
+        if (emailList.length === 0) {
+          toast.error('Please enter at least one recipient email address');
+          return;
+        }
+        await emailAPI.sendToAdmins(emailList, subject, htmlContent);
+        toast.success(`Email sent successfully to ${emailList.length} recipient(s)`);
       } else if (recipientType === 'organizations') {
         const orgList = organizations.split(',').map(email => email.trim()).filter(email => email);
         if (orgList.length === 0) {
@@ -104,6 +144,7 @@ export default function AdminEmail() {
       setSubject('');
       setHtmlContent('');
       setOrganizations('');
+      setRecipientEmails('');
     } catch (error: any) {
       const errorMsg = error.response?.data?.error || error.response?.data?.details || 'Failed to send email';
       toast.error(errorMsg, { duration: 6000 });
@@ -273,6 +314,28 @@ export default function AdminEmail() {
             </div>
           </div>
 
+          {(recipientType === 'members' || recipientType === 'admins') && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Recipient Email Addresses (comma-separated) *
+                {loadingEmails && (
+                  <span className="ml-2 text-sm text-gray-500">(Loading...)</span>
+                )}
+              </label>
+              <input
+                type="text"
+                value={recipientEmails}
+                onChange={(e) => setRecipientEmails(e.target.value)}
+                placeholder={loadingEmails ? "Loading emails..." : "email1@example.com, email2@example.com"}
+                disabled={loadingEmails}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              />
+              <p className="mt-1 text-sm text-gray-500">
+                You can add or remove email addresses before sending. Emails are automatically loaded from {recipientType === 'members' ? 'all members' : 'all admins'}.
+              </p>
+            </div>
+          )}
+
           {recipientType === 'organizations' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -319,7 +382,9 @@ export default function AdminEmail() {
 
           <button
             onClick={handleSendEmail}
-            disabled={sending || !subject || !htmlContent || (recipientType === 'organizations' && !organizations)}
+            disabled={sending || !subject || !htmlContent || loadingEmails || 
+              (recipientType === 'organizations' && !organizations) ||
+              ((recipientType === 'members' || recipientType === 'admins') && !recipientEmails)}
             className="flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-5 h-5" />

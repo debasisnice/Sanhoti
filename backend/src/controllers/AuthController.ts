@@ -133,5 +133,54 @@ export class AuthController {
       res.status(500).json({ error: 'Failed to update user', details: error.message });
     }
   }
+
+  async createUser(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { 
+        email_address, 
+        password, 
+        first_name, 
+        last_name, 
+        phone_number,
+        address1,
+        address2,
+        city,
+        state,
+        zip,
+        country,
+        user_type,
+        member_type,
+        is_active
+      } = req.body;
+
+      // Validate mandatory fields
+      if (!email_address || !password || !first_name || !last_name || !phone_number) {
+        res.status(400).json({ error: 'Missing required fields: email_address, password, first_name, last_name, and phone_number are required' });
+        return;
+      }
+
+      const result = await this.authService.createUser({
+        email_address,
+        password,
+        first_name,
+        last_name,
+        phone_number,
+        address1,
+        address2,
+        city,
+        state,
+        zip,
+        country,
+        user_type: user_type || 'user',
+        member_type: member_type || 'member',
+        is_active: is_active !== undefined ? is_active : true,
+      });
+
+      res.status(201).json(result);
+    } catch (error: any) {
+      const message = error instanceof Error ? error.message : 'Failed to create user';
+      res.status(400).json({ error: message });
+    }
+  }
 }
 

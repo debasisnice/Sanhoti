@@ -97,6 +97,8 @@ export default function AdminSettings() {
   const [selectedBoardMemberFile, setSelectedBoardMemberFile] = useState<File | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<User>>({});
+  const [showAddUserForm, setShowAddUserForm] = useState<boolean>(false);
+  const [newUserFormData, setNewUserFormData] = useState<Partial<User & { password: string }>>({});
 
   useEffect(() => {
     fetchSettings();
@@ -423,6 +425,56 @@ export default function AdminSettings() {
     }));
   };
 
+  const handleNewUserInputChange = (field: string, value: any) => {
+    setNewUserFormData(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleCreateUser = async () => {
+    if (!newUserFormData.firstName || !newUserFormData.lastName || !newUserFormData.email || !newUserFormData.phone || !newUserFormData.password) {
+      toast.error('Please fill in all required fields (First Name, Last Name, Email, Phone, Password)');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      // Transform to backend format (snake_case)
+      const backendData = {
+        first_name: newUserFormData.firstName,
+        last_name: newUserFormData.lastName,
+        email_address: newUserFormData.email,
+        phone_number: newUserFormData.phone || '',
+        password: newUserFormData.password,
+        address1: newUserFormData.address1 || '',
+        address2: newUserFormData.address2 || '',
+        city: newUserFormData.city || '',
+        state: newUserFormData.state || '',
+        zip: newUserFormData.zip || '',
+        country: newUserFormData.country || '',
+        user_type: newUserFormData.userType || 'user',
+        member_type: newUserFormData.memberType || 'member',
+        is_active: newUserFormData.isActive !== false,
+      };
+
+      await usersAPI.create(backendData);
+      toast.success('User created successfully');
+      setShowAddUserForm(false);
+      setNewUserFormData({});
+      await fetchUsers();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to create user');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelAddUser = () => {
+    setShowAddUserForm(false);
+    setNewUserFormData({});
+  };
+
   if (loading && !settings) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -578,11 +630,194 @@ export default function AdminSettings() {
 
           {activeTab === 'users' && (
             <div>
-              <div className="mb-6">
+              <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <p className="text-gray-600">
                   View and edit user details. You can update user information, roles, and status.
                 </p>
+                <button
+                  onClick={() => setShowAddUserForm(!showAddUserForm)}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2"
+                >
+                  <Users className="w-4 h-4" />
+                  {showAddUserForm ? 'Cancel' : 'Add User'}
+                </button>
               </div>
+
+              {showAddUserForm && (
+                <div className="mb-6 bg-gray-50 p-6 rounded-lg border border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New User</h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                        <input
+                          type="text"
+                          value={newUserFormData.firstName || ''}
+                          onChange={(e) => handleNewUserInputChange('firstName', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                        <input
+                          type="text"
+                          value={newUserFormData.lastName || ''}
+                          onChange={(e) => handleNewUserInputChange('lastName', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                        <input
+                          type="email"
+                          value={newUserFormData.email || ''}
+                          onChange={(e) => handleNewUserInputChange('email', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+                        <input
+                          type="tel"
+                          value={newUserFormData.phone || ''}
+                          onChange={(e) => handleNewUserInputChange('phone', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
+                      <input
+                        type="password"
+                        value={newUserFormData.password || ''}
+                        onChange={(e) => handleNewUserInputChange('password', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Address 1</label>
+                        <input
+                          type="text"
+                          value={newUserFormData.address1 || ''}
+                          onChange={(e) => handleNewUserInputChange('address1', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Address 2</label>
+                        <input
+                          type="text"
+                          value={newUserFormData.address2 || ''}
+                          onChange={(e) => handleNewUserInputChange('address2', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                        <input
+                          type="text"
+                          value={newUserFormData.city || ''}
+                          onChange={(e) => handleNewUserInputChange('city', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                        <input
+                          type="text"
+                          value={newUserFormData.state || ''}
+                          onChange={(e) => handleNewUserInputChange('state', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">ZIP</label>
+                        <input
+                          type="text"
+                          value={newUserFormData.zip || ''}
+                          onChange={(e) => handleNewUserInputChange('zip', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                      <input
+                        type="text"
+                        value={newUserFormData.country || ''}
+                        onChange={(e) => handleNewUserInputChange('country', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">User Type *</label>
+                        <select
+                          value={newUserFormData.userType || 'user'}
+                          onChange={(e) => handleNewUserInputChange('userType', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                        >
+                          <option value="user">User</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Member Type</label>
+                        <select
+                          value={newUserFormData.memberType || 'member'}
+                          onChange={(e) => handleNewUserInputChange('memberType', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                        >
+                          <option value="member">member</option>
+                          <option value="Executive Member">Executive Member</option>
+                          <option value="President">President</option>
+                          <option value="Secretary">Secretary</option>
+                          <option value="Treasurer">Treasurer</option>
+                          <option value="Cultural Director">Cultural Director</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <label className="flex items-center gap-2 mt-2">
+                          <input
+                            type="checkbox"
+                            checked={newUserFormData.isActive !== false}
+                            onChange={(e) => handleNewUserInputChange('isActive', e.target.checked)}
+                            className="w-4 h-4 text-primary-600 rounded"
+                          />
+                          <span className="text-sm">Active</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-2 pt-2">
+                      <button
+                        onClick={handleCancelAddUser}
+                        disabled={saving}
+                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded text-sm hover:bg-gray-400 disabled:opacity-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleCreateUser}
+                        disabled={saving}
+                        className="px-4 py-2 bg-primary-600 text-white rounded text-sm hover:bg-primary-700 disabled:opacity-50"
+                      >
+                        {saving ? 'Creating...' : 'Create User'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {users.length === 0 ? (
                 <div className="text-center py-8">
@@ -726,13 +961,18 @@ export default function AdminSettings() {
                                   </div>
                                   <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Member Type</label>
-                                    <input
-                                      type="text"
-                                      value={editFormData.memberType || ''}
+                                    <select
+                                      value={editFormData.memberType || 'member'}
                                       onChange={(e) => handleInputChange('memberType', e.target.value)}
                                       className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-                                      placeholder="e.g., member, President, etc."
-                                    />
+                                    >
+                                      <option value="member">member</option>
+                                      <option value="Executive Member">Executive Member</option>
+                                      <option value="President">President</option>
+                                      <option value="Secretary">Secretary</option>
+                                      <option value="Treasurer">Treasurer</option>
+                                      <option value="Cultural Director">Cultural Director</option>
+                                    </select>
                                   </div>
                                   <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>

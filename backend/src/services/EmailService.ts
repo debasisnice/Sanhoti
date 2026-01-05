@@ -84,8 +84,9 @@ export class EmailService {
 
   async sendToAllMembers(subject: string, html: string): Promise<void> {
     const users = await this.userDataHelper.findAll();
+    // Include all active users (members, board members, admins, etc.)
     const memberEmails = users
-      .filter(u => u.is_active && (u.member_type === 'member' || u.user_type === 'admin'))
+      .filter(u => u.is_active && u.email_address)
       .map(u => u.email_address);
     
     await this.sendBulkEmail(memberEmails, subject, html);
@@ -102,6 +103,21 @@ export class EmailService {
 
   async sendToExternalOrganizations(organizations: string[], subject: string, html: string): Promise<void> {
     await this.sendBulkEmail(organizations, subject, html);
+  }
+
+  async getMemberEmails(): Promise<string[]> {
+    const users = await this.userDataHelper.findAll();
+    // Include all active users (members, board members, admins, etc.)
+    return users
+      .filter(u => u.is_active && u.email_address)
+      .map(u => u.email_address);
+  }
+
+  async getAdminEmails(): Promise<string[]> {
+    const users = await this.userDataHelper.findAll();
+    return users
+      .filter(u => u.is_active && u.user_type === 'admin')
+      .map(u => u.email_address);
   }
 
   generateEventNotificationHTML(eventTitle: string, eventDate: string, eventDescription: string): string {

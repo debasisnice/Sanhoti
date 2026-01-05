@@ -172,6 +172,7 @@ export interface Message {
   userId?: string; // optional, if logged in user
   createdAt: string;
   read: boolean;
+  responded?: boolean; // true if message has been replied to via email
 }
 
 export interface AuditLog {

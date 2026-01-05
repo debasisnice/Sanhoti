@@ -37,5 +37,18 @@ export class MessageDataHelper extends DatabaseHelper {
     this.writeFile(this.filename, filtered);
     return true;
   }
+
+  async update(id: string, updates: Partial<Omit<Message, 'id' | 'createdAt'>>): Promise<Message | null> {
+    const messages = await this.findAll();
+    const index = messages.findIndex(m => m.id === id);
+    if (index === -1) return null;
+    
+    messages[index] = {
+      ...messages[index],
+      ...updates,
+    };
+    this.writeFile(this.filename, messages);
+    return messages[index];
+  }
 }
 

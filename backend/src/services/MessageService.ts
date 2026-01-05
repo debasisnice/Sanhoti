@@ -36,11 +36,16 @@ export class MessageService {
       message: data.message,
       userId: data.user_id,
       read: false,
+      responded: false,
     });
   }
 
   async deleteMessage(id: string): Promise<boolean> {
     return this.messageDataHelper.delete(id);
+  }
+
+  async markAsResponded(id: string): Promise<Message | null> {
+    return this.messageDataHelper.update(id, { responded: true });
   }
 }
 

@@ -112,6 +112,53 @@ export class AuthService {
     return users.map(user => transformUserForFrontend(user));
   }
 
+  async createUser(data: {
+    email_address: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+    phone_number: string;
+    address1?: string;
+    address2?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    country?: string;
+    user_type?: string;
+    member_type?: string;
+    is_active?: boolean;
+  }): Promise<any> {
+    // Check if user exists
+    const existing = await this.userDataHelper.findByEmail(data.email_address);
+    if (existing) {
+      throw new Error('User already exists with this email');
+    }
+
+    // Hash password
+    const password_hash = await hashPassword(data.password);
+
+    // Create user with provided or default values
+    const user = await this.userDataHelper.create({
+      first_name: data.first_name,
+      last_name: data.last_name,
+      phone_number: data.phone_number,
+      email_address: data.email_address,
+      address1: data.address1,
+      address2: data.address2,
+      city: data.city,
+      state: data.state,
+      zip: data.zip,
+      country: data.country,
+      password_hash: password_hash,
+      user_type: data.user_type || 'user',
+      member_type: data.member_type || 'member',
+      is_active: data.is_active !== undefined ? data.is_active : true,
+    });
+
+    // Transform user to frontend format (no token needed for admin-created users)
+    return transformUserForFrontend(user);
+  }
+
   async updateUser(userId: string, updates: {
     first_name?: string;
     last_name?: string;
