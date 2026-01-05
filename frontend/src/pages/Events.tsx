@@ -117,7 +117,7 @@ export default function Events() {
     fetchEventsAndImages();
   }, []);
 
-  // Sort events chronologically: past events first (newest to oldest), then upcoming events (nearest to farthest)
+  // Sort events chronologically: upcoming events first (nearest to farthest), then past events (newest to oldest)
   const eventsForCarousel = (() => {
     const filtered = allEvents; // Include all events, including priority events
     
@@ -146,9 +146,9 @@ export default function Events() {
       return dateA.getTime() - dateB.getTime();
     });
     
-    // Combine: past events first (newest to oldest), then upcoming events (nearest to farthest)
+    // Combine: upcoming events first (nearest to farthest), then past events (newest to oldest)
     // Priority event will still appear in its chronological position, but we'll ensure it's at the front
-    const chronological = [...pastEvents, ...upcomingEvents];
+    const chronological = [...upcomingEvents, ...pastEvents];
     
     // Find priority event
     const priority = chronological.find(e => e.is_priority === true);
