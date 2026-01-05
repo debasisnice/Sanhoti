@@ -55,11 +55,18 @@ function ThumbnailImage({
 
       // Fetch new image as blob with auth token
       const imageUrl = photo.thumbnailUrl || photo.url;
-      // Use relative path in production, absolute URL in development
-      const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
-      const fullUrl = imageUrl.startsWith('http') 
-        ? imageUrl 
-        : `${API_BASE_URL}${imageUrl}`;
+      // Construct full URL: if already absolute, use as-is; if relative and starts with /api, use as-is in production
+      let fullUrl: string;
+      if (imageUrl.startsWith('http')) {
+        fullUrl = imageUrl;
+      } else if (imageUrl.startsWith('/api')) {
+        // Relative path starting with /api - use as-is (Nginx will proxy it)
+        fullUrl = imageUrl;
+      } else {
+        // Relative path not starting with /api - prepend API base URL
+        const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5001/api');
+        fullUrl = `${API_BASE_URL}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+      }
       
       try {
         const token = localStorage.getItem('token');
@@ -188,11 +195,18 @@ function PhotoViewerImage({
 
       // Fetch new image as blob with auth token
       const imageUrl = photo.thumbnailUrl || photo.url;
-      // Use relative path in production, absolute URL in development
-      const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
-      const fullUrl = imageUrl.startsWith('http') 
-        ? imageUrl 
-        : `${API_BASE_URL}${imageUrl}`;
+      // Construct full URL: if already absolute, use as-is; if relative and starts with /api, use as-is in production
+      let fullUrl: string;
+      if (imageUrl.startsWith('http')) {
+        fullUrl = imageUrl;
+      } else if (imageUrl.startsWith('/api')) {
+        // Relative path starting with /api - use as-is (Nginx will proxy it)
+        fullUrl = imageUrl;
+      } else {
+        // Relative path not starting with /api - prepend API base URL
+        const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5001/api');
+        fullUrl = `${API_BASE_URL}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+      }
       
       try {
         const token = localStorage.getItem('token');
