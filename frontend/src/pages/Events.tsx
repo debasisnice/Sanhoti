@@ -117,7 +117,8 @@ export default function Events() {
     fetchEventsAndImages();
   }, []);
 
-  // Sort events chronologically: upcoming events first (nearest to farthest), then past events (newest to oldest)
+  // Sort events chronologically and position priority event at front (index 0)
+  // Sequence: past events (newest to oldest) on left, then upcoming events (nearest to farthest) on right
   const eventsForCarousel = (() => {
     const filtered = allEvents; // Include all events, including priority events
     
@@ -146,15 +147,15 @@ export default function Events() {
       return dateA.getTime() - dateB.getTime();
     });
     
-    // Combine: past events first (newest to oldest), then upcoming events (nearest to farthest)
+    // Create chronological sequence: past events first (newest to oldest), then upcoming events (nearest to farthest)
     // This places past events on the left side of the carousel
-    // Priority event will still appear in its chronological position, but we'll ensure it's at the front
     const chronological = [...pastEvents, ...upcomingEvents];
     
     // Find priority event
     const priority = chronological.find(e => e.is_priority === true);
     
-    // If priority event exists, move it to the front while maintaining chronological order for others
+    // If priority event exists, rotate the array so priority is at index 0
+    // This maintains the chronological order while ensuring priority is at front
     if (priority) {
       const priorityIndex = chronological.findIndex(e => {
         const eventId = e.event_id || e.id;
@@ -162,9 +163,11 @@ export default function Events() {
         return eventId === priorityId;
       });
       
-      if (priorityIndex !== -1) {
-        chronological.splice(priorityIndex, 1);
-        chronological.unshift(priority);
+      if (priorityIndex !== -1 && priorityIndex !== 0) {
+        // Rotate array: move everything after priority to the end, then priority, then everything before priority
+        const beforePriority = chronological.slice(0, priorityIndex);
+        const afterPriority = chronological.slice(priorityIndex + 1);
+        return [priority, ...afterPriority, ...beforePriority];
       }
     }
     
