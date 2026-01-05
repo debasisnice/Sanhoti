@@ -121,9 +121,11 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
     }
     // Use relative path in production (when served by Nginx), absolute URL in development
     const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
+    // If fileUrl already starts with /api/, use it as-is (backend already includes /api)
     if (fileUrl.startsWith('/api/')) {
       return API_BASE_URL ? `${API_BASE_URL}${fileUrl}` : fileUrl;
     }
+    // Otherwise, add /api prefix
     const fullPath = `/api${fileUrl.startsWith('/') ? fileUrl : `/${fileUrl}`}`;
     return API_BASE_URL ? `${API_BASE_URL}${fullPath}` : fullPath;
   })();

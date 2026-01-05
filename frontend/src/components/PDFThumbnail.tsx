@@ -29,14 +29,16 @@ export default function PDFThumbnail({ fileUrl, alt: _alt, className = '' }: PDF
     if (!fileUrl.startsWith('http://') && !fileUrl.startsWith('https://')) {
       // Use relative path in production (when served by Nginx), absolute URL in development
       const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
-      // If fileUrl already starts with /api/, just prepend the base URL (or use as-is in production)
-      // Otherwise, add /api prefix
+      // If fileUrl already starts with /api/, use it as-is (backend already includes /api)
       if (fileUrl.startsWith('/api/')) {
+        // In production, use as-is. In development, prepend base URL if needed
         constructedUrl = API_BASE_URL ? `${API_BASE_URL}${fileUrl}` : fileUrl;
       } else if (fileUrl.startsWith('/')) {
+        // If it starts with / but not /api/, add /api prefix
         const fullPath = `/api${fileUrl}`;
         constructedUrl = API_BASE_URL ? `${API_BASE_URL}${fullPath}` : fullPath;
       } else {
+        // If it's a relative path without /, add /api/ prefix
         const fullPath = `/api/${fileUrl}`;
         constructedUrl = API_BASE_URL ? `${API_BASE_URL}${fullPath}` : fullPath;
       }
