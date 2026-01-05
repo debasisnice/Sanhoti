@@ -29,8 +29,9 @@ export default function Navbar() {
     const updatePosition = () => {
       if (isUserMenuOpen && buttonRef.current) {
         const rect = buttonRef.current.getBoundingClientRect();
+        // Use viewport coordinates for fixed positioning
         setDropdownPosition({
-          top: rect.bottom + window.scrollY + 8,
+          top: rect.bottom + 8,
           right: window.innerWidth - rect.right,
         });
       }
