@@ -71,7 +71,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="https://www.facebook.com/profile.php?id=61577899858876&mibextid=wwXIfr&mibextid=wwXIfr"
+                  href="https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-white transition-colors"

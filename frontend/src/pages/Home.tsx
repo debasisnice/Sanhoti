@@ -110,7 +110,7 @@ export default function Home() {
       icon: Users,
       title: 'Community',
       description: 'Connect with Bengali families across the USA',
-      link: 'https://www.facebook.com/profile.php?id=61577899858876&mibextid=wwXIfr&mibextid=wwXIfr',
+      link: 'https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr',
       isExternal: true,
       color: 'from-blue-500 to-blue-600',
     },
@@ -218,7 +218,7 @@ export default function Home() {
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <a
-              href="https://www.facebook.com/profile.php?id=61577899858876&mibextid=wwXIfr&mibextid=wwXIfr"
+              href="https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-white text-primary-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-primary-50 transition-all transform hover:scale-105 shadow-xl inline-block"
@@ -660,7 +660,7 @@ export default function Home() {
             transition={{ delay: 0.4 }}
           >
             <a
-              href="https://www.facebook.com/profile.php?id=61577899858876&mibextid=wwXIfr&mibextid=wwXIfr"
+              href="https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block bg-white text-primary-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-primary-50 transition-all transform hover:scale-105 shadow-xl"
