@@ -96,13 +96,13 @@ function ThumbnailImage({
             URL.revokeObjectURL(blobUrl);
           }
         } else {
-          console.error('Failed to fetch image:', response.status);
+          console.error(`Failed to fetch image: ${response.status} ${response.statusText}`, fullUrl);
           if (isMounted) {
             setImageSrc(null);
           }
         }
       } catch (error) {
-        console.error('Failed to load image:', error);
+        console.error('Failed to load image:', error, 'URL:', fullUrl);
         if (isMounted) {
           setImageSrc(null);
         }
