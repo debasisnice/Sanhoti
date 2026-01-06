@@ -228,6 +228,7 @@ export interface Settings {
     magazines: boolean;
     contactUs: boolean;
     committee: boolean;
+    documents: boolean;
     donate: boolean;
     joinUs: boolean;
   };

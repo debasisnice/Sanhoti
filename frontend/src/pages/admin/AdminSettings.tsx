@@ -52,6 +52,7 @@ const menuItemLabels: Record<keyof NavbarSettings, string> = {
   magazines: 'Magazines',
   contactUs: 'Contact Us',
   committee: 'Committee',
+  documents: 'Documents',
   donate: 'Donate',
   joinUs: 'Join Us',
 };

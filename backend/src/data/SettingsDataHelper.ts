@@ -112,6 +112,7 @@ export class SettingsDataHelper extends DatabaseHelper {
         magazines: true,
         contactUs: true,
         committee: true,
+        documents: true,
         donate: true,
         joinUs: true,
       },

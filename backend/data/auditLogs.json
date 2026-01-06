@@ -2382,5 +2382,16 @@
     "userEmail": "",
     "id": "1767736458284-u8hkyqlsz",
     "timestamp": "2026-01-06T21:54:18.284Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "document",
+    "details": "{\"method\":\"POST\",\"path\":\"/documents/upload\",\"body\":{\"title\":\"ByLaws\",\"description\":\"Sanhoti ByLaws\",\"isPublic\":\"true\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767737533956-gwa7d6mef",
+    "timestamp": "2026-01-06T22:12:13.956Z"
   }
 ]

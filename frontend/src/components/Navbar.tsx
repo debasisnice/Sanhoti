@@ -76,6 +76,7 @@ export default function Navbar() {
     magazines: true,
     contactUs: true,
     committee: true,
+    documents: true,
     donate: true,
     joinUs: true,
   });
@@ -104,6 +105,7 @@ export default function Navbar() {
     { path: '/magazines', label: 'Magazines', key: 'magazines' as const },
     { path: '/contact', label: 'Contact Us', key: 'contactUs' as const },
     { path: '/committee', label: 'Committee', key: 'committee' as const },
+    { path: '/documents', label: 'Documents', key: 'documents' as const },
   ];
 
   // Filter nav links based on settings
