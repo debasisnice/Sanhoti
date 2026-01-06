@@ -125,6 +125,11 @@ router.get('/boardmembers/postnames', bindController(boardMembersController, 'ge
 router.get('/paymentqr/image', bindController(paymentQRController, 'getImage'));
 router.get('/paymentqr/has-image', bindController(paymentQRController, 'hasImage'));
 
+// Sub-Events - Public routes (for event detail page) - MUST be before authenticate middleware
+router.get('/sub-events/event/:eventId', bindController(subEventController, 'getSubEventsByEventId'));
+router.get('/sub-events/:id/image/:filename', bindController(subEventController, 'getSubEventImage'));
+router.get('/sub-events/:id/images', bindController(subEventController, 'getSubEventImages'));
+
 // Protected routes (require authentication)
 router.use(authenticate);
 
@@ -179,11 +184,6 @@ router.get('/events/:eventId/images',
   requireAdmin,
   bindController(eventController, 'getEventImages')
 );
-
-// Sub-Events - Public routes (for event detail page)
-router.get('/sub-events/event/:eventId', bindController(subEventController, 'getSubEventsByEventId'));
-router.get('/sub-events/:id/image/:filename', bindController(subEventController, 'getSubEventImage'));
-router.get('/sub-events/:id/images', bindController(subEventController, 'getSubEventImages'));
 
 // Sub-Events - Admin routes
 router.get('/sub-events', requireAdmin, bindController(subEventController, 'getAllSubEvents'));
