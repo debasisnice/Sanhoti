@@ -28,9 +28,25 @@ export default function AuthActivityMonitor() {
       return;
     }
 
-    // Update activity time on initial mount if authenticated
-    updateActivityTime();
-    lastActivityTimeRef.current = Date.now();
+    // Check if user should be logged out on mount (e.g., browser was closed and reopened)
+    if (lastActivityTime) {
+      const now = Date.now();
+      const timeSinceLastActivity = now - lastActivityTime;
+      if (timeSinceLastActivity >= INACTIVITY_TIMEOUT) {
+        // User has been inactive for 30+ minutes, logout immediately
+        authAPI.logout();
+        logout();
+        toast.error('You have been logged out due to inactivity.');
+        navigate('/');
+        return;
+      }
+      // Update ref with existing lastActivityTime
+      lastActivityTimeRef.current = lastActivityTime;
+    } else {
+      // No lastActivityTime recorded, set it now
+      updateActivityTime();
+      lastActivityTimeRef.current = Date.now();
+    }
 
     // Activity event handlers
     const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
