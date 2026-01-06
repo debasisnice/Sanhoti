@@ -1,6 +1,5 @@
 import { Response, Request } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
-import express from 'express';
 import { SubEventService } from '../services/SubEventService.js';
 import multer from 'multer';
 import { existsSync, mkdirSync, unlinkSync, readdirSync } from 'fs';
@@ -78,7 +77,7 @@ export class SubEventController {
     }
   }
 
-  async getSubEventsByEventId(req: express.Request, res: Response): Promise<void> {
+  async getSubEventsByEventId(req: Request, res: Response): Promise<void> {
     try {
       const { eventId } = req.params;
       const subEvents = await this.subEventService.getSubEventsByEventId(eventId);
