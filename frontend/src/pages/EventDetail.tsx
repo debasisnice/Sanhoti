@@ -44,14 +44,14 @@ export default function EventDetail() {
           if (fetchedEvent.event_id) {
             try {
               const fetchedSubEvents = await subEventsAPI.getByEventId(fetchedEvent.event_id);
-              console.log('Fetched sub-events:', fetchedSubEvents);
-              // Sort by start date descending
-              const sortedSubEvents = fetchedSubEvents.sort((a, b) => {
-                const dateA = new Date(a.sub_event_start_dt).getTime();
-                const dateB = new Date(b.sub_event_start_dt).getTime();
-                return dateB - dateA; // Descending order (newest first)
-              });
-              console.log('Sorted sub-events:', sortedSubEvents);
+              // Sort by start date descending, with defensive checks
+              const sortedSubEvents = fetchedSubEvents
+                .filter(se => se && se.sub_event_start_dt) // Filter out any invalid sub-events
+                .sort((a, b) => {
+                  const dateA = a.sub_event_start_dt ? new Date(a.sub_event_start_dt).getTime() : 0;
+                  const dateB = b.sub_event_start_dt ? new Date(b.sub_event_start_dt).getTime() : 0;
+                  return dateB - dateA; // Descending order (newest first)
+                });
               setSubEvents(sortedSubEvents);
               
               // Fetch images for sub-events
@@ -85,7 +85,14 @@ export default function EventDetail() {
               // Fetch all public notices and filter by event_id
               const allNotices = await noticesAPI.getPublic();
               const notices = allNotices
-                .filter(n => n.event_id === fetchedEvent.event_id)
+                .filter(n => {
+                  // Defensive check: ensure both event_id values exist
+                  if (!n.event_id || !fetchedEvent.event_id) {
+                    return false;
+                  }
+                  // Convert both to strings for safe comparison
+                  return String(n.event_id) === String(fetchedEvent.event_id);
+                })
                 .sort((a, b) => {
                   const dateA = a.created_at || a.createdAt || '';
                   const dateB = b.created_at || b.createdAt || '';
@@ -111,7 +118,14 @@ export default function EventDetail() {
               // Fetch galleries by event (use public endpoint and filter)
               try {
                 const allGalleries = await galleriesAPI.getPublic();
-                const galleries = allGalleries.filter(g => g.eventId === fetchedEvent.event_id);
+                const galleries = allGalleries.filter(g => {
+                  // Defensive check: ensure both eventId and fetchedEvent.event_id exist
+                  if (!g.eventId || !fetchedEvent.event_id) {
+                    return false;
+                  }
+                  // Convert both to strings for safe comparison
+                  return String(g.eventId) === String(fetchedEvent.event_id);
+                });
                 setRelatedGalleries(galleries);
               } catch (error) {
                 // Silently fail if no galleries found
@@ -475,52 +489,56 @@ export default function EventDetail() {
               Related Photo Galleries
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {relatedGalleries.map((gallery, index) => {
-                const firstPhoto = gallery.photos.length > 0 ? gallery.photos[0] : null;
-                const imageUrl = firstPhoto?.thumbnailUrl || firstPhoto?.url || '';
-                
-                return (
-                  <motion.div
-                    key={gallery.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-2"
-                  >
-                    <Link to={`/galleries/${gallery.id}`}>
-                      <div className="relative h-48 bg-gradient-to-br from-primary-400 to-primary-600">
-                        {imageUrl ? (
-                          <img
-                            src={imageUrl}
-                            alt={gallery.title}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <ImageIcon className="w-16 h-16 text-white opacity-50" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-6">
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">{gallery.title}</h3>
-                        {gallery.description && (
-                          <p className="text-gray-600 text-sm mb-4 line-clamp-2">{gallery.description}</p>
-                        )}
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-500">
-                            {gallery.photos.length} {gallery.photos.length === 1 ? 'photo' : 'photos'}
-                          </span>
-                          <ArrowRight className="w-5 h-5 text-primary-600" />
+              {relatedGalleries
+                .filter(gallery => gallery && gallery.id) // Filter out invalid galleries
+                .map((gallery, index) => {
+                  const photos = gallery.photos || [];
+                  const firstPhoto = photos.length > 0 ? photos[0] : null;
+                  const imageUrl = firstPhoto?.thumbnailUrl || firstPhoto?.url || '';
+                  const title = gallery.title || 'Untitled Gallery';
+                  
+                  return (
+                    <motion.div
+                      key={gallery.id}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-2"
+                    >
+                      <Link to={`/galleries/${gallery.id}`}>
+                        <div className="relative h-48 bg-gradient-to-br from-primary-400 to-primary-600">
+                          {imageUrl ? (
+                            <img
+                              src={imageUrl}
+                              alt={title}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <ImageIcon className="w-16 h-16 text-white opacity-50" />
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
+                        <div className="p-6">
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
+                          {gallery.description && (
+                            <p className="text-gray-600 text-sm mb-4 line-clamp-2">{gallery.description}</p>
+                          )}
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-500">
+                              {photos.length} {photos.length === 1 ? 'photo' : 'photos'}
+                            </span>
+                            <ArrowRight className="w-5 h-5 text-primary-600" />
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  );
+                })}
             </div>
           </div>
         )}
