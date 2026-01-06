@@ -90,15 +90,6 @@ export default function AuthActivityMonitor() {
     // Also check immediately
     checkInactivity();
 
-    // Handle browser close/tab close
-    const handleBeforeUnload = () => {
-      if (isAuthenticated) {
-        // Clear auth data on browser close
-        authAPI.logout();
-        logout();
-      }
-    };
-
     // Handle visibility change (tab switch, minimize, etc.)
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -109,7 +100,6 @@ export default function AuthActivityMonitor() {
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // Cleanup
@@ -120,7 +110,6 @@ export default function AuthActivityMonitor() {
       if (checkIntervalRef.current) {
         clearInterval(checkIntervalRef.current);
       }
-      window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [isAuthenticated, logout, navigate, updateActivityTime]);
