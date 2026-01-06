@@ -322,22 +322,24 @@ export default function EventDetail() {
                     <div className="p-6">
                       <h3 className="text-xl font-bold text-gray-900 mb-3">{subEvent.sub_event_name}</h3>
                       <div className="space-y-2 mb-3">
-                        <div className="flex items-center text-gray-700">
-                          <Calendar className="w-4 h-4 mr-2 text-primary-600" />
-                          <div>
-                            <p className="text-xs text-gray-500">Start Date</p>
-                            <p className="font-semibold text-sm">{format(convertPSTToLocal(subEvent.sub_event_start_dt), 'MMMM dd, yyyy')}</p>
-                          </div>
-                        </div>
-                        {subEvent.sub_event_end_dt && (
+                        <div className="flex flex-row gap-4 items-start">
                           <div className="flex items-center text-gray-700">
                             <Calendar className="w-4 h-4 mr-2 text-primary-600" />
                             <div>
-                              <p className="text-xs text-gray-500">End Date</p>
-                              <p className="font-semibold text-sm">{format(convertPSTToLocal(subEvent.sub_event_end_dt), 'MMMM dd, yyyy')}</p>
+                              <p className="text-xs text-gray-500">Start Date</p>
+                              <p className="font-semibold text-sm">{format(convertPSTToLocal(subEvent.sub_event_start_dt), 'MMMM dd, yyyy')}</p>
                             </div>
                           </div>
-                        )}
+                          {subEvent.sub_event_end_dt && (
+                            <div className="flex items-center text-gray-700">
+                              <Calendar className="w-4 h-4 mr-2 text-primary-600" />
+                              <div>
+                                <p className="text-xs text-gray-500">End Date</p>
+                                <p className="font-semibold text-sm">{format(convertPSTToLocal(subEvent.sub_event_end_dt), 'MMMM dd, yyyy')}</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                         {subEvent.location && (
                           <div className="flex items-center text-gray-700">
                             <MapPin className="w-4 h-4 mr-2 text-primary-600" />
