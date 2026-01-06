@@ -174,8 +174,8 @@ export default function AdminAuditLogs() {
                   <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Action</th>
                   <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Resource</th>
                   <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Resource ID</th>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Details</th>
                   <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">IP Address</th>
+                  <th className="text-center py-3 px-6 text-sm font-semibold text-gray-700">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -223,20 +223,22 @@ export default function AdminAuditLogs() {
                       </span>
                     </td>
                     <td className="py-4 px-6">
-                      <span className="text-sm text-gray-600 line-clamp-2">
-                        {log.details ? (
-                          typeof log.details === 'string' 
-                            ? (log.details.length > 100 ? `${log.details.substring(0, 100)}...` : log.details)
-                            : JSON.stringify(log.details).length > 100 
-                              ? `${JSON.stringify(log.details).substring(0, 100)}...` 
-                              : JSON.stringify(log.details)
-                        ) : '-'}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">
                       <span className="text-sm text-gray-600 font-mono">
                         {log.ipAddress || '-'}
                       </span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center justify-center">
+                        {log.details && (
+                          <button
+                            onClick={() => setSelectedLogDetails(log)}
+                            className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium flex items-center gap-1"
+                          >
+                            <Eye className="w-4 h-4" />
+                            View Details
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -250,6 +252,95 @@ export default function AdminAuditLogs() {
           </div>
         </div>
       )}
+
+      {/* Details Modal */}
+      <AnimatePresence>
+        {selectedLogDetails && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedLogDetails(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="bg-primary-600 text-white p-4 flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold">Audit Log Details</h2>
+                  <p className="text-sm text-primary-100 mt-1">
+                    {selectedLogDetails.action} - {selectedLogDetails.resource}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedLogDetails(null)}
+                  className="p-2 hover:bg-primary-700 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-auto p-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Timestamp</h3>
+                    <p className="text-sm text-gray-900">
+                      {format(convertPSTToLocal(selectedLogDetails.timestamp), 'MMM dd, yyyy HH:mm:ss')}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-2">User</h3>
+                    <p className="text-sm text-gray-900">
+                      {userNameMap[selectedLogDetails.userId] || selectedLogDetails.userEmail || selectedLogDetails.userId}
+                    </p>
+                    <p className="text-xs text-gray-500">{selectedLogDetails.userEmail}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Action</h3>
+                    <p className="text-sm text-gray-900">{selectedLogDetails.action}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Resource</h3>
+                    <p className="text-sm text-gray-900">{selectedLogDetails.resource}</p>
+                  </div>
+                  {selectedLogDetails.resourceId && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Resource ID</h3>
+                      <p className="text-sm text-gray-900 font-mono">{selectedLogDetails.resourceId}</p>
+                    </div>
+                  )}
+                  {selectedLogDetails.ipAddress && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">IP Address</h3>
+                      <p className="text-sm text-gray-900 font-mono">{selectedLogDetails.ipAddress}</p>
+                    </div>
+                  )}
+                  {selectedLogDetails.userAgent && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">User Agent</h3>
+                      <p className="text-sm text-gray-900 font-mono text-xs break-all">{selectedLogDetails.userAgent}</p>
+                    </div>
+                  )}
+                  {selectedLogDetails.details && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Details (JSON)</h3>
+                      <pre className="bg-gray-100 p-4 rounded-lg overflow-auto text-xs text-gray-900 font-mono max-h-96">
+                        {typeof selectedLogDetails.details === 'string'
+                          ? selectedLogDetails.details
+                          : JSON.stringify(selectedLogDetails.details, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
