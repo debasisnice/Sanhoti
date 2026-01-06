@@ -17,44 +17,19 @@ if (!existsSync(eventsFlyersDir)) {
 }
 
 // Configure multer for sub-event image uploads
+// Note: We'll handle folder setup in the upload handler since multer doesn't support async destination
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const subEventId = req.params.id;
-    const subEventService = new SubEventService();
-    
-    subEventService.getSubEventById(subEventId).then(subEvent => {
-      if (!subEvent || !subEvent.event_image_path) {
-        cb(new Error('Sub-event not found or folder not created'), '');
-        return;
-      }
-      
-      const parentEventFolder = join(eventsFlyersDir, `event-${subEvent.event_id}`);
-      const subEventFolderPath = join(parentEventFolder, subEvent.event_image_path);
-      
-      if (!existsSync(subEventFolderPath)) {
-        mkdirSync(subEventFolderPath, { recursive: true });
-      }
-      
-      // Delete existing images in the folder (only one image allowed)
-      try {
-        const files = readdirSync(subEventFolderPath);
-        files.forEach(file => {
-          if (/\.(jpg|jpeg|png|gif|webp)$/i.test(file)) {
-            unlinkSync(join(subEventFolderPath, file));
-          }
-        });
-      } catch (error) {
-        // Continue even if deletion fails
-      }
-      
-      cb(null, subEventFolderPath);
-    }).catch(err => {
-      cb(err, '');
-    });
+    // Use temp directory, we'll move the file in the upload handler
+    const tempDir = join(eventsFlyersDir, '.temp');
+    if (!existsSync(tempDir)) {
+      mkdirSync(tempDir, { recursive: true });
+    }
+    cb(null, tempDir);
   },
   filename: (req, file, cb) => {
     const originalName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
-    cb(null, originalName);
+    cb(null, `${Date.now()}-${originalName}`);
   },
 });
 
@@ -190,10 +165,39 @@ export class SubEventController {
       }
 
       const subEvent = await this.subEventService.getSubEventById(id);
-      if (!subEvent) {
-        res.status(404).json({ error: 'Sub-event not found' });
+      if (!subEvent || !subEvent.event_image_path) {
+        // Clean up temp file
+        if (req.file.path && existsSync(req.file.path)) {
+          unlinkSync(req.file.path);
+        }
+        res.status(404).json({ error: 'Sub-event not found or folder not created' });
         return;
       }
+
+      // Move file from temp to sub-event folder
+      const parentEventFolder = join(eventsFlyersDir, `event-${subEvent.event_id}`);
+      const subEventFolderPath = join(parentEventFolder, subEvent.event_image_path);
+      
+      if (!existsSync(subEventFolderPath)) {
+        mkdirSync(subEventFolderPath, { recursive: true });
+      }
+
+      // Delete existing images in the folder (only one image allowed)
+      try {
+        const files = readdirSync(subEventFolderPath);
+        files.forEach(file => {
+          if (/\.(jpg|jpeg|png|gif|webp)$/i.test(file)) {
+            unlinkSync(join(subEventFolderPath, file));
+          }
+        });
+      } catch (error) {
+        // Continue even if deletion fails
+      }
+
+      // Move temp file to final location
+      const finalPath = join(subEventFolderPath, req.file.filename);
+      const { renameSync } = await import('fs');
+      renameSync(req.file.path, finalPath);
 
       res.json({
         message: 'Image uploaded successfully',
@@ -201,6 +205,14 @@ export class SubEventController {
         url: `/api/sub-events/${id}/image/${req.file.filename}`,
       });
     } catch (error: any) {
+      // Clean up temp file on error
+      if (req.file?.path && existsSync(req.file.path)) {
+        try {
+          unlinkSync(req.file.path);
+        } catch (cleanupError) {
+          // Ignore cleanup errors
+        }
+      }
       res.status(500).json({ error: error.message || 'Failed to upload image' });
     }
   }
