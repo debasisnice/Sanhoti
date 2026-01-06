@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, DollarSign, CreditCard, Mail } from 'lucide-react';
+import { Heart, CreditCard, Mail } from 'lucide-react';
 import { paymentQRAPI, settingsAPI } from '../services/api';
 
 export default function Donate() {
@@ -114,8 +114,7 @@ export default function Donate() {
                         <p className="text-sm text-gray-600 mb-2">Send Money with Zelle®</p>
                         <p className="text-lg font-semibold text-gray-900 mb-3">SANHOTI INC</p>
                         <div className="bg-white rounded-lg p-4 border-2 border-primary-200">
-                          <div className="flex items-center justify-center md:justify-start space-x-3">
-                            <DollarSign className="w-6 h-6 text-primary-600" />
+                          <div className="flex items-center justify-center md:justify-start">
                             <div>
                               <p className="text-sm text-gray-600 mb-1">Zelle Phone Number</p>
                               <p className="text-2xl font-bold text-primary-600">{zellePhoneNumber}</p>
