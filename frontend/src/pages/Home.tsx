@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Users, Image, BookOpen, ArrowRight, Eye, Star, MapPin, Share2 } from 'lucide-react';
+import { Calendar, Users, Image, BookOpen, ArrowRight, Eye, Star, MapPin } from 'lucide-react';
 import { eventsAPI, homepageAPI, settingsAPI } from '../services/api';
 import { Event } from '../types';
 import { format } from 'date-fns';
@@ -20,7 +20,7 @@ export default function Home() {
   const [whatsappLink, setWhatsappLink] = useState<string>('https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH');
 
   // Share functions
-  const shareToFacebook = (eventId: string, eventName: string) => {
+  const shareToFacebook = (eventId: string, _eventName: string) => {
     const url = `${window.location.origin}/events/${eventId}`;
     const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
     window.open(shareUrl, '_blank', 'width=600,height=400');

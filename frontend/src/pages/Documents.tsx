@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, Lock, X, ExternalLink } from 'lucide-react';
 import { documentsAPI } from '../services/api';
@@ -211,7 +211,7 @@ function PDFViewer({ document }: { document: Document }) {
       >
         {numPages && (
           <div className="space-y-4">
-            {Array.from(new Array(numPages), (el, index) => (
+            {Array.from(new Array(numPages), (_el, index) => (
               <Page
                 key={`page_${index + 1}`}
                 pageNumber={index + 1}

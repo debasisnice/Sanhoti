@@ -14,6 +14,7 @@ interface NavbarSettings {
   magazines: boolean;
   contactUs: boolean;
   committee: boolean;
+  documents: boolean;
   donate: boolean;
   joinUs: boolean;
 }

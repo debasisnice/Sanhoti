@@ -92,7 +92,7 @@ export class SubEventDataHelper extends DatabaseHelper {
     }
     
     // Create sub-event folder
-    const subEventFolderName = `${this.sanitizeFolderName(subEvent.sub_event_name)}-${sub_event_id}`;
+    const subEventFolderName = `${this.sanitizeFolderName(subEvent.sub_event_name)}-${sub_event_id!}`;
     const subEventFolderPath = join(parentEventFolder, subEventFolderName);
     if (!existsSync(subEventFolderPath)) {
       mkdirSync(subEventFolderPath, { recursive: true });
