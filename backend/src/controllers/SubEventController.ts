@@ -1,5 +1,6 @@
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
+import express from 'express';
 import { SubEventService } from '../services/SubEventService.js';
 import multer from 'multer';
 import { existsSync, mkdirSync, unlinkSync, readdirSync } from 'fs';
@@ -77,11 +78,13 @@ export class SubEventController {
     }
   }
 
-  async getSubEventsByEventId(req: AuthRequest, res: Response): Promise<void> {
+  async getSubEventsByEventId(req: express.Request, res: Response): Promise<void> {
     try {
       const { eventId } = req.params;
       const subEvents = await this.subEventService.getSubEventsByEventId(eventId);
-      res.json(subEvents);
+      // Only return active sub-events for public access
+      const activeSubEvents = subEvents.filter(se => se.is_active);
+      res.json(activeSubEvents);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch sub-events' });
     }
@@ -256,7 +259,7 @@ export class SubEventController {
     }
   }
 
-  async getSubEventImage(req: AuthRequest, res: Response): Promise<void> {
+  async getSubEventImage(req: Request, res: Response): Promise<void> {
     try {
       const { id, filename } = req.params;
       const subEvent = await this.subEventService.getSubEventById(id);
