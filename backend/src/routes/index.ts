@@ -183,6 +183,7 @@ router.get('/events/:eventId/images',
 // Sub-Events - Public routes (for event detail page)
 router.get('/sub-events/event/:eventId', bindController(subEventController, 'getSubEventsByEventId'));
 router.get('/sub-events/:id/image/:filename', bindController(subEventController, 'getSubEventImage'));
+router.get('/sub-events/:id/images', bindController(subEventController, 'getSubEventImages'));
 
 // Sub-Events - Admin routes
 router.get('/sub-events', requireAdmin, bindController(subEventController, 'getAllSubEvents'));
@@ -208,7 +209,6 @@ router.post('/sub-events/:id/upload-image',
   subEventController.uploadImage(),
   bindController(subEventController, 'uploadSubEventImage')
 );
-router.get('/sub-events/:id/images', requireAdmin, bindController(subEventController, 'getSubEventImages'));
 
 // RSVP - Member routes
 router.get('/rsvps', requireMember, bindController(rsvpController, 'getAllRSVPs'));

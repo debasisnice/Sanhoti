@@ -191,7 +191,8 @@ export const subEventsAPI = {
   },
 
   getByEventId: async (eventId: string): Promise<SubEvent[]> => {
-    const response = await api.get(`/sub-events/event/${eventId}`);
+    // Use public endpoint (no auth required)
+    const response = await axios.get(`${API_BASE_URL}/sub-events/event/${eventId}`);
     return response.data;
   },
 
@@ -244,11 +245,13 @@ export const subEventsAPI = {
   },
 
   getImageUrl: (subEventId: string, filename: string): string => {
+    // Use public endpoint (no auth required)
     return `${API_BASE_URL}/sub-events/${subEventId}/image/${filename}`;
   },
 
   getImages: async (subEventId: string): Promise<string[]> => {
-    const response = await api.get(`/sub-events/${subEventId}/images`);
+    // Use public endpoint (no auth required)
+    const response = await axios.get(`${API_BASE_URL}/sub-events/${subEventId}/images`);
     return response.data;
   },
 };

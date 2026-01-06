@@ -57,14 +57,12 @@ export default function EventDetail() {
               for (const subEvent of sortedSubEvents) {
                 if (subEvent.event_image_path) {
                   try {
-                    const images = await subEventsAPI.getImages(subEvent.sub_event_id);
-                    if (images.length > 0) {
-                      // Get the first image filename from the path
-                      const imagePath = images[0];
-                      const filename = imagePath.split('/').pop() || '';
-                      if (filename) {
-                        imagesMap[subEvent.sub_event_id] = subEventsAPI.getImageUrl(subEvent.sub_event_id, filename);
-                      }
+                    // Get image filenames
+                    const filenames = await subEventsAPI.getImages(subEvent.sub_event_id);
+                    if (filenames && filenames.length > 0) {
+                      // Use the first image
+                      const filename = filenames[0];
+                      imagesMap[subEvent.sub_event_id] = subEventsAPI.getImageUrl(subEvent.sub_event_id, filename);
                     }
                   } catch (error) {
                     // Silently fail if no images found

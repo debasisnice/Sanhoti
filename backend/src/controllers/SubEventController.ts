@@ -294,11 +294,16 @@ export class SubEventController {
     }
   }
 
-  async getSubEventImages(req: AuthRequest, res: Response): Promise<void> {
+  async getSubEventImages(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const images = await this.subEventService.getSubEventImages(id);
-      res.json(images);
+      // Return just the filenames, not full paths
+      const filenames = images.map(path => {
+        const parts = path.split(/[/\\]/);
+        return parts[parts.length - 1];
+      }).filter(Boolean);
+      res.json(filenames);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch images' });
     }

@@ -2241,5 +2241,123 @@
     "userEmail": "",
     "id": "1767730446136-gzq7nf9hw",
     "timestamp": "2026-01-06T20:14:06.136Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "CREATE",
+    "resource": "sub-event",
+    "details": "{\"method\":\"POST\",\"path\":\"/sub-events\",\"body\":{\"sub_event_name\":\"Mahalakshmi Iyer Concert\",\"sub_event_start_dt\":\"2025-09-28\",\"sub_event_end_dt\":\"2025-09-28\",\"year\":2025,\"event_description\":\"A Magical evening with the Melody Queen\",\"location\":\"Robert B. Moore Theater, Orange Costa College, Arlington Dr, Costa Mesa, CA, 92626\",\"is_active\":true,\"event_id\":\"YHO7NY9I7CRU\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767732340589-otzybcr17",
+    "timestamp": "2026-01-06T20:45:40.589Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_IMAGE",
+    "resource": "sub-event",
+    "resourceId": "M0X449GH1WOR",
+    "details": "{\"method\":\"POST\",\"path\":\"/sub-events/M0X449GH1WOR/upload-image\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767732340601-9itwu2l6n",
+    "timestamp": "2026-01-06T20:45:40.601Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "sub-event",
+    "resourceId": "M0X449GH1WOR",
+    "details": "{\"method\":\"PUT\",\"path\":\"/sub-events/M0X449GH1WOR\",\"body\":{\"sub_event_name\":\"Mahalakshmi Iyer Concert\",\"sub_event_start_dt\":\"2025-09-28\",\"sub_event_end_dt\":\"2025-09-28\",\"event_description\":\"A Magical evening with the Melody Queen\",\"location\":\"Robert B. Moore Theater, Orange Costa College, Arlington Dr, Costa Mesa, CA, 92626\",\"is_active\":true}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767732437562-7b950c82n",
+    "timestamp": "2026-01-06T20:47:17.562Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_IMAGE",
+    "resource": "sub-event",
+    "resourceId": "M0X449GH1WOR",
+    "details": "{\"method\":\"POST\",\"path\":\"/sub-events/M0X449GH1WOR/upload-image\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767732437575-hpkq027al",
+    "timestamp": "2026-01-06T20:47:17.575Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "CREATE",
+    "resource": "sub-event",
+    "details": "{\"method\":\"POST\",\"path\":\"/sub-events\",\"body\":{\"sub_event_name\":\"Rathijit and Shreya Live\",\"sub_event_start_dt\":\"2025-09-27\",\"sub_event_end_dt\":\"2025-09-27\",\"year\":2025,\"event_description\":\"Bengali musical duo Rathijit Bhattacharjee and Shreya M Bhattacharjee\",\"location\":\"engali musical duo Rathijit Bhattacharjee and Shreya M Bhattacharjee\",\"is_active\":true,\"event_id\":\"YHO7NY9I7CRU\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767732808061-nsu39tpfv",
+    "timestamp": "2026-01-06T20:53:28.061Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_IMAGE",
+    "resource": "sub-event",
+    "resourceId": "F3PWXVMC6ML6",
+    "details": "{\"method\":\"POST\",\"path\":\"/sub-events/F3PWXVMC6ML6/upload-image\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767732808082-8m7g4v6dz",
+    "timestamp": "2026-01-06T20:53:28.082Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "sub-event",
+    "resourceId": "M0X449GH1WOR",
+    "details": "{\"method\":\"PUT\",\"path\":\"/sub-events/M0X449GH1WOR\",\"body\":{\"sub_event_name\":\"Mahalakshmi Iyer Concert\",\"sub_event_start_dt\":\"2025-09-28\",\"sub_event_end_dt\":\"2025-09-28\",\"event_description\":\"A Magical evening with the Melody Queen\",\"location\":\"Robert B. Moore Theater, Orange Costa College, Arlington Dr, Costa Mesa, CA, 92626\",\"is_active\":true}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767733244959-nl17hp5et",
+    "timestamp": "2026-01-06T21:00:44.959Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_IMAGE",
+    "resource": "sub-event",
+    "resourceId": "M0X449GH1WOR",
+    "details": "{\"method\":\"POST\",\"path\":\"/sub-events/M0X449GH1WOR/upload-image\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767733244971-7yueu2bd2",
+    "timestamp": "2026-01-06T21:00:44.971Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "sub-event",
+    "resourceId": "F3PWXVMC6ML6",
+    "details": "{\"method\":\"PUT\",\"path\":\"/sub-events/F3PWXVMC6ML6\",\"body\":{\"sub_event_name\":\"Rathijit and Shreya Live\",\"sub_event_start_dt\":\"2025-09-27\",\"sub_event_end_dt\":\"2025-09-27\",\"event_description\":\"Bengali musical duo Rathijit Bhattacharjee and Shreya M Bhattacharjee\",\"location\":\"engali musical duo Rathijit Bhattacharjee and Shreya M Bhattacharjee\",\"is_active\":true}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767733253097-wdbkoezi5",
+    "timestamp": "2026-01-06T21:00:53.097Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_IMAGE",
+    "resource": "sub-event",
+    "resourceId": "F3PWXVMC6ML6",
+    "details": "{\"method\":\"POST\",\"path\":\"/sub-events/F3PWXVMC6ML6/upload-image\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767733253107-l9l3xqa2b",
+    "timestamp": "2026-01-06T21:00:53.107Z"
   }
 ]
