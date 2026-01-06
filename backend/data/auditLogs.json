@@ -2404,5 +2404,49 @@
     "userEmail": "",
     "id": "1767737800927-snyon7xb6",
     "timestamp": "2026-01-06T22:16:40.927Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":true,\"documents\":false}}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767738760044-xh0erqdb7",
+    "timestamp": "2026-01-06T22:32:40.044Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":false,\"documents\":false}}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767738800333-ipgo58wqw",
+    "timestamp": "2026-01-06T22:33:20.333Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":true,\"documents\":false}}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767738802868-b5m8hfogx",
+    "timestamp": "2026-01-06T22:33:22.868Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":false,\"documents\":false}}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767738803495-q59ar5pla",
+    "timestamp": "2026-01-06T22:33:23.495Z"
   }
 ]
