@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
 import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
+import AuthActivityMonitor from './components/AuthActivityMonitor';
 import Home from './pages/Home';
 import Sponsors from './pages/Sponsors';
 import Donate from './pages/Donate';
@@ -32,6 +33,7 @@ function App() {
       }}
     >
       <ScrollToTop />
+      <AuthActivityMonitor />
       <Toaster position="top-right" />
       <Layout>
         <Routes>

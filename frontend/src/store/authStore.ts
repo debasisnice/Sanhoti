@@ -8,8 +8,10 @@ interface AuthState {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isMember: boolean;
+  lastActivityTime: number | null;
   setAuth: (user: User, token: string) => void;
   logout: () => void;
+  updateActivityTime: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -20,6 +22,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isAdmin: false,
       isMember: false,
+      lastActivityTime: null,
       setAuth: (user, token) =>
         set({
           user,
@@ -27,6 +30,7 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
           isAdmin: user.role === UserRole.ADMIN,
           isMember: user.role === UserRole.MEMBER || user.role === UserRole.ADMIN,
+          lastActivityTime: Date.now(),
         }),
       logout: () =>
         set({
@@ -35,6 +39,11 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
           isAdmin: false,
           isMember: false,
+          lastActivityTime: null,
+        }),
+      updateActivityTime: () =>
+        set({
+          lastActivityTime: Date.now(),
         }),
     }),
     {
