@@ -94,6 +94,12 @@ router.get('/magazines/access-code/:code', bindController(magazineController, 'g
 // Serve PDF files (public)
 router.get('/magazines/files/:filename', bindController(magazineController, 'serveMagazineFile'));
 
+// Documents - Public routes
+router.get('/documents/public', bindController(documentController, 'getPublicDocuments'));
+router.get('/documents/access-code/:code', bindController(documentController, 'getDocumentByAccessCode'));
+// Serve PDF files (public)
+router.get('/documents/files/:filename', bindController(documentController, 'serveDocumentFile'));
+
 // RSVP - Public (guest RSVP)
 router.post('/rsvps', bindController(rsvpController, 'createRSVP'));
 
