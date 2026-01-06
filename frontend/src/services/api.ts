@@ -596,6 +596,32 @@ export const documentsAPI = {
   },
 };
 
+// Audit API
+export const auditAPI = {
+  getAll: async (): Promise<AuditLog[]> => {
+    const response = await api.get('/audit');
+    return response.data;
+  },
+
+  getRecent: async (limit: number = 100): Promise<AuditLog[]> => {
+    const response = await api.get(`/audit/recent?limit=${limit}`);
+    return response.data;
+  },
+
+  getByUser: async (userId: string): Promise<AuditLog[]> => {
+    const response = await api.get(`/audit/user/${userId}`);
+    return response.data;
+  },
+
+  getByResource: async (resource: string, resourceId?: string): Promise<AuditLog[]> => {
+    const url = resourceId 
+      ? `/audit/resource/${resource}/${resourceId}`
+      : `/audit/resource/${resource}`;
+    const response = await api.get(url);
+    return response.data;
+  },
+};
+
 // Special Access API
 export const specialAccessAPI = {
   validateCode: async (code: string): Promise<any> => {
