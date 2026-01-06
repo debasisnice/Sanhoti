@@ -187,7 +187,13 @@ export default function AdminAuditLogs() {
                     </td>
                     <td className="py-4 px-6">
                       <span className="text-sm text-gray-600 line-clamp-2">
-                        {log.details ? (log.details.length > 100 ? `${log.details.substring(0, 100)}...` : log.details) : '-'}
+                        {log.details ? (
+                          typeof log.details === 'string' 
+                            ? (log.details.length > 100 ? `${log.details.substring(0, 100)}...` : log.details)
+                            : JSON.stringify(log.details).length > 100 
+                              ? `${JSON.stringify(log.details).substring(0, 100)}...` 
+                              : JSON.stringify(log.details)
+                        ) : '-'}
                       </span>
                     </td>
                     <td className="py-4 px-6">
