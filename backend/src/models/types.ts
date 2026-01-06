@@ -188,6 +188,22 @@ export interface AuditLog {
   timestamp: string;
 }
 
+export interface SubEvent {
+  sub_event_id: string; // 12 digit alphanumeric
+  sub_event_name: string;
+  sub_event_start_dt: string;
+  sub_event_end_dt: string;
+  year: number;
+  event_description: string;
+  location: string;
+  is_active: boolean;
+  event_id: string; // Parent event id
+  created_at: string;
+  updated_at: string;
+  event_image_path?: string; // Folder path for sub-event image
+  rsvp_link?: string; // Optional external RSVP link
+}
+
 export interface Settings {
   navbar: {
     home: boolean;

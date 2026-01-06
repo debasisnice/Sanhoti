@@ -2173,5 +2173,73 @@
     "userEmail": "",
     "id": "1767651803887-tysqlh0mu",
     "timestamp": "2026-01-05T22:23:23.887Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "email_settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/email\",\"body\":{\"emailAddress\":\"sanhoti.info@gmail.com\",\"emailPassword\":\"hysbyijbneytfzfk\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767654221786-lmudr5oho",
+    "timestamp": "2026-01-05T23:03:41.786Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event",
+    "resourceId": "WJWYE0NC4IIY",
+    "details": "{\"method\":\"PUT\",\"path\":\"/events/WJWYE0NC4IIY\",\"body\":{\"event_name\":\"Saraswati Puja\",\"event_start_dt\":\"2026-01-24\",\"event_end_dt\":\"2026-01-24\",\"year\":2026,\"event_description\":\"Saraswati Puja, also known as Vasant Panchami, is a Hindu festival celebrating the goddess of knowledge, wisdom, music, and arts, where devotees pray for enlightenment, creativity, and success in learning, marking the arrival of spring with offerings of flowers, books, and instruments to invoke her blessings. \",\"location\":\"Davis Magnet School, CostaMesa, CA\",\"is_priority\":true,\"rsvp_link\":\"https://forms.gle/3pbCr8pFFAZiGWbA6\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767654319128-odtm44fqo",
+    "timestamp": "2026-01-05T23:05:19.128Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "SEND_EMAIL",
+    "resource": "organizations",
+    "details": "{\"method\":\"POST\",\"path\":\"/email/organizations\",\"body\":{\"organizations\":[\"debasis.nice@gmail.com\"],\"subject\":\"Re: Your Message from Sanhoti Website\",\"html\":\"Responded from deployed site\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767654465545-x5j1k5nw9",
+    "timestamp": "2026-01-05T23:07:45.545Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "MARK_RESPONDED",
+    "resource": "message",
+    "resourceId": "1767651507536-ym5zlr8ku",
+    "details": "{\"method\":\"PUT\",\"path\":\"/messages/1767651507536-ym5zlr8ku/responded\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767654465557-auxf3mpl8",
+    "timestamp": "2026-01-05T23:07:45.557Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "social_links",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/social-links\",\"body\":{\"facebookLink\":\"https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr\",\"whatsappLink\":\"https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH\",\"instagramLink\":\"https://www.instagram.com/sanhotioc?igsh=NTc4MTIwNjQ2YQ==\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767725785356-sza6vytno",
+    "timestamp": "2026-01-06T18:56:25.356Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":true}}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767730446136-gzq7nf9hw",
+    "timestamp": "2026-01-06T20:14:06.136Z"
   }
 ]

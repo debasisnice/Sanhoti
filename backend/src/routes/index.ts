@@ -20,6 +20,7 @@ import { SponsorController } from '../controllers/SponsorController.js';
 import { HomePageController } from '../controllers/HomePageController.js';
 import { BoardMembersController } from '../controllers/BoardMembersController.js';
 import { PaymentQRController } from '../controllers/PaymentQRController.js';
+import { SubEventController } from '../controllers/SubEventController.js';
 
 const router = Router();
 
@@ -40,6 +41,7 @@ const sponsorController = new SponsorController();
 const homePageController = new HomePageController();
 const boardMembersController = new BoardMembersController();
 const paymentQRController = new PaymentQRController();
+const subEventController = new SubEventController();
 
 // Helper to bind controller methods
 function bindController(controller: any, methodName: string) {
@@ -177,6 +179,34 @@ router.get('/events/:eventId/images',
   requireAdmin,
   bindController(eventController, 'getEventImages')
 );
+
+// Sub-Events - Admin routes
+router.get('/sub-events', requireAdmin, bindController(subEventController, 'getAllSubEvents'));
+router.get('/sub-events/event/:eventId', requireAdmin, bindController(subEventController, 'getSubEventsByEventId'));
+router.get('/sub-events/:id', requireAdmin, bindController(subEventController, 'getSubEventById'));
+router.post('/sub-events',
+  requireAdmin,
+  auditLog('CREATE', 'sub-event'),
+  bindController(subEventController, 'createSubEvent')
+);
+router.put('/sub-events/:id',
+  requireAdmin,
+  auditLog('UPDATE', 'sub-event'),
+  bindController(subEventController, 'updateSubEvent')
+);
+router.delete('/sub-events/:id',
+  requireAdmin,
+  auditLog('DELETE', 'sub-event'),
+  bindController(subEventController, 'deleteSubEvent')
+);
+router.post('/sub-events/:id/upload-image',
+  requireAdmin,
+  auditLog('UPLOAD_IMAGE', 'sub-event'),
+  subEventController.uploadImage(),
+  bindController(subEventController, 'uploadSubEventImage')
+);
+router.get('/sub-events/:id/images', requireAdmin, bindController(subEventController, 'getSubEventImages'));
+router.get('/sub-events/:id/image/:filename', requireAdmin, bindController(subEventController, 'getSubEventImage'));
 
 // RSVP - Member routes
 router.get('/rsvps', requireMember, bindController(rsvpController, 'getAllRSVPs'));

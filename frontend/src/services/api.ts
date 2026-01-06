@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AuthResponse, Event, RSVP, Notice, PhotoGallery, Magazine } from '../types';
+import { AuthResponse, Event, RSVP, Notice, PhotoGallery, Magazine, SubEvent } from '../types';
 
 // Use relative path in production (when served by Nginx), absolute URL in development
 const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5001/api');
@@ -180,6 +180,76 @@ export const eventsAPI = {
     } catch (error) {
       return null;
     }
+  },
+};
+
+// Sub-Events API
+export const subEventsAPI = {
+  getAll: async (): Promise<SubEvent[]> => {
+    const response = await api.get('/sub-events');
+    return response.data;
+  },
+
+  getByEventId: async (eventId: string): Promise<SubEvent[]> => {
+    const response = await api.get(`/sub-events/event/${eventId}`);
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<SubEvent> => {
+    const response = await api.get(`/sub-events/${id}`);
+    return response.data;
+  },
+
+  create: async (data: {
+    sub_event_name: string;
+    sub_event_start_dt: string;
+    sub_event_end_dt: string;
+    year: number;
+    event_description: string;
+    location: string;
+    is_active: boolean;
+    event_id: string;
+    rsvp_link?: string;
+  }): Promise<SubEvent> => {
+    const response = await api.post('/sub-events', data);
+    return response.data;
+  },
+
+  update: async (id: string, data: Partial<{
+    sub_event_name: string;
+    sub_event_start_dt: string;
+    sub_event_end_dt: string;
+    event_description: string;
+    location: string;
+    is_active: boolean;
+    rsvp_link: string;
+  }>): Promise<SubEvent> => {
+    const response = await api.put(`/sub-events/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/sub-events/${id}`);
+  },
+
+  uploadImage: async (subEventId: string, imageFile: File): Promise<any> => {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    const response = await api.post(`/sub-events/${subEventId}/upload-image`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  getImageUrl: (subEventId: string, filename: string): string => {
+    return `${API_BASE_URL}/sub-events/${subEventId}/image/${filename}`;
+  },
+
+  getImages: async (subEventId: string): Promise<string[]> => {
+    const response = await api.get(`/sub-events/${subEventId}/images`);
+    return response.data;
   },
 };
 

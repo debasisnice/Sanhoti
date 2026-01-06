@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Edit, Trash2, Eye, EyeOff, X, Image as ImageIcon, Star } from 'lucide-react';
-import { eventsAPI } from '../../services/api';
+import { eventsAPI, subEventsAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { convertPSTToLocal, convertLocalToPST } from '../../utils/dateUtils';
+import { SubEvent } from '../../types';
 
 interface Event {
   event_id: string;
@@ -48,6 +49,21 @@ export default function AdminEvents() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [eventImages, setEventImages] = useState<Record<string, EventImage[]>>({});
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [subEvents, setSubEvents] = useState<Record<string, SubEvent[]>>({});
+  const [showSubEventForm, setShowSubEventForm] = useState(false);
+  const [editingSubEvent, setEditingSubEvent] = useState<SubEvent | null>(null);
+  const [selectedEventForSubEvent, setSelectedEventForSubEvent] = useState<Event | null>(null);
+  const [subEventImage, setSubEventImage] = useState<File | null>(null);
+  const [uploadingSubEventImage, setUploadingSubEventImage] = useState(false);
+  const [subEventFormData, setSubEventFormData] = useState({
+    sub_event_name: '',
+    sub_event_start_dt: '',
+    sub_event_end_dt: '',
+    event_description: '',
+    location: '',
+    is_active: true,
+    rsvp_link: '',
+  });
   const [formData, setFormData] = useState<EventForm>({
     event_name: '',
     event_start_dt: '',
@@ -61,7 +77,24 @@ export default function AdminEvents() {
 
   useEffect(() => {
     fetchEvents();
+    fetchAllSubEvents();
   }, []);
+
+  const fetchAllSubEvents = async () => {
+    try {
+      const allSubEvents = await subEventsAPI.getAll();
+      const subEventsByEvent: Record<string, SubEvent[]> = {};
+      allSubEvents.forEach(subEvent => {
+        if (!subEventsByEvent[subEvent.event_id]) {
+          subEventsByEvent[subEvent.event_id] = [];
+        }
+        subEventsByEvent[subEvent.event_id].push(subEvent);
+      });
+      setSubEvents(subEventsByEvent);
+    } catch (error: any) {
+      // Silently fail - sub-events are optional
+    }
+  };
 
   useEffect(() => {
     // Check if 'new' query parameter is present to auto-open form
@@ -231,6 +264,141 @@ export default function AdminEvents() {
 
   const handleNavigateToGallery = (eventId: string) => {
     navigate(`/admin/galleries?eventId=${eventId}`);
+  };
+
+  const handleCreateSubEvent = (event: Event) => {
+    setSelectedEventForSubEvent(event);
+    setEditingSubEvent(null);
+    setSubEventFormData({
+      sub_event_name: '',
+      sub_event_start_dt: event.event_start_dt.split('T')[0],
+      sub_event_end_dt: event.event_end_dt.split('T')[0],
+      event_description: '',
+      location: '',
+      is_active: true,
+      rsvp_link: '',
+    });
+    setSubEventImage(null);
+    setShowSubEventForm(true);
+  };
+
+  const handleEditSubEvent = async (subEvent: SubEvent, event: Event) => {
+    setSelectedEventForSubEvent(event);
+    setEditingSubEvent(subEvent);
+    setSubEventFormData({
+      sub_event_name: subEvent.sub_event_name,
+      sub_event_start_dt: subEvent.sub_event_start_dt.split('T')[0],
+      sub_event_end_dt: subEvent.sub_event_end_dt.split('T')[0],
+      event_description: subEvent.event_description,
+      location: subEvent.location,
+      is_active: subEvent.is_active,
+      rsvp_link: subEvent.rsvp_link || '',
+    });
+    setSubEventImage(null);
+    setShowSubEventForm(true);
+  };
+
+  const handleDeleteSubEvent = async (subEventId: string) => {
+    if (!window.confirm('Are you sure you want to delete this sub-event? This action cannot be undone.')) {
+      return;
+    }
+    try {
+      await subEventsAPI.delete(subEventId);
+      toast.success('Sub-event deleted successfully');
+      fetchAllSubEvents();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to delete sub-event');
+    }
+  };
+
+  const handleSubEventSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEventForSubEvent) return;
+
+    try {
+      setUploadingSubEventImage(false);
+      
+      if (editingSubEvent) {
+        // Update existing sub-event
+        const updateData: any = {
+          sub_event_name: subEventFormData.sub_event_name,
+          sub_event_start_dt: convertLocalToPST(subEventFormData.sub_event_start_dt),
+          sub_event_end_dt: convertLocalToPST(subEventFormData.sub_event_end_dt),
+          event_description: subEventFormData.event_description,
+          location: subEventFormData.location,
+          is_active: subEventFormData.is_active,
+        };
+        if (subEventFormData.rsvp_link) {
+          updateData.rsvp_link = subEventFormData.rsvp_link;
+        }
+        
+        await subEventsAPI.update(editingSubEvent.sub_event_id, updateData);
+        
+        // Upload image if selected
+        if (subEventImage) {
+          setUploadingSubEventImage(true);
+          try {
+            await subEventsAPI.uploadImage(editingSubEvent.sub_event_id, subEventImage);
+            toast.success('Sub-event image uploaded successfully');
+          } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Failed to upload image');
+          } finally {
+            setUploadingSubEventImage(false);
+          }
+        }
+        
+        toast.success('Sub-event updated successfully');
+      } else {
+        // Create new sub-event
+        const newSubEvent = await subEventsAPI.create({
+          sub_event_name: subEventFormData.sub_event_name,
+          sub_event_start_dt: convertLocalToPST(subEventFormData.sub_event_start_dt),
+          sub_event_end_dt: convertLocalToPST(subEventFormData.sub_event_end_dt),
+          year: selectedEventForSubEvent.year,
+          event_description: subEventFormData.event_description,
+          location: subEventFormData.location,
+          is_active: subEventFormData.is_active,
+          event_id: selectedEventForSubEvent.event_id,
+          rsvp_link: subEventFormData.rsvp_link || undefined,
+        });
+        
+        // Upload image if selected
+        if (subEventImage) {
+          setUploadingSubEventImage(true);
+          try {
+            await subEventsAPI.uploadImage(newSubEvent.sub_event_id, subEventImage);
+            toast.success('Sub-event image uploaded successfully');
+          } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Failed to upload image');
+          } finally {
+            setUploadingSubEventImage(false);
+          }
+        }
+        
+        toast.success('Sub-event created successfully');
+      }
+      
+      fetchAllSubEvents();
+      setShowSubEventForm(false);
+      resetSubEventForm();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to save sub-event');
+    }
+  };
+
+  const resetSubEventForm = () => {
+    setSubEventFormData({
+      sub_event_name: '',
+      sub_event_start_dt: '',
+      sub_event_end_dt: '',
+      event_description: '',
+      location: '',
+      is_active: true,
+      rsvp_link: '',
+    });
+    setEditingSubEvent(null);
+    setSelectedEventForSubEvent(null);
+    setSubEventImage(null);
   };
 
   const resetForm = () => {
@@ -556,23 +724,20 @@ export default function AdminEvents() {
             <table className="w-full min-w-[800px] md:min-w-0">
             <thead className="bg-gray-50">
               <tr>
-                <th className="w-[25%] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-[20%] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Event Name
                 </th>
-                <th className="w-[12%] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-[10%] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Start Date
                 </th>
-                <th className="w-[12%] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-[10%] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   End Date
                 </th>
-                <th className="w-[8%] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Year
-                </th>
-                <th className="w-[18%] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-[15%] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Location
                 </th>
-                <th className="w-[10%] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                <th className="w-[20%] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Sub Events
                 </th>
                 <th className="w-[15%] px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -582,101 +747,316 @@ export default function AdminEvents() {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredEvents.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                     {selectedYear 
                       ? `No events found for ${selectedYear}. Click "Add Event" to create a new event.`
                       : 'No events found. Click "Add Event" to create your first event.'}
                   </td>
                 </tr>
               ) : (
-                filteredEvents.map((event) => (
-                  <tr key={event.event_id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 align-top">
-                      <div className="flex items-center gap-2">
-                        <div className="text-sm font-bold text-red-900 break-words">{event.event_name}</div>
-                        {event.is_priority && (
-                          <Star 
-                            className="w-5 h-5 text-yellow-500 fill-yellow-500 flex-shrink-0" 
-                          />
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-500 break-words mt-1">
-                        {event.event_description}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-500 align-top">
-                      {formatDate(event.event_start_dt)}
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-500 align-top">
-                      {formatDate(event.event_end_dt)}
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-500 align-top">
-                      {event.year}
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-500 align-top break-words">
-                      {(event as any).location || '-'}
-                    </td>
-                    <td className="px-4 py-4 align-top">
-                      <span
-                        className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
-                          event.is_active
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {event.is_active ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-right text-sm font-medium align-top">
-                      <div className="flex items-center justify-end space-x-2 flex-wrap gap-2">
-                        <button
-                          onClick={() => handleNavigateToGallery(event.event_id)}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="View Gallery"
-                        >
-                          <ImageIcon className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleEdit(event)}
-                          className="text-primary-600 hover:text-primary-900"
-                          title="Edit"
-                        >
-                          <Edit className="w-5 h-5" />
-                        </button>
-                        {event.is_active ? (
+                filteredEvents.map((event) => {
+                  const eventSubEvents = subEvents[event.event_id] || [];
+                  return (
+                    <tr 
+                      key={event.event_id} 
+                      className={`hover:bg-gray-50 ${event.is_active ? 'bg-green-50' : ''}`}
+                    >
+                      <td className="px-4 py-4 align-top">
+                        <div className="flex items-center gap-2">
+                          <div className="text-sm font-bold text-red-900 break-words">{event.event_name}</div>
+                          {event.is_priority && (
+                            <Star 
+                              className="w-5 h-5 text-yellow-500 fill-yellow-500 flex-shrink-0" 
+                            />
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-500 break-words mt-1">
+                          {event.event_description}
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          Year: {event.year}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500 align-top">
+                        {formatDate(event.event_start_dt)}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500 align-top">
+                        {formatDate(event.event_end_dt)}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500 align-top break-words">
+                        {(event as any).location || '-'}
+                      </td>
+                      <td className="px-4 py-4 align-top">
+                        <div className="flex flex-col gap-2">
+                          {eventSubEvents.map((subEvent) => (
+                            <div
+                              key={subEvent.sub_event_id}
+                              onClick={() => handleEditSubEvent(subEvent, event)}
+                              className="bg-blue-50 border border-blue-200 rounded-lg p-2 cursor-pointer hover:bg-blue-100 transition-colors"
+                            >
+                              <div className="text-xs font-semibold text-blue-900">{subEvent.sub_event_name}</div>
+                              <div className="text-xs text-blue-700 mt-1">
+                                {formatDate(subEvent.sub_event_start_dt)} - {formatDate(subEvent.sub_event_end_dt)}
+                              </div>
+                            </div>
+                          ))}
                           <button
-                            onClick={() => handleDeactivate(event.event_id)}
-                            className="text-yellow-600 hover:text-yellow-900"
-                            title="Deactivate"
+                            onClick={() => handleCreateSubEvent(event)}
+                            className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 mt-1"
                           >
-                            <EyeOff className="w-5 h-5" />
+                            <Plus className="w-3 h-3" />
+                            Add Sub Event
                           </button>
-                        ) : (
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-right text-sm font-medium align-top">
+                        <div className="flex items-center justify-end space-x-2 flex-wrap gap-2">
                           <button
-                            onClick={() => handleActivate(event.event_id)}
-                            className="text-green-600 hover:text-green-900"
-                            title="Activate"
+                            onClick={() => handleNavigateToGallery(event.event_id)}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="View Gallery"
                           >
-                            <Eye className="w-5 h-5" />
+                            <ImageIcon className="w-5 h-5" />
                           </button>
-                        )}
-                        <button
-                          onClick={() => handleDelete(event.event_id)}
-                          className="text-red-600 hover:text-red-900"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                          <button
+                            onClick={() => handleEdit(event)}
+                            className="text-primary-600 hover:text-primary-900"
+                            title="Edit"
+                          >
+                            <Edit className="w-5 h-5" />
+                          </button>
+                          {event.is_active ? (
+                            <button
+                              onClick={() => handleDeactivate(event.event_id)}
+                              className="text-yellow-600 hover:text-yellow-900"
+                              title="Deactivate"
+                            >
+                              <EyeOff className="w-5 h-5" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleActivate(event.event_id)}
+                              className="text-green-600 hover:text-green-900"
+                              title="Activate"
+                            >
+                              <Eye className="w-5 h-5" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDelete(event.event_id)}
+                            className="text-red-600 hover:text-red-900"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
           </div>
         </div>
       </div>
+
+      {/* Sub-Event Form Modal */}
+      <AnimatePresence>
+        {showSubEventForm && selectedEventForSubEvent && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            >
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">
+                  {editingSubEvent ? 'Edit Sub-Event' : 'Create Sub-Event'}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowSubEventForm(false);
+                    resetSubEventForm();
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubEventSubmit} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Sub-Event Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={subEventFormData.sub_event_name}
+                    onChange={(e) => setSubEventFormData({ ...subEventFormData, sub_event_name: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Enter sub-event name"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Start Date *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      min={selectedEventForSubEvent.event_start_dt.split('T')[0]}
+                      max={selectedEventForSubEvent.event_end_dt.split('T')[0]}
+                      value={subEventFormData.sub_event_start_dt}
+                      onChange={(e) => setSubEventFormData({ ...subEventFormData, sub_event_start_dt: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      End Date *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      min={subEventFormData.sub_event_start_dt || selectedEventForSubEvent.event_start_dt.split('T')[0]}
+                      max={selectedEventForSubEvent.event_end_dt.split('T')[0]}
+                      value={subEventFormData.sub_event_end_dt}
+                      onChange={(e) => setSubEventFormData({ ...subEventFormData, sub_event_end_dt: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description *
+                  </label>
+                  <textarea
+                    required
+                    rows={4}
+                    value={subEventFormData.event_description}
+                    onChange={(e) => setSubEventFormData({ ...subEventFormData, event_description: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Enter sub-event description"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Location *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={subEventFormData.location}
+                    onChange={(e) => setSubEventFormData({ ...subEventFormData, location: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Enter location"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    RSVP Link (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={subEventFormData.rsvp_link}
+                    onChange={(e) => setSubEventFormData({ ...subEventFormData, rsvp_link: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="https://example.com/rsvp"
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="sub_event_is_active"
+                    checked={subEventFormData.is_active}
+                    onChange={(e) => setSubEventFormData({ ...subEventFormData, is_active: e.target.checked })}
+                    className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                  />
+                  <label htmlFor="sub_event_is_active" className="text-sm font-medium text-gray-700">
+                    Active
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Sub-Event Image (Optional)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.size > 20 * 1024 * 1024) {
+                          toast.error('Image size must be less than 20MB');
+                          return;
+                        }
+                        setSubEventImage(file);
+                      }
+                    }}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                  {subEventImage && (
+                    <div className="mt-3">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Selected Image:</p>
+                      <img
+                        src={URL.createObjectURL(subEventImage)}
+                        alt="Selected image preview"
+                        className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end space-x-4 pt-4">
+                  {editingSubEvent && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (window.confirm('Are you sure you want to delete this sub-event?')) {
+                          await handleDeleteSubEvent(editingSubEvent.sub_event_id);
+                          setShowSubEventForm(false);
+                          resetSubEventForm();
+                        }
+                      }}
+                      className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowSubEventForm(false);
+                      resetSubEventForm();
+                    }}
+                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={uploadingSubEventImage}
+                    className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {uploadingSubEventImage ? 'Uploading...' : editingSubEvent ? 'Update Sub-Event' : 'Create Sub-Event'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

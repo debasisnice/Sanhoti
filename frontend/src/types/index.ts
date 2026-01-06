@@ -57,6 +57,22 @@ export interface Event {
   createdBy?: string;
 }
 
+export interface SubEvent {
+  sub_event_id: string;
+  sub_event_name: string;
+  sub_event_start_dt: string;
+  sub_event_end_dt: string;
+  year: number;
+  event_description: string;
+  location: string;
+  is_active: boolean;
+  event_id: string;
+  created_at: string;
+  updated_at: string;
+  event_image_path?: string;
+  rsvp_link?: string;
+}
+
 export interface RSVP {
   id: string;
   eventId: string;
