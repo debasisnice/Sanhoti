@@ -161,6 +161,19 @@ export interface Document {
   createdBy: string;
 }
 
+export interface AuditLog {
+  id: string;
+  userId: string;
+  userEmail: string;
+  action: string;
+  resource: string;
+  resourceId?: string;
+  details?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  timestamp: string;
+}
+
 export interface Expense {
   id: string;
   eventId?: string;

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AuthResponse, Event, RSVP, Notice, PhotoGallery, Magazine, Document, SubEvent } from '../types';
+import { AuthResponse, Event, RSVP, Notice, PhotoGallery, Magazine, Document, SubEvent, AuditLog } from '../types';
 
 // Use relative path in production (when served by Nginx), absolute URL in development
 const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5001/api');

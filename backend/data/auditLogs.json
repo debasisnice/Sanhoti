@@ -2393,5 +2393,16 @@
     "userEmail": "",
     "id": "1767737533956-gwa7d6mef",
     "timestamp": "2026-01-06T22:12:13.956Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":true,\"documents\":true}}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767737800927-snyon7xb6",
+    "timestamp": "2026-01-06T22:16:40.927Z"
   }
 ]
