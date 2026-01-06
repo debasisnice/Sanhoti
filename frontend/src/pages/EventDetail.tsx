@@ -305,10 +305,10 @@ export default function EventDetail() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl shadow-xl overflow-hidden border-4 border-blue-400"
+                    className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl shadow-2xl overflow-hidden border-4 border-yellow-400"
                   >
                     {subEventImage && (
-                      <div className="h-48 bg-gradient-to-br from-blue-400 to-blue-600 relative overflow-hidden flex items-center justify-center">
+                      <div className="h-48 bg-gradient-to-br from-primary-400 to-primary-600 relative overflow-hidden flex items-center justify-center">
                         <img
                           src={subEventImage}
                           alt={subEvent.sub_event_name}
@@ -323,7 +323,7 @@ export default function EventDetail() {
                       <h3 className="text-xl font-bold text-gray-900 mb-3">{subEvent.sub_event_name}</h3>
                       <div className="space-y-2 mb-3">
                         <div className="flex items-center text-gray-700">
-                          <Calendar className="w-4 h-4 mr-2 text-blue-600" />
+                          <Calendar className="w-4 h-4 mr-2 text-primary-600" />
                           <div>
                             <p className="text-xs text-gray-500">Start Date</p>
                             <p className="font-semibold text-sm">{format(convertPSTToLocal(subEvent.sub_event_start_dt), 'MMMM dd, yyyy')}</p>
@@ -331,7 +331,7 @@ export default function EventDetail() {
                         </div>
                         {subEvent.sub_event_end_dt && (
                           <div className="flex items-center text-gray-700">
-                            <Calendar className="w-4 h-4 mr-2 text-blue-600" />
+                            <Calendar className="w-4 h-4 mr-2 text-primary-600" />
                             <div>
                               <p className="text-xs text-gray-500">End Date</p>
                               <p className="font-semibold text-sm">{format(convertPSTToLocal(subEvent.sub_event_end_dt), 'MMMM dd, yyyy')}</p>
@@ -340,7 +340,7 @@ export default function EventDetail() {
                         )}
                         {subEvent.location && (
                           <div className="flex items-center text-gray-700">
-                            <MapPin className="w-4 h-4 mr-2 text-blue-600" />
+                            <MapPin className="w-4 h-4 mr-2 text-primary-600" />
                             <div>
                               <p className="text-xs text-gray-500">Location</p>
                               <p className="font-semibold text-sm">{subEvent.location}</p>
@@ -361,7 +361,7 @@ export default function EventDetail() {
                             href={subEvent.rsvp_link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
+                            className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-700 transition-colors text-sm"
                           >
                             RSVP for This Sub-Event
                           </a>
