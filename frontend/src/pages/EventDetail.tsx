@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, ArrowLeft, Bell, Image as ImageIcon, ArrowRight } from 'lucide-react';
-import { eventsAPI, noticesAPI, galleriesAPI } from '../services/api';
-import { Event, Notice, PhotoGallery } from '../types';
+import { eventsAPI, noticesAPI, galleriesAPI, subEventsAPI } from '../services/api';
+import { Event, Notice, PhotoGallery, SubEvent } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal } from '../utils/dateUtils';
 import { QRCodeSVG } from 'qrcode.react';
@@ -13,6 +13,8 @@ export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
   const [event, setEvent] = useState<Event | null>(null);
   const [eventImage, setEventImage] = useState<string | null>(null);
+  const [subEvents, setSubEvents] = useState<SubEvent[]>([]);
+  const [subEventImages, setSubEventImages] = useState<Record<string, string>>({});
   const [relatedNotices, setRelatedNotices] = useState<Notice[]>([]);
   const [relatedGalleries, setRelatedGalleries] = useState<PhotoGallery[]>([]);
   const [noticeImages, setNoticeImages] = useState<Record<string, Array<{ filename: string; url: string }>>>({});
@@ -35,6 +37,44 @@ export default function EventDetail() {
               }
             } catch (error) {
               // Silently fail if no images are found - image is optional
+            }
+          }
+          
+          // Fetch sub-events for this event
+          if (fetchedEvent.event_id) {
+            try {
+              const fetchedSubEvents = await subEventsAPI.getByEventId(fetchedEvent.event_id);
+              // Sort by start date descending
+              const sortedSubEvents = fetchedSubEvents.sort((a, b) => {
+                const dateA = new Date(a.sub_event_start_dt).getTime();
+                const dateB = new Date(b.sub_event_start_dt).getTime();
+                return dateB - dateA; // Descending order (newest first)
+              });
+              setSubEvents(sortedSubEvents);
+              
+              // Fetch images for sub-events
+              const imagesMap: Record<string, string> = {};
+              for (const subEvent of sortedSubEvents) {
+                if (subEvent.event_image_path) {
+                  try {
+                    const images = await subEventsAPI.getImages(subEvent.sub_event_id);
+                    if (images.length > 0) {
+                      // Get the first image filename from the path
+                      const imagePath = images[0];
+                      const filename = imagePath.split('/').pop() || '';
+                      if (filename) {
+                        imagesMap[subEvent.sub_event_id] = subEventsAPI.getImageUrl(subEvent.sub_event_id, filename);
+                      }
+                    }
+                  } catch (error) {
+                    // Silently fail if no images found
+                  }
+                }
+              }
+              setSubEventImages(imagesMap);
+            } catch (error) {
+              // Silently fail if sub-events can't be loaded
+              setSubEvents([]);
             }
           }
           
@@ -124,11 +164,14 @@ export default function EventDetail() {
           Back to Events
         </Link>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl shadow-2xl overflow-hidden border-4 border-yellow-400"
-        >
+        {/* Main Event and Sub-Events Container */}
+        <div className={`grid ${subEvents.length > 0 ? 'grid-cols-1 md:grid-cols-3 gap-6' : 'grid-cols-1'}`}>
+          {/* Main Event Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl shadow-2xl overflow-hidden border-4 border-yellow-400 ${subEvents.length > 0 ? 'md:col-span-2' : ''}`}
+          >
           {(() => {
             const eventId = event.event_id || event.id || '';
             const eventName = event.event_name || event.title || 'Untitled Event';
@@ -247,7 +290,89 @@ export default function EventDetail() {
               </>
             );
           })()}
-        </motion.div>
+          </motion.div>
+
+          {/* Sub-Events Cards (Desktop: Right side, Mobile: Below) */}
+          {subEvents.length > 0 && (
+            <div className="space-y-4 md:col-span-1">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 md:hidden">Sub Events</h2>
+              {subEvents.map((subEvent, index) => {
+                const subEventImage = subEventImages[subEvent.sub_event_id];
+                return (
+                  <motion.div
+                    key={subEvent.sub_event_id}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl shadow-xl overflow-hidden border-4 border-blue-400"
+                  >
+                    {subEventImage && (
+                      <div className="h-48 bg-gradient-to-br from-blue-400 to-blue-600 relative overflow-hidden flex items-center justify-center">
+                        <img
+                          src={subEventImage}
+                          alt={subEvent.sub_event_name}
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div className="p-6">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-4">{subEvent.sub_event_name}</h3>
+                      <div className="space-y-3 mb-4">
+                        <div className="flex items-center text-gray-700">
+                          <Calendar className="w-5 h-5 mr-3 text-blue-600" />
+                          <div>
+                            <p className="text-sm text-gray-500">Start Date</p>
+                            <p className="font-semibold">{format(convertPSTToLocal(subEvent.sub_event_start_dt), 'MMMM dd, yyyy')}</p>
+                          </div>
+                        </div>
+                        {subEvent.sub_event_end_dt && (
+                          <div className="flex items-center text-gray-700">
+                            <Calendar className="w-5 h-5 mr-3 text-blue-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">End Date</p>
+                              <p className="font-semibold">{format(convertPSTToLocal(subEvent.sub_event_end_dt), 'MMMM dd, yyyy')}</p>
+                            </div>
+                          </div>
+                        )}
+                        {subEvent.location && (
+                          <div className="flex items-center text-gray-700">
+                            <MapPin className="w-5 h-5 mr-3 text-blue-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">Location</p>
+                              <p className="font-semibold">{subEvent.location}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      {subEvent.event_description && (
+                        <div className="prose max-w-none mb-4">
+                          <p className="text-gray-700 leading-relaxed whitespace-pre-line text-sm">
+                            {subEvent.event_description}
+                          </p>
+                        </div>
+                      )}
+                      {subEvent.rsvp_link && (
+                        <div className="mt-4">
+                          <a
+                            href={subEvent.rsvp_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
+                          >
+                            RSVP for This Sub-Event
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* Related Notices */}
         {relatedNotices.length > 0 && (
