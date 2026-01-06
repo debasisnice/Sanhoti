@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { FileText, Calendar, User, Activity, Search } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FileText, Calendar, User, Activity, Search, Eye, X } from 'lucide-react';
 import { auditAPI, usersAPI } from '../../services/api';
 import { AuditLog, User as UserType } from '../../types';
 import toast from 'react-hot-toast';
@@ -15,6 +15,7 @@ export default function AdminAuditLogs() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAction, setFilterAction] = useState<string>('');
   const [filterResource, setFilterResource] = useState<string>('');
+  const [selectedLogDetails, setSelectedLogDetails] = useState<AuditLog | null>(null);
 
   useEffect(() => {
     fetchAuditLogs();
