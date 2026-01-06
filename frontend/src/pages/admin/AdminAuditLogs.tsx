@@ -23,10 +23,18 @@ export default function AdminAuditLogs() {
 
   useEffect(() => {
     // Create a map of userId to user name
+    // Note: The audit log userId matches the user.id (which is transformed from user_id)
     const nameMap: Record<string, string> = {};
     users.forEach(user => {
       const fullName = `${user.firstName} ${user.lastName}`.trim();
-      nameMap[user.id] = fullName || user.email;
+      // Map both id and userId (in case of any inconsistencies)
+      if (user.id) {
+        nameMap[user.id] = fullName || user.email;
+      }
+      // Also check if there's a userId property
+      if ((user as any).userId) {
+        nameMap[(user as any).userId] = fullName || user.email;
+      }
     });
     setUserNameMap(nameMap);
   }, [users]);
