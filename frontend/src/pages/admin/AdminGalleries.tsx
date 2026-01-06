@@ -447,8 +447,6 @@ export default function AdminGalleries() {
     };
   }, [showPhotoViewer, viewingPhotos.length]);
 
-  const [hasUserSelectedYear, setHasUserSelectedYear] = useState(false);
-
   useEffect(() => {
     // Set selected year to current year or most recent year with folders
     // Only auto-select on initial load, not when user explicitly selects "All Years"
