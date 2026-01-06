@@ -307,18 +307,31 @@ export default function EventDetail() {
                     transition={{ delay: index * 0.1 }}
                     className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl shadow-2xl overflow-hidden border-4 border-yellow-400"
                   >
-                    {subEventImage && (
-                      <div className="h-48 bg-gradient-to-br from-primary-400 to-primary-600 relative overflow-hidden flex items-center justify-center">
-                        <img
-                          src={subEventImage}
-                          alt={subEvent.sub_event_name}
-                          className="w-full h-full object-contain"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    )}
+                    <div className="h-48 bg-gradient-to-br from-primary-400 to-primary-600 relative overflow-hidden flex items-center justify-center gap-4 p-4">
+                      {subEventImage && (
+                        <div className="flex-1 h-full flex items-center justify-center">
+                          <img
+                            src={subEventImage}
+                            alt={subEvent.sub_event_name}
+                            className="max-w-full max-h-full object-contain"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+                      {subEvent.rsvp_link && (
+                        <div className="flex flex-col items-center justify-center bg-white p-3 rounded-lg">
+                          <QRCodeSVG 
+                            value={subEvent.rsvp_link} 
+                            size={120}
+                            level="M"
+                            includeMargin={true}
+                          />
+                          <p className="text-xs text-gray-600 mt-1 text-center">Scan to RSVP</p>
+                        </div>
+                      )}
+                    </div>
                     <div className="p-6">
                       <h3 className="text-xl font-bold text-gray-900 mb-3">{subEvent.sub_event_name}</h3>
                       <div className="space-y-2 mb-3">
