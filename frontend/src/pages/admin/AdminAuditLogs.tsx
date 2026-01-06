@@ -180,7 +180,7 @@ export default function AdminAuditLogs() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {filteredLogs.slice(0, 20).map((log) => (
+                  {filteredLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-gray-50 transition-colors">
                     <td className="py-2 px-4">
                       <div className="flex items-center gap-1.5">
@@ -249,7 +249,7 @@ export default function AdminAuditLogs() {
           </div>
           <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
             <p className="text-sm text-gray-600">
-              Showing {Math.min(filteredLogs.length, 20)} of {filteredLogs.length} filtered audit logs (Total: {auditLogs.length})
+              Showing {filteredLogs.length} of {auditLogs.length} audit logs (Scroll to view more)
             </p>
           </div>
         </div>
