@@ -40,13 +40,17 @@ export default function AdminAuditLogs() {
 
   // Filter logs
   const filteredLogs = auditLogs.filter(log => {
+    const detailsString = log.details 
+      ? (typeof log.details === 'string' ? log.details : JSON.stringify(log.details))
+      : '';
+    
     const matchesSearch = 
       !searchTerm ||
       log.userEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.resource.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (log.resourceId && log.resourceId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (log.details && log.details.toLowerCase().includes(searchTerm.toLowerCase()));
+      detailsString.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesAction = !filterAction || log.action === filterAction;
     const matchesResource = !filterResource || log.resource === filterResource;
