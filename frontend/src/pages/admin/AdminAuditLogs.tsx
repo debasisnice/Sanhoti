@@ -234,33 +234,64 @@ export default function AdminAuditLogs() {
                       </div>
                     </td>
                     <td className="py-2 px-4">
-                      <span className="text-xs text-gray-600 font-mono">
-                        {(() => {
-                          // First try to use resourceId if available
-                          if (log.resourceId) {
-                            return log.resourceId;
-                          }
-                          // Otherwise, try to extract from details.path (e.g., "/events/AMSNCDMJ3QRW")
-                          if (log.details) {
-                            try {
-                              const details = typeof log.details === 'string' 
-                                ? JSON.parse(log.details) 
-                                : log.details;
-                              if (details?.path) {
-                                // Extract ID from path like "/events/AMSNCDMJ3QRW" or "/events/AMSNCDMJ3QRW/activate"
-                                const pathParts = details.path.split('/').filter(Boolean);
-                                // Resource ID is typically the second part (after resource name)
-                                if (pathParts.length >= 2) {
-                                  return pathParts[1];
-                                }
+                      {(() => {
+                        // Helper function to capitalize resource name
+                        const capitalizeResource = (resource: string) => {
+                          if (!resource) return '';
+                          // Handle special cases
+                          const resourceMap: Record<string, string> = {
+                            'event': 'Event',
+                            'notice': 'Notice',
+                            'user': 'User',
+                            'gallery': 'Gallery',
+                            'magazine': 'Magazine',
+                            'document': 'Document',
+                            'subevent': 'Sub-Event',
+                            'sub-event': 'Sub-Event',
+                            'message': 'Message',
+                            'sponsor': 'Sponsor',
+                            'settings': 'Settings',
+                            'rsvp': 'RSVP',
+                          };
+                          return resourceMap[resource.toLowerCase()] || resource.charAt(0).toUpperCase() + resource.slice(1);
+                        };
+
+                        // Extract resource ID
+                        let resourceId: string | null = null;
+                        
+                        // First try to use resourceId if available
+                        if (log.resourceId) {
+                          resourceId = log.resourceId;
+                        } else if (log.details) {
+                          // Otherwise, try to extract from details.path
+                          try {
+                            const details = typeof log.details === 'string' 
+                              ? JSON.parse(log.details) 
+                              : log.details;
+                            if (details?.path) {
+                              // Extract ID from path like "/events/AMSNCDMJ3QRW" or "/events/AMSNCDMJ3QRW/activate"
+                              const pathParts = details.path.split('/').filter(Boolean);
+                              // Resource ID is typically the second part (after resource name)
+                              if (pathParts.length >= 2) {
+                                resourceId = pathParts[1];
                               }
-                            } catch (e) {
-                              // Ignore parsing errors
                             }
+                          } catch (e) {
+                            // Ignore parsing errors
                           }
-                          return '-';
-                        })()}
-                      </span>
+                        }
+
+                        if (resourceId) {
+                          const resourceName = capitalizeResource(log.resource || '');
+                          return (
+                            <div className="flex flex-col">
+                              <span className="text-xs text-gray-500">{resourceName}</span>
+                              <span className="text-xs text-gray-600 font-mono">{resourceId}</span>
+                            </div>
+                          );
+                        }
+                        return <span className="text-xs text-gray-600 font-mono">-</span>;
+                      })()}
                     </td>
                     <td className="py-2 px-4">
                       <span className="text-xs text-gray-600 font-mono">
