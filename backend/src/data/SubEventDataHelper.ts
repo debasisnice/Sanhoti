@@ -66,15 +66,19 @@ export class SubEventDataHelper extends DatabaseHelper {
     };
 
     // Create sub-event folder inside parent event folder
+    // Always create parent event folder if it doesn't exist
     const parentEventFolder = join(this.eventsFlyersDir, `event-${subEvent.event_id}`);
-    if (existsSync(parentEventFolder)) {
-      const subEventFolderName = `${this.sanitizeFolderName(subEvent.sub_event_name)}-${sub_event_id}`;
-      const subEventFolderPath = join(parentEventFolder, subEventFolderName);
-      if (!existsSync(subEventFolderPath)) {
-        mkdirSync(subEventFolderPath, { recursive: true });
-      }
-      newSubEvent.event_image_path = subEventFolderName;
+    if (!existsSync(parentEventFolder)) {
+      mkdirSync(parentEventFolder, { recursive: true });
     }
+    
+    // Create sub-event folder
+    const subEventFolderName = `${this.sanitizeFolderName(subEvent.sub_event_name)}-${sub_event_id}`;
+    const subEventFolderPath = join(parentEventFolder, subEventFolderName);
+    if (!existsSync(subEventFolderPath)) {
+      mkdirSync(subEventFolderPath, { recursive: true });
+    }
+    newSubEvent.event_image_path = subEventFolderName;
 
     subEvents.push(newSubEvent);
     this.writeFile(this.filename, subEvents);

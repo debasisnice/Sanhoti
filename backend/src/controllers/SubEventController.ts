@@ -165,19 +165,43 @@ export class SubEventController {
       }
 
       const subEvent = await this.subEventService.getSubEventById(id);
-      if (!subEvent || !subEvent.event_image_path) {
+      if (!subEvent) {
         // Clean up temp file
         if (req.file.path && existsSync(req.file.path)) {
           unlinkSync(req.file.path);
         }
-        res.status(404).json({ error: 'Sub-event not found or folder not created' });
+        res.status(404).json({ error: 'Sub-event not found' });
         return;
       }
 
-      // Move file from temp to sub-event folder
+      // Ensure parent event folder exists
       const parentEventFolder = join(eventsFlyersDir, `event-${subEvent.event_id}`);
-      const subEventFolderPath = join(parentEventFolder, subEvent.event_image_path);
+      if (!existsSync(parentEventFolder)) {
+        mkdirSync(parentEventFolder, { recursive: true });
+      }
+
+      // If event_image_path is not set, create it now
+      let subEventFolderPath: string;
+      if (!subEvent.event_image_path) {
+        // Generate folder name from sub-event name and ID
+        const sanitizeFolderName = (name: string): string => {
+          return name
+            .replace(/[<>:"/\\|?*]/g, '-')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '')
+            .trim();
+        };
+        const subEventFolderName = `${sanitizeFolderName(subEvent.sub_event_name)}-${subEvent.sub_event_id}`;
+        subEventFolderPath = join(parentEventFolder, subEventFolderName);
+        
+        // Update sub-event with folder path
+        await this.subEventService.updateSubEvent(id, { event_image_path: subEventFolderName } as any);
+      } else {
+        subEventFolderPath = join(parentEventFolder, subEvent.event_image_path);
+      }
       
+      // Ensure sub-event folder exists
       if (!existsSync(subEventFolderPath)) {
         mkdirSync(subEventFolderPath, { recursive: true });
       }
