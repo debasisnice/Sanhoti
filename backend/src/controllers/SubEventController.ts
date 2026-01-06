@@ -266,7 +266,18 @@ export class SubEventController {
         return;
       }
 
-      const parentEventFolder = join(eventsFlyersDir, `event-${subEvent.event_id}`);
+      // Get parent event to find its folder name
+      const { EventDataHelper } = await import('../data/EventDataHelper.js');
+      const eventDataHelper = new EventDataHelper();
+      const parentEvent = await eventDataHelper.findById(subEvent.event_id);
+      
+      if (!parentEvent) {
+        res.status(404).json({ error: 'Parent event not found' });
+        return;
+      }
+
+      const parentEventFolderName = parentEvent.event_image_path || `${parentEvent.event_name.replace(/[<>:"/\\|?*]/g, '-').replace(/\s+/g, '-')}-${parentEvent.event_id}`;
+      const parentEventFolder = join(eventsFlyersDir, parentEventFolderName);
       const subEventFolderPath = join(parentEventFolder, subEvent.event_image_path);
       const imagePath = join(subEventFolderPath, filename);
 
