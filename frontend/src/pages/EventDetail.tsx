@@ -44,12 +44,14 @@ export default function EventDetail() {
           if (fetchedEvent.event_id) {
             try {
               const fetchedSubEvents = await subEventsAPI.getByEventId(fetchedEvent.event_id);
+              console.log('Fetched sub-events:', fetchedSubEvents);
               // Sort by start date descending
               const sortedSubEvents = fetchedSubEvents.sort((a, b) => {
                 const dateA = new Date(a.sub_event_start_dt).getTime();
                 const dateB = new Date(b.sub_event_start_dt).getTime();
                 return dateB - dateA; // Descending order (newest first)
               });
+              console.log('Sorted sub-events:', sortedSubEvents);
               setSubEvents(sortedSubEvents);
               
               // Fetch images for sub-events
@@ -70,8 +72,9 @@ export default function EventDetail() {
                 }
               }
               setSubEventImages(imagesMap);
-            } catch (error) {
-              // Silently fail if sub-events can't be loaded
+            } catch (error: any) {
+              // Log error for debugging
+              console.error('Error fetching sub-events:', error);
               setSubEvents([]);
             }
           }
