@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FileText, Calendar, User, Activity, Search } from 'lucide-react';
-import { auditAPI } from '../../services/api';
-import { AuditLog } from '../../types';
+import { auditAPI, usersAPI } from '../../services/api';
+import { AuditLog, User as UserType } from '../../types';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { convertPSTToLocal } from '../../utils/dateUtils';
 
 export default function AdminAuditLogs() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [users, setUsers] = useState<UserType[]>([]);
+  const [userNameMap, setUserNameMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAction, setFilterAction] = useState<string>('');
@@ -16,7 +18,27 @@ export default function AdminAuditLogs() {
 
   useEffect(() => {
     fetchAuditLogs();
+    fetchUsers();
   }, []);
+
+  useEffect(() => {
+    // Create a map of userId to user name
+    const nameMap: Record<string, string> = {};
+    users.forEach(user => {
+      const fullName = `${user.firstName} ${user.lastName}`.trim();
+      nameMap[user.id] = fullName || user.email;
+    });
+    setUserNameMap(nameMap);
+  }, [users]);
+
+  const fetchUsers = async () => {
+    try {
+      const userList = await usersAPI.getAll();
+      setUsers(userList);
+    } catch (error: any) {
+      console.error('Failed to fetch users:', error);
+    }
+  };
 
   const fetchAuditLogs = async () => {
     try {
@@ -162,8 +184,10 @@ export default function AdminAuditLogs() {
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4 text-gray-400" />
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{log.userEmail}</p>
-                          <p className="text-xs text-gray-500">{log.userId}</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {userNameMap[log.userId] || log.userEmail || log.userId}
+                          </p>
+                          <p className="text-xs text-gray-500">{log.userEmail}</p>
                         </div>
                       </div>
                     </td>
