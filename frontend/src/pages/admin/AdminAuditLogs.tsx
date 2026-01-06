@@ -71,25 +71,35 @@ export default function AdminAuditLogs() {
   };
 
   // Get unique actions and resources for filters
-  const uniqueActions = [...new Set(auditLogs.map(log => log.action))].sort();
-  const uniqueResources = [...new Set(auditLogs.map(log => log.resource))].sort();
+  const uniqueActions = [...new Set(auditLogs.map(log => log?.action).filter(Boolean))].sort();
+  const uniqueResources = [...new Set(auditLogs.map(log => log?.resource).filter(Boolean))].sort();
 
   // Filter logs
   const filteredLogs = auditLogs.filter(log => {
+    // Defensive checks: ensure log has required properties
+    if (!log) return false;
+    
     const detailsString = log.details 
       ? (typeof log.details === 'string' ? log.details : JSON.stringify(log.details))
       : '';
     
+    // Safely access string properties with fallbacks
+    const userEmail = (log.userEmail || '').toLowerCase();
+    const action = (log.action || '').toLowerCase();
+    const resource = (log.resource || '').toLowerCase();
+    const resourceId = (log.resourceId || '').toLowerCase();
+    const searchLower = (searchTerm || '').toLowerCase();
+    
     const matchesSearch = 
       !searchTerm ||
-      log.userEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.resource.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (log.resourceId && log.resourceId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      detailsString.toLowerCase().includes(searchTerm.toLowerCase());
+      userEmail.includes(searchLower) ||
+      action.includes(searchLower) ||
+      resource.includes(searchLower) ||
+      (log.resourceId && resourceId.includes(searchLower)) ||
+      detailsString.toLowerCase().includes(searchLower);
     
-    const matchesAction = !filterAction || log.action === filterAction;
-    const matchesResource = !filterResource || log.resource === filterResource;
+    const matchesAction = !filterAction || (log.action || '') === filterAction;
+    const matchesResource = !filterResource || (log.resource || '') === filterResource;
 
     return matchesSearch && matchesAction && matchesResource;
   });
