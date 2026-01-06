@@ -547,8 +547,8 @@ export const settingsAPI = {
     const response = await api.put('/settings/zelle-phone', { phoneNumber });
     return response.data;
   },
-  updateSocialLinks: async (facebookLink: string, whatsappLink: string): Promise<any> => {
-    const response = await api.put('/settings/social-links', { facebookLink, whatsappLink });
+  updateSocialLinks: async (facebookLink: string, whatsappLink: string, instagramLink: string): Promise<any> => {
+    const response = await api.put('/settings/social-links', { facebookLink, whatsappLink, instagramLink });
     return response.data;
   },
   updateEmailSettings: async (emailAddress: string, emailPassword: string): Promise<any> => {

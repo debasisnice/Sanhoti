@@ -53,7 +53,7 @@ export class SettingsController {
 
   async updateSocialLinks(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const { facebookLink, whatsappLink } = req.body;
+      const { facebookLink, whatsappLink, instagramLink } = req.body;
       
       if (facebookLink !== undefined && typeof facebookLink !== 'string') {
         res.status(400).json({ error: 'Invalid Facebook link' });
@@ -64,8 +64,13 @@ export class SettingsController {
         res.status(400).json({ error: 'Invalid WhatsApp link' });
         return;
       }
+      
+      if (instagramLink !== undefined && typeof instagramLink !== 'string') {
+        res.status(400).json({ error: 'Invalid Instagram link' });
+        return;
+      }
 
-      const settings = await this.settingsService.updateSocialLinks(facebookLink, whatsappLink);
+      const settings = await this.settingsService.updateSocialLinks(facebookLink, whatsappLink, instagramLink);
       res.json(settings);
     } catch (error: any) {
       console.error('Error updating social links:', error);

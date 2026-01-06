@@ -89,6 +89,7 @@ export default function AdminSettings() {
   const [selectedPaymentQRFile, setSelectedPaymentQRFile] = useState<File | null>(null);
   const [facebookLink, setFacebookLink] = useState<string>('');
   const [whatsappLink, setWhatsappLink] = useState<string>('');
+  const [instagramLink, setInstagramLink] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -122,6 +123,10 @@ export default function AdminSettings() {
     try {
       const data = await settingsAPI.getSettings();
       setSettings(data);
+      // Load social media links
+      if (data.facebookLink) setFacebookLink(data.facebookLink);
+      if (data.whatsappLink) setWhatsappLink(data.whatsappLink);
+      if (data.instagramLink) setInstagramLink(data.instagramLink);
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to fetch settings');
     } finally {
@@ -1204,11 +1209,23 @@ export default function AdminSettings() {
                       className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
                     />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Instagram Link
+                    </label>
+                    <input
+                      type="url"
+                      value={instagramLink}
+                      onChange={(e) => setInstagramLink(e.target.value)}
+                      placeholder="https://www.instagram.com/..."
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
                   <button
                     onClick={async () => {
                       try {
                         setSaving(true);
-                        await settingsAPI.updateSocialLinks(facebookLink, whatsappLink);
+                        await settingsAPI.updateSocialLinks(facebookLink, whatsappLink, instagramLink);
                         toast.success('Social links updated successfully');
                         await fetchSettings();
                       } catch (error: any) {

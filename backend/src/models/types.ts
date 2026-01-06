@@ -204,6 +204,7 @@ export interface Settings {
   zellePhoneNumber?: string;
   facebookLink?: string;
   whatsappLink?: string;
+  instagramLink?: string;
   emailAddress?: string;
   emailPassword?: string;
   updated_at: string;

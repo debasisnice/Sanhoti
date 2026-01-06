@@ -25,8 +25,8 @@ export class SettingsService {
     return this.settingsDataHelper.updateZellePhoneNumber(phoneNumber);
   }
 
-  async updateSocialLinks(facebookLink?: string, whatsappLink?: string): Promise<Settings> {
-    return this.settingsDataHelper.updateSocialLinks(facebookLink, whatsappLink);
+  async updateSocialLinks(facebookLink?: string, whatsappLink?: string, instagramLink?: string): Promise<Settings> {
+    return this.settingsDataHelper.updateSocialLinks(facebookLink, whatsappLink, instagramLink);
   }
 
   async updateEmailSettings(emailAddress?: string, emailPassword?: string): Promise<Settings> {

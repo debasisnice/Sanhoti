@@ -66,7 +66,7 @@ export class SettingsDataHelper extends DatabaseHelper {
     return updated;
   }
 
-  async updateSocialLinks(facebookLink?: string, whatsappLink?: string): Promise<Settings> {
+  async updateSocialLinks(facebookLink?: string, whatsappLink?: string, instagramLink?: string): Promise<Settings> {
     let current = await this.get();
     if (!current) {
       current = this.getDefaultSettings();
@@ -76,6 +76,7 @@ export class SettingsDataHelper extends DatabaseHelper {
       ...current,
       facebookLink: facebookLink !== undefined ? facebookLink : current.facebookLink,
       whatsappLink: whatsappLink !== undefined ? whatsappLink : current.whatsappLink,
+      instagramLink: instagramLink !== undefined ? instagramLink : current.instagramLink,
       updated_at: new Date().toISOString(),
     };
 
