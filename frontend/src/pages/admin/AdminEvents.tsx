@@ -44,6 +44,7 @@ export default function AdminEvents() {
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [hasUserSelectedYear, setHasUserSelectedYear] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [eventImages, setEventImages] = useState<Record<string, EventImage[]>>({});
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -72,8 +73,6 @@ export default function AdminEvents() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const [hasUserSelectedYear, setHasUserSelectedYear] = useState(false);
 
   useEffect(() => {
     // Set selected year to current year or most recent year with events

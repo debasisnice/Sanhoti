@@ -303,6 +303,7 @@ export default function AdminGalleries() {
   const [folders, setFolders] = useState<GalleryFolder[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [hasUserSelectedYear, setHasUserSelectedYear] = useState(false);
   const [photos, setPhotos] = useState<Record<string, Photo[]>>({});
   const [loadingPhotos, setLoadingPhotos] = useState<Record<string, boolean>>({});
   const [photoBlobUrls, setPhotoBlobUrls] = useState<Record<string, string>>({});
