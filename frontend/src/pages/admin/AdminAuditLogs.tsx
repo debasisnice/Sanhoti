@@ -166,20 +166,21 @@ export default function AdminAuditLogs() {
       ) : (
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1000px]">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700">Timestamp</th>
-                  <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700">User</th>
-                  <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700">Action</th>
-                  <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700">Resource</th>
-                  <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700">Resource ID</th>
-                  <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700">IP Address</th>
-                  <th className="text-center py-2 px-4 text-xs font-semibold text-gray-700">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredLogs.map((log) => (
+            <div className="relative max-h-[600px] overflow-y-auto">
+              <table className="w-full min-w-[1000px]">
+                <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+                  <tr>
+                    <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700 bg-gray-50">Timestamp</th>
+                    <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700 bg-gray-50">User</th>
+                    <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700 bg-gray-50">Action</th>
+                    <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700 bg-gray-50">Resource</th>
+                    <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700 bg-gray-50">Resource ID</th>
+                    <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700 bg-gray-50">IP Address</th>
+                    <th className="text-center py-2 px-4 text-xs font-semibold text-gray-700 bg-gray-50">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredLogs.slice(0, 20).map((log) => (
                   <tr key={log.id} className="hover:bg-gray-50 transition-colors">
                     <td className="py-2 px-4">
                       <div className="flex items-center gap-1.5">
@@ -241,13 +242,14 @@ export default function AdminAuditLogs() {
                       </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
           <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
             <p className="text-sm text-gray-600">
-              Showing {filteredLogs.length} of {auditLogs.length} audit logs
+              Showing {Math.min(filteredLogs.length, 20)} of {filteredLogs.length} filtered audit logs (Total: {auditLogs.length})
             </p>
           </div>
         </div>
