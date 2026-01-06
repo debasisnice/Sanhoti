@@ -16,6 +16,7 @@ import Notices from './pages/Notices';
 import Galleries from './pages/Galleries';
 import GalleryDetail from './pages/GalleryDetail';
 import Magazines from './pages/Magazines';
+import Documents from './pages/Documents';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -49,6 +50,7 @@ function App() {
           <Route path="/galleries" element={<Galleries />} />
           <Route path="/galleries/:id" element={<GalleryDetail />} />
           <Route path="/magazines" element={<Magazines />} />
+          <Route path="/documents" element={<Documents />} />
           <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
           <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" />} />
           <Route
