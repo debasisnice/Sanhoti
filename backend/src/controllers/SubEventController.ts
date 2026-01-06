@@ -174,8 +174,23 @@ export class SubEventController {
         return;
       }
 
-      // Ensure parent event folder exists
-      const parentEventFolder = join(eventsFlyersDir, `event-${subEvent.event_id}`);
+      // Get parent event to find its folder name
+      const { EventDataHelper } = await import('../data/EventDataHelper.js');
+      const eventDataHelper = new EventDataHelper();
+      const parentEvent = await eventDataHelper.findById(subEvent.event_id);
+      
+      if (!parentEvent) {
+        // Clean up temp file
+        if (req.file.path && existsSync(req.file.path)) {
+          unlinkSync(req.file.path);
+        }
+        res.status(404).json({ error: 'Parent event not found' });
+        return;
+      }
+
+      // Use parent event's event_image_path as folder name
+      const parentEventFolderName = parentEvent.event_image_path || `${parentEvent.event_name.replace(/[<>:"/\\|?*]/g, '-').replace(/\s+/g, '-')}-${parentEvent.event_id}`;
+      const parentEventFolder = join(eventsFlyersDir, parentEventFolderName);
       if (!existsSync(parentEventFolder)) {
         mkdirSync(parentEventFolder, { recursive: true });
       }

@@ -1,5 +1,6 @@
 import { DatabaseHelper } from './DatabaseHelper.js';
 import { SubEvent } from '../models/types.js';
+import { EventDataHelper } from './EventDataHelper.js';
 import { existsSync, mkdirSync, readdirSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
@@ -8,12 +9,14 @@ import { dirname } from 'path';
 export class SubEventDataHelper extends DatabaseHelper {
   private readonly filename = 'subEvents.json';
   private eventsFlyersDir: string;
+  private eventDataHelper: EventDataHelper;
 
   constructor() {
     super();
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
     this.eventsFlyersDir = join(__dirname, '../../data/Events_Flyers');
+    this.eventDataHelper = new EventDataHelper();
     this.ensureEventsFlyersDir();
   }
 
@@ -65,9 +68,25 @@ export class SubEventDataHelper extends DatabaseHelper {
       updated_at: new Date().toISOString(),
     };
 
+    // Get parent event to find its folder name
+    const parentEvent = await this.eventDataHelper.findById(subEvent.event_id);
+    if (!parentEvent) {
+      throw new Error('Parent event not found');
+    }
+
+    // Use parent event's event_image_path as folder name, or create it if it doesn't exist
+    let parentEventFolderName: string;
+    if (parentEvent.event_image_path) {
+      parentEventFolderName = parentEvent.event_image_path;
+    } else {
+      // Create folder name using same pattern as EventDataHelper
+      parentEventFolderName = `${this.sanitizeFolderName(parentEvent.event_name)}-${parentEvent.event_id}`;
+      // Update parent event with event_image_path
+      await this.eventDataHelper.update(subEvent.event_id, { event_image_path: parentEventFolderName });
+    }
+
     // Create sub-event folder inside parent event folder
-    // Always create parent event folder if it doesn't exist
-    const parentEventFolder = join(this.eventsFlyersDir, `event-${subEvent.event_id}`);
+    const parentEventFolder = join(this.eventsFlyersDir, parentEventFolderName);
     if (!existsSync(parentEventFolder)) {
       mkdirSync(parentEventFolder, { recursive: true });
     }
@@ -101,18 +120,23 @@ export class SubEventDataHelper extends DatabaseHelper {
 
     // If sub_event_name changed, update folder name
     if (updates.sub_event_name && updates.sub_event_name !== subEvents[index].sub_event_name) {
-      const parentEventFolder = join(this.eventsFlyersDir, `event-${subEvents[index].event_id}`);
-      const oldFolderName = subEvents[index].event_image_path;
-      if (oldFolderName && existsSync(join(parentEventFolder, oldFolderName))) {
-        const newFolderName = `${this.sanitizeFolderName(updates.sub_event_name)}-${id}`;
-        const oldPath = join(parentEventFolder, oldFolderName);
-        const newPath = join(parentEventFolder, newFolderName);
-        try {
-          const { renameSync } = await import('fs');
-          renameSync(oldPath, newPath);
-          updatedSubEvent.event_image_path = newFolderName;
-        } catch (error) {
-          // If rename fails, keep old folder name
+      // Get parent event to find its folder name
+      const parentEvent = await this.eventDataHelper.findById(subEvents[index].event_id);
+      if (parentEvent) {
+        const parentEventFolderName = parentEvent.event_image_path || `${this.sanitizeFolderName(parentEvent.event_name)}-${parentEvent.event_id}`;
+        const parentEventFolder = join(this.eventsFlyersDir, parentEventFolderName);
+        const oldFolderName = subEvents[index].event_image_path;
+        if (oldFolderName && existsSync(join(parentEventFolder, oldFolderName))) {
+          const newFolderName = `${this.sanitizeFolderName(updates.sub_event_name)}-${id}`;
+          const oldPath = join(parentEventFolder, oldFolderName);
+          const newPath = join(parentEventFolder, newFolderName);
+          try {
+            const { renameSync } = await import('fs');
+            renameSync(oldPath, newPath);
+            updatedSubEvent.event_image_path = newFolderName;
+          } catch (error) {
+            // If rename fails, keep old folder name
+          }
         }
       }
     }
@@ -134,14 +158,19 @@ export class SubEventDataHelper extends DatabaseHelper {
     
     // Delete sub-event folder and its contents
     if (subEvent.event_image_path) {
-      const parentEventFolder = join(this.eventsFlyersDir, `event-${subEvent.event_id}`);
-      const subEventFolderPath = join(parentEventFolder, subEvent.event_image_path);
-      if (existsSync(subEventFolderPath)) {
-        try {
-          const { rmSync } = await import('fs');
-          rmSync(subEventFolderPath, { recursive: true, force: true });
-        } catch (error) {
-          // Continue even if folder deletion fails
+      // Get parent event to find its folder name
+      const parentEvent = await this.eventDataHelper.findById(subEvent.event_id);
+      if (parentEvent) {
+        const parentEventFolderName = parentEvent.event_image_path || `${this.sanitizeFolderName(parentEvent.event_name)}-${parentEvent.event_id}`;
+        const parentEventFolder = join(this.eventsFlyersDir, parentEventFolderName);
+        const subEventFolderPath = join(parentEventFolder, subEvent.event_image_path);
+        if (existsSync(subEventFolderPath)) {
+          try {
+            const { rmSync } = await import('fs');
+            rmSync(subEventFolderPath, { recursive: true, force: true });
+          } catch (error) {
+            // Continue even if folder deletion fails
+          }
         }
       }
     }
@@ -151,10 +180,14 @@ export class SubEventDataHelper extends DatabaseHelper {
     return true;
   }
 
-  getSubEventImagePath(subEvent: SubEvent): string | null {
+  async getSubEventImagePath(subEvent: SubEvent): Promise<string | null> {
     if (subEvent && subEvent.event_image_path) {
-      const parentEventFolder = join(this.eventsFlyersDir, `event-${subEvent.event_id}`);
-      return join(parentEventFolder, subEvent.event_image_path);
+      const parentEvent = await this.eventDataHelper.findById(subEvent.event_id);
+      if (parentEvent) {
+        const parentEventFolderName = parentEvent.event_image_path || `${this.sanitizeFolderName(parentEvent.event_name)}-${parentEvent.event_id}`;
+        const parentEventFolder = join(this.eventsFlyersDir, parentEventFolderName);
+        return join(parentEventFolder, subEvent.event_image_path);
+      }
     }
     return null;
   }
@@ -165,7 +198,13 @@ export class SubEventDataHelper extends DatabaseHelper {
       return [];
     }
 
-    const parentEventFolder = join(this.eventsFlyersDir, `event-${subEvent.event_id}`);
+    const parentEvent = await this.eventDataHelper.findById(subEvent.event_id);
+    if (!parentEvent) {
+      return [];
+    }
+
+    const parentEventFolderName = parentEvent.event_image_path || `${this.sanitizeFolderName(parentEvent.event_name)}-${parentEvent.event_id}`;
+    const parentEventFolder = join(this.eventsFlyersDir, parentEventFolderName);
     const subEventFolderPath = join(parentEventFolder, subEvent.event_image_path);
     
     if (!existsSync(subEventFolderPath)) {
@@ -188,7 +227,13 @@ export class SubEventDataHelper extends DatabaseHelper {
       return false;
     }
 
-    const parentEventFolder = join(this.eventsFlyersDir, `event-${subEvent.event_id}`);
+    const parentEvent = await this.eventDataHelper.findById(subEvent.event_id);
+    if (!parentEvent) {
+      return false;
+    }
+
+    const parentEventFolderName = parentEvent.event_image_path || `${this.sanitizeFolderName(parentEvent.event_name)}-${parentEvent.event_id}`;
+    const parentEventFolder = join(this.eventsFlyersDir, parentEventFolderName);
     const subEventFolderPath = join(parentEventFolder, subEvent.event_image_path);
     const imagePath = join(subEventFolderPath, filename);
     
