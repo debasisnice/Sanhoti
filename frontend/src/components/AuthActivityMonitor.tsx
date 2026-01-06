@@ -9,30 +9,34 @@ const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
 export default function AuthActivityMonitor() {
   const { isAuthenticated, logout, lastActivityTime, updateActivityTime } = useAuthStore();
   const navigate = useNavigate();
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const checkIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastActivityTimeRef = useRef<number | null>(null);
+
+  // Sync ref with store value
+  useEffect(() => {
+    lastActivityTimeRef.current = lastActivityTime;
+  }, [lastActivityTime]);
 
   useEffect(() => {
     if (!isAuthenticated) {
       // Clear any existing timers if user is not authenticated
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
       if (checkIntervalRef.current) {
         clearInterval(checkIntervalRef.current);
         checkIntervalRef.current = null;
       }
+      lastActivityTimeRef.current = null;
       return;
     }
 
     // Update activity time on initial mount if authenticated
     updateActivityTime();
+    lastActivityTimeRef.current = Date.now();
 
     // Activity event handlers
     const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
     const handleActivity = () => {
       updateActivityTime();
+      lastActivityTimeRef.current = Date.now();
     };
 
     // Add event listeners for user activity
@@ -42,10 +46,18 @@ export default function AuthActivityMonitor() {
 
     // Function to check inactivity and logout
     const checkInactivity = () => {
-      if (!isAuthenticated || !lastActivityTime) return;
+      if (!isAuthenticated) return;
+
+      const currentLastActivity = lastActivityTimeRef.current;
+      if (!currentLastActivity) {
+        // No activity time recorded, set it now
+        updateActivityTime();
+        lastActivityTimeRef.current = Date.now();
+        return;
+      }
 
       const now = Date.now();
-      const timeSinceLastActivity = now - lastActivityTime;
+      const timeSinceLastActivity = now - currentLastActivity;
 
       if (timeSinceLastActivity >= INACTIVITY_TIMEOUT) {
         // User has been inactive for 30 minutes, logout
@@ -74,9 +86,7 @@ export default function AuthActivityMonitor() {
     // Handle visibility change (tab switch, minimize, etc.)
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // Tab is hidden, but don't logout yet - wait for inactivity timeout
-        // Just update the activity time to current time
-        updateActivityTime();
+        // Tab is hidden - activity time is already tracked, no action needed
       } else {
         // Tab is visible again, check if we should logout
         checkInactivity();
@@ -91,16 +101,13 @@ export default function AuthActivityMonitor() {
       activityEvents.forEach(event => {
         document.removeEventListener(event, handleActivity);
       });
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
       if (checkIntervalRef.current) {
         clearInterval(checkIntervalRef.current);
       }
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isAuthenticated, lastActivityTime, logout, navigate, updateActivityTime]);
+  }, [isAuthenticated, logout, navigate, updateActivityTime]);
 
   return null; // This component doesn't render anything
 }
