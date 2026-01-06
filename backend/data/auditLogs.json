@@ -2359,5 +2359,28 @@
     "userEmail": "",
     "id": "1767733253107-l9l3xqa2b",
     "timestamp": "2026-01-06T21:00:53.107Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "CREATE",
+    "resource": "sub-event",
+    "details": "{\"method\":\"POST\",\"path\":\"/sub-events\",\"body\":{\"sub_event_name\":\"Test\",\"sub_event_start_dt\":\"2025-09-26\",\"sub_event_end_dt\":\"2025-09-28\",\"year\":2025,\"event_description\":\"test\",\"location\":\"test\",\"is_active\":true,\"event_id\":\"YHO7NY9I7CRU\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767736251187-fe8s4cc96",
+    "timestamp": "2026-01-06T21:50:51.187Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "sub-event",
+    "resourceId": "M0X449GH1WOR",
+    "details": "{\"method\":\"PUT\",\"path\":\"/sub-events/M0X449GH1WOR\",\"body\":{\"sub_event_name\":\"Mahalakshmi Iyer Concert\",\"sub_event_start_dt\":\"2025-09-28\",\"sub_event_end_dt\":\"2025-09-28\",\"event_description\":\"A Magical evening with the Melody Queen\",\"location\":\"Robert B. Moore Theater, Orange Costa College, Arlington Dr, Costa Mesa, CA, 92626\",\"is_active\":true,\"rsvp_link\":\"https://forms.gle/3pbCr8pFFAZiGWbA6\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767736458284-u8hkyqlsz",
+    "timestamp": "2026-01-06T21:54:18.284Z"
   }
 ]

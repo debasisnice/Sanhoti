@@ -1,7 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Calendar, Bell, Image, BookOpen, Mail, Settings, MessageSquare, Users, ClipboardList, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Calendar, Bell, Image, BookOpen, Mail, Settings, MessageSquare, Users, ClipboardList, Menu, X, FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { eventsAPI, rsvpAPI, noticesAPI } from '../../services/api';
 import { Event, RSVP } from '../../types';
@@ -12,6 +12,7 @@ import AdminNotices from './AdminNotices';
 import AdminRSVP from './AdminRSVP';
 import AdminSettings from './AdminSettings';
 import AdminMagazines from './AdminMagazines';
+import AdminDocuments from './AdminDocuments';
 import AdminEmail from './AdminEmail';
 
 export default function AdminDashboard() {
@@ -23,6 +24,7 @@ export default function AdminDashboard() {
     { icon: Bell, label: 'Notices', path: '/admin/notices' },
     { icon: Image, label: 'Galleries', path: '/admin/galleries' },
     { icon: BookOpen, label: 'Magazines', path: '/admin/magazines' },
+    { icon: FileText, label: 'Documents', path: '/admin/documents' },
     { icon: MessageSquare, label: 'Messages', path: '/admin/messages' },
     { icon: ClipboardList, label: 'RSVP', path: '/admin/rsvps' },
     { icon: Mail, label: 'Email', path: '/admin/email' },
@@ -92,6 +94,7 @@ export default function AdminDashboard() {
             <Route path="/notices" element={<AdminNotices />} />
             <Route path="/galleries" element={<AdminGalleries />} />
             <Route path="/magazines" element={<AdminMagazines />} />
+            <Route path="/documents" element={<AdminDocuments />} />
             <Route path="/messages" element={<AdminMessages />} />
             <Route path="/rsvps" element={<AdminRSVP />} />
             <Route path="/email" element={<AdminEmail />} />

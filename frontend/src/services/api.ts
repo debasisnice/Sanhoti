@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AuthResponse, Event, RSVP, Notice, PhotoGallery, Magazine, SubEvent } from '../types';
+import { AuthResponse, Event, RSVP, Notice, PhotoGallery, Magazine, Document, SubEvent } from '../types';
 
 // Use relative path in production (when served by Nginx), absolute URL in development
 const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5001/api');
@@ -554,6 +554,45 @@ export const magazinesAPI = {
 
   getFileUrl: (filename: string): string => {
     return `${API_BASE_URL}/magazines/files/${encodeURIComponent(filename)}`;
+  },
+};
+
+export const documentsAPI = {
+  getPublic: async (): Promise<Document[]> => {
+    const response = await api.get('/documents/public');
+    return response.data;
+  },
+
+  getByAccessCode: async (code: string): Promise<Document> => {
+    const response = await api.get(`/documents/access-code/${code}`);
+    return response.data;
+  },
+
+  getAll: async (): Promise<Document[]> => {
+    const response = await api.get('/documents');
+    return response.data;
+  },
+
+  uploadDocument: async (file: File, title: string, description?: string, isPublic?: boolean): Promise<Document> => {
+    const formData = new FormData();
+    formData.append('document', file);
+    formData.append('title', title);
+    if (description) formData.append('description', description);
+    if (isPublic !== undefined) formData.append('isPublic', String(isPublic));
+    const response = await api.post('/documents/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  deleteDocument: async (id: string): Promise<void> => {
+    await api.delete(`/documents/${id}`);
+  },
+
+  getFileUrl: (filename: string): string => {
+    return `${API_BASE_URL}/documents/files/${encodeURIComponent(filename)}`;
   },
 };
 

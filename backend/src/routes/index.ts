@@ -10,6 +10,7 @@ import { RSVPController } from '../controllers/RSVPController.js';
 import { NoticeController } from '../controllers/NoticeController.js';
 import { GalleryController } from '../controllers/GalleryController.js';
 import { MagazineController } from '../controllers/MagazineController.js';
+import { DocumentController } from '../controllers/DocumentController.js';
 import { ExpenseController } from '../controllers/ExpenseController.js';
 import { EmailController } from '../controllers/EmailController.js';
 import { AuditController } from '../controllers/AuditController.js';
@@ -31,6 +32,7 @@ const rsvpController = new RSVPController();
 const noticeController = new NoticeController();
 const galleryController = new GalleryController();
 const magazineController = new MagazineController();
+const documentController = new DocumentController();
 const expenseController = new ExpenseController();
 const emailController = new EmailController();
 const auditController = new AuditController();
@@ -334,6 +336,10 @@ router.delete('/galleries/:id',
 router.get('/magazines', requireMember, bindController(magazineController, 'getAllMagazines'));
 router.get('/magazines/:id', requireMember, bindController(magazineController, 'getMagazineById'));
 
+// Documents - Member routes
+router.get('/documents', requireMember, bindController(documentController, 'getAllDocuments'));
+router.get('/documents/:id', requireMember, bindController(documentController, 'getDocumentById'));
+
 // Magazines - Admin routes
 router.get('/magazines/files',
   requireAdmin,
@@ -359,6 +365,37 @@ router.delete('/magazines/:id',
   requireAdmin,
   auditLog('DELETE', 'magazine'),
   bindController(magazineController, 'deleteMagazineWithFile')
+);
+
+// Documents - Admin routes
+router.get('/documents/files',
+  requireAdmin,
+  bindController(documentController, 'getDocumentFiles')
+);
+
+router.post('/documents/upload',
+  requireAdmin,
+  auditLog('UPLOAD', 'document'),
+  documentController.uploadDocument(),
+  bindController(documentController, 'handleDocumentUpload')
+);
+
+router.post('/documents',
+  requireAdmin,
+  auditLog('CREATE', 'document'),
+  bindController(documentController, 'createDocument')
+);
+
+router.put('/documents/:id',
+  requireAdmin,
+  auditLog('UPDATE', 'document'),
+  bindController(documentController, 'updateDocument')
+);
+
+router.delete('/documents/:id',
+  requireAdmin,
+  auditLog('DELETE', 'document'),
+  bindController(documentController, 'deleteDocumentWithFile')
 );
 
 // Expenses - Admin routes

@@ -138,6 +138,20 @@ export interface Magazine {
   createdBy: string;
 }
 
+export interface Document {
+  id: string;
+  title: string;
+  description?: string;
+  fileUrl: string;
+  coverImageUrl?: string;
+  isPublic: boolean;
+  specialAccessCode?: string;
+  publishDate: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+}
+
 export interface Expense {
   id: string;
   eventId?: string;
