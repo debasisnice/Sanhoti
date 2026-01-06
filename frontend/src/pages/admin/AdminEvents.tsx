@@ -73,14 +73,18 @@ export default function AdminEvents() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const [hasUserSelectedYear, setHasUserSelectedYear] = useState(false);
+
   useEffect(() => {
     // Set selected year to current year or most recent year with events
-    if (events.length > 0 && selectedYear === null) {
+    // Only auto-select on initial load, not when user explicitly selects "All Years"
+    if (events.length > 0 && selectedYear === null && !hasUserSelectedYear) {
       const years = [...new Set(events.map(e => e.year))].sort((a, b) => b - a);
       const currentYear = new Date().getFullYear();
       setSelectedYear(years.includes(currentYear) ? currentYear : years[0]);
+      setHasUserSelectedYear(true); // Mark that we've done initial selection
     }
-  }, [events, selectedYear]);
+  }, [events, selectedYear, hasUserSelectedYear]);
 
   const fetchEvents = async () => {
     try {
@@ -286,7 +290,10 @@ export default function AdminEvents() {
           <div className="flex items-center space-x-2 flex-wrap gap-2">
             <span className="text-sm font-medium text-gray-700 mr-2">Filter by Year:</span>
             <button
-              onClick={() => setSelectedYear(null)}
+              onClick={() => {
+                setSelectedYear(null);
+                setHasUserSelectedYear(true);
+              }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedYear === null
                   ? 'bg-primary-600 text-white'
@@ -298,7 +305,10 @@ export default function AdminEvents() {
             {availableYears.map((year) => (
               <button
                 key={year}
-                onClick={() => setSelectedYear(year)}
+                onClick={() => {
+                  setSelectedYear(year);
+                  setHasUserSelectedYear(true);
+                }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   selectedYear === year
                     ? 'bg-primary-600 text-white'
