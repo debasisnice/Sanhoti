@@ -169,39 +169,39 @@ export default function AdminAuditLogs() {
             <table className="w-full min-w-[1000px]">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Timestamp</th>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">User</th>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Action</th>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Resource</th>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Resource ID</th>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">IP Address</th>
-                  <th className="text-center py-3 px-6 text-sm font-semibold text-gray-700">Actions</th>
+                  <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700">Timestamp</th>
+                  <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700">User</th>
+                  <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700">Action</th>
+                  <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700">Resource</th>
+                  <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700">Resource ID</th>
+                  <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700">IP Address</th>
+                  <th className="text-center py-2 px-4 text-xs font-semibold text-gray-700">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {filteredLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-900">
+                    <td className="py-2 px-4">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                        <span className="text-xs text-gray-900">
                           {format(convertPSTToLocal(log.timestamp), 'MMM dd, yyyy HH:mm:ss')}
                         </span>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-gray-400" />
+                    <td className="py-2 px-4">
+                      <div className="flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5 text-gray-400" />
                         <div>
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-xs font-medium text-gray-900 leading-tight">
                             {userNameMap[log.userId] || log.userEmail || log.userId}
                           </p>
-                          <p className="text-xs text-gray-500">{log.userEmail}</p>
+                          <p className="text-xs text-gray-500 leading-tight">{log.userEmail}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
-                      <span className={`px-2 py-1 text-xs font-medium rounded ${
+                    <td className="py-2 px-4">
+                      <span className={`px-1.5 py-0.5 text-xs font-medium rounded ${
                         log.action === 'CREATE' ? 'bg-green-100 text-green-800' :
                         log.action === 'UPDATE' ? 'bg-blue-100 text-blue-800' :
                         log.action === 'DELETE' ? 'bg-red-100 text-red-800' :
@@ -211,30 +211,30 @@ export default function AdminAuditLogs() {
                         {log.action}
                       </span>
                     </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <Activity className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-900">{log.resource}</span>
+                    <td className="py-2 px-4">
+                      <div className="flex items-center gap-1.5">
+                        <Activity className="w-3.5 h-3.5 text-gray-400" />
+                        <span className="text-xs text-gray-900">{log.resource}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
-                      <span className="text-sm text-gray-600 font-mono">
+                    <td className="py-2 px-4">
+                      <span className="text-xs text-gray-600 font-mono">
                         {log.resourceId || '-'}
                       </span>
                     </td>
-                    <td className="py-4 px-6">
-                      <span className="text-sm text-gray-600 font-mono">
+                    <td className="py-2 px-4">
+                      <span className="text-xs text-gray-600 font-mono">
                         {log.ipAddress || '-'}
                       </span>
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="py-2 px-4">
                       <div className="flex items-center justify-center">
                         {log.details && (
                           <button
                             onClick={() => setSelectedLogDetails(log)}
-                            className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium flex items-center gap-1"
+                            className="px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors text-xs font-medium flex items-center gap-1"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="w-3.5 h-3.5" />
                             View Details
                           </button>
                         )}
