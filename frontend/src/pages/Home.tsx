@@ -18,6 +18,20 @@ export default function Home() {
   const [facebookLink, setFacebookLink] = useState<string>('https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr');
   const [whatsappLink, setWhatsappLink] = useState<string>('https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH');
 
+  // Share functions
+  const shareToFacebook = (eventId: string, eventName: string) => {
+    const url = `${window.location.origin}/events/${eventId}`;
+    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+  };
+
+  const shareToWhatsApp = (eventId: string, eventName: string) => {
+    const url = `${window.location.origin}/events/${eventId}`;
+    const text = `Check out this event: ${eventName}\n${url}`;
+    const shareUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(shareUrl, '_blank');
+  };
+
   // Function to detect image orientation
   const detectImageOrientation = (imageUrl: string): Promise<'portrait' | 'landscape'> => {
     return new Promise((resolve) => {
