@@ -26,8 +26,20 @@ export class EmailController {
         return;
       }
 
-      await this.emailService.sendBulkEmail(emails, subject, html);
-      res.json({ message: `Emails sent successfully to ${emails.length} recipient(s)` });
+      // Get the email address from settings to use as "To" field
+      const { SettingsDataHelper } = await import('../data/SettingsDataHelper.js');
+      const settingsDataHelper = new SettingsDataHelper();
+      const settings = await settingsDataHelper.get();
+      const toEmail = settings?.emailAddress || process.env.EMAIL_USER;
+
+      if (!toEmail) {
+        res.status(400).json({ error: 'Email address not configured in settings' });
+        return;
+      }
+
+      // Send one email with all members in BCC and settings email in To
+      await this.emailService.sendEmailWithBCC(toEmail, emails, subject, html);
+      res.json({ message: `Email sent successfully to ${emails.length} recipient(s) via BCC` });
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to send emails';
       res.status(500).json({ error: errorMessage, details: error.message });

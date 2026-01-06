@@ -42,7 +42,7 @@ export class EmailService {
     await this.initializeTransporter();
   }
 
-  async sendEmail(to: string, subject: string, html: string): Promise<void> {
+  async sendEmail(to: string, subject: string, html: string, bcc?: string[]): Promise<void> {
     if (!this.transporter) {
       await this.initializeTransporter();
     }
@@ -59,12 +59,18 @@ export class EmailService {
         throw new Error('Email address not configured');
       }
 
-      await this.transporter.sendMail({
+      const mailOptions: any = {
         from: emailAddress,
         to,
         subject,
         html,
-      });
+      };
+
+      if (bcc && bcc.length > 0) {
+        mailOptions.bcc = bcc;
+      }
+
+      await this.transporter.sendMail(mailOptions);
     } catch (error: any) {
       console.error('Email sending failed:', error);
       
@@ -80,6 +86,10 @@ export class EmailService {
   async sendBulkEmail(recipients: string[], subject: string, html: string): Promise<void> {
     const promises = recipients.map(email => this.sendEmail(email, subject, html));
     await Promise.all(promises);
+  }
+
+  async sendEmailWithBCC(to: string, bcc: string[], subject: string, html: string): Promise<void> {
+    await this.sendEmail(to, subject, html, bcc);
   }
 
   async sendToAllMembers(subject: string, html: string): Promise<void> {
