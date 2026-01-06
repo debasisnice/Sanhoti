@@ -246,7 +246,9 @@ export default function EventDetail() {
                   {/* Only show RSVP option for upcoming events */}
                   {(() => {
                     const now = new Date();
-                    const eventEndDate = event.event_end_dt ? new Date(event.event_end_dt) : new Date(eventDate);
+                    const eventEndDate = event.event_end_dt 
+                      ? convertPSTToLocal(event.event_end_dt) 
+                      : convertPSTToLocal(eventDate);
                     const isPastEvent = eventEndDate < now;
                     const rsvpLink = (event as any).rsvp_link;
                     
@@ -320,17 +322,25 @@ export default function EventDetail() {
                           />
                         </div>
                       )}
-                      {subEvent.rsvp_link && (
-                        <div className="flex flex-col items-center justify-center bg-white p-3 rounded-lg">
-                          <QRCodeSVG 
-                            value={subEvent.rsvp_link} 
-                            size={120}
-                            level="M"
-                            includeMargin={true}
-                          />
-                          <p className="text-xs text-gray-600 mt-1 text-center">Scan to RSVP</p>
-                        </div>
-                      )}
+                      {(() => {
+                        const now = new Date();
+                        const subEventEndDate = subEvent.sub_event_end_dt 
+                          ? convertPSTToLocal(subEvent.sub_event_end_dt) 
+                          : convertPSTToLocal(subEvent.sub_event_start_dt);
+                        const isPastSubEvent = subEventEndDate < now;
+                        
+                        return subEvent.rsvp_link && !isPastSubEvent ? (
+                          <div className="flex flex-col items-center justify-center bg-white p-3 rounded-lg">
+                            <QRCodeSVG 
+                              value={subEvent.rsvp_link} 
+                              size={120}
+                              level="M"
+                              includeMargin={true}
+                            />
+                            <p className="text-xs text-gray-600 mt-1 text-center">Scan to RSVP</p>
+                          </div>
+                        ) : null;
+                      })()}
                     </div>
                     <div className="p-6">
                       <h3 className="text-xl font-bold text-gray-900 mb-3">{subEvent.sub_event_name}</h3>
@@ -370,18 +380,26 @@ export default function EventDetail() {
                           </p>
                         </div>
                       )}
-                      {subEvent.rsvp_link && (
-                        <div className="mt-4">
-                          <a
-                            href={subEvent.rsvp_link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-700 transition-colors text-sm"
-                          >
-                            RSVP for This Sub-Event
-                          </a>
-                        </div>
-                      )}
+                      {(() => {
+                        const now = new Date();
+                        const subEventEndDate = subEvent.sub_event_end_dt 
+                          ? convertPSTToLocal(subEvent.sub_event_end_dt) 
+                          : convertPSTToLocal(subEvent.sub_event_start_dt);
+                        const isPastSubEvent = subEventEndDate < now;
+                        
+                        return subEvent.rsvp_link && !isPastSubEvent ? (
+                          <div className="mt-4">
+                            <a
+                              href={subEvent.rsvp_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-700 transition-colors text-sm"
+                            >
+                              RSVP for This Sub-Event
+                            </a>
+                          </div>
+                        ) : null;
+                      })()}
                     </div>
                   </motion.div>
                 );
