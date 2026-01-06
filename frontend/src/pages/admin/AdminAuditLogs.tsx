@@ -235,7 +235,31 @@ export default function AdminAuditLogs() {
                     </td>
                     <td className="py-2 px-4">
                       <span className="text-xs text-gray-600 font-mono">
-                        {log.resourceId || '-'}
+                        {(() => {
+                          // First try to use resourceId if available
+                          if (log.resourceId) {
+                            return log.resourceId;
+                          }
+                          // Otherwise, try to extract from details.path (e.g., "/events/AMSNCDMJ3QRW")
+                          if (log.details) {
+                            try {
+                              const details = typeof log.details === 'string' 
+                                ? JSON.parse(log.details) 
+                                : log.details;
+                              if (details?.path) {
+                                // Extract ID from path like "/events/AMSNCDMJ3QRW" or "/events/AMSNCDMJ3QRW/activate"
+                                const pathParts = details.path.split('/').filter(Boolean);
+                                // Resource ID is typically the second part (after resource name)
+                                if (pathParts.length >= 2) {
+                                  return pathParts[1];
+                                }
+                              }
+                            } catch (e) {
+                              // Ignore parsing errors
+                            }
+                          }
+                          return '-';
+                        })()}
                       </span>
                     </td>
                     <td className="py-2 px-4">
