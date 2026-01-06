@@ -53,8 +53,13 @@ export default function AdminAuditLogs() {
     try {
       setLoading(true);
       const logs = await auditAPI.getAll();
+      // Normalize timestamp field (handle both 'timestamp' and 'createdAt' for backward compatibility)
+      const normalizedLogs = logs.map(log => ({
+        ...log,
+        timestamp: log.timestamp || (log as any).createdAt || new Date().toISOString()
+      }));
       // Sort by timestamp descending (newest first)
-      const sortedLogs = logs.sort((a, b) => 
+      const sortedLogs = normalizedLogs.sort((a, b) => 
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
       setAuditLogs(sortedLogs);

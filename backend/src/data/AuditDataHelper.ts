@@ -5,7 +5,16 @@ export class AuditDataHelper extends DatabaseHelper {
   private readonly filename = 'auditLogs.json';
 
   async findAll(): Promise<AuditLog[]> {
-    return this.readFile<AuditLog>(this.filename);
+    const logs = this.readFile<any>(this.filename);
+    // Normalize createdAt to timestamp for backward compatibility
+    const normalizedLogs = logs.map((log: any) => ({
+      ...log,
+      timestamp: log.timestamp || log.createdAt || new Date().toISOString()
+    })) as AuditLog[];
+    // Sort by timestamp descending (newest first)
+    return normalizedLogs.sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
   }
 
   async findById(id: string): Promise<AuditLog | null> {
