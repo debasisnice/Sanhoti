@@ -177,17 +177,17 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
       // Desktop: Flip left page to reveal previous pages
       setFlipDirection('right');
       setIsFlipping(true);
-      setTimeout(() => {
-        if (currentPage > 2) {
-          setCurrentPage(currentPage - 2);
-        } else if (currentPage > 1) {
-          setCurrentPage(1);
-        }
         setTimeout(() => {
-          setFlipDirection(null);
-          setIsFlipping(false);
-        }, 1000);
-      }, 50);
+          if (currentPage > 2) {
+            setCurrentPage(currentPage - 2);
+          } else if (currentPage > 1) {
+            setCurrentPage(1);
+          }
+          setTimeout(() => {
+            setFlipDirection(null);
+            setIsFlipping(false);
+          }, 1200);
+        }, 50);
     } else {
       // Mobile: Simple page change
       setFlipDirection('right');
@@ -205,17 +205,17 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
       // Desktop: Flip right page to reveal next pages
       setFlipDirection('left');
       setIsFlipping(true);
-      setTimeout(() => {
-        if (numPages && currentPage < numPages - 1) {
-          setCurrentPage(currentPage + 2);
-        } else if (numPages && currentPage < numPages) {
-          setCurrentPage(numPages);
-        }
         setTimeout(() => {
-          setFlipDirection(null);
-          setIsFlipping(false);
-        }, 1000);
-      }, 50);
+          if (numPages && currentPage < numPages - 1) {
+            setCurrentPage(currentPage + 2);
+          } else if (numPages && currentPage < numPages) {
+            setCurrentPage(numPages);
+          }
+          setTimeout(() => {
+            setFlipDirection(null);
+            setIsFlipping(false);
+          }, 1200);
+        }, 50);
     } else {
       // Mobile: Simple page change
       setFlipDirection('left');
@@ -496,38 +496,41 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                             className="bg-white shadow-2xl rounded-lg overflow-hidden relative" 
                             animate={flipDirection === 'left' && isFlipping
                               ? {
-                                  rotateY: [0, -180],
-                                  scaleX: [1, 0.3, 0],
+                                  rotateY: [0, -15, -45, -90, -135, -180],
+                                  scaleX: [1, 0.98, 0.9, 0.6, 0.3, 0],
                                   transformOrigin: 'left center',
-                                  z: [0, 150, 0],
-                                  opacity: [1, 1, 0]
+                                  z: [0, 20, 50, 100, 120, 0],
+                                  opacity: [1, 1, 1, 0.8, 0.3, 0],
+                                  x: [0, -2, -5, -8, -10, -12]
                                 }
                               : flipDirection === 'right' && isFlipping
                               ? {
-                                  rotateY: [0, 180],
-                                  scaleX: [1, 0.3, 0],
+                                  rotateY: [0, 15, 45, 90, 135, 180],
+                                  scaleX: [1, 0.98, 0.9, 0.6, 0.3, 0],
                                   transformOrigin: 'right center',
-                                  z: [0, 150, 0],
-                                  opacity: [1, 1, 0]
+                                  z: [0, 20, 50, 100, 120, 0],
+                                  opacity: [1, 1, 1, 0.8, 0.3, 0],
+                                  x: [0, 2, 5, 8, 10, 12]
                                 }
                               : {
                                   rotateY: 0,
                                   scaleX: 1,
                                   transformOrigin: 'center center',
                                   z: 0,
-                                  opacity: 1
+                                  opacity: 1,
+                                  x: 0
                                 }
                             }
                             transition={{
-                              duration: 1.0,
-                              ease: [0.25, 0.46, 0.45, 0.94],
-                              times: isFlipping ? [0, 0.5, 1] : undefined
+                              duration: 1.2,
+                              ease: [0.33, 1, 0.68, 1], // Smooth, natural easing
+                              times: isFlipping ? [0, 0.15, 0.35, 0.55, 0.75, 1] : undefined
                             }}
                             style={{
                               boxShadow: isFlipping && flipDirection === 'left'
-                                ? '0 40px 100px rgba(0, 0, 0, 0.7), inset -10px 0 20px rgba(0, 0, 0, 0.2)'
+                                ? '0 50px 120px rgba(0, 0, 0, 0.8), inset -15px 0 30px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)'
                                 : isFlipping && flipDirection === 'right'
-                                ? '0 40px 100px rgba(0, 0, 0, 0.7), inset 10px 0 20px rgba(0, 0, 0, 0.2)'
+                                ? '0 50px 120px rgba(0, 0, 0, 0.8), inset 15px 0 30px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)'
                                 : '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
                               maxWidth: '100%',
                               maxHeight: '100%',
