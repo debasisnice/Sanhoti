@@ -266,7 +266,7 @@ export default function Home() {
             transition={{ delay: 0.2, duration: 0.8 }}
             className="mb-6"
           >
-            <div className="mx-auto w-fit rounded-full bg-white bg-opacity-80 p-2 md:p-3 mb-4 shadow-lg">
+            <div className="mx-auto w-fit rounded-full bg-white bg-opacity-50 p-2 md:p-3 mb-4 shadow-lg">
               <img 
                 src="/images/logo.png" 
                 alt="Sanhoti (সংহতি) Bengali Association of Orange County"
