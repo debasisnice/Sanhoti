@@ -192,7 +192,7 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
           setFlipDirection(null);
           setIsFlipping(false);
         }, 100);
-      }, 1000); // Wait for animation to complete
+      }, 1200); // Wait for animation to complete
     } else {
       // Mobile: Simple page change
       setFlipDirection('right');
@@ -225,7 +225,7 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
           setFlipDirection(null);
           setIsFlipping(false);
         }, 100);
-      }, 1000); // Wait for animation to complete
+      }, 1200); // Wait for animation to complete
     } else {
       // Mobile: Simple page change
       setFlipDirection('left');
@@ -489,11 +489,11 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                           className="bg-white shadow-2xl rounded-lg overflow-hidden relative" 
                           animate={flipDirection === 'right' && isFlipping
                             ? {
-                                rotateY: [0, 5, 15, 30, 60, 90, 120, 150, 180],
-                                scaleX: [1, 0.99, 0.97, 0.92, 0.8, 0.6, 0.4, 0.2, 0],
+                                rotateY: [0, 3, 8, 18, 35, 55, 80, 110, 140, 170, 180],
+                                scaleX: [1, 0.995, 0.985, 0.96, 0.88, 0.75, 0.58, 0.4, 0.25, 0.1, 0],
                                 transformOrigin: 'right center',
-                                z: [0, 10, 25, 50, 80, 120, 150, 180, 200],
-                                opacity: [1, 1, 1, 1, 0.95, 0.8, 0.5, 0.2, 0]
+                                z: [0, 5, 12, 22, 38, 60, 85, 115, 145, 175, 200],
+                                opacity: [1, 1, 1, 1, 0.98, 0.92, 0.8, 0.6, 0.35, 0.15, 0]
                               }
                             : {
                                 rotateY: 0,
@@ -504,9 +504,9 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                               }
                           }
                           transition={{
-                            duration: 1.0,
-                            ease: [0.4, 0.0, 0.2, 1.0],
-                            times: flipDirection === 'right' && isFlipping ? [0, 0.1, 0.2, 0.3, 0.45, 0.6, 0.75, 0.9, 1] : undefined
+                            duration: 1.2,
+                            ease: [0.25, 0.1, 0.25, 1],
+                            times: flipDirection === 'right' && isFlipping ? [0, 0.08, 0.15, 0.25, 0.38, 0.52, 0.65, 0.78, 0.88, 0.95, 1] : undefined
                           }}
                           style={{
                             boxShadow: flipDirection === 'right' && isFlipping
@@ -534,11 +534,11 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                             className="bg-white shadow-2xl rounded-lg overflow-hidden relative" 
                             animate={flipDirection === 'left' && isFlipping
                               ? {
-                                  rotateY: [0, -5, -15, -30, -60, -90, -120, -150, -180],
-                                  scaleX: [1, 0.99, 0.97, 0.92, 0.8, 0.6, 0.4, 0.2, 0],
+                                  rotateY: [0, -3, -8, -18, -35, -55, -80, -110, -140, -170, -180],
+                                  scaleX: [1, 0.995, 0.985, 0.96, 0.88, 0.75, 0.58, 0.4, 0.25, 0.1, 0],
                                   transformOrigin: 'left center',
-                                  z: [0, 10, 25, 50, 80, 120, 150, 180, 200],
-                                  opacity: [1, 1, 1, 1, 0.95, 0.8, 0.5, 0.2, 0]
+                                  z: [0, 5, 12, 22, 38, 60, 85, 115, 145, 175, 200],
+                                  opacity: [1, 1, 1, 1, 0.98, 0.92, 0.8, 0.6, 0.35, 0.15, 0]
                                 }
                               : {
                                   rotateY: 0,
@@ -549,9 +549,9 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                                 }
                             }
                             transition={{
-                              duration: 1.0,
-                              ease: [0.4, 0.0, 0.2, 1.0],
-                              times: flipDirection === 'left' && isFlipping ? [0, 0.1, 0.2, 0.3, 0.45, 0.6, 0.75, 0.9, 1] : undefined
+                              duration: 1.2,
+                              ease: [0.25, 0.1, 0.25, 1],
+                              times: flipDirection === 'left' && isFlipping ? [0, 0.08, 0.15, 0.25, 0.38, 0.52, 0.65, 0.78, 0.88, 0.95, 1] : undefined
                             }}
                             style={{
                               boxShadow: flipDirection === 'left' && isFlipping
