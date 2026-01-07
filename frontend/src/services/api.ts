@@ -2,9 +2,9 @@ import axios from 'axios';
 import { AuthResponse, Event, RSVP, Notice, PhotoGallery, Magazine, Document, SubEvent, AuditLog } from '../types';
 
 // Use relative path in production (when served by Nginx), absolute URL in development
-// Always use relative /api in production builds to avoid mixed content issues
-const API_BASE_URL = import.meta.env.VITE_API_URL || 
-  (import.meta.env.MODE === 'production' || import.meta.env.PROD ? '/api' : 'http://localhost:5001/api');
+// Force relative /api in production to avoid mixed-content, ignore VITE_API_URL there
+const isProd = import.meta.env.MODE === 'production' || import.meta.env.PROD;
+const API_BASE_URL = isProd ? '/api' : (import.meta.env.VITE_API_URL || 'http://localhost:5001/api');
 
 const api = axios.create({
   baseURL: API_BASE_URL,
