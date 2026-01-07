@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, Calendar, User, Activity, Search, Eye, X } from 'lucide-react';
-import { auditAPI, usersAPI } from '../../services/api';
+import { auditAPI, usersAPI, eventsAPI, noticesAPI, subEventsAPI } from '../../services/api';
 import { AuditLog, User as UserType } from '../../types';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
@@ -11,6 +11,7 @@ export default function AdminAuditLogs() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [users, setUsers] = useState<UserType[]>([]);
   const [userNameMap, setUserNameMap] = useState<Record<string, string>>({});
+  const [resourceNameMap, setResourceNameMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAction, setFilterAction] = useState<string>('');
@@ -63,10 +64,86 @@ export default function AdminAuditLogs() {
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
       setAuditLogs(sortedLogs);
+      
+      // Fetch resource names for all logs
+      await fetchResourceNames(sortedLogs);
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to fetch audit logs');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchResourceNames = async (logs: AuditLog[]) => {
+    try {
+      const nameMap: Record<string, string> = {};
+      
+      // Extract unique resource IDs by resource type
+      const resourceMap: Record<string, Set<string>> = {};
+      
+      logs.forEach(log => {
+        let resourceId: string | null = null;
+        
+        // Get resource ID from log
+        if (log.resourceId) {
+          resourceId = log.resourceId;
+        } else if (log.details) {
+          try {
+            const details = typeof log.details === 'string' 
+              ? JSON.parse(log.details) 
+              : log.details;
+            if (details?.path) {
+              const pathParts = details.path.split('/').filter(Boolean);
+              if (pathParts.length >= 2) {
+                resourceId = pathParts[1];
+              }
+            }
+          } catch (e) {
+            // Ignore parsing errors
+          }
+        }
+        
+        if (resourceId && log.resource) {
+          const resourceType = log.resource.toLowerCase();
+          if (!resourceMap[resourceType]) {
+            resourceMap[resourceType] = new Set();
+          }
+          resourceMap[resourceType].add(resourceId);
+        }
+      });
+      
+      // Fetch names for each resource type
+      for (const [resourceType, resourceIds] of Object.entries(resourceMap)) {
+        for (const resourceId of resourceIds) {
+          try {
+            let name: string | null = null;
+            
+            if (resourceType === 'event') {
+              const event = await eventsAPI.getById(resourceId);
+              name = event?.event_name || event?.title || null;
+            } else if (resourceType === 'notice') {
+              const notice = await noticesAPI.getById(resourceId);
+              name = notice?.notice_name || notice?.title || null;
+            } else if (resourceType === 'subevent' || resourceType === 'sub-event') {
+              const subEvent = await subEventsAPI.getById(resourceId);
+              name = subEvent?.sub_event_name || null;
+            } else if (resourceType === 'user') {
+              const user = users.find(u => u.id === resourceId || (u as any).userId === resourceId);
+              name = user ? `${user.firstName} ${user.lastName}`.trim() : null;
+            }
+            
+            if (name) {
+              nameMap[`${resourceType}:${resourceId}`] = name;
+            }
+          } catch (error) {
+            // Silently fail if resource not found
+          }
+        }
+      }
+      
+      setResourceNameMap(nameMap);
+    } catch (error) {
+      // Silently fail
     }
   };
 
@@ -235,27 +312,6 @@ export default function AdminAuditLogs() {
                     </td>
                     <td className="py-2 px-4">
                       {(() => {
-                        // Helper function to capitalize resource name
-                        const capitalizeResource = (resource: string) => {
-                          if (!resource) return '';
-                          // Handle special cases
-                          const resourceMap: Record<string, string> = {
-                            'event': 'Event',
-                            'notice': 'Notice',
-                            'user': 'User',
-                            'gallery': 'Gallery',
-                            'magazine': 'Magazine',
-                            'document': 'Document',
-                            'subevent': 'Sub-Event',
-                            'sub-event': 'Sub-Event',
-                            'message': 'Message',
-                            'sponsor': 'Sponsor',
-                            'settings': 'Settings',
-                            'rsvp': 'RSVP',
-                          };
-                          return resourceMap[resource.toLowerCase()] || resource.charAt(0).toUpperCase() + resource.slice(1);
-                        };
-
                         // Extract resource ID
                         let resourceId: string | null = null;
                         
@@ -282,11 +338,19 @@ export default function AdminAuditLogs() {
                         }
 
                         if (resourceId) {
-                          const resourceName = capitalizeResource(log.resource || '');
+                          const resourceType = (log.resource || '').toLowerCase();
+                          const resourceName = resourceNameMap[`${resourceType}:${resourceId}`];
+                          
                           return (
                             <div className="flex flex-col">
-                              <span className="text-xs text-gray-500">{resourceName}</span>
-                              <span className="text-xs text-gray-600 font-mono">{resourceId}</span>
+                              {resourceName ? (
+                                <>
+                                  <span className="text-xs text-gray-900 font-medium">{resourceName}</span>
+                                  <span className="text-xs text-gray-500 font-mono">{resourceId}</span>
+                                </>
+                              ) : (
+                                <span className="text-xs text-gray-600 font-mono">{resourceId}</span>
+                              )}
                             </div>
                           );
                         }
