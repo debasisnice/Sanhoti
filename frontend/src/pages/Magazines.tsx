@@ -118,6 +118,7 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
   const [pageWidth, setPageWidth] = useState(800);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
   const [flipDirection, setFlipDirection] = useState<'left' | 'right' | null>(null);
+  const [isFlipping, setIsFlipping] = useState(false);
 
   const pdfUrl = (() => {
     const fileUrl = magazine.fileUrl;
@@ -172,43 +173,59 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
   }, [numPages, currentPage, onClose, isDesktop]);
 
   const handlePreviousPage = () => {
-    setFlipDirection('right'); // Flip from left to right (previous)
-    setTimeout(() => {
-      if (isDesktop) {
-        // On desktop, go back 2 pages (one spread)
+    if (isDesktop) {
+      // Desktop: Flip left page to reveal previous pages
+      setFlipDirection('right');
+      setIsFlipping(true);
+      setTimeout(() => {
         if (currentPage > 2) {
           setCurrentPage(currentPage - 2);
         } else if (currentPage > 1) {
           setCurrentPage(1);
         }
-      } else {
-        // On mobile, go back 1 page
+        setTimeout(() => {
+          setFlipDirection(null);
+          setIsFlipping(false);
+        }, 1000);
+      }, 50);
+    } else {
+      // Mobile: Simple page change
+      setFlipDirection('right');
+      setTimeout(() => {
         if (currentPage > 1) {
           setCurrentPage(currentPage - 1);
         }
-      }
-      setTimeout(() => setFlipDirection(null), 600);
-    }, 50);
+        setTimeout(() => setFlipDirection(null), 600);
+      }, 50);
+    }
   };
 
   const handleNextPage = () => {
-    setFlipDirection('left'); // Flip from right to left (next)
-    setTimeout(() => {
-      if (isDesktop) {
-        // On desktop, go forward 2 pages (one spread)
+    if (isDesktop) {
+      // Desktop: Flip right page to reveal next pages
+      setFlipDirection('left');
+      setIsFlipping(true);
+      setTimeout(() => {
         if (numPages && currentPage < numPages - 1) {
           setCurrentPage(currentPage + 2);
         } else if (numPages && currentPage < numPages) {
           setCurrentPage(numPages);
         }
-      } else {
-        // On mobile, go forward 1 page
+        setTimeout(() => {
+          setFlipDirection(null);
+          setIsFlipping(false);
+        }, 1000);
+      }, 50);
+    } else {
+      // Mobile: Simple page change
+      setFlipDirection('left');
+      setTimeout(() => {
         if (numPages && currentPage < numPages) {
           setCurrentPage(currentPage + 1);
         }
-      }
-      setTimeout(() => setFlipDirection(null), 600);
-    }, 50);
+        setTimeout(() => setFlipDirection(null), 600);
+      }, 50);
+    }
   };
 
   const handlePageInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -403,76 +420,65 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                   </div>
                 ) : !pdfLoading && numPages && numPages > 0 ? (
                   <div className="w-full h-full flex items-center justify-center min-h-0" style={{ perspective: '2500px', perspectiveOrigin: 'center center' }}>
-                    {/* PDF Pages - Book Style (Desktop: 2 pages, Mobile: 1 page) with Realistic Page Flip */}
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={currentPage}
-                        initial={flipDirection === 'left' 
-                          ? { 
-                              opacity: 0, 
-                              rotateY: 180,
-                              scaleX: 0.3,
-                              x: pageWidth * 0.5
-                            }
-                          : flipDirection === 'right'
-                          ? { 
-                              opacity: 0, 
-                              rotateY: -180,
-                              scaleX: 0.3,
-                              x: -pageWidth * 0.5
-                            }
-                          : { opacity: 0, x: 20 }
-                        }
-                        animate={{ 
-                          opacity: 1, 
-                          rotateY: 0,
-                          scaleX: 1,
-                          x: 0
-                        }}
-                        exit={flipDirection === 'left'
-                          ? { 
-                              opacity: [1, 1, 0.3, 0],
-                              rotateY: [0, -90, -180],
-                              scaleX: [1, 0.5, 0.2],
-                              x: [0, -pageWidth * 0.3, -pageWidth * 0.6],
-                              z: [0, 50, -100]
-                            }
-                          : flipDirection === 'right'
-                          ? { 
-                              opacity: [1, 1, 0.3, 0],
-                              rotateY: [0, 90, 180],
-                              scaleX: [1, 0.5, 0.2],
-                              x: [0, pageWidth * 0.3, pageWidth * 0.6],
-                              z: [0, 50, -100]
-                            }
-                          : { opacity: 0, x: -20 }
-                        }
-                        transition={{ 
-                          duration: 1.0,
-                          ease: [0.25, 0.46, 0.45, 0.94],
-                          times: flipDirection ? [0, 0.3, 0.7, 1] : undefined
-                        }}
-                        style={{
-                          transformStyle: 'preserve-3d',
-                          backfaceVisibility: 'hidden'
-                        }}
-                        className={`flex items-center justify-center max-w-full max-h-full ${
-                          isDesktop ? 'gap-4' : ''
-                        }`}
-                      >
-                        {/* Left Page (Desktop) or Single Page (Mobile) */}
-                        <motion.div 
+                    {isDesktop ? (
+                      /* Desktop: Right page flips to reveal next pages */
+                      <div className="relative flex items-center justify-center gap-4">
+                        {/* Pages underneath (next pages that will be revealed) */}
+                        {isFlipping && flipDirection === 'left' && numPages && currentPage + 2 <= numPages && (
+                          <div className="absolute flex items-center gap-4" style={{ zIndex: 0 }}>
+                            <div className="bg-white shadow-lg rounded-lg overflow-hidden opacity-50">
+                              <Page
+                                pageNumber={currentPage + 2}
+                                width={pageWidth}
+                                renderTextLayer={false}
+                                renderAnnotationLayer={false}
+                              />
+                            </div>
+                            {numPages && currentPage + 3 <= numPages && (
+                              <div className="bg-white shadow-lg rounded-lg overflow-hidden opacity-50">
+                                <Page
+                                  pageNumber={currentPage + 3}
+                                  width={pageWidth}
+                                  renderTextLayer={false}
+                                  renderAnnotationLayer={false}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Pages underneath (previous pages that will be revealed) */}
+                        {isFlipping && flipDirection === 'right' && currentPage > 2 && (
+                          <div className="absolute flex items-center gap-4" style={{ zIndex: 0 }}>
+                            {currentPage > 3 && (
+                              <div className="bg-white shadow-lg rounded-lg overflow-hidden opacity-50">
+                                <Page
+                                  pageNumber={currentPage - 3}
+                                  width={pageWidth}
+                                  renderTextLayer={false}
+                                  renderAnnotationLayer={false}
+                                />
+                              </div>
+                            )}
+                            <div className="bg-white shadow-lg rounded-lg overflow-hidden opacity-50">
+                              <Page
+                                pageNumber={currentPage - 2}
+                                width={pageWidth}
+                                renderTextLayer={false}
+                                renderAnnotationLayer={false}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Current left page (static) */}
+                        <div 
                           className="bg-white shadow-2xl rounded-lg overflow-hidden relative" 
                           style={{
-                            boxShadow: flipDirection === 'left' 
-                              ? '0 40px 100px rgba(0, 0, 0, 0.7), inset -10px 0 20px rgba(0, 0, 0, 0.2)'
-                              : flipDirection === 'right'
-                              ? '0 40px 100px rgba(0, 0, 0, 0.7), inset 10px 0 20px rgba(0, 0, 0, 0.2)'
-                              : '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
                             maxWidth: '100%',
                             maxHeight: '100%',
-                            transformStyle: 'preserve-3d',
-                            transformOrigin: flipDirection === 'left' ? 'left center' : flipDirection === 'right' ? 'right center' : 'center center'
+                            zIndex: 1
                           }}
                         >
                           <Page
@@ -482,35 +488,139 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                             renderAnnotationLayer={true}
                             className="shadow-xl"
                           />
-                        </motion.div>
+                        </div>
 
-                        {/* Right Page (Desktop only, if next page exists) */}
-                        {isDesktop && numPages && currentPage < numPages && (
+                        {/* Right page (flips) */}
+                        {numPages && currentPage < numPages && (
                           <motion.div 
                             className="bg-white shadow-2xl rounded-lg overflow-hidden relative" 
+                            animate={flipDirection === 'left' && isFlipping
+                              ? {
+                                  rotateY: [0, -180],
+                                  scaleX: [1, 0.3, 0],
+                                  transformOrigin: 'left center',
+                                  z: [0, 150, 0],
+                                  opacity: [1, 1, 0]
+                                }
+                              : flipDirection === 'right' && isFlipping
+                              ? {
+                                  rotateY: [0, 180],
+                                  scaleX: [1, 0.3, 0],
+                                  transformOrigin: 'right center',
+                                  z: [0, 150, 0],
+                                  opacity: [1, 1, 0]
+                                }
+                              : {
+                                  rotateY: 0,
+                                  scaleX: 1,
+                                  transformOrigin: 'center center',
+                                  z: 0,
+                                  opacity: 1
+                                }
+                            }
+                            transition={{
+                              duration: 1.0,
+                              ease: [0.25, 0.46, 0.45, 0.94],
+                              times: isFlipping ? [0, 0.5, 1] : undefined
+                            }}
                             style={{
-                              boxShadow: flipDirection === 'right'
-                                ? '0 40px 100px rgba(0, 0, 0, 0.7), inset 10px 0 20px rgba(0, 0, 0, 0.2)'
-                                : flipDirection === 'left'
+                              boxShadow: isFlipping && flipDirection === 'left'
                                 ? '0 40px 100px rgba(0, 0, 0, 0.7), inset -10px 0 20px rgba(0, 0, 0, 0.2)'
+                                : isFlipping && flipDirection === 'right'
+                                ? '0 40px 100px rgba(0, 0, 0, 0.7), inset 10px 0 20px rgba(0, 0, 0, 0.2)'
                                 : '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
                               maxWidth: '100%',
                               maxHeight: '100%',
                               transformStyle: 'preserve-3d',
-                              transformOrigin: flipDirection === 'right' ? 'right center' : flipDirection === 'left' ? 'left center' : 'center center'
+                              backfaceVisibility: 'hidden',
+                              zIndex: 2
                             }}
                           >
                             <Page
                               pageNumber={currentPage + 1}
                               width={pageWidth}
-                              renderTextLayer={true}
-                              renderAnnotationLayer={true}
+                              renderTextLayer={!isFlipping}
+                              renderAnnotationLayer={!isFlipping}
                               className="shadow-xl"
                             />
                           </motion.div>
                         )}
-                      </motion.div>
-                    </AnimatePresence>
+                      </div>
+                    ) : (
+                      /* Mobile: Single page flip */
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={currentPage}
+                          initial={flipDirection === 'left' 
+                            ? { 
+                                opacity: 0, 
+                                rotateY: 180,
+                                scaleX: 0.3,
+                                x: pageWidth * 0.5
+                              }
+                            : flipDirection === 'right'
+                            ? { 
+                                opacity: 0, 
+                                rotateY: -180,
+                                scaleX: 0.3,
+                                x: -pageWidth * 0.5
+                              }
+                            : { opacity: 0, x: 20 }
+                          }
+                          animate={{ 
+                            opacity: 1, 
+                            rotateY: 0,
+                            scaleX: 1,
+                            x: 0
+                          }}
+                          exit={flipDirection === 'left'
+                            ? { 
+                                opacity: [1, 1, 0.3, 0],
+                                rotateY: [0, -90, -180],
+                                scaleX: [1, 0.5, 0.2],
+                                x: [0, -pageWidth * 0.3, -pageWidth * 0.6],
+                                z: [0, 50, -100]
+                              }
+                            : flipDirection === 'right'
+                            ? { 
+                                opacity: [1, 1, 0.3, 0],
+                                rotateY: [0, 90, 180],
+                                scaleX: [1, 0.5, 0.2],
+                                x: [0, pageWidth * 0.3, pageWidth * 0.6],
+                                z: [0, 50, -100]
+                              }
+                            : { opacity: 0, x: -20 }
+                          }
+                          transition={{ 
+                            duration: 1.0,
+                            ease: [0.25, 0.46, 0.45, 0.94],
+                            times: flipDirection ? [0, 0.3, 0.7, 1] : undefined
+                          }}
+                          style={{
+                            transformStyle: 'preserve-3d',
+                            backfaceVisibility: 'hidden'
+                          }}
+                          className="flex items-center justify-center max-w-full max-h-full"
+                        >
+                          <div 
+                            className="bg-white shadow-2xl rounded-lg overflow-hidden relative" 
+                            style={{
+                              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                              maxWidth: '100%',
+                              maxHeight: '100%'
+                            }}
+                          >
+                            <Page
+                              pageNumber={currentPage}
+                              width={pageWidth}
+                              renderTextLayer={true}
+                              renderAnnotationLayer={true}
+                              className="shadow-xl"
+                            />
+                          </div>
+                        </motion.div>
+                      </AnimatePresence>
+                    )}
                   </div>
                 ) : null}
               </Document>
