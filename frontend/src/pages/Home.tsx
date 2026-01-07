@@ -266,11 +266,11 @@ export default function Home() {
             transition={{ delay: 0.2, duration: 0.8 }}
             className="mb-6"
           >
-            <div className="mx-auto w-fit rounded-full bg-white p-4 mb-4 shadow-lg">
+            <div className="mx-auto w-fit rounded-full bg-white p-2 md:p-3 mb-4 shadow-lg">
               <img 
                 src="/images/logo.png" 
                 alt="Sanhoti (সংহতি) Bengali Association of Orange County"
-                className="h-32 md:h-40 w-auto"
+                className="h-28 md:h-36 w-auto"
                 onError={(e) => {
                   // Fallback to text if image not found
                   e.currentTarget.style.display = 'none';
