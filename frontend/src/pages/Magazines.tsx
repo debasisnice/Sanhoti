@@ -373,110 +373,117 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
             )}
           </div>
 
-          {/* E-Zine PDF Viewer */}
-          <div className="flex-1 flex items-center justify-center p-2 md:p-6 bg-gradient-to-br from-gray-800 to-gray-900 overflow-auto relative">
-            {pdfLoading && (
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400"></div>
-              </div>
+          {/* E-Zine PDF Viewer with External Navigation Arrows */}
+          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 overflow-auto relative">
+            {/* Left Arrow - Outside PDF Area */}
+            {!pdfLoading && numPages && numPages > 0 && (
+              <button
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                className={`absolute left-2 md:left-4 z-10 p-3 md:p-4 rounded-full transition-all ${
+                  currentPage === 1
+                    ? 'bg-gray-700 opacity-50 cursor-not-allowed'
+                    : 'bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm'
+                }`}
+                title={isDesktop ? "Previous spread (←)" : "Previous page (←)"}
+              >
+                <ChevronLeft className="w-6 h-6 md:w-8 md:h-8 text-white" />
+              </button>
             )}
 
-            <Document
-              file={pdfUrl}
-              onLoadSuccess={({ numPages }) => {
-                setNumPages(numPages);
-                setPdfLoading(false);
-                setPdfError(null);
-                setCurrentPage(1);
-              }}
-              onLoadError={(_error) => {
-                setPdfError('Failed to load PDF');
-                setPdfLoading(false);
-              }}
-              loading={null}
-            >
-              {pdfError ? (
-                <div className="text-center py-12">
-                  <p className="text-red-400 text-lg">{pdfError}</p>
+            {/* PDF Viewer Container */}
+            <div className="flex-1 flex items-center justify-center p-2 md:p-6 h-full">
+              {pdfLoading && (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400"></div>
                 </div>
-              ) : !pdfLoading && numPages && numPages > 0 ? (
-                <div className="relative w-full h-full flex items-center justify-center min-h-0">
-                  {/* Previous Page Button */}
-                  <button
-                    onClick={handlePreviousPage}
-                    disabled={currentPage === 1}
-                    className={`absolute left-2 md:left-4 z-10 p-2 md:p-3 rounded-full transition-all ${
-                      currentPage === 1
-                        ? 'bg-gray-700 opacity-50 cursor-not-allowed'
-                        : 'bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm'
-                    }`}
-                    title={isDesktop ? "Previous spread (←)" : "Previous page (←)"}
-                  >
-                    <ChevronLeft className="w-6 h-6 md:w-8 md:h-8 text-white" />
-                  </button>
+              )}
 
-                  {/* PDF Pages - Book Style (Desktop: 2 pages, Mobile: 1 page) */}
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={currentPage}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.3 }}
-                      className={`flex items-center justify-center max-w-full max-h-full ${
-                        isDesktop ? 'gap-4' : ''
-                      }`}
-                    >
-                      {/* Left Page (Desktop) or Single Page (Mobile) */}
-                      <div className="bg-white shadow-2xl rounded-lg overflow-hidden" style={{
-                        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
-                        maxWidth: '100%',
-                        maxHeight: '100%'
-                      }}>
-                        <Page
-                          pageNumber={currentPage}
-                          width={pageWidth}
-                          renderTextLayer={true}
-                          renderAnnotationLayer={true}
-                          className="shadow-xl"
-                        />
-                      </div>
-
-                      {/* Right Page (Desktop only, if next page exists) */}
-                      {isDesktop && numPages && currentPage < numPages && (
+              <Document
+                file={pdfUrl}
+                onLoadSuccess={({ numPages }) => {
+                  setNumPages(numPages);
+                  setPdfLoading(false);
+                  setPdfError(null);
+                  setCurrentPage(1);
+                }}
+                onLoadError={(_error) => {
+                  setPdfError('Failed to load PDF');
+                  setPdfLoading(false);
+                }}
+                loading={null}
+              >
+                {pdfError ? (
+                  <div className="text-center py-12">
+                    <p className="text-red-400 text-lg">{pdfError}</p>
+                  </div>
+                ) : !pdfLoading && numPages && numPages > 0 ? (
+                  <div className="w-full h-full flex items-center justify-center min-h-0">
+                    {/* PDF Pages - Book Style (Desktop: 2 pages, Mobile: 1 page) */}
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={currentPage}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className={`flex items-center justify-center max-w-full max-h-full ${
+                          isDesktop ? 'gap-4' : ''
+                        }`}
+                      >
+                        {/* Left Page (Desktop) or Single Page (Mobile) */}
                         <div className="bg-white shadow-2xl rounded-lg overflow-hidden" style={{
                           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
                           maxWidth: '100%',
                           maxHeight: '100%'
                         }}>
                           <Page
-                            pageNumber={currentPage + 1}
+                            pageNumber={currentPage}
                             width={pageWidth}
                             renderTextLayer={true}
                             renderAnnotationLayer={true}
                             className="shadow-xl"
                           />
                         </div>
-                      )}
-                    </motion.div>
-                  </AnimatePresence>
 
-                  {/* Next Page Button */}
-                  <button
-                    onClick={handleNextPage}
-                    disabled={isDesktop ? (numPages ? currentPage >= numPages - 1 : false) : (currentPage === numPages)}
-                    className={`absolute right-2 md:right-4 z-10 p-2 md:p-3 rounded-full transition-all ${
-                      (isDesktop ? (numPages ? currentPage >= numPages - 1 : false) : (currentPage === numPages))
-                        ? 'bg-gray-700 opacity-50 cursor-not-allowed'
-                        : 'bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm'
-                    }`}
-                    title={isDesktop ? "Next spread (→)" : "Next page (→)"}
-                  >
-                    <ChevronRight className="w-6 h-6 md:w-8 md:h-8 text-white" />
-                  </button>
-                </div>
-              ) : null}
-            </Document>
+                        {/* Right Page (Desktop only, if next page exists) */}
+                        {isDesktop && numPages && currentPage < numPages && (
+                          <div className="bg-white shadow-2xl rounded-lg overflow-hidden" style={{
+                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                            maxWidth: '100%',
+                            maxHeight: '100%'
+                          }}>
+                            <Page
+                              pageNumber={currentPage + 1}
+                              width={pageWidth}
+                              renderTextLayer={true}
+                              renderAnnotationLayer={true}
+                              className="shadow-xl"
+                            />
+                          </div>
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+                ) : null}
+              </Document>
+            </div>
+
+            {/* Right Arrow - Outside PDF Area */}
+            {!pdfLoading && numPages && numPages > 0 && (
+              <button
+                onClick={handleNextPage}
+                disabled={isDesktop ? (numPages ? currentPage >= numPages - 1 : false) : (currentPage === numPages)}
+                className={`absolute right-2 md:right-4 z-10 p-3 md:p-4 rounded-full transition-all ${
+                  (isDesktop ? (numPages ? currentPage >= numPages - 1 : false) : (currentPage === numPages))
+                    ? 'bg-gray-700 opacity-50 cursor-not-allowed'
+                    : 'bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm'
+                }`}
+                title={isDesktop ? "Next spread (→)" : "Next page (→)"}
+              >
+                <ChevronRight className="w-6 h-6 md:w-8 md:h-8 text-white" />
+              </button>
+            )}
           </div>
         </div>
       </motion.div>
