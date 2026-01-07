@@ -467,24 +467,55 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                     {isDesktop ? (
                       /* Desktop: Realistic book page flip - left page static, right page flips */
                       <div className="relative flex items-center justify-center gap-4" style={{ transformStyle: 'preserve-3d', perspective: '2000px', perspectiveOrigin: 'center center', minHeight: '600px' }}>
-                        {/* Left page - stays static during flip, fixed position */}
-                        <div 
-                          className="bg-white shadow-2xl rounded-lg overflow-hidden relative flex-shrink-0" 
-                          style={{
-                            width: pageWidth,
-                            minHeight: '600px',
-                            zIndex: 1,
-                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
-                            position: 'relative'
-                          }}
-                        >
-                          <Page
-                            pageNumber={displayPage}
-                            width={pageWidth}
-                            renderTextLayer={true}
-                            renderAnnotationLayer={true}
-                            className="shadow-xl"
-                          />
+                        {/* Left page container - fixed position */}
+                        <div className="relative flex-shrink-0" style={{ width: pageWidth }}>
+                          {/* Current left page (page 1) - fades out during flip */}
+                          <div 
+                            className="bg-white shadow-2xl rounded-lg overflow-hidden absolute" 
+                            style={{
+                              width: pageWidth,
+                              minHeight: '600px',
+                              zIndex: isFlipping && flipDirection === 'left' && flipProgress > 0.5 ? 0 : 1,
+                              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                              position: 'relative',
+                              opacity: isFlipping && flipDirection === 'left' 
+                                ? Math.max(0, 1 - (flipProgress - 0.4) * 1.67)
+                                : 1,
+                              transition: isFlipping ? 'none' : 'opacity 0.3s ease'
+                            }}
+                          >
+                            <Page
+                              pageNumber={displayPage}
+                              width={pageWidth}
+                              renderTextLayer={!isFlipping || flipProgress < 0.5}
+                              renderAnnotationLayer={!isFlipping || flipProgress < 0.5}
+                              className="shadow-xl"
+                            />
+                          </div>
+
+                          {/* Next left page (page 3) - fades in smoothly during flip */}
+                          {isFlipping && flipDirection === 'left' && numPages && displayPage + 2 <= numPages && (
+                            <div 
+                              className="bg-white shadow-2xl rounded-lg overflow-hidden absolute" 
+                              style={{
+                                width: pageWidth,
+                                minHeight: '600px',
+                                zIndex: flipProgress > 0.4 ? 2 : 0,
+                                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                                position: 'relative',
+                                opacity: flipProgress > 0.4 ? Math.min(1, (flipProgress - 0.4) * 1.67) : 0,
+                                transition: isFlipping ? 'none' : 'opacity 0.3s ease'
+                              }}
+                            >
+                              <Page
+                                pageNumber={displayPage + 2}
+                                width={pageWidth}
+                                renderTextLayer={flipProgress > 0.5}
+                                renderAnnotationLayer={flipProgress > 0.5}
+                                className="shadow-xl"
+                              />
+                            </div>
+                          )}
                         </div>
 
                         {/* Right page container - fixed position */}
@@ -543,7 +574,7 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                                     className="shadow-xl"
                                   />
                                 </div>
-                                {/* Back face - next page (page 3) - fades in smoothly after middle */}
+                                {/* Back face - next page (page 3) - visible on back of flipping page */}
                                 {numPages && displayPage + 2 <= numPages && (
                                   <div
                                     style={{
@@ -555,10 +586,9 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                                       width: '100%',
                                       top: 0,
                                       left: 0,
-                                      opacity: flipDirection === 'left' && isFlipping
-                                        ? flipProgress > 0.4 ? Math.min(1, (flipProgress - 0.4) * 1.67) : 0
-                                        : 0,
-                                      transition: isFlipping ? 'none' : 'opacity 0.3s ease'
+                                      opacity: flipDirection === 'left' && isFlipping && flipProgress > 0.4
+                                        ? Math.min(1, (flipProgress - 0.4) * 1.67)
+                                        : 0
                                     }}
                                   >
                                     <Page
@@ -572,31 +602,6 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                                 )}
                               </div>
                             </div>
-
-                            {/* Page 3 appearing on left - smooth transition from back of flipping page */}
-                            {isFlipping && flipDirection === 'left' && numPages && displayPage + 2 <= numPages && (
-                              <div 
-                                className="absolute bg-white shadow-2xl rounded-lg overflow-hidden"
-                                style={{
-                                  width: pageWidth,
-                                  minHeight: '600px',
-                                  zIndex: flipProgress > 0.5 ? 3 : 1,
-                                  opacity: flipProgress > 0.5 ? Math.min(1, (flipProgress - 0.5) * 2) : 0,
-                                  left: -pageWidth - 16, // Position to the left of right page (with gap)
-                                  top: 0,
-                                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
-                                  transition: isFlipping ? 'none' : 'opacity 0.3s ease'
-                                }}
-                              >
-                                <Page
-                                  pageNumber={displayPage + 2}
-                                  width={pageWidth}
-                                  renderTextLayer={flipProgress > 0.6}
-                                  renderAnnotationLayer={flipProgress > 0.6}
-                                  className="shadow-xl"
-                                />
-                              </div>
-                            )}
 
                             {/* New right page (page 4) - appears during flip, fixed position */}
                             {isFlipping && flipDirection === 'left' && numPages && displayPage + 3 <= numPages && (
