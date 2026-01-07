@@ -360,7 +360,7 @@ export const sponsorsAPI = {
     const response = await api.get('/sponsors/images');
     return response.data;
   },
-  uploadImages: async (files: File[], sponsorshipType: string = 'Silver'): Promise<any> => {
+  uploadImages: async (files: File[], sponsorshipType: string = 'None'): Promise<any> => {
     const formData = new FormData();
     files.forEach(file => {
       formData.append('images', file);

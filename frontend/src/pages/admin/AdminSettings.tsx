@@ -99,7 +99,7 @@ export default function AdminSettings() {
   const [deleting, setDeleting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [selectedBoardMemberFile, setSelectedBoardMemberFile] = useState<File | null>(null);
-  const [selectedSponsorshipType, setSelectedSponsorshipType] = useState<string>('Silver');
+  const [selectedSponsorshipType, setSelectedSponsorshipType] = useState<string>('None');
   const [editingSponsorType, setEditingSponsorType] = useState<Record<string, string>>({});
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<User>>({});
@@ -245,7 +245,7 @@ export default function AdminSettings() {
         await sponsorsAPI.uploadImages(selectedFiles, selectedSponsorshipType);
         toast.success('Images uploaded successfully');
         setSelectedFiles([]);
-        setSelectedSponsorshipType('Silver');
+        setSelectedSponsorshipType('None');
         const fileInput = document.getElementById('sponsor-file-input') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
         await fetchSponsorImages();
@@ -1128,16 +1128,17 @@ export default function AdminSettings() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Sponsorship Type
                       </label>
-                      <select
-                        value={selectedSponsorshipType}
-                        onChange={(e) => setSelectedSponsorshipType(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      >
-                        <option value="Grand">Grand</option>
-                        <option value="Platinum">Platinum</option>
-                        <option value="Gold">Gold</option>
-                        <option value="Silver">Silver</option>
-                      </select>
+                            <select
+                              value={selectedSponsorshipType}
+                              onChange={(e) => setSelectedSponsorshipType(e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            >
+                              <option value="None">None</option>
+                              <option value="Grand">Grand</option>
+                              <option value="Platinum">Platinum</option>
+                              <option value="Gold">Gold</option>
+                              <option value="Silver">Silver</option>
+                            </select>
                     </div>
                   )}
 
@@ -1225,13 +1226,14 @@ export default function AdminSettings() {
                               Sponsorship Type
                             </label>
                             <select
-                              value={editingSponsorType[image.filename] ?? image.sponsorshipType ?? 'Silver'}
+                              value={editingSponsorType[image.filename] ?? image.sponsorshipType ?? 'None'}
                               onChange={(e) => {
                                 setEditingSponsorType(prev => ({ ...prev, [image.filename]: e.target.value }));
                                 handleUpdateSponsorshipType(image.filename, e.target.value);
                               }}
                               className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                             >
+                              <option value="None">None</option>
                               <option value="Grand">Grand</option>
                               <option value="Platinum">Platinum</option>
                               <option value="Gold">Gold</option>

@@ -22,13 +22,18 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     // Get sponsorship type from request body (sent as form field)
-    const sponsorshipType = (req.body?.sponsorshipType || 'Silver') as string;
-    const validTypes = ['Grand', 'Platinum', 'Gold', 'Silver'];
-    const type = validTypes.includes(sponsorshipType) ? sponsorshipType : 'Silver';
+    const sponsorshipType = (req.body?.sponsorshipType || 'None') as string;
+    const validTypes = ['Grand', 'Platinum', 'Gold', 'Silver', 'None'];
     
-    // Sanitize filename and add timestamp with sponsorship type prefix
+    // Sanitize filename
     const sanitized = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
-    cb(null, `${type}-${Date.now()}-${sanitized}`);
+    
+    // Only add prefix if type is not "None"
+    if (sponsorshipType && validTypes.includes(sponsorshipType) && sponsorshipType !== 'None') {
+      cb(null, `${sponsorshipType}-${Date.now()}-${sanitized}`);
+    } else {
+      cb(null, `${Date.now()}-${sanitized}`);
+    }
   },
 });
 
@@ -71,7 +76,7 @@ export class SponsorController {
         .map(file => {
           // Extract sponsorship type from filename (format: "Type-timestamp-filename.ext")
           const validTypes = ['Grand', 'Platinum', 'Gold', 'Silver'];
-          let sponsorshipType = 'Silver'; // default
+          let sponsorshipType: string | undefined = undefined;
           
           for (const type of validTypes) {
             if (file.startsWith(`${type}-`)) {
@@ -80,6 +85,8 @@ export class SponsorController {
             }
           }
           
+          // If no type prefix found, sponsorshipType remains undefined (None)
+          
           return {
             filename: file,
             url: `/api/sponsors/images/${encodeURIComponent(file)}`,
@@ -87,10 +94,10 @@ export class SponsorController {
           };
         })
         .sort((a, b) => {
-          // Sort by sponsorship type priority: Grand > Platinum > Gold > Silver
+          // Sort by sponsorship type priority: Grand > Platinum > Gold > Silver > None
           const typeOrder: Record<string, number> = { 'Grand': 0, 'Platinum': 1, 'Gold': 2, 'Silver': 3 };
-          const orderA = typeOrder[a.sponsorshipType] ?? 3;
-          const orderB = typeOrder[b.sponsorshipType] ?? 3;
+          const orderA = a.sponsorshipType ? (typeOrder[a.sponsorshipType] ?? 4) : 4; // None = 4 (last)
+          const orderB = b.sponsorshipType ? (typeOrder[b.sponsorshipType] ?? 4) : 4; // None = 4 (last)
           if (orderA !== orderB) {
             return orderA - orderB;
           }
@@ -158,7 +165,7 @@ export class SponsorController {
       const uploadedFiles = files.map(file => {
         // Extract sponsorship type from filename
         const validTypes = ['Grand', 'Platinum', 'Gold', 'Silver'];
-        let sponsorshipType = 'Silver';
+        let sponsorshipType: string | undefined = undefined;
         
         for (const type of validTypes) {
           if (file.filename.startsWith(`${type}-`)) {
@@ -212,9 +219,9 @@ export class SponsorController {
       const { sponsorshipType } = req.body;
       const decodedFilename = decodeURIComponent(filename);
       
-      const validTypes = ['Grand', 'Platinum', 'Gold', 'Silver'];
+      const validTypes = ['Grand', 'Platinum', 'Gold', 'Silver', 'None'];
       if (!sponsorshipType || !validTypes.includes(sponsorshipType)) {
-        res.status(400).json({ error: 'Invalid sponsorship type. Must be one of: Grand, Platinum, Gold, Silver' });
+        res.status(400).json({ error: 'Invalid sponsorship type. Must be one of: Grand, Platinum, Gold, Silver, None' });
         return;
       }
       
@@ -227,15 +234,20 @@ export class SponsorController {
 
       // Extract the original filename without the current type prefix
       let newFilename = decodedFilename;
-      for (const type of validTypes) {
+      const typePrefixes = ['Grand', 'Platinum', 'Gold', 'Silver'];
+      for (const type of typePrefixes) {
         if (newFilename.startsWith(`${type}-`)) {
           newFilename = newFilename.substring(type.length + 1); // Remove "Type-"
           break;
         }
       }
       
-      // Add new type prefix
-      newFilename = `${sponsorshipType}-${newFilename}`;
+      // Add new type prefix only if not "None"
+      if (sponsorshipType && sponsorshipType !== 'None') {
+        newFilename = `${sponsorshipType}-${newFilename}`;
+      }
+      // If "None", newFilename already has the prefix removed, so it's just the timestamp-filename
+      
       const newPath = join(sponsorsDir, newFilename);
       
       // Rename file
@@ -245,7 +257,7 @@ export class SponsorController {
         message: 'Sponsorship type updated successfully',
         filename: newFilename,
         url: `/api/sponsors/images/${encodeURIComponent(newFilename)}`,
-        sponsorshipType: sponsorshipType,
+        sponsorshipType: sponsorshipType === 'None' ? undefined : sponsorshipType,
       });
     } catch (error: any) {
       console.error('Error in updateSponsorshipType:', error);
