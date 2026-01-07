@@ -551,20 +551,20 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                               : '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
                             maxWidth: '100%',
                             maxHeight: '100%',
-                            transition: isFlipping ? 'none' : 'all 0.3s ease'
+                            transition: isFlipping ? 'none' : 'all 0.3s ease',
+                            minHeight: '400px'
                           }}
                         >
                           {/* Front of page (current page) */}
                           <div
                             style={{
                               backfaceVisibility: 'hidden',
+                              WebkitBackfaceVisibility: 'hidden',
                               transform: flipDirection === 'right' && isFlipping && flipProgress > 0.5 ? 'rotateY(180deg)' : 'rotateY(0deg)',
                               transformStyle: 'preserve-3d',
-                              position: 'absolute',
+                              position: 'relative',
                               width: '100%',
-                              height: '100%',
-                              top: 0,
-                              left: 0
+                              minHeight: '400px'
                             }}
                           >
                             <Page
@@ -580,13 +580,14 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                             <div
                               style={{
                                 backfaceVisibility: 'hidden',
+                                WebkitBackfaceVisibility: 'hidden',
                                 transform: 'rotateY(180deg)',
                                 transformStyle: 'preserve-3d',
                                 position: 'absolute',
                                 width: '100%',
-                                height: '100%',
                                 top: 0,
-                                left: 0
+                                left: 0,
+                                minHeight: '400px'
                               }}
                             >
                               <Page
@@ -623,20 +624,20 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                                 : '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
                               maxWidth: '100%',
                               maxHeight: '100%',
-                              transition: isFlipping ? 'none' : 'all 0.3s ease'
+                              transition: isFlipping ? 'none' : 'all 0.3s ease',
+                              minHeight: '400px'
                             }}
                           >
                             {/* Front of page (current right page) */}
                             <div
                               style={{
                                 backfaceVisibility: 'hidden',
+                                WebkitBackfaceVisibility: 'hidden',
                                 transform: flipDirection === 'left' && isFlipping && flipProgress > 0.5 ? 'rotateY(180deg)' : 'rotateY(0deg)',
                                 transformStyle: 'preserve-3d',
-                                position: 'absolute',
+                                position: 'relative',
                                 width: '100%',
-                                height: '100%',
-                                top: 0,
-                                left: 0
+                                minHeight: '400px'
                               }}
                             >
                               <Page
@@ -652,13 +653,14 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                               <div
                                 style={{
                                   backfaceVisibility: 'hidden',
+                                  WebkitBackfaceVisibility: 'hidden',
                                   transform: 'rotateY(180deg)',
                                   transformStyle: 'preserve-3d',
                                   position: 'absolute',
                                   width: '100%',
-                                  height: '100%',
                                   top: 0,
-                                  left: 0
+                                  left: 0,
+                                  minHeight: '400px'
                                 }}
                               >
                                 <Page
