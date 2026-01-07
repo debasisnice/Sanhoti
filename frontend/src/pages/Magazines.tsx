@@ -484,16 +484,26 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                           </div>
                         )}
 
-                        {/* Left page - flips left to right when going previous */}
+                        {/* Left page - flips left to right when going previous, or appears gradually when right page flips */}
                         <motion.div 
                           className="bg-white shadow-2xl rounded-lg overflow-hidden relative" 
                           animate={flipDirection === 'right' && isFlipping
                             ? {
+                                // Left page flips away (left to right)
                                 rotateY: [0, 3, 8, 18, 35, 55, 80, 110, 140, 170, 180],
                                 scaleX: [1, 0.995, 0.985, 0.96, 0.88, 0.75, 0.58, 0.4, 0.25, 0.1, 0],
                                 transformOrigin: 'right center',
                                 z: [0, 5, 12, 22, 38, 60, 85, 115, 145, 175, 200],
                                 opacity: [1, 1, 1, 1, 0.98, 0.92, 0.8, 0.6, 0.35, 0.15, 0]
+                              }
+                            : flipDirection === 'left' && isFlipping
+                            ? {
+                                // Left page appears gradually as right page flips (starts behind, comes forward)
+                                rotateY: [180, 170, 140, 110, 80, 55, 35, 18, 8, 3, 0],
+                                scaleX: [0, 0.1, 0.25, 0.4, 0.58, 0.75, 0.88, 0.96, 0.985, 0.995, 1],
+                                transformOrigin: 'right center',
+                                z: [200, 175, 145, 115, 85, 60, 38, 22, 12, 5, 0],
+                                opacity: [0, 0.15, 0.35, 0.6, 0.8, 0.92, 0.98, 1, 1, 1, 1]
                               }
                             : {
                                 rotateY: 0,
@@ -506,39 +516,51 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                           transition={{
                             duration: 1.2,
                             ease: [0.25, 0.1, 0.25, 1],
-                            times: flipDirection === 'right' && isFlipping ? [0, 0.08, 0.15, 0.25, 0.38, 0.52, 0.65, 0.78, 0.88, 0.95, 1] : undefined
+                            times: isFlipping ? [0, 0.08, 0.15, 0.25, 0.38, 0.52, 0.65, 0.78, 0.88, 0.95, 1] : undefined
                           }}
                           style={{
                             boxShadow: flipDirection === 'right' && isFlipping
                               ? '0 60px 150px rgba(0, 0, 0, 0.9), inset 20px 0 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.2)'
+                              : flipDirection === 'left' && isFlipping
+                              ? '0 60px 150px rgba(0, 0, 0, 0.9), inset -20px 0 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.2)'
                               : '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
                             maxWidth: '100%',
                             maxHeight: '100%',
                             transformStyle: 'preserve-3d',
                             backfaceVisibility: 'hidden',
-                            zIndex: flipDirection === 'right' && isFlipping ? 3 : 1
+                            zIndex: (flipDirection === 'right' || flipDirection === 'left') && isFlipping ? 3 : 1
                           }}
                         >
                           <Page
                             pageNumber={displayPage}
                             width={pageWidth}
-                            renderTextLayer={!(flipDirection === 'right' && isFlipping)}
-                            renderAnnotationLayer={!(flipDirection === 'right' && isFlipping)}
+                            renderTextLayer={!isFlipping}
+                            renderAnnotationLayer={!isFlipping}
                             className="shadow-xl"
                           />
                         </motion.div>
 
-                        {/* Right page - flips right to left when going next */}
+                        {/* Right page - flips right to left when going next, or appears gradually when left page flips */}
                         {numPages && displayPage < numPages && (
                           <motion.div 
                             className="bg-white shadow-2xl rounded-lg overflow-hidden relative" 
                             animate={flipDirection === 'left' && isFlipping
                               ? {
+                                  // Right page flips away (right to left) - correct direction
                                   rotateY: [0, -3, -8, -18, -35, -55, -80, -110, -140, -170, -180],
                                   scaleX: [1, 0.995, 0.985, 0.96, 0.88, 0.75, 0.58, 0.4, 0.25, 0.1, 0],
                                   transformOrigin: 'left center',
                                   z: [0, 5, 12, 22, 38, 60, 85, 115, 145, 175, 200],
                                   opacity: [1, 1, 1, 1, 0.98, 0.92, 0.8, 0.6, 0.35, 0.15, 0]
+                                }
+                              : flipDirection === 'right' && isFlipping
+                              ? {
+                                  // Right page appears gradually as left page flips (starts behind, comes forward)
+                                  rotateY: [-180, -170, -140, -110, -80, -55, -35, -18, -8, -3, 0],
+                                  scaleX: [0, 0.1, 0.25, 0.4, 0.58, 0.75, 0.88, 0.96, 0.985, 0.995, 1],
+                                  transformOrigin: 'left center',
+                                  z: [200, 175, 145, 115, 85, 60, 38, 22, 12, 5, 0],
+                                  opacity: [0, 0.15, 0.35, 0.6, 0.8, 0.92, 0.98, 1, 1, 1, 1]
                                 }
                               : {
                                   rotateY: 0,
@@ -551,24 +573,26 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                             transition={{
                               duration: 1.2,
                               ease: [0.25, 0.1, 0.25, 1],
-                              times: flipDirection === 'left' && isFlipping ? [0, 0.08, 0.15, 0.25, 0.38, 0.52, 0.65, 0.78, 0.88, 0.95, 1] : undefined
+                              times: isFlipping ? [0, 0.08, 0.15, 0.25, 0.38, 0.52, 0.65, 0.78, 0.88, 0.95, 1] : undefined
                             }}
                             style={{
                               boxShadow: flipDirection === 'left' && isFlipping
                                 ? '0 60px 150px rgba(0, 0, 0, 0.9), inset -20px 0 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.2)'
+                                : flipDirection === 'right' && isFlipping
+                                ? '0 60px 150px rgba(0, 0, 0, 0.9), inset 20px 0 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.2)'
                                 : '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
                               maxWidth: '100%',
                               maxHeight: '100%',
                               transformStyle: 'preserve-3d',
                               backfaceVisibility: 'hidden',
-                              zIndex: flipDirection === 'left' && isFlipping ? 3 : 2
+                              zIndex: (flipDirection === 'left' || flipDirection === 'right') && isFlipping ? 3 : 2
                             }}
                           >
                             <Page
                               pageNumber={displayPage + 1}
                               width={pageWidth}
-                              renderTextLayer={!(flipDirection === 'left' && isFlipping)}
-                              renderAnnotationLayer={!(flipDirection === 'left' && isFlipping)}
+                              renderTextLayer={!isFlipping}
+                              renderAnnotationLayer={!isFlipping}
                               className="shadow-xl"
                             />
                           </motion.div>
