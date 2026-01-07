@@ -117,6 +117,7 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [pageWidth, setPageWidth] = useState(800);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
+  const [flipDirection, setFlipDirection] = useState<'left' | 'right' | null>(null);
 
   const pdfUrl = (() => {
     const fileUrl = magazine.fileUrl;
@@ -157,34 +158,10 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
       
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        if (isDesktop) {
-          // On desktop, go back 2 pages (one spread)
-          if (currentPage > 2) {
-            setCurrentPage(currentPage - 2);
-          } else if (currentPage > 1) {
-            setCurrentPage(1);
-          }
-        } else {
-          // On mobile, go back 1 page
-          if (currentPage > 1) {
-            setCurrentPage(currentPage - 1);
-          }
-        }
+        handlePreviousPage();
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        if (isDesktop) {
-          // On desktop, go forward 2 pages (one spread)
-          if (numPages && currentPage < numPages - 1) {
-            setCurrentPage(currentPage + 2);
-          } else if (numPages && currentPage < numPages) {
-            setCurrentPage(numPages);
-          }
-        } else {
-          // On mobile, go forward 1 page
-          if (numPages && currentPage < numPages) {
-            setCurrentPage(currentPage + 1);
-          }
-        }
+        handleNextPage();
       } else if (e.key === 'Escape') {
         onClose();
       }
@@ -195,40 +172,50 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
   }, [numPages, currentPage, onClose, isDesktop]);
 
   const handlePreviousPage = () => {
-    if (isDesktop) {
-      // On desktop, go back 2 pages (one spread)
-      if (currentPage > 2) {
-        setCurrentPage(currentPage - 2);
-      } else if (currentPage > 1) {
-        setCurrentPage(1);
+    setFlipDirection('right'); // Flip from left to right (previous)
+    setTimeout(() => {
+      if (isDesktop) {
+        // On desktop, go back 2 pages (one spread)
+        if (currentPage > 2) {
+          setCurrentPage(currentPage - 2);
+        } else if (currentPage > 1) {
+          setCurrentPage(1);
+        }
+      } else {
+        // On mobile, go back 1 page
+        if (currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        }
       }
-    } else {
-      // On mobile, go back 1 page
-      if (currentPage > 1) {
-        setCurrentPage(currentPage - 1);
-      }
-    }
+      setTimeout(() => setFlipDirection(null), 600);
+    }, 50);
   };
 
   const handleNextPage = () => {
-    if (isDesktop) {
-      // On desktop, go forward 2 pages (one spread)
-      if (numPages && currentPage < numPages - 1) {
-        setCurrentPage(currentPage + 2);
-      } else if (numPages && currentPage < numPages) {
-        setCurrentPage(numPages);
+    setFlipDirection('left'); // Flip from right to left (next)
+    setTimeout(() => {
+      if (isDesktop) {
+        // On desktop, go forward 2 pages (one spread)
+        if (numPages && currentPage < numPages - 1) {
+          setCurrentPage(currentPage + 2);
+        } else if (numPages && currentPage < numPages) {
+          setCurrentPage(numPages);
+        }
+      } else {
+        // On mobile, go forward 1 page
+        if (numPages && currentPage < numPages) {
+          setCurrentPage(currentPage + 1);
+        }
       }
-    } else {
-      // On mobile, go forward 1 page
-      if (numPages && currentPage < numPages) {
-        setCurrentPage(currentPage + 1);
-      }
-    }
+      setTimeout(() => setFlipDirection(null), 600);
+    }, 50);
   };
 
   const handlePageInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const page = parseInt(e.target.value);
     if (page >= 1 && numPages && page <= numPages) {
+      // Direct page jump - no flip effect
+      setFlipDirection(null);
       setCurrentPage(page);
     }
   };
@@ -415,25 +402,50 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                     <p className="text-red-400 text-lg">{pdfError}</p>
                   </div>
                 ) : !pdfLoading && numPages && numPages > 0 ? (
-                  <div className="w-full h-full flex items-center justify-center min-h-0">
-                    {/* PDF Pages - Book Style (Desktop: 2 pages, Mobile: 1 page) */}
+                  <div className="w-full h-full flex items-center justify-center min-h-0" style={{ perspective: '1500px' }}>
+                    {/* PDF Pages - Book Style (Desktop: 2 pages, Mobile: 1 page) with Flip Effect */}
                     <AnimatePresence mode="wait">
                       <motion.div
                         key={currentPage}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.3 }}
+                        initial={flipDirection === 'left' 
+                          ? { opacity: 0, rotateY: 90, x: 100 }
+                          : flipDirection === 'right'
+                          ? { opacity: 0, rotateY: -90, x: -100 }
+                          : { opacity: 0, x: 20 }
+                        }
+                        animate={{ 
+                          opacity: 1, 
+                          rotateY: 0, 
+                          x: 0 
+                        }}
+                        exit={flipDirection === 'left'
+                          ? { opacity: 0, rotateY: -90, x: -100 }
+                          : flipDirection === 'right'
+                          ? { opacity: 0, rotateY: 90, x: 100 }
+                          : { opacity: 0, x: -20 }
+                        }
+                        transition={{ 
+                          duration: 0.6,
+                          ease: [0.25, 0.1, 0.25, 1]
+                        }}
+                        style={{
+                          transformStyle: 'preserve-3d',
+                          backfaceVisibility: 'hidden'
+                        }}
                         className={`flex items-center justify-center max-w-full max-h-full ${
                           isDesktop ? 'gap-4' : ''
                         }`}
                       >
                         {/* Left Page (Desktop) or Single Page (Mobile) */}
-                        <div className="bg-white shadow-2xl rounded-lg overflow-hidden" style={{
-                          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
-                          maxWidth: '100%',
-                          maxHeight: '100%'
-                        }}>
+                        <motion.div 
+                          className="bg-white shadow-2xl rounded-lg overflow-hidden" 
+                          style={{
+                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                            maxWidth: '100%',
+                            maxHeight: '100%',
+                            transformStyle: 'preserve-3d'
+                          }}
+                        >
                           <Page
                             pageNumber={currentPage}
                             width={pageWidth}
@@ -441,15 +453,19 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                             renderAnnotationLayer={true}
                             className="shadow-xl"
                           />
-                        </div>
+                        </motion.div>
 
                         {/* Right Page (Desktop only, if next page exists) */}
                         {isDesktop && numPages && currentPage < numPages && (
-                          <div className="bg-white shadow-2xl rounded-lg overflow-hidden" style={{
-                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
-                            maxWidth: '100%',
-                            maxHeight: '100%'
-                          }}>
+                          <motion.div 
+                            className="bg-white shadow-2xl rounded-lg overflow-hidden" 
+                            style={{
+                              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                              maxWidth: '100%',
+                              maxHeight: '100%',
+                              transformStyle: 'preserve-3d'
+                            }}
+                          >
                             <Page
                               pageNumber={currentPage + 1}
                               width={pageWidth}
@@ -457,7 +473,7 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                               renderAnnotationLayer={true}
                               className="shadow-xl"
                             />
-                          </div>
+                          </motion.div>
                         )}
                       </motion.div>
                     </AnimatePresence>
