@@ -270,7 +270,7 @@ export default function Home() {
               <img 
                 src="/images/logo.png" 
                 alt="Sanhoti (সংহতি) Bengali Association of Orange County"
-                className="h-28 md:h-36 w-auto"
+                className="h-32 md:h-40 w-auto"
                 onError={(e) => {
                   // Fallback to text if image not found
                   e.currentTarget.style.display = 'none';
