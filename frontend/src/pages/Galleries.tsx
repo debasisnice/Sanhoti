@@ -7,7 +7,8 @@ import { PhotoGallery } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal } from '../utils/dateUtils';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+// Use relative API base in production to avoid mixed-content; absolute in dev
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5001/api');
 
 export default function Galleries() {
   const [galleries, setGalleries] = useState<PhotoGallery[]>([]);
