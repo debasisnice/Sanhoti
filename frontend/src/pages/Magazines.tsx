@@ -466,15 +466,16 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                   <div className="w-full h-full flex items-center justify-center min-h-0" style={{ perspective: '2500px', perspectiveOrigin: 'center center' }}>
                     {isDesktop ? (
                       /* Desktop: Realistic book page flip - left page static, right page flips */
-                      <div className="relative flex items-center justify-center gap-4" style={{ transformStyle: 'preserve-3d', perspective: '2000px', perspectiveOrigin: 'center center' }}>
-                        {/* Left page - stays static during flip */}
+                      <div className="relative flex items-center justify-center gap-4" style={{ transformStyle: 'preserve-3d', perspective: '2000px', perspectiveOrigin: 'center center', minHeight: '600px' }}>
+                        {/* Left page - stays static during flip, fixed position */}
                         <div 
-                          className="bg-white shadow-2xl rounded-lg overflow-hidden relative" 
+                          className="bg-white shadow-2xl rounded-lg overflow-hidden relative flex-shrink-0" 
                           style={{
                             width: pageWidth,
                             minHeight: '600px',
                             zIndex: 1,
-                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                            position: 'relative'
                           }}
                         >
                           <Page
@@ -486,12 +487,12 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                           />
                         </div>
 
-                        {/* Right page - flips from right to left */}
+                        {/* Right page container - fixed position */}
                         {numPages && displayPage < numPages && (
-                          <>
+                          <div className="relative flex-shrink-0" style={{ width: pageWidth }}>
                             {/* Flipping page (page 2) - fades out until middle, then shows page 3 on back */}
                             <div 
-                              className="relative"
+                              className="absolute"
                               style={{
                                 transformStyle: 'preserve-3d',
                                 transform: flipDirection === 'left' && isFlipping
@@ -502,7 +503,10 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                                 transition: isFlipping ? 'none' : 'transform 0.3s ease',
                                 opacity: flipDirection === 'left' && isFlipping
                                   ? flipProgress <= 0.5 ? (1 - flipProgress * 2) : 0
-                                  : 1
+                                  : 1,
+                                width: pageWidth,
+                                top: 0,
+                                left: 0
                               }}
                             >
                               <div 
@@ -565,7 +569,7 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                               </div>
                             </div>
 
-                            {/* New right page (page 4) - appears during flip */}
+                            {/* New right page (page 4) - appears during flip, fixed position */}
                             {isFlipping && flipDirection === 'left' && numPages && displayPage + 3 <= numPages && (
                               <div 
                                 className="bg-white shadow-2xl rounded-lg overflow-hidden relative" 
@@ -575,7 +579,8 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                                   zIndex: 2,
                                   opacity: Math.min(flipProgress * 2, 1),
                                   boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
-                                  transition: 'opacity 0.3s ease'
+                                  transition: 'opacity 0.3s ease',
+                                  position: 'relative'
                                 }}
                               >
                                 <Page
@@ -587,7 +592,29 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                                 />
                               </div>
                             )}
-                          </>
+                            
+                            {/* Static right page when not flipping */}
+                            {!isFlipping && (
+                              <div 
+                                className="bg-white shadow-2xl rounded-lg overflow-hidden relative" 
+                                style={{
+                                  width: pageWidth,
+                                  minHeight: '600px',
+                                  zIndex: 2,
+                                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                                  position: 'relative'
+                                }}
+                              >
+                                <Page
+                                  pageNumber={displayPage + 1}
+                                  width={pageWidth}
+                                  renderTextLayer={true}
+                                  renderAnnotationLayer={true}
+                                  className="shadow-xl"
+                                />
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
                     ) : (
