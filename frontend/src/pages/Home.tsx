@@ -289,7 +289,7 @@ export default function Home() {
             className="text-xl md:text-2xl mb-8 text-primary-100"
           >
             Welcome to Sanhoti<br />
-            The Bengali Association of Orange County, CA
+            Bengali Association of Orange County, CA
           </motion.p>
           <motion.div
             initial={{ opacity: 0 }}
