@@ -176,23 +176,26 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
   const handlePreviousPage = () => {
     if (isDesktop) {
       // Desktop: Flip left page to reveal previous pages
-      setFlipDirection('right');
-      setIsFlipping(true);
-      // Update display page only after animation completes
+      // Don't update pages until animation starts
       setTimeout(() => {
-        if (currentPage > 2) {
-          const newPage = currentPage - 2;
-          setCurrentPage(newPage);
-          setDisplayPage(newPage);
-        } else if (currentPage > 1) {
-          setCurrentPage(1);
-          setDisplayPage(1);
-        }
+        setFlipDirection('right');
+        setIsFlipping(true);
+        // Update display page only after animation completes
         setTimeout(() => {
-          setFlipDirection(null);
-          setIsFlipping(false);
-        }, 100);
-      }, 1200); // Wait for animation to complete
+          if (currentPage > 2) {
+            const newPage = currentPage - 2;
+            setCurrentPage(newPage);
+            setDisplayPage(newPage);
+          } else if (currentPage > 1) {
+            setCurrentPage(1);
+            setDisplayPage(1);
+          }
+          setTimeout(() => {
+            setFlipDirection(null);
+            setIsFlipping(false);
+          }, 100);
+        }, 1200); // Wait for animation to complete
+      }, 10); // Small delay to ensure state is set before animation
     } else {
       // Mobile: Simple page change
       setFlipDirection('right');
@@ -209,23 +212,26 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
   const handleNextPage = () => {
     if (isDesktop) {
       // Desktop: Flip right page to reveal next pages
-      setFlipDirection('left');
-      setIsFlipping(true);
-      // Update display page only after animation completes
+      // Don't update pages until animation starts
       setTimeout(() => {
-        if (numPages && currentPage < numPages - 1) {
-          const newPage = currentPage + 2;
-          setCurrentPage(newPage);
-          setDisplayPage(newPage);
-        } else if (numPages && currentPage < numPages) {
-          setCurrentPage(numPages);
-          setDisplayPage(numPages);
-        }
+        setFlipDirection('left');
+        setIsFlipping(true);
+        // Update display page only after animation completes
         setTimeout(() => {
-          setFlipDirection(null);
-          setIsFlipping(false);
-        }, 100);
-      }, 1200); // Wait for animation to complete
+          if (numPages && currentPage < numPages - 1) {
+            const newPage = currentPage + 2;
+            setCurrentPage(newPage);
+            setDisplayPage(newPage);
+          } else if (numPages && currentPage < numPages) {
+            setCurrentPage(numPages);
+            setDisplayPage(numPages);
+          }
+          setTimeout(() => {
+            setFlipDirection(null);
+            setIsFlipping(false);
+          }, 100);
+        }, 1200); // Wait for animation to complete
+      }, 10); // Small delay to ensure state is set before animation
     } else {
       // Mobile: Simple page change
       setFlipDirection('left');
@@ -438,7 +444,13 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                       <div className="relative flex items-center justify-center gap-4" style={{ transformStyle: 'preserve-3d' }}>
                         {/* Pages underneath (next pages that will be revealed when right page flips) */}
                         {isFlipping && flipDirection === 'left' && numPages && displayPage + 2 <= numPages && (
-                          <div className="absolute flex items-center gap-4" style={{ zIndex: 0, opacity: 0.3 }}>
+                          <motion.div 
+                            className="absolute flex items-center gap-4" 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 0.3 }}
+                            transition={{ duration: 0.3, delay: 0.2 }}
+                            style={{ zIndex: 0 }}
+                          >
                             <div className="bg-white shadow-lg rounded-lg overflow-hidden">
                               <Page
                                 pageNumber={displayPage + 2}
@@ -457,12 +469,18 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                                 />
                               </div>
                             )}
-                          </div>
+                          </motion.div>
                         )}
 
                         {/* Pages underneath (previous pages that will be revealed when left page flips) */}
                         {isFlipping && flipDirection === 'right' && displayPage > 2 && (
-                          <div className="absolute flex items-center gap-4" style={{ zIndex: 0, opacity: 0.3 }}>
+                          <motion.div 
+                            className="absolute flex items-center gap-4" 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 0.3 }}
+                            transition={{ duration: 0.3, delay: 0.2 }}
+                            style={{ zIndex: 0 }}
+                          >
                             {displayPage > 3 && (
                               <div className="bg-white shadow-lg rounded-lg overflow-hidden">
                                 <Page
@@ -481,7 +499,7 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                                 renderAnnotationLayer={false}
                               />
                             </div>
-                          </div>
+                          </motion.div>
                         )}
 
                         {/* Left page - flips left to right when going previous, or appears gradually when right page flips */}
