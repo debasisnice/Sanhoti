@@ -1,1561 +1,878 @@
 [
   {
     "userId": "U63AAH027DVV",
-    "action": "CREATE",
-    "resource": "event",
-    "details": {
-      "method": "POST",
-      "path": "/events",
-      "body": {
-        "event_name": "Charity Event",
-        "event_start_dt": "2025-07-19",
-        "event_end_dt": "2025-07-19",
-        "year": 2027,
-        "event_description": "Laura's House Charity Event",
-        "location": "Laura's House, Aliso Viejo, CA",
-        "photo_gallery_link": ""
-      }
-    },
+    "action": "UPDATE",
+    "resource": "sponsor_image",
+    "details": "{\"method\":\"PUT\",\"path\":\"/sponsors/images/1767541221856-3.jpg/type\",\"body\":{\"sponsorshipType\":\"Gold\"}}",
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767424732997-rz4orac9p",
-    "createdAt": "2026-01-03T07:18:52.997Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "CREATE",
-    "resource": "event",
-    "details": {
-      "method": "POST",
-      "path": "/events",
-      "body": {
-        "event_name": "Annual Picnic",
-        "event_start_dt": "2025-08-09",
-        "event_end_dt": "2025-08-09",
-        "year": 2027,
-        "event_description": "First Annual Picnic",
-        "location": "O'Neill Regional Park, Shelter 3, 30892 Trabuco Canyon Rd, Trabuco Canyon, CA 92678",
-        "photo_gallery_link": ""
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767424827369-1nn4jrznv",
-    "createdAt": "2026-01-03T07:20:27.369Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "CREATE",
-    "resource": "event",
-    "details": {
-      "method": "POST",
-      "path": "/events",
-      "body": {
-        "event_name": "Mahalaya Cultural Program",
-        "event_start_dt": "2025-09-20",
-        "event_end_dt": "2025-09-20",
-        "year": 2025,
-        "event_description": "Sanhoti collaborates with Bharat Sevashram Sangha West (BSSW), Dakshini and BASC to present cultural masterpieces.",
-        "location": "Bharat Sevashram Sangha - 5600 Carbon Canyon Rd, Brea, CA 92823",
-        "photo_gallery_link": ""
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767446625286-quj0rzrdp",
-    "createdAt": "2026-01-03T13:23:45.286Z"
+    "userEmail": "",
+    "id": "1767745773547-p0cl15sfy",
+    "timestamp": "2026-01-07T00:29:33.547Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "UPDATE",
-    "resource": "event",
-    "resourceId": "AMSNCDMJ3QRW",
-    "details": {
-      "method": "PUT",
-      "path": "/events/AMSNCDMJ3QRW",
-      "body": {
-        "event_name": "Annual Picnic",
-        "event_start_dt": "2025-08-09",
-        "event_end_dt": "2025-08-09",
-        "year": 2025,
-        "event_description": "First Annual Picnic",
-        "location": "O'Neill Regional Park, Shelter 3, 30892 Trabuco Canyon Rd, Trabuco Canyon, CA 92678",
-        "photo_gallery_link": ""
-      }
-    },
+    "resource": "settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":false,\"documents\":false}}}",
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767446650855-zsuhrfk72",
-    "createdAt": "2026-01-03T13:24:10.855Z"
+    "userEmail": "",
+    "id": "1767738803495-q59ar5pla",
+    "timestamp": "2026-01-06T22:33:23.495Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "UPDATE",
-    "resource": "event",
-    "resourceId": "HKSSX3WD7R0Q",
-    "details": {
-      "method": "PUT",
-      "path": "/events/HKSSX3WD7R0Q",
-      "body": {
-        "event_name": "Charity Event",
-        "event_start_dt": "2025-07-19",
-        "event_end_dt": "2025-07-19",
-        "year": 2025,
-        "event_description": "Laura's House Charity Event",
-        "location": "Laura's House, Aliso Viejo, CA",
-        "photo_gallery_link": ""
-      }
-    },
+    "resource": "settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":true,\"documents\":false}}}",
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767446658782-bs0it52sz",
-    "createdAt": "2026-01-03T13:24:18.782Z"
+    "userEmail": "",
+    "id": "1767738802868-b5m8hfogx",
+    "timestamp": "2026-01-06T22:33:22.868Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":false,\"documents\":false}}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767738800333-ipgo58wqw",
+    "timestamp": "2026-01-06T22:33:20.333Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":true,\"documents\":false}}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767738760044-xh0erqdb7",
+    "timestamp": "2026-01-06T22:32:40.044Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":true,\"documents\":true}}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767737800927-snyon7xb6",
+    "timestamp": "2026-01-06T22:16:40.927Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "document",
+    "details": "{\"method\":\"POST\",\"path\":\"/documents/upload\",\"body\":{\"title\":\"ByLaws\",\"description\":\"Sanhoti ByLaws\",\"isPublic\":\"true\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767737533956-gwa7d6mef",
+    "timestamp": "2026-01-06T22:12:13.956Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "sub-event",
+    "resourceId": "M0X449GH1WOR",
+    "details": "{\"method\":\"PUT\",\"path\":\"/sub-events/M0X449GH1WOR\",\"body\":{\"sub_event_name\":\"Mahalakshmi Iyer Concert\",\"sub_event_start_dt\":\"2025-09-28\",\"sub_event_end_dt\":\"2025-09-28\",\"event_description\":\"A Magical evening with the Melody Queen\",\"location\":\"Robert B. Moore Theater, Orange Costa College, Arlington Dr, Costa Mesa, CA, 92626\",\"is_active\":true,\"rsvp_link\":\"https://forms.gle/3pbCr8pFFAZiGWbA6\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767736458284-u8hkyqlsz",
+    "timestamp": "2026-01-06T21:54:18.284Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "CREATE",
-    "resource": "event",
-    "details": {
-      "method": "POST",
-      "path": "/events",
-      "body": {
-        "event_name": "Durgotsav",
-        "event_start_dt": "2025-09-26",
-        "event_end_dt": "2025-09-28",
-        "year": 2025,
-        "event_description": "Durgotsav or Durgapuja is a vibrant, major Hindu festival celebrating the goddess Durga's victory over evil, marked by elaborate temporary temples (pandals), cultural festivities, art, music, community gatherings, and rituals honoring the divine feminine power (Shakti) and her return to her maternal home, culminating in the immersion of her idol. ",
-        "location": "Estancia High School, 2323 Placentia Ave, Costa Mesa, CA 92627",
-        "photo_gallery_link": ""
-      }
-    },
+    "resource": "sub-event",
+    "details": "{\"method\":\"POST\",\"path\":\"/sub-events\",\"body\":{\"sub_event_name\":\"Test\",\"sub_event_start_dt\":\"2025-09-26\",\"sub_event_end_dt\":\"2025-09-28\",\"year\":2025,\"event_description\":\"test\",\"location\":\"test\",\"is_active\":true,\"event_id\":\"YHO7NY9I7CRU\"}}",
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767446880519-kvol1tuhl",
-    "createdAt": "2026-01-03T13:28:00.519Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "CREATE",
-    "resource": "event",
-    "details": {
-      "method": "POST",
-      "path": "/events",
-      "body": {
-        "event_name": "Kali Puja",
-        "event_start_dt": "2025-10-19",
-        "event_end_dt": "2025-10-19",
-        "year": 2025,
-        "event_description": "Sanhoti organizes Kali puja in Irvine Hindu Temple with a cultural evening.",
-        "location": "Mandir, 8 Autry, Irvine, CA 92618",
-        "photo_gallery_link": ""
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767447095228-ochl2tel3",
-    "createdAt": "2026-01-03T13:31:35.228Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "CREATE",
-    "resource": "event",
-    "details": {
-      "method": "POST",
-      "path": "/events",
-      "body": {
-        "event_name": "Saraswati Puja",
-        "event_start_dt": "2026-01-24",
-        "event_end_dt": "2026-01-24",
-        "year": 2026,
-        "event_description": "Saraswati Puja, also known as Vasant Panchami, is a Hindu festival celebrating the goddess of knowledge, wisdom, music, and arts, where devotees pray for enlightenment, creativity, and success in learning, marking the arrival of spring with offerings of flowers, books, and instruments to invoke her blessings. ",
-        "location": "Davis Magnet School, CostaMesa, CA",
-        "photo_gallery_link": ""
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767447234213-bteve1mly",
-    "createdAt": "2026-01-03T13:33:54.213Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "DEACTIVATE",
-    "resource": "event",
-    "resourceId": "WJWYE0NC4IIY",
-    "details": {
-      "method": "POST",
-      "path": "/events/WJWYE0NC4IIY/deactivate",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767451341003-tcpxd8miw",
-    "createdAt": "2026-01-03T14:42:21.003Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "DEACTIVATE",
-    "resource": "event",
-    "resourceId": "WJWYE0NC4IIY",
-    "details": {
-      "method": "POST",
-      "path": "/events/WJWYE0NC4IIY/deactivate",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767451533673-j8h3ebtbh",
-    "createdAt": "2026-01-03T14:45:33.673Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "DEACTIVATE",
-    "resource": "event",
-    "resourceId": "WJWYE0NC4IIY",
-    "details": {
-      "method": "POST",
-      "path": "/events/WJWYE0NC4IIY/deactivate",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767451572562-95ccdet11",
-    "createdAt": "2026-01-03T14:46:12.562Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event_gallery",
-    "details": {
-      "method": "POST",
-      "path": "/events/WJWYE0NC4IIY/gallery/publish",
-      "body": {
-        "isPublic": true
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767451592145-dzd50cmq5",
-    "createdAt": "2026-01-03T14:46:32.145Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "DEACTIVATE",
-    "resource": "event",
-    "resourceId": "WJWYE0NC4IIY",
-    "details": {
-      "method": "POST",
-      "path": "/events/WJWYE0NC4IIY/deactivate",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767451602123-lzd0i5e9b",
-    "createdAt": "2026-01-03T14:46:42.123Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "ACTIVATE",
-    "resource": "event",
-    "resourceId": "WJWYE0NC4IIY",
-    "details": {
-      "method": "POST",
-      "path": "/events/WJWYE0NC4IIY/activate",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767452158684-13nuyhm6s",
-    "createdAt": "2026-01-03T14:55:58.684Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "DEACTIVATE",
-    "resource": "event",
-    "resourceId": "WJWYE0NC4IIY",
-    "details": {
-      "method": "POST",
-      "path": "/events/WJWYE0NC4IIY/deactivate",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767452164866-cn2vbdvr9",
-    "createdAt": "2026-01-03T14:56:04.866Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "ACTIVATE",
-    "resource": "event",
-    "resourceId": "WJWYE0NC4IIY",
-    "details": {
-      "method": "POST",
-      "path": "/events/WJWYE0NC4IIY/activate",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767452186272-dnlu1lqll",
-    "createdAt": "2026-01-03T14:56:26.272Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_PHOTO",
-    "resource": "gallery",
-    "details": {
-      "method": "POST",
-      "path": "/galleries/YHO7NY9I7CRU/upload",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767453085172-d8v5eloex",
-    "createdAt": "2026-01-03T15:11:25.172Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event_gallery",
-    "details": {
-      "method": "POST",
-      "path": "/events/YHO7NY9I7CRU/gallery/publish",
-      "body": {
-        "isPublic": true
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767453116315-bpvxbbe2r",
-    "createdAt": "2026-01-03T15:11:56.315Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event_gallery",
-    "details": {
-      "method": "POST",
-      "path": "/events/AMSNCDMJ3QRW/gallery/publish",
-      "body": {
-        "isPublic": false
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767454498512-tild0ddfn",
-    "createdAt": "2026-01-03T15:34:58.512Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_PHOTO",
-    "resource": "gallery",
-    "details": {
-      "method": "POST",
-      "path": "/galleries/AMSNCDMJ3QRW/upload",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767454507854-30i1s5hdq",
-    "createdAt": "2026-01-03T15:35:07.854Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event_gallery",
-    "details": {
-      "method": "POST",
-      "path": "/events/AMSNCDMJ3QRW/gallery/publish",
-      "body": {
-        "isPublic": true
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767454513898-979t4uy9r",
-    "createdAt": "2026-01-03T15:35:13.898Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event_gallery",
-    "details": {
-      "method": "POST",
-      "path": "/events/AMSNCDMJ3QRW/gallery/publish",
-      "body": {
-        "isPublic": false
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767454521211-8j8ks3r57",
-    "createdAt": "2026-01-03T15:35:21.211Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event_gallery",
-    "details": {
-      "method": "POST",
-      "path": "/events/AMSNCDMJ3QRW/gallery/publish",
-      "body": {
-        "isPublic": true
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767454523793-ao9hqc0og",
-    "createdAt": "2026-01-03T15:35:23.793Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_PHOTO",
-    "resource": "gallery",
-    "details": {
-      "method": "POST",
-      "path": "/galleries/HKSSX3WD7R0Q/upload",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767454739074-coik4xvq0",
-    "createdAt": "2026-01-03T15:38:59.074Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "DELETE_PHOTO",
-    "resource": "gallery",
-    "details": {
-      "method": "DELETE",
-      "path": "/galleries/HKSSX3WD7R0Q/photos/1767454739058-6.jpeg",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767456448355-4yiq52kes",
-    "createdAt": "2026-01-03T16:07:28.355Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_PHOTO",
-    "resource": "gallery",
-    "details": {
-      "method": "POST",
-      "path": "/galleries/HKSSX3WD7R0Q/upload",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767456459646-111qp115f",
-    "createdAt": "2026-01-03T16:07:39.647Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "CREATE",
-    "resource": "notice",
-    "details": {
-      "method": "POST",
-      "path": "/notices",
-      "body": {
-        "notice_name": "Saraswati Puja update",
-        "notice_body": "2026 Saraswati Puja\nEvents and Menu",
-        "event_id": "WJWYE0NC4IIY",
-        "is_active": true,
-        "is_published": false
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767458896201-gp1scmxsb",
-    "createdAt": "2026-01-03T16:48:16.201Z"
+    "userEmail": "",
+    "id": "1767736251187-fe8s4cc96",
+    "timestamp": "2026-01-06T21:50:51.187Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "UPLOAD_IMAGE",
-    "resource": "notice",
-    "details": {
-      "method": "POST",
-      "path": "/notices/52SF8DQX4THX/upload-image",
-      "body": {}
-    },
+    "resource": "sub-event",
+    "resourceId": "F3PWXVMC6ML6",
+    "details": "{\"method\":\"POST\",\"path\":\"/sub-events/F3PWXVMC6ML6/upload-image\",\"body\":{}}",
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767458896216-p4j722vk0",
-    "createdAt": "2026-01-03T16:48:16.216Z"
+    "userEmail": "",
+    "id": "1767733253107-l9l3xqa2b",
+    "timestamp": "2026-01-06T21:00:53.107Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "UPDATE",
-    "resource": "notice",
-    "resourceId": "52SF8DQX4THX",
-    "details": {
-      "method": "PUT",
-      "path": "/notices/52SF8DQX4THX",
-      "body": {
-        "notice_name": "Saraswati Puja update",
-        "notice_body": "2026 Saraswati Puja\nEvents and Menu",
-        "event_id": "WJWYE0NC4IIY",
-        "notice_image_path": "saraswati-puja-update-52SF8DQX4THX",
-        "is_active": true,
-        "is_published": false
-      }
-    },
+    "resource": "sub-event",
+    "resourceId": "F3PWXVMC6ML6",
+    "details": "{\"method\":\"PUT\",\"path\":\"/sub-events/F3PWXVMC6ML6\",\"body\":{\"sub_event_name\":\"Rathijit and Shreya Live\",\"sub_event_start_dt\":\"2025-09-27\",\"sub_event_end_dt\":\"2025-09-27\",\"event_description\":\"Bengali musical duo Rathijit Bhattacharjee and Shreya M Bhattacharjee\",\"location\":\"engali musical duo Rathijit Bhattacharjee and Shreya M Bhattacharjee\",\"is_active\":true}}",
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767458954367-1gpr7t7fc",
-    "createdAt": "2026-01-03T16:49:14.367Z"
+    "userEmail": "",
+    "id": "1767733253097-wdbkoezi5",
+    "timestamp": "2026-01-06T21:00:53.097Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "UPLOAD_IMAGE",
-    "resource": "notice",
-    "details": {
-      "method": "POST",
-      "path": "/notices/52SF8DQX4THX/upload-image",
-      "body": {}
-    },
+    "resource": "sub-event",
+    "resourceId": "M0X449GH1WOR",
+    "details": "{\"method\":\"POST\",\"path\":\"/sub-events/M0X449GH1WOR/upload-image\",\"body\":{}}",
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767458954380-k8htwlbj5",
-    "createdAt": "2026-01-03T16:49:14.381Z"
+    "userEmail": "",
+    "id": "1767733244971-7yueu2bd2",
+    "timestamp": "2026-01-06T21:00:44.971Z"
   },
   {
     "userId": "U63AAH027DVV",
-    "action": "PUBLISH",
-    "resource": "notice",
-    "resourceId": "52SF8DQX4THX",
-    "details": {
-      "method": "POST",
-      "path": "/notices/52SF8DQX4THX/publish",
-      "body": {}
-    },
+    "action": "UPDATE",
+    "resource": "sub-event",
+    "resourceId": "M0X449GH1WOR",
+    "details": "{\"method\":\"PUT\",\"path\":\"/sub-events/M0X449GH1WOR\",\"body\":{\"sub_event_name\":\"Mahalakshmi Iyer Concert\",\"sub_event_start_dt\":\"2025-09-28\",\"sub_event_end_dt\":\"2025-09-28\",\"event_description\":\"A Magical evening with the Melody Queen\",\"location\":\"Robert B. Moore Theater, Orange Costa College, Arlington Dr, Costa Mesa, CA, 92626\",\"is_active\":true}}",
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767458988082-jel4jxx7t",
-    "createdAt": "2026-01-03T16:49:48.082Z"
+    "userEmail": "",
+    "id": "1767733244959-nl17hp5et",
+    "timestamp": "2026-01-06T21:00:44.959Z"
   },
   {
     "userId": "U63AAH027DVV",
-    "action": "UNPUBLISH",
-    "resource": "notice",
-    "resourceId": "52SF8DQX4THX",
-    "details": {
-      "method": "POST",
-      "path": "/notices/52SF8DQX4THX/unpublish",
-      "body": {}
-    },
+    "action": "UPLOAD_IMAGE",
+    "resource": "sub-event",
+    "resourceId": "F3PWXVMC6ML6",
+    "details": "{\"method\":\"POST\",\"path\":\"/sub-events/F3PWXVMC6ML6/upload-image\",\"body\":{}}",
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767458991084-q2hykvsj3",
-    "createdAt": "2026-01-03T16:49:51.084Z"
+    "userEmail": "",
+    "id": "1767732808082-8m7g4v6dz",
+    "timestamp": "2026-01-06T20:53:28.082Z"
   },
   {
     "userId": "U63AAH027DVV",
-    "action": "PUBLISH",
-    "resource": "notice",
-    "resourceId": "52SF8DQX4THX",
-    "details": {
-      "method": "POST",
-      "path": "/notices/52SF8DQX4THX/publish",
-      "body": {}
-    },
+    "action": "CREATE",
+    "resource": "sub-event",
+    "details": "{\"method\":\"POST\",\"path\":\"/sub-events\",\"body\":{\"sub_event_name\":\"Rathijit and Shreya Live\",\"sub_event_start_dt\":\"2025-09-27\",\"sub_event_end_dt\":\"2025-09-27\",\"year\":2025,\"event_description\":\"Bengali musical duo Rathijit Bhattacharjee and Shreya M Bhattacharjee\",\"location\":\"engali musical duo Rathijit Bhattacharjee and Shreya M Bhattacharjee\",\"is_active\":true,\"event_id\":\"YHO7NY9I7CRU\"}}",
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767458999911-ek6popg70",
-    "createdAt": "2026-01-03T16:49:59.911Z"
+    "userEmail": "",
+    "id": "1767732808061-nsu39tpfv",
+    "timestamp": "2026-01-06T20:53:28.061Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_IMAGE",
+    "resource": "sub-event",
+    "resourceId": "M0X449GH1WOR",
+    "details": "{\"method\":\"POST\",\"path\":\"/sub-events/M0X449GH1WOR/upload-image\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767732437575-hpkq027al",
+    "timestamp": "2026-01-06T20:47:17.575Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "sub-event",
+    "resourceId": "M0X449GH1WOR",
+    "details": "{\"method\":\"PUT\",\"path\":\"/sub-events/M0X449GH1WOR\",\"body\":{\"sub_event_name\":\"Mahalakshmi Iyer Concert\",\"sub_event_start_dt\":\"2025-09-28\",\"sub_event_end_dt\":\"2025-09-28\",\"event_description\":\"A Magical evening with the Melody Queen\",\"location\":\"Robert B. Moore Theater, Orange Costa College, Arlington Dr, Costa Mesa, CA, 92626\",\"is_active\":true}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767732437562-7b950c82n",
+    "timestamp": "2026-01-06T20:47:17.562Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_IMAGE",
+    "resource": "sub-event",
+    "resourceId": "M0X449GH1WOR",
+    "details": "{\"method\":\"POST\",\"path\":\"/sub-events/M0X449GH1WOR/upload-image\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767732340601-9itwu2l6n",
+    "timestamp": "2026-01-06T20:45:40.601Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "CREATE",
+    "resource": "sub-event",
+    "details": "{\"method\":\"POST\",\"path\":\"/sub-events\",\"body\":{\"sub_event_name\":\"Mahalakshmi Iyer Concert\",\"sub_event_start_dt\":\"2025-09-28\",\"sub_event_end_dt\":\"2025-09-28\",\"year\":2025,\"event_description\":\"A Magical evening with the Melody Queen\",\"location\":\"Robert B. Moore Theater, Orange Costa College, Arlington Dr, Costa Mesa, CA, 92626\",\"is_active\":true,\"event_id\":\"YHO7NY9I7CRU\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767732340589-otzybcr17",
+    "timestamp": "2026-01-06T20:45:40.589Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":true}}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767730446136-gzq7nf9hw",
+    "timestamp": "2026-01-06T20:14:06.136Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "social_links",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/social-links\",\"body\":{\"facebookLink\":\"https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr\",\"whatsappLink\":\"https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH\",\"instagramLink\":\"https://www.instagram.com/sanhotioc?igsh=NTc4MTIwNjQ2YQ==\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767725785356-sza6vytno",
+    "timestamp": "2026-01-06T18:56:25.356Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "MARK_RESPONDED",
+    "resource": "message",
+    "resourceId": "1767651507536-ym5zlr8ku",
+    "details": "{\"method\":\"PUT\",\"path\":\"/messages/1767651507536-ym5zlr8ku/responded\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767654465557-auxf3mpl8",
+    "timestamp": "2026-01-05T23:07:45.557Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "SEND_EMAIL",
+    "resource": "organizations",
+    "details": "{\"method\":\"POST\",\"path\":\"/email/organizations\",\"body\":{\"organizations\":[\"debasis.nice@gmail.com\"],\"subject\":\"Re: Your Message from Sanhoti Website\",\"html\":\"Responded from deployed site\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767654465545-x5j1k5nw9",
+    "timestamp": "2026-01-05T23:07:45.545Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event",
+    "resourceId": "WJWYE0NC4IIY",
+    "details": "{\"method\":\"PUT\",\"path\":\"/events/WJWYE0NC4IIY\",\"body\":{\"event_name\":\"Saraswati Puja\",\"event_start_dt\":\"2026-01-24\",\"event_end_dt\":\"2026-01-24\",\"year\":2026,\"event_description\":\"Saraswati Puja, also known as Vasant Panchami, is a Hindu festival celebrating the goddess of knowledge, wisdom, music, and arts, where devotees pray for enlightenment, creativity, and success in learning, marking the arrival of spring with offerings of flowers, books, and instruments to invoke her blessings. \",\"location\":\"Davis Magnet School, CostaMesa, CA\",\"is_priority\":true,\"rsvp_link\":\"https://forms.gle/3pbCr8pFFAZiGWbA6\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767654319128-odtm44fqo",
+    "timestamp": "2026-01-05T23:05:19.128Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "email_settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/email\",\"body\":{\"emailAddress\":\"sanhoti.info@gmail.com\",\"emailPassword\":\"hysbyijbneytfzfk\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767654221786-lmudr5oho",
+    "timestamp": "2026-01-05T23:03:41.786Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "MARK_RESPONDED",
+    "resource": "message",
+    "resourceId": "1767651560466-d7kjg49vb",
+    "details": "{\"method\":\"PUT\",\"path\":\"/messages/1767651560466-d7kjg49vb/responded\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767651803887-tysqlh0mu",
+    "timestamp": "2026-01-05T22:23:23.887Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "SEND_EMAIL",
+    "resource": "organizations",
+    "details": "{\"method\":\"POST\",\"path\":\"/email/organizations\",\"body\":{\"organizations\":[\"debasis.nicy@gmail.com\"],\"subject\":\"Re: Your Message from Sanhoti Website\",\"html\":\"responded\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767651803878-7mhxaqrxw",
+    "timestamp": "2026-01-05T22:23:23.878Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "DELETE",
-    "resource": "notice",
-    "resourceId": "52SF8DQX4THX",
-    "details": {
-      "method": "DELETE",
-      "path": "/notices/52SF8DQX4THX",
-      "body": {}
-    },
+    "resource": "message",
+    "resourceId": "1767422435931-q12c951xg",
+    "details": "{\"method\":\"DELETE\",\"path\":\"/messages/1767422435931-q12c951xg\",\"body\":{}}",
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767459107110-bx1hm3nn1",
-    "createdAt": "2026-01-03T16:51:47.110Z"
+    "userEmail": "",
+    "id": "1767651527739-o7vbmrvhx",
+    "timestamp": "2026-01-05T22:18:47.739Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "CREATE",
-    "resource": "notice",
-    "details": {
-      "method": "POST",
-      "path": "/notices",
-      "body": {
-        "notice_name": "Saraswati Puja 2026 Updates",
-        "notice_body": "Please check the event details and menu of the upcoming Saraswati Puja 2026.\nMore details will be coming soon. \n\nComplete your RSVP if not done yet:\nhttps://forms.gle/3pbCr8pFFAZiGWbA6",
-        "event_id": "WJWYE0NC4IIY",
-        "is_active": true,
-        "is_published": false
-      }
-    },
+    "resource": "user",
+    "details": "{\"method\":\"POST\",\"path\":\"/users\",\"body\":{\"first_name\":\"Sourav\",\"last_name\":\"Nag\",\"email_address\":\"snag75@gmail.com\",\"phone_number\":\"9493576536\",\"password\":\"Sanhoti\",\"address1\":\"\",\"address2\":\"\",\"city\":\"\",\"state\":\"\",\"zip\":\"\",\"country\":\"\",\"user_type\":\"user\",\"member_type\":\"member\",\"is_active\":true}}",
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767459271148-er5k515ut",
-    "createdAt": "2026-01-03T16:54:31.148Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_IMAGE",
-    "resource": "notice",
-    "details": {
-      "method": "POST",
-      "path": "/notices/VILU35ZB7EWO/upload-image",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767459271159-g6ses033x",
-    "createdAt": "2026-01-03T16:54:31.159Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "PUBLISH",
-    "resource": "notice",
-    "resourceId": "VILU35ZB7EWO",
-    "details": {
-      "method": "POST",
-      "path": "/notices/VILU35ZB7EWO/publish",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767459290349-xejy77e5q",
-    "createdAt": "2026-01-03T16:54:50.349Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "notice",
-    "resourceId": "VILU35ZB7EWO",
-    "details": {
-      "method": "PUT",
-      "path": "/notices/VILU35ZB7EWO",
-      "body": {
-        "notice_name": "Saraswati Puja 2026 Updates",
-        "notice_body": "Please check the event details and menu of the upcoming Saraswati Puja 2026.\nMore details will be coming soon. \n\nComplete your RSVP if not done yet:\nhttps://forms.gle/3pbCr8pFFAZiGWbA6",
-        "event_id": "WJWYE0NC4IIY",
-        "notice_image_path": "saraswati-puja-2026-updates-VILU35ZB7EWO",
-        "is_active": false,
-        "is_published": true
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767459776684-3vtzx44dd",
-    "createdAt": "2026-01-03T17:02:56.684Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UNPUBLISH",
-    "resource": "notice",
-    "resourceId": "VILU35ZB7EWO",
-    "details": {
-      "method": "POST",
-      "path": "/notices/VILU35ZB7EWO/unpublish",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767459999295-sdvgoggqz",
-    "createdAt": "2026-01-03T17:06:39.295Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "notice",
-    "resourceId": "VILU35ZB7EWO",
-    "details": {
-      "method": "PUT",
-      "path": "/notices/VILU35ZB7EWO",
-      "body": {
-        "notice_name": "Saraswati Puja 2026 Updates",
-        "notice_body": "Please check the event details and menu of the upcoming Saraswati Puja 2026.\nMore details will be coming soon. \n\nComplete your RSVP if not done yet:\nhttps://forms.gle/3pbCr8pFFAZiGWbA6",
-        "event_id": "WJWYE0NC4IIY",
-        "notice_image_path": "saraswati-puja-2026-updates-VILU35ZB7EWO",
-        "is_active": false,
-        "is_published": false
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767460024028-cxkrzpske",
-    "createdAt": "2026-01-03T17:07:04.028Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "notice",
-    "resourceId": "VILU35ZB7EWO",
-    "details": {
-      "method": "PUT",
-      "path": "/notices/VILU35ZB7EWO",
-      "body": {
-        "notice_name": "Saraswati Puja 2026 Updates",
-        "notice_body": "Please check the event details and menu of the upcoming Saraswati Puja 2026.\nMore details will be coming soon. \n\nComplete your RSVP if not done yet:\nhttps://forms.gle/3pbCr8pFFAZiGWbA6",
-        "event_id": "WJWYE0NC4IIY",
-        "notice_image_path": "saraswati-puja-2026-updates-VILU35ZB7EWO",
-        "is_active": false,
-        "is_published": false
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767460038213-lcwmhmsjh",
-    "createdAt": "2026-01-03T17:07:18.213Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "notice",
-    "resourceId": "VILU35ZB7EWO",
-    "details": {
-      "method": "PUT",
-      "path": "/notices/VILU35ZB7EWO",
-      "body": {
-        "notice_name": "Saraswati Puja 2026 Updates",
-        "notice_body": "Please check the event details and menu of the upcoming Saraswati Puja 2026.\nMore details will be coming soon. \n\nComplete your RSVP if not done yet:\nhttps://forms.gle/3pbCr8pFFAZiGWbA6",
-        "event_id": "WJWYE0NC4IIY",
-        "notice_image_path": "saraswati-puja-2026-updates-VILU35ZB7EWO",
-        "is_active": true,
-        "is_published": true
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767460207829-4rnhw8n0x",
-    "createdAt": "2026-01-03T17:10:07.829Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "notice",
-    "resourceId": "VILU35ZB7EWO",
-    "details": {
-      "method": "PUT",
-      "path": "/notices/VILU35ZB7EWO",
-      "body": {
-        "notice_name": "Saraswati Puja 2026 Updates",
-        "notice_body": "Please check the event details and menu of the upcoming Saraswati Puja 2026.\nMore details will be coming soon. \n\nComplete your RSVP if not done yet:\nhttps://forms.gle/3pbCr8pFFAZiGWbA6",
-        "event_id": "WJWYE0NC4IIY",
-        "notice_image_path": "saraswati-puja-2026-updates-VILU35ZB7EWO",
-        "is_active": true,
-        "is_published": true
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767460262533-dzaw9b13o",
-    "createdAt": "2026-01-03T17:11:02.533Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_IMAGE",
-    "resource": "notice",
-    "details": {
-      "method": "POST",
-      "path": "/notices/VILU35ZB7EWO/upload-image",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767460262551-vriuncmp4",
-    "createdAt": "2026-01-03T17:11:02.551Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "notice",
-    "resourceId": "VILU35ZB7EWO",
-    "details": {
-      "method": "PUT",
-      "path": "/notices/VILU35ZB7EWO",
-      "body": {
-        "notice_name": "Saraswati Puja 2026 Updates",
-        "notice_body": "Please check the event details and menu of the upcoming Saraswati Puja 2026.\nMore details will be coming soon. \n\nComplete your RSVP if not done yet:\nhttps://forms.gle/3pbCr8pFFAZiGWbA6",
-        "event_id": "WJWYE0NC4IIY",
-        "notice_image_path": "saraswati-puja-2026-updates-VILU35ZB7EWO",
-        "is_active": true,
-        "is_published": true
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767460308849-9g4u4vehw",
-    "createdAt": "2026-01-03T17:11:48.849Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_IMAGE",
-    "resource": "notice",
-    "details": {
-      "method": "POST",
-      "path": "/notices/VILU35ZB7EWO/upload-image",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767460308869-39s3pdv0g",
-    "createdAt": "2026-01-03T17:11:48.869Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "DELETE",
-    "resource": "notice",
-    "resourceId": "VILU35ZB7EWO",
-    "details": {
-      "method": "DELETE",
-      "path": "/notices/VILU35ZB7EWO",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767460348940-lh22k60s8",
-    "createdAt": "2026-01-03T17:12:28.940Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "CREATE",
-    "resource": "notice",
-    "details": {
-      "method": "POST",
-      "path": "/notices",
-      "body": {
-        "notice_name": "Saraswati Puja 2026",
-        "notice_body": "Please check the event details and menu of the upcoming Saraswati Puja 2026.\nMore details will be coming soon. \n\nComplete your RSVP if not done yet:\nhttps://forms.gle/3pbCr8pFFAZiGWbA6",
-        "event_id": "WJWYE0NC4IIY",
-        "is_active": true,
-        "is_published": true
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767460380123-bp41ww992",
-    "createdAt": "2026-01-03T17:13:00.123Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_IMAGE",
-    "resource": "notice",
-    "details": {
-      "method": "POST",
-      "path": "/notices/DHECLLYC471M/upload-image",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767460380136-so3u0c86z",
-    "createdAt": "2026-01-03T17:13:00.136Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "CREATE",
-    "resource": "event",
-    "details": {
-      "method": "POST",
-      "path": "/events",
-      "body": {
-        "event_name": "jbj",
-        "event_start_dt": "2026-01-03",
-        "event_end_dt": "2026-01-01",
-        "year": 2026,
-        "event_description": " jkbnkjnk",
-        "location": "",
-        "is_priority": true
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767461479897-b0psmdjj1",
-    "createdAt": "2026-01-03T17:31:19.897Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "DELETE",
-    "resource": "event",
-    "resourceId": "SYCKMUVPQZB6",
-    "details": {
-      "method": "DELETE",
-      "path": "/events/SYCKMUVPQZB6",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767461575178-xqrsvbu9b",
-    "createdAt": "2026-01-03T17:32:55.178Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "CREATE",
-    "resource": "event",
-    "details": {
-      "method": "POST",
-      "path": "/events",
-      "body": {
-        "event_name": "kjbjkbk",
-        "event_start_dt": "2026-01-03",
-        "event_end_dt": "2026-01-03",
-        "year": 2026,
-        "event_description": "n bkjbkj",
-        "location": "",
-        "is_priority": true
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767461620183-pbdryxid3",
-    "createdAt": "2026-01-03T17:33:40.183Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "DELETE",
-    "resource": "event",
-    "resourceId": "T3HFPO4LPAPH",
-    "details": {
-      "method": "DELETE",
-      "path": "/events/T3HFPO4LPAPH",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767461637466-pokipsbh6",
-    "createdAt": "2026-01-03T17:33:57.466Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event",
-    "resourceId": "WJWYE0NC4IIY",
-    "details": {
-      "method": "PUT",
-      "path": "/events/WJWYE0NC4IIY",
-      "body": {
-        "event_name": "Saraswati Puja",
-        "event_start_dt": "2026-01-24",
-        "event_end_dt": "2026-01-24",
-        "year": 2026,
-        "event_description": "Saraswati Puja, also known as Vasant Panchami, is a Hindu festival celebrating the goddess of knowledge, wisdom, music, and arts, where devotees pray for enlightenment, creativity, and success in learning, marking the arrival of spring with offerings of flowers, books, and instruments to invoke her blessings. ",
-        "location": "Davis Magnet School, CostaMesa, CA",
-        "is_priority": true
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767461641587-5jr8maw6l",
-    "createdAt": "2026-01-03T17:34:01.587Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event",
-    "resourceId": "RY3N29PQ9UJW",
-    "details": {
-      "method": "PUT",
-      "path": "/events/RY3N29PQ9UJW",
-      "body": {
-        "event_name": "Kali Puja",
-        "event_start_dt": "2025-10-19",
-        "event_end_dt": "2025-10-19",
-        "year": 2025,
-        "event_description": "Sanhoti organizes Kali puja in Irvine Hindu Temple with a cultural evening.",
-        "location": "Mandir, 8 Autry, Irvine, CA 92618",
-        "is_priority": true
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767461651710-xbmnmoiz3",
-    "createdAt": "2026-01-03T17:34:11.710Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event",
-    "resourceId": "WJWYE0NC4IIY",
-    "details": {
-      "method": "PUT",
-      "path": "/events/WJWYE0NC4IIY",
-      "body": {
-        "event_name": "Saraswati Puja",
-        "event_start_dt": "2026-01-24",
-        "event_end_dt": "2026-01-24",
-        "year": 2026,
-        "event_description": "Saraswati Puja, also known as Vasant Panchami, is a Hindu festival celebrating the goddess of knowledge, wisdom, music, and arts, where devotees pray for enlightenment, creativity, and success in learning, marking the arrival of spring with offerings of flowers, books, and instruments to invoke her blessings. ",
-        "location": "Davis Magnet School, CostaMesa, CA",
-        "is_priority": true
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767461661764-khuaslt5j",
-    "createdAt": "2026-01-03T17:34:21.764Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event",
-    "resourceId": "WJWYE0NC4IIY",
-    "details": {
-      "method": "PUT",
-      "path": "/events/WJWYE0NC4IIY",
-      "body": {
-        "event_name": "Saraswati Puja",
-        "event_start_dt": "2026-01-24",
-        "event_end_dt": "2026-01-24",
-        "year": 2026,
-        "event_description": "Saraswati Puja, also known as Vasant Panchami, is a Hindu festival celebrating the goddess of knowledge, wisdom, music, and arts, where devotees pray for enlightenment, creativity, and success in learning, marking the arrival of spring with offerings of flowers, books, and instruments to invoke her blessings. ",
-        "location": "Davis Magnet School, CostaMesa, CA",
-        "is_priority": true
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767462933272-n1i7dbzn1",
-    "createdAt": "2026-01-03T17:55:33.272Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_IMAGE",
-    "resource": "event",
-    "details": {
-      "method": "POST",
-      "path": "/events/WJWYE0NC4IIY/upload-image",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767462933293-lpqlzw3dg",
-    "createdAt": "2026-01-03T17:55:33.293Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event",
-    "resourceId": "RY3N29PQ9UJW",
-    "details": {
-      "method": "PUT",
-      "path": "/events/RY3N29PQ9UJW",
-      "body": {
-        "event_name": "Kali Puja",
-        "event_start_dt": "2025-10-19",
-        "event_end_dt": "2025-10-19",
-        "year": 2025,
-        "event_description": "Sanhoti organizes Kali puja in Irvine Hindu Temple with a cultural evening.",
-        "location": "Mandir, 8 Autry, Irvine, CA 92618",
-        "is_priority": false
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767463744782-znsv5dshv",
-    "createdAt": "2026-01-03T18:09:04.782Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_IMAGE",
-    "resource": "event",
-    "details": {
-      "method": "POST",
-      "path": "/events/RY3N29PQ9UJW/upload-image",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767463744809-sqn7g8div",
-    "createdAt": "2026-01-03T18:09:04.809Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event",
-    "resourceId": "YHO7NY9I7CRU",
-    "details": {
-      "method": "PUT",
-      "path": "/events/YHO7NY9I7CRU",
-      "body": {
-        "event_name": "Durgotsav",
-        "event_start_dt": "2025-09-26",
-        "event_end_dt": "2025-09-28",
-        "year": 2025,
-        "event_description": "Durgotsav or Durgapuja is a vibrant, major Hindu festival celebrating the goddess Durga's victory over evil, marked by elaborate temporary temples (pandals), cultural festivities, art, music, community gatherings, and rituals honoring the divine feminine power (Shakti) and her return to her maternal home, culminating in the immersion of her idol. ",
-        "location": "Estancia High School, 2323 Placentia Ave, Costa Mesa, CA 92627",
-        "is_priority": false
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767464700276-o0jzgruvk",
-    "createdAt": "2026-01-03T18:25:00.276Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_IMAGE",
-    "resource": "event",
-    "details": {
-      "method": "POST",
-      "path": "/events/YHO7NY9I7CRU/upload-image",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767464700290-f14kl980j",
-    "createdAt": "2026-01-03T18:25:00.290Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event",
-    "resourceId": "CGEABVD2Y3BM",
-    "details": {
-      "method": "PUT",
-      "path": "/events/CGEABVD2Y3BM",
-      "body": {
-        "event_name": "Mahalaya Cultural Program",
-        "event_start_dt": "2025-09-20",
-        "event_end_dt": "2025-09-20",
-        "year": 2025,
-        "event_description": "Sanhoti collaborates with Bharat Sevashram Sangha West (BSSW), Dakshini and BASC to present cultural masterpieces.",
-        "location": "Bharat Sevashram Sangha - 5600 Carbon Canyon Rd, Brea, CA 92823",
-        "is_priority": false
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767464714530-8llgxyt25",
-    "createdAt": "2026-01-03T18:25:14.531Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_IMAGE",
-    "resource": "event",
-    "details": {
-      "method": "POST",
-      "path": "/events/CGEABVD2Y3BM/upload-image",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767464714550-pzjvpk71x",
-    "createdAt": "2026-01-03T18:25:14.550Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event",
-    "resourceId": "HKSSX3WD7R0Q",
-    "details": {
-      "method": "PUT",
-      "path": "/events/HKSSX3WD7R0Q",
-      "body": {
-        "event_name": "Charity Event",
-        "event_start_dt": "2025-07-19",
-        "event_end_dt": "2025-07-19",
-        "year": 2025,
-        "event_description": "Laura's House Charity Event",
-        "location": "Laura's House, Aliso Viejo, CA",
-        "is_priority": false
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767464724116-2yxtmo7mr",
-    "createdAt": "2026-01-03T18:25:24.116Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_IMAGE",
-    "resource": "event",
-    "details": {
-      "method": "POST",
-      "path": "/events/HKSSX3WD7R0Q/upload-image",
-      "body": {}
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767464724132-l7yp5jht5",
-    "createdAt": "2026-01-03T18:25:24.132Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": {
-      "method": "PUT",
-      "path": "/settings/navbar",
-      "body": {
-        "navbar": {
-          "home": true,
-          "about": false,
-          "events": true,
-          "noticeBoard": true,
-          "galleries": true,
-          "magazines": true,
-          "contactUs": true,
-          "committee": true
-        }
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767468300089-0r332ks95",
-    "createdAt": "2026-01-03T19:25:00.089Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": {
-      "method": "PUT",
-      "path": "/settings/navbar",
-      "body": {
-        "navbar": {
-          "home": true,
-          "about": true,
-          "events": true,
-          "noticeBoard": true,
-          "galleries": true,
-          "magazines": true,
-          "contactUs": true,
-          "committee": true
-        }
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767468309319-lg6yle16r",
-    "createdAt": "2026-01-03T19:25:09.319Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": {
-      "method": "PUT",
-      "path": "/settings/navbar",
-      "body": {
-        "navbar": {
-          "home": true,
-          "about": true,
-          "events": true,
-          "noticeBoard": false,
-          "galleries": true,
-          "magazines": true,
-          "contactUs": true,
-          "committee": true
-        }
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767468318913-o9podbgjh",
-    "createdAt": "2026-01-03T19:25:18.913Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": {
-      "method": "PUT",
-      "path": "/settings/navbar",
-      "body": {
-        "navbar": {
-          "home": true,
-          "about": true,
-          "events": true,
-          "noticeBoard": true,
-          "galleries": true,
-          "magazines": true,
-          "contactUs": true,
-          "committee": true
-        }
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767468346728-n37gpmrik",
-    "createdAt": "2026-01-03T19:25:46.729Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": {
-      "method": "PUT",
-      "path": "/settings/navbar",
-      "body": {
-        "navbar": {
-          "home": true,
-          "about": true,
-          "events": true,
-          "noticeBoard": false,
-          "galleries": true,
-          "magazines": true,
-          "contactUs": true,
-          "committee": true
-        }
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767468349841-ng9b0gnr0",
-    "createdAt": "2026-01-03T19:25:49.841Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": {
-      "method": "PUT",
-      "path": "/settings/navbar",
-      "body": {
-        "navbar": {
-          "home": true,
-          "about": true,
-          "events": true,
-          "noticeBoard": true,
-          "galleries": true,
-          "magazines": true,
-          "contactUs": true,
-          "committee": true
-        }
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767468645915-zzabxd3hu",
-    "createdAt": "2026-01-03T19:30:45.915Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": {
-      "method": "PUT",
-      "path": "/settings/navbar",
-      "body": {
-        "navbar": {
-          "home": false,
-          "about": true,
-          "events": true,
-          "noticeBoard": true,
-          "galleries": true,
-          "magazines": true,
-          "contactUs": true,
-          "committee": true
-        }
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767468652419-39i13forl",
-    "createdAt": "2026-01-03T19:30:52.419Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": {
-      "method": "PUT",
-      "path": "/settings/navbar",
-      "body": {
-        "navbar": {
-          "home": false,
-          "about": false,
-          "events": true,
-          "noticeBoard": true,
-          "galleries": true,
-          "magazines": true,
-          "contactUs": true,
-          "committee": true
-        }
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767468653375-1vbnl6mm7",
-    "createdAt": "2026-01-03T19:30:53.375Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": {
-      "method": "PUT",
-      "path": "/settings/navbar",
-      "body": {
-        "navbar": {
-          "home": false,
-          "about": false,
-          "events": true,
-          "noticeBoard": true,
-          "galleries": true,
-          "magazines": true,
-          "contactUs": true,
-          "committee": false
-        }
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767468656628-xswfk7on6",
-    "createdAt": "2026-01-03T19:30:56.628Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": {
-      "method": "PUT",
-      "path": "/settings/navbar",
-      "body": {
-        "navbar": {
-          "home": true,
-          "about": false,
-          "events": true,
-          "noticeBoard": true,
-          "galleries": true,
-          "magazines": true,
-          "contactUs": true,
-          "committee": false
-        }
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767468687695-dzbygi8ri",
-    "createdAt": "2026-01-03T19:31:27.695Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": {
-      "method": "PUT",
-      "path": "/settings/navbar",
-      "body": {
-        "navbar": {
-          "home": true,
-          "about": true,
-          "events": true,
-          "noticeBoard": true,
-          "galleries": true,
-          "magazines": true,
-          "contactUs": true,
-          "committee": false
-        }
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767468688628-7e6bt2pnh",
-    "createdAt": "2026-01-03T19:31:28.628Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": {
-      "method": "PUT",
-      "path": "/settings/navbar",
-      "body": {
-        "navbar": {
-          "home": true,
-          "about": true,
-          "events": true,
-          "noticeBoard": true,
-          "galleries": true,
-          "magazines": true,
-          "contactUs": true,
-          "committee": true
-        }
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767468691817-bk33lxtoq",
-    "createdAt": "2026-01-03T19:31:31.817Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": {
-      "method": "PUT",
-      "path": "/settings/navbar",
-      "body": {
-        "navbar": {
-          "home": true,
-          "about": true,
-          "events": true,
-          "noticeBoard": true,
-          "galleries": true,
-          "magazines": true,
-          "contactUs": true,
-          "committee": false
-        }
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767468692432-6m74u6two",
-    "createdAt": "2026-01-03T19:31:32.432Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": {
-      "method": "PUT",
-      "path": "/settings/navbar",
-      "body": {
-        "navbar": {
-          "home": true,
-          "about": true,
-          "events": true,
-          "noticeBoard": true,
-          "galleries": true,
-          "magazines": true,
-          "contactUs": true,
-          "committee": true
-        }
-      }
-    },
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767468692905-neoqcmofs",
-    "createdAt": "2026-01-03T19:31:32.905Z"
+    "userEmail": "",
+    "id": "1767650264942-51idncbm5",
+    "timestamp": "2026-01-05T21:57:44.942Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "UPDATE",
     "resource": "user",
-    "details": {
-      "method": "PUT",
-      "path": "/users/U63AAH027DVV",
-      "body": {
-        "first_name": "Debasis",
-        "last_name": "Pramanik",
-        "email_address": "debasis.nice@gmail.com",
-        "phone_number": "3109568956",
-        "address1": "",
-        "address2": "",
-        "city": "Irvine",
-        "state": "CA",
-        "zip": "92606",
-        "country": "USA",
-        "user_type": "admin",
-        "member_type": "President",
-        "is_active": true
-      }
-    },
+    "details": "{\"method\":\"PUT\",\"path\":\"/users/JAYWA9HP294L\",\"body\":{\"first_name\":\"Anindya\",\"last_name\":\"Chatterjee\",\"email_address\":\"anindya.chatterjee@gmail.com\",\"phone_number\":\"2137122049\",\"address1\":\"\",\"address2\":\"\",\"city\":\"\",\"state\":\"\",\"zip\":\"\",\"country\":\"USA\",\"user_type\":\"admin\",\"member_type\":\"Treasurer\",\"is_active\":true}}",
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "id": "1767469055130-b6w4i9uoj",
-    "createdAt": "2026-01-03T19:37:35.130Z"
+    "userEmail": "",
+    "id": "1767649921478-bwoqxzguu",
+    "timestamp": "2026-01-05T21:52:01.478Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "user",
+    "details": "{\"method\":\"PUT\",\"path\":\"/users/F2Z85Q668ATD\",\"body\":{\"first_name\":\"Suvendu\",\"last_name\":\"Laha\",\"email_address\":\"laha.suvendu@gmail.com\",\"phone_number\":\"7046414901\",\"address1\":\"\",\"address2\":\"\",\"city\":\"\",\"state\":\"\",\"zip\":\"\",\"country\":\"USA\",\"user_type\":\"user\",\"member_type\":\"President\",\"is_active\":true}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767649740352-hz11cbc3g",
+    "timestamp": "2026-01-05T21:49:00.352Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "SEND_EMAIL",
+    "resource": "members",
+    "details": "{\"method\":\"POST\",\"path\":\"/email/members\",\"body\":{\"emails\":[\"debasis.nice@gmail.com\"],\"subject\":\"test\",\"html\":\"test123\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767649709365-p9s4hsgkt",
+    "timestamp": "2026-01-05T21:48:29.365Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "SEND_EMAIL",
+    "resource": "members",
+    "details": "{\"method\":\"POST\",\"path\":\"/email/members\",\"body\":{\"emails\":[\"debasis.nice@gmail.com\",\"tarasankar02@gmail.com\",\"president@sanhoti.org\",\"Treasurer@sanhoti.org\",\"Secretary@sanhoti.org\",\"Cultural@sanhoti.org\"],\"subject\":\"Test Email\",\"html\":\"Sanhoti Test Email\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767649617511-0cw6qj6x0",
+    "timestamp": "2026-01-05T21:46:57.511Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "user",
+    "details": "{\"method\":\"PUT\",\"path\":\"/users/TJNAX4TBBZHG\",\"body\":{\"first_name\":\"Tarasankar\",\"last_name\":\"Panda\",\"email_address\":\"tarasankar02@gmail.com\",\"phone_number\":\"3109568956\",\"address1\":\"352 Santa Louisa\",\"address2\":\"\",\"city\":\"Irvine\",\"state\":\"CA\",\"zip\":\"92606\",\"country\":\"USA\",\"user_type\":\"user\",\"member_type\":\"member\",\"is_active\":true}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767648870868-2ipnjodn0",
+    "timestamp": "2026-01-05T21:34:30.868Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "email_settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/email\",\"body\":{\"emailAddress\":\"sanhoti.info@gmail.com\",\"emailPassword\":\"hysb yijb neyt fzfk\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767647773756-2vvqplk0l",
+    "timestamp": "2026-01-05T21:16:13.756Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "email_settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/email\",\"body\":{\"emailAddress\":\"sanhoti.info@gmail.com\",\"emailPassword\":\"hysb yijb neyt fzf\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767647729449-s1fesjcj4",
+    "timestamp": "2026-01-05T21:15:29.449Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "email_settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/email\",\"body\":{\"emailAddress\":\"sanhoti.info@gmail.com\",\"emailPassword\":\"Sanhoti12#Info\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767645628552-xx30yxyhe",
+    "timestamp": "2026-01-05T20:40:28.552Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "social_links",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/social-links\",\"body\":{\"facebookLink\":\"https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr\",\"whatsappLink\":\"https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767645247121-0skt28nii",
+    "timestamp": "2026-01-05T20:34:07.121Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DELETE",
+    "resource": "message",
+    "resourceId": "1767576803605-izms84zo0",
+    "details": "{\"method\":\"DELETE\",\"path\":\"/messages/1767576803605-izms84zo0\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767644076551-x22sy4emb",
+    "timestamp": "2026-01-05T20:14:36.551Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "user",
+    "details": "{\"method\":\"PUT\",\"path\":\"/users/JAYWA9HP294L\",\"body\":{\"first_name\":\"Anindya\",\"last_name\":\"Chatterjee\",\"email_address\":\"Treasurer@sanhoti.org\",\"phone_number\":\"2137122049\",\"address1\":\"\",\"address2\":\"\",\"city\":\"\",\"state\":\"\",\"zip\":\"\",\"country\":\"USA\",\"user_type\":\"admin\",\"member_type\":\"Treasurer\",\"is_active\":true}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767642010674-a6naceq2v",
+    "timestamp": "2026-01-05T19:40:10.674Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event",
+    "resourceId": "WJWYE0NC4IIY",
+    "details": "{\"method\":\"PUT\",\"path\":\"/events/WJWYE0NC4IIY\",\"body\":{\"event_name\":\"Saraswati Puja\",\"event_start_dt\":\"2026-01-24\",\"event_end_dt\":\"2026-01-24\",\"year\":2026,\"event_description\":\"Saraswati Puja, also known as Vasant Panchami, is a Hindu festival celebrating the goddess of knowledge, wisdom, music, and arts, where devotees pray for enlightenment, creativity, and success in learning, marking the arrival of spring with offerings of flowers, books, and instruments to invoke her blessings. \",\"location\":\"Davis Magnet School, CostaMesa, CA\",\"is_priority\":true,\"rsvp_link\":\"https://forms.gle/3pbCr8pFFAZiGWbA6\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767634334945-ythc35p63",
+    "timestamp": "2026-01-05T17:32:14.945Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "paymentqr_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/paymentqr/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767633652644-mm7a0dvv9",
+    "timestamp": "2026-01-05T17:20:52.644Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "zelle_phone",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/zelle-phone\",\"body\":{\"phoneNumber\":\"949-378-6425\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767633507606-per6bq9tk",
+    "timestamp": "2026-01-05T17:18:27.606Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"Cultural Director\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767631003224-gd6vkjz4v",
+    "timestamp": "2026-01-05T16:36:43.224Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"Treasurer\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767630994300-59flzc4ik",
+    "timestamp": "2026-01-05T16:36:34.300Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DELETE",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"DELETE\",\"path\":\"/boardmembers/post/Treasurer\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767630984768-v9sfs0ba6",
+    "timestamp": "2026-01-05T16:36:24.768Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"Treasurer\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767630976940-fevljo6hw",
+    "timestamp": "2026-01-05T16:36:16.940Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DELETE",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"DELETE\",\"path\":\"/boardmembers/post/Treasurer\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767630967510-fko81f8jx",
+    "timestamp": "2026-01-05T16:36:07.510Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"Treasurer\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767630945725-khucsnxk7",
+    "timestamp": "2026-01-05T16:35:45.725Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"Secretary\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767630936624-9zqms4ve8",
+    "timestamp": "2026-01-05T16:35:36.624Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"President\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767630927007-j6zliyghj",
+    "timestamp": "2026-01-05T16:35:27.007Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "boardmember_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/api/boardmembers/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767630669041-t7t99t06x",
+    "timestamp": "2026-01-05T16:31:09.041Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DELETE",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"DELETE\",\"path\":\"/homepage/images/1767628230206-Durga2.jpeg\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767628534399-1odrgswtb",
+    "timestamp": "2026-01-05T15:55:34.399Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/homepage/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767628525555-z43nnlbps",
+    "timestamp": "2026-01-05T15:55:25.555Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/homepage/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767628230211-yrjxbvc6l",
+    "timestamp": "2026-01-05T15:50:30.211Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DELETE_ALL",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"DELETE\",\"path\":\"/homepage/images\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767628202571-eklyw4jzz",
+    "timestamp": "2026-01-05T15:50:02.571Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/homepage/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767626421488-xjztnrbpv",
+    "timestamp": "2026-01-05T15:20:21.488Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/api/homepage/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767626322296-rilkiejlj",
+    "timestamp": "2026-01-05T15:18:42.296Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/api/homepage/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767626217904-44et7gdcr",
+    "timestamp": "2026-01-05T15:16:57.904Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/api/homepage/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767626205470-9l52uy5ms",
+    "timestamp": "2026-01-05T15:16:45.470Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "homepage_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/api/homepage/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767626086206-00ar83jou",
+    "timestamp": "2026-01-05T15:14:46.206Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":false}}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767575138964-pzmxmxvtu",
+    "timestamp": "2026-01-05T01:05:38.964Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":false,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":false}}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767575133387-jp4spdxd9",
+    "timestamp": "2026-01-05T01:05:33.387Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event_gallery",
+    "details": "{\"method\":\"POST\",\"path\":\"/events/YHO7NY9I7CRU/gallery/publish\",\"body\":{\"isPublic\":true}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767575072834-s44x8p2sn",
+    "timestamp": "2026-01-05T01:04:32.834Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event_gallery",
+    "details": "{\"method\":\"POST\",\"path\":\"/events/YHO7NY9I7CRU/gallery/publish\",\"body\":{\"isPublic\":false}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767575062025-y3dmnf6br",
+    "timestamp": "2026-01-05T01:04:22.025Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event_gallery",
+    "details": "{\"method\":\"POST\",\"path\":\"/events/XWVI1XL35369/gallery/publish\",\"body\":{\"isPublic\":false}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767575049787-wt1horbio",
+    "timestamp": "2026-01-05T01:04:09.787Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event_gallery",
+    "details": "{\"method\":\"POST\",\"path\":\"/events/XWVI1XL35369/gallery/publish\",\"body\":{\"isPublic\":true}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767575037769-tqntq3eh0",
+    "timestamp": "2026-01-05T01:03:57.769Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "PUBLISH",
+    "resource": "notice",
+    "resourceId": "DHECLLYC471M",
+    "details": "{\"method\":\"POST\",\"path\":\"/notices/DHECLLYC471M/publish\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767575028033-lsyj7xhf0",
+    "timestamp": "2026-01-05T01:03:48.033Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UNPUBLISH",
+    "resource": "notice",
+    "resourceId": "DHECLLYC471M",
+    "details": "{\"method\":\"POST\",\"path\":\"/notices/DHECLLYC471M/unpublish\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767575021259-rbdp0y9nj",
+    "timestamp": "2026-01-05T01:03:41.259Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_IMAGE",
+    "resource": "event",
+    "details": "{\"method\":\"POST\",\"path\":\"/events/XWVI1XL35369/upload-image\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767573032885-9lmjko3g1",
+    "timestamp": "2026-01-05T00:30:32.885Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "CREATE",
+    "resource": "event",
+    "details": "{\"method\":\"POST\",\"path\":\"/events\",\"body\":{\"event_name\":\"Holiday Party 2025\",\"event_start_dt\":\"2025-12-06\",\"event_end_dt\":\"2025-12-06\",\"year\":2025,\"event_description\":\"Sanhoti presents Holiday Party 2025\",\"location\":\"Village Square Clubhouse 130 Outwest, Irvine, CA 92618\",\"is_priority\":false}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767573032875-g42x7alft",
+    "timestamp": "2026-01-05T00:30:32.875Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":false}}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767571398295-t78mx524b",
+    "timestamp": "2026-01-05T00:03:18.295Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "magazine",
+    "details": "{\"method\":\"POST\",\"path\":\"/magazines/upload\",\"body\":{\"title\":\"Uttoron 2025\",\"description\":\"Sanhoti Annual Magazine\",\"isPublic\":\"true\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767569863606-phkymm2fb",
+    "timestamp": "2026-01-04T23:37:43.606Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "magazine",
+    "details": "{\"method\":\"POST\",\"path\":\"/api/magazines/upload\",\"body\":{\"title\":\"Uttoron 2025\",\"description\":\"Sanhoti Annual Magazine\",\"isPublic\":\"true\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767569757966-akz3mwbap",
+    "timestamp": "2026-01-04T23:35:57.966Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DELETE",
+    "resource": "sponsor_image",
+    "details": "{\"method\":\"DELETE\",\"path\":\"/sponsors/images/1767566142097-Screenshot_2026-01-03_at_3.06.24___PM.png\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767566189743-wikm2wk4r",
+    "timestamp": "2026-01-04T22:36:29.743Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "sponsor_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/sponsors/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767566142101-afjjrhsbj",
+    "timestamp": "2026-01-04T22:35:42.101Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "sponsor_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/sponsors/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767564078677-pngr9gjsf",
+    "timestamp": "2026-01-04T22:01:18.677Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD",
+    "resource": "sponsor_image",
+    "details": "{\"method\":\"POST\",\"path\":\"/sponsors/upload\",\"body\":{}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767541221865-ihum3ja5u",
+    "timestamp": "2026-01-04T15:40:21.865Z"
   },
   {
     "userId": "U63AAH027DVV",
@@ -1583,870 +900,1657 @@
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
     "id": "1767469081487-hu1okxuvm",
-    "createdAt": "2026-01-03T19:38:01.487Z"
+    "createdAt": "2026-01-03T19:38:01.487Z",
+    "timestamp": "2026-01-03T19:38:01.487Z"
   },
   {
     "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "sponsor_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/sponsors/upload\",\"body\":{}}",
+    "action": "UPDATE",
+    "resource": "user",
+    "details": {
+      "method": "PUT",
+      "path": "/users/U63AAH027DVV",
+      "body": {
+        "first_name": "Debasis",
+        "last_name": "Pramanik",
+        "email_address": "debasis.nice@gmail.com",
+        "phone_number": "3109568956",
+        "address1": "",
+        "address2": "",
+        "city": "Irvine",
+        "state": "CA",
+        "zip": "92606",
+        "country": "USA",
+        "user_type": "admin",
+        "member_type": "President",
+        "is_active": true
+      }
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767541221865-ihum3ja5u",
-    "timestamp": "2026-01-04T15:40:21.865Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "sponsor_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/sponsors/upload\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767564078677-pngr9gjsf",
-    "timestamp": "2026-01-04T22:01:18.677Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "sponsor_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/sponsors/upload\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767566142101-afjjrhsbj",
-    "timestamp": "2026-01-04T22:35:42.101Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "DELETE",
-    "resource": "sponsor_image",
-    "details": "{\"method\":\"DELETE\",\"path\":\"/sponsors/images/1767566142097-Screenshot_2026-01-03_at_3.06.24___PM.png\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767566189743-wikm2wk4r",
-    "timestamp": "2026-01-04T22:36:29.743Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "magazine",
-    "details": "{\"method\":\"POST\",\"path\":\"/api/magazines/upload\",\"body\":{\"title\":\"Uttoron 2025\",\"description\":\"Sanhoti Annual Magazine\",\"isPublic\":\"true\"}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767569757966-akz3mwbap",
-    "timestamp": "2026-01-04T23:35:57.966Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "magazine",
-    "details": "{\"method\":\"POST\",\"path\":\"/magazines/upload\",\"body\":{\"title\":\"Uttoron 2025\",\"description\":\"Sanhoti Annual Magazine\",\"isPublic\":\"true\"}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767569863606-phkymm2fb",
-    "timestamp": "2026-01-04T23:37:43.606Z"
+    "id": "1767469055130-b6w4i9uoj",
+    "createdAt": "2026-01-03T19:37:35.130Z",
+    "timestamp": "2026-01-03T19:37:35.130Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "UPDATE",
     "resource": "settings",
-    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":false}}}",
+    "details": {
+      "method": "PUT",
+      "path": "/settings/navbar",
+      "body": {
+        "navbar": {
+          "home": true,
+          "about": true,
+          "events": true,
+          "noticeBoard": true,
+          "galleries": true,
+          "magazines": true,
+          "contactUs": true,
+          "committee": true
+        }
+      }
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767571398295-t78mx524b",
-    "timestamp": "2026-01-05T00:03:18.295Z"
+    "id": "1767468692905-neoqcmofs",
+    "createdAt": "2026-01-03T19:31:32.905Z",
+    "timestamp": "2026-01-03T19:31:32.905Z"
   },
   {
     "userId": "U63AAH027DVV",
-    "action": "CREATE",
-    "resource": "event",
-    "details": "{\"method\":\"POST\",\"path\":\"/events\",\"body\":{\"event_name\":\"Holiday Party 2025\",\"event_start_dt\":\"2025-12-06\",\"event_end_dt\":\"2025-12-06\",\"year\":2025,\"event_description\":\"Sanhoti presents Holiday Party 2025\",\"location\":\"Village Square Clubhouse 130 Outwest, Irvine, CA 92618\",\"is_priority\":false}}",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": {
+      "method": "PUT",
+      "path": "/settings/navbar",
+      "body": {
+        "navbar": {
+          "home": true,
+          "about": true,
+          "events": true,
+          "noticeBoard": true,
+          "galleries": true,
+          "magazines": true,
+          "contactUs": true,
+          "committee": false
+        }
+      }
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767573032875-g42x7alft",
-    "timestamp": "2026-01-05T00:30:32.875Z"
+    "id": "1767468692432-6m74u6two",
+    "createdAt": "2026-01-03T19:31:32.432Z",
+    "timestamp": "2026-01-03T19:31:32.432Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": {
+      "method": "PUT",
+      "path": "/settings/navbar",
+      "body": {
+        "navbar": {
+          "home": true,
+          "about": true,
+          "events": true,
+          "noticeBoard": true,
+          "galleries": true,
+          "magazines": true,
+          "contactUs": true,
+          "committee": true
+        }
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767468691817-bk33lxtoq",
+    "createdAt": "2026-01-03T19:31:31.817Z",
+    "timestamp": "2026-01-03T19:31:31.817Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": {
+      "method": "PUT",
+      "path": "/settings/navbar",
+      "body": {
+        "navbar": {
+          "home": true,
+          "about": true,
+          "events": true,
+          "noticeBoard": true,
+          "galleries": true,
+          "magazines": true,
+          "contactUs": true,
+          "committee": false
+        }
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767468688628-7e6bt2pnh",
+    "createdAt": "2026-01-03T19:31:28.628Z",
+    "timestamp": "2026-01-03T19:31:28.628Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": {
+      "method": "PUT",
+      "path": "/settings/navbar",
+      "body": {
+        "navbar": {
+          "home": true,
+          "about": false,
+          "events": true,
+          "noticeBoard": true,
+          "galleries": true,
+          "magazines": true,
+          "contactUs": true,
+          "committee": false
+        }
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767468687695-dzbygi8ri",
+    "createdAt": "2026-01-03T19:31:27.695Z",
+    "timestamp": "2026-01-03T19:31:27.695Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": {
+      "method": "PUT",
+      "path": "/settings/navbar",
+      "body": {
+        "navbar": {
+          "home": false,
+          "about": false,
+          "events": true,
+          "noticeBoard": true,
+          "galleries": true,
+          "magazines": true,
+          "contactUs": true,
+          "committee": false
+        }
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767468656628-xswfk7on6",
+    "createdAt": "2026-01-03T19:30:56.628Z",
+    "timestamp": "2026-01-03T19:30:56.628Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": {
+      "method": "PUT",
+      "path": "/settings/navbar",
+      "body": {
+        "navbar": {
+          "home": false,
+          "about": false,
+          "events": true,
+          "noticeBoard": true,
+          "galleries": true,
+          "magazines": true,
+          "contactUs": true,
+          "committee": true
+        }
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767468653375-1vbnl6mm7",
+    "createdAt": "2026-01-03T19:30:53.375Z",
+    "timestamp": "2026-01-03T19:30:53.375Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": {
+      "method": "PUT",
+      "path": "/settings/navbar",
+      "body": {
+        "navbar": {
+          "home": false,
+          "about": true,
+          "events": true,
+          "noticeBoard": true,
+          "galleries": true,
+          "magazines": true,
+          "contactUs": true,
+          "committee": true
+        }
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767468652419-39i13forl",
+    "createdAt": "2026-01-03T19:30:52.419Z",
+    "timestamp": "2026-01-03T19:30:52.419Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": {
+      "method": "PUT",
+      "path": "/settings/navbar",
+      "body": {
+        "navbar": {
+          "home": true,
+          "about": true,
+          "events": true,
+          "noticeBoard": true,
+          "galleries": true,
+          "magazines": true,
+          "contactUs": true,
+          "committee": true
+        }
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767468645915-zzabxd3hu",
+    "createdAt": "2026-01-03T19:30:45.915Z",
+    "timestamp": "2026-01-03T19:30:45.915Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": {
+      "method": "PUT",
+      "path": "/settings/navbar",
+      "body": {
+        "navbar": {
+          "home": true,
+          "about": true,
+          "events": true,
+          "noticeBoard": false,
+          "galleries": true,
+          "magazines": true,
+          "contactUs": true,
+          "committee": true
+        }
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767468349841-ng9b0gnr0",
+    "createdAt": "2026-01-03T19:25:49.841Z",
+    "timestamp": "2026-01-03T19:25:49.841Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": {
+      "method": "PUT",
+      "path": "/settings/navbar",
+      "body": {
+        "navbar": {
+          "home": true,
+          "about": true,
+          "events": true,
+          "noticeBoard": true,
+          "galleries": true,
+          "magazines": true,
+          "contactUs": true,
+          "committee": true
+        }
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767468346728-n37gpmrik",
+    "createdAt": "2026-01-03T19:25:46.729Z",
+    "timestamp": "2026-01-03T19:25:46.729Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": {
+      "method": "PUT",
+      "path": "/settings/navbar",
+      "body": {
+        "navbar": {
+          "home": true,
+          "about": true,
+          "events": true,
+          "noticeBoard": false,
+          "galleries": true,
+          "magazines": true,
+          "contactUs": true,
+          "committee": true
+        }
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767468318913-o9podbgjh",
+    "createdAt": "2026-01-03T19:25:18.913Z",
+    "timestamp": "2026-01-03T19:25:18.913Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": {
+      "method": "PUT",
+      "path": "/settings/navbar",
+      "body": {
+        "navbar": {
+          "home": true,
+          "about": true,
+          "events": true,
+          "noticeBoard": true,
+          "galleries": true,
+          "magazines": true,
+          "contactUs": true,
+          "committee": true
+        }
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767468309319-lg6yle16r",
+    "createdAt": "2026-01-03T19:25:09.319Z",
+    "timestamp": "2026-01-03T19:25:09.319Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "settings",
+    "details": {
+      "method": "PUT",
+      "path": "/settings/navbar",
+      "body": {
+        "navbar": {
+          "home": true,
+          "about": false,
+          "events": true,
+          "noticeBoard": true,
+          "galleries": true,
+          "magazines": true,
+          "contactUs": true,
+          "committee": true
+        }
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767468300089-0r332ks95",
+    "createdAt": "2026-01-03T19:25:00.089Z",
+    "timestamp": "2026-01-03T19:25:00.089Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "UPLOAD_IMAGE",
     "resource": "event",
-    "details": "{\"method\":\"POST\",\"path\":\"/events/XWVI1XL35369/upload-image\",\"body\":{}}",
+    "details": {
+      "method": "POST",
+      "path": "/events/HKSSX3WD7R0Q/upload-image",
+      "body": {}
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767573032885-9lmjko3g1",
-    "timestamp": "2026-01-05T00:30:32.885Z"
+    "id": "1767464724132-l7yp5jht5",
+    "createdAt": "2026-01-03T18:25:24.132Z",
+    "timestamp": "2026-01-03T18:25:24.132Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event",
+    "resourceId": "HKSSX3WD7R0Q",
+    "details": {
+      "method": "PUT",
+      "path": "/events/HKSSX3WD7R0Q",
+      "body": {
+        "event_name": "Charity Event",
+        "event_start_dt": "2025-07-19",
+        "event_end_dt": "2025-07-19",
+        "year": 2025,
+        "event_description": "Laura's House Charity Event",
+        "location": "Laura's House, Aliso Viejo, CA",
+        "is_priority": false
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767464724116-2yxtmo7mr",
+    "createdAt": "2026-01-03T18:25:24.116Z",
+    "timestamp": "2026-01-03T18:25:24.116Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_IMAGE",
+    "resource": "event",
+    "details": {
+      "method": "POST",
+      "path": "/events/CGEABVD2Y3BM/upload-image",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767464714550-pzjvpk71x",
+    "createdAt": "2026-01-03T18:25:14.550Z",
+    "timestamp": "2026-01-03T18:25:14.550Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event",
+    "resourceId": "CGEABVD2Y3BM",
+    "details": {
+      "method": "PUT",
+      "path": "/events/CGEABVD2Y3BM",
+      "body": {
+        "event_name": "Mahalaya Cultural Program",
+        "event_start_dt": "2025-09-20",
+        "event_end_dt": "2025-09-20",
+        "year": 2025,
+        "event_description": "Sanhoti collaborates with Bharat Sevashram Sangha West (BSSW), Dakshini and BASC to present cultural masterpieces.",
+        "location": "Bharat Sevashram Sangha - 5600 Carbon Canyon Rd, Brea, CA 92823",
+        "is_priority": false
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767464714530-8llgxyt25",
+    "createdAt": "2026-01-03T18:25:14.531Z",
+    "timestamp": "2026-01-03T18:25:14.531Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_IMAGE",
+    "resource": "event",
+    "details": {
+      "method": "POST",
+      "path": "/events/YHO7NY9I7CRU/upload-image",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767464700290-f14kl980j",
+    "createdAt": "2026-01-03T18:25:00.290Z",
+    "timestamp": "2026-01-03T18:25:00.290Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event",
+    "resourceId": "YHO7NY9I7CRU",
+    "details": {
+      "method": "PUT",
+      "path": "/events/YHO7NY9I7CRU",
+      "body": {
+        "event_name": "Durgotsav",
+        "event_start_dt": "2025-09-26",
+        "event_end_dt": "2025-09-28",
+        "year": 2025,
+        "event_description": "Durgotsav or Durgapuja is a vibrant, major Hindu festival celebrating the goddess Durga's victory over evil, marked by elaborate temporary temples (pandals), cultural festivities, art, music, community gatherings, and rituals honoring the divine feminine power (Shakti) and her return to her maternal home, culminating in the immersion of her idol. ",
+        "location": "Estancia High School, 2323 Placentia Ave, Costa Mesa, CA 92627",
+        "is_priority": false
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767464700276-o0jzgruvk",
+    "createdAt": "2026-01-03T18:25:00.276Z",
+    "timestamp": "2026-01-03T18:25:00.276Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_IMAGE",
+    "resource": "event",
+    "details": {
+      "method": "POST",
+      "path": "/events/RY3N29PQ9UJW/upload-image",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767463744809-sqn7g8div",
+    "createdAt": "2026-01-03T18:09:04.809Z",
+    "timestamp": "2026-01-03T18:09:04.809Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event",
+    "resourceId": "RY3N29PQ9UJW",
+    "details": {
+      "method": "PUT",
+      "path": "/events/RY3N29PQ9UJW",
+      "body": {
+        "event_name": "Kali Puja",
+        "event_start_dt": "2025-10-19",
+        "event_end_dt": "2025-10-19",
+        "year": 2025,
+        "event_description": "Sanhoti organizes Kali puja in Irvine Hindu Temple with a cultural evening.",
+        "location": "Mandir, 8 Autry, Irvine, CA 92618",
+        "is_priority": false
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767463744782-znsv5dshv",
+    "createdAt": "2026-01-03T18:09:04.782Z",
+    "timestamp": "2026-01-03T18:09:04.782Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_IMAGE",
+    "resource": "event",
+    "details": {
+      "method": "POST",
+      "path": "/events/WJWYE0NC4IIY/upload-image",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767462933293-lpqlzw3dg",
+    "createdAt": "2026-01-03T17:55:33.293Z",
+    "timestamp": "2026-01-03T17:55:33.293Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event",
+    "resourceId": "WJWYE0NC4IIY",
+    "details": {
+      "method": "PUT",
+      "path": "/events/WJWYE0NC4IIY",
+      "body": {
+        "event_name": "Saraswati Puja",
+        "event_start_dt": "2026-01-24",
+        "event_end_dt": "2026-01-24",
+        "year": 2026,
+        "event_description": "Saraswati Puja, also known as Vasant Panchami, is a Hindu festival celebrating the goddess of knowledge, wisdom, music, and arts, where devotees pray for enlightenment, creativity, and success in learning, marking the arrival of spring with offerings of flowers, books, and instruments to invoke her blessings. ",
+        "location": "Davis Magnet School, CostaMesa, CA",
+        "is_priority": true
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767462933272-n1i7dbzn1",
+    "createdAt": "2026-01-03T17:55:33.272Z",
+    "timestamp": "2026-01-03T17:55:33.272Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event",
+    "resourceId": "WJWYE0NC4IIY",
+    "details": {
+      "method": "PUT",
+      "path": "/events/WJWYE0NC4IIY",
+      "body": {
+        "event_name": "Saraswati Puja",
+        "event_start_dt": "2026-01-24",
+        "event_end_dt": "2026-01-24",
+        "year": 2026,
+        "event_description": "Saraswati Puja, also known as Vasant Panchami, is a Hindu festival celebrating the goddess of knowledge, wisdom, music, and arts, where devotees pray for enlightenment, creativity, and success in learning, marking the arrival of spring with offerings of flowers, books, and instruments to invoke her blessings. ",
+        "location": "Davis Magnet School, CostaMesa, CA",
+        "is_priority": true
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767461661764-khuaslt5j",
+    "createdAt": "2026-01-03T17:34:21.764Z",
+    "timestamp": "2026-01-03T17:34:21.764Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event",
+    "resourceId": "RY3N29PQ9UJW",
+    "details": {
+      "method": "PUT",
+      "path": "/events/RY3N29PQ9UJW",
+      "body": {
+        "event_name": "Kali Puja",
+        "event_start_dt": "2025-10-19",
+        "event_end_dt": "2025-10-19",
+        "year": 2025,
+        "event_description": "Sanhoti organizes Kali puja in Irvine Hindu Temple with a cultural evening.",
+        "location": "Mandir, 8 Autry, Irvine, CA 92618",
+        "is_priority": true
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767461651710-xbmnmoiz3",
+    "createdAt": "2026-01-03T17:34:11.710Z",
+    "timestamp": "2026-01-03T17:34:11.710Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event",
+    "resourceId": "WJWYE0NC4IIY",
+    "details": {
+      "method": "PUT",
+      "path": "/events/WJWYE0NC4IIY",
+      "body": {
+        "event_name": "Saraswati Puja",
+        "event_start_dt": "2026-01-24",
+        "event_end_dt": "2026-01-24",
+        "year": 2026,
+        "event_description": "Saraswati Puja, also known as Vasant Panchami, is a Hindu festival celebrating the goddess of knowledge, wisdom, music, and arts, where devotees pray for enlightenment, creativity, and success in learning, marking the arrival of spring with offerings of flowers, books, and instruments to invoke her blessings. ",
+        "location": "Davis Magnet School, CostaMesa, CA",
+        "is_priority": true
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767461641587-5jr8maw6l",
+    "createdAt": "2026-01-03T17:34:01.587Z",
+    "timestamp": "2026-01-03T17:34:01.587Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DELETE",
+    "resource": "event",
+    "resourceId": "T3HFPO4LPAPH",
+    "details": {
+      "method": "DELETE",
+      "path": "/events/T3HFPO4LPAPH",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767461637466-pokipsbh6",
+    "createdAt": "2026-01-03T17:33:57.466Z",
+    "timestamp": "2026-01-03T17:33:57.466Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "CREATE",
+    "resource": "event",
+    "details": {
+      "method": "POST",
+      "path": "/events",
+      "body": {
+        "event_name": "kjbjkbk",
+        "event_start_dt": "2026-01-03",
+        "event_end_dt": "2026-01-03",
+        "year": 2026,
+        "event_description": "n bkjbkj",
+        "location": "",
+        "is_priority": true
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767461620183-pbdryxid3",
+    "createdAt": "2026-01-03T17:33:40.183Z",
+    "timestamp": "2026-01-03T17:33:40.183Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DELETE",
+    "resource": "event",
+    "resourceId": "SYCKMUVPQZB6",
+    "details": {
+      "method": "DELETE",
+      "path": "/events/SYCKMUVPQZB6",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767461575178-xqrsvbu9b",
+    "createdAt": "2026-01-03T17:32:55.178Z",
+    "timestamp": "2026-01-03T17:32:55.178Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "CREATE",
+    "resource": "event",
+    "details": {
+      "method": "POST",
+      "path": "/events",
+      "body": {
+        "event_name": "jbj",
+        "event_start_dt": "2026-01-03",
+        "event_end_dt": "2026-01-01",
+        "year": 2026,
+        "event_description": " jkbnkjnk",
+        "location": "",
+        "is_priority": true
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767461479897-b0psmdjj1",
+    "createdAt": "2026-01-03T17:31:19.897Z",
+    "timestamp": "2026-01-03T17:31:19.897Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_IMAGE",
+    "resource": "notice",
+    "details": {
+      "method": "POST",
+      "path": "/notices/DHECLLYC471M/upload-image",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767460380136-so3u0c86z",
+    "createdAt": "2026-01-03T17:13:00.136Z",
+    "timestamp": "2026-01-03T17:13:00.136Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "CREATE",
+    "resource": "notice",
+    "details": {
+      "method": "POST",
+      "path": "/notices",
+      "body": {
+        "notice_name": "Saraswati Puja 2026",
+        "notice_body": "Please check the event details and menu of the upcoming Saraswati Puja 2026.\nMore details will be coming soon. \n\nComplete your RSVP if not done yet:\nhttps://forms.gle/3pbCr8pFFAZiGWbA6",
+        "event_id": "WJWYE0NC4IIY",
+        "is_active": true,
+        "is_published": true
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767460380123-bp41ww992",
+    "createdAt": "2026-01-03T17:13:00.123Z",
+    "timestamp": "2026-01-03T17:13:00.123Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DELETE",
+    "resource": "notice",
+    "resourceId": "VILU35ZB7EWO",
+    "details": {
+      "method": "DELETE",
+      "path": "/notices/VILU35ZB7EWO",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767460348940-lh22k60s8",
+    "createdAt": "2026-01-03T17:12:28.940Z",
+    "timestamp": "2026-01-03T17:12:28.940Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_IMAGE",
+    "resource": "notice",
+    "details": {
+      "method": "POST",
+      "path": "/notices/VILU35ZB7EWO/upload-image",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767460308869-39s3pdv0g",
+    "createdAt": "2026-01-03T17:11:48.869Z",
+    "timestamp": "2026-01-03T17:11:48.869Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "notice",
+    "resourceId": "VILU35ZB7EWO",
+    "details": {
+      "method": "PUT",
+      "path": "/notices/VILU35ZB7EWO",
+      "body": {
+        "notice_name": "Saraswati Puja 2026 Updates",
+        "notice_body": "Please check the event details and menu of the upcoming Saraswati Puja 2026.\nMore details will be coming soon. \n\nComplete your RSVP if not done yet:\nhttps://forms.gle/3pbCr8pFFAZiGWbA6",
+        "event_id": "WJWYE0NC4IIY",
+        "notice_image_path": "saraswati-puja-2026-updates-VILU35ZB7EWO",
+        "is_active": true,
+        "is_published": true
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767460308849-9g4u4vehw",
+    "createdAt": "2026-01-03T17:11:48.849Z",
+    "timestamp": "2026-01-03T17:11:48.849Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_IMAGE",
+    "resource": "notice",
+    "details": {
+      "method": "POST",
+      "path": "/notices/VILU35ZB7EWO/upload-image",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767460262551-vriuncmp4",
+    "createdAt": "2026-01-03T17:11:02.551Z",
+    "timestamp": "2026-01-03T17:11:02.551Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "notice",
+    "resourceId": "VILU35ZB7EWO",
+    "details": {
+      "method": "PUT",
+      "path": "/notices/VILU35ZB7EWO",
+      "body": {
+        "notice_name": "Saraswati Puja 2026 Updates",
+        "notice_body": "Please check the event details and menu of the upcoming Saraswati Puja 2026.\nMore details will be coming soon. \n\nComplete your RSVP if not done yet:\nhttps://forms.gle/3pbCr8pFFAZiGWbA6",
+        "event_id": "WJWYE0NC4IIY",
+        "notice_image_path": "saraswati-puja-2026-updates-VILU35ZB7EWO",
+        "is_active": true,
+        "is_published": true
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767460262533-dzaw9b13o",
+    "createdAt": "2026-01-03T17:11:02.533Z",
+    "timestamp": "2026-01-03T17:11:02.533Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "notice",
+    "resourceId": "VILU35ZB7EWO",
+    "details": {
+      "method": "PUT",
+      "path": "/notices/VILU35ZB7EWO",
+      "body": {
+        "notice_name": "Saraswati Puja 2026 Updates",
+        "notice_body": "Please check the event details and menu of the upcoming Saraswati Puja 2026.\nMore details will be coming soon. \n\nComplete your RSVP if not done yet:\nhttps://forms.gle/3pbCr8pFFAZiGWbA6",
+        "event_id": "WJWYE0NC4IIY",
+        "notice_image_path": "saraswati-puja-2026-updates-VILU35ZB7EWO",
+        "is_active": true,
+        "is_published": true
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767460207829-4rnhw8n0x",
+    "createdAt": "2026-01-03T17:10:07.829Z",
+    "timestamp": "2026-01-03T17:10:07.829Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "notice",
+    "resourceId": "VILU35ZB7EWO",
+    "details": {
+      "method": "PUT",
+      "path": "/notices/VILU35ZB7EWO",
+      "body": {
+        "notice_name": "Saraswati Puja 2026 Updates",
+        "notice_body": "Please check the event details and menu of the upcoming Saraswati Puja 2026.\nMore details will be coming soon. \n\nComplete your RSVP if not done yet:\nhttps://forms.gle/3pbCr8pFFAZiGWbA6",
+        "event_id": "WJWYE0NC4IIY",
+        "notice_image_path": "saraswati-puja-2026-updates-VILU35ZB7EWO",
+        "is_active": false,
+        "is_published": false
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767460038213-lcwmhmsjh",
+    "createdAt": "2026-01-03T17:07:18.213Z",
+    "timestamp": "2026-01-03T17:07:18.213Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "notice",
+    "resourceId": "VILU35ZB7EWO",
+    "details": {
+      "method": "PUT",
+      "path": "/notices/VILU35ZB7EWO",
+      "body": {
+        "notice_name": "Saraswati Puja 2026 Updates",
+        "notice_body": "Please check the event details and menu of the upcoming Saraswati Puja 2026.\nMore details will be coming soon. \n\nComplete your RSVP if not done yet:\nhttps://forms.gle/3pbCr8pFFAZiGWbA6",
+        "event_id": "WJWYE0NC4IIY",
+        "notice_image_path": "saraswati-puja-2026-updates-VILU35ZB7EWO",
+        "is_active": false,
+        "is_published": false
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767460024028-cxkrzpske",
+    "createdAt": "2026-01-03T17:07:04.028Z",
+    "timestamp": "2026-01-03T17:07:04.028Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "UNPUBLISH",
     "resource": "notice",
-    "resourceId": "DHECLLYC471M",
-    "details": "{\"method\":\"POST\",\"path\":\"/notices/DHECLLYC471M/unpublish\",\"body\":{}}",
+    "resourceId": "VILU35ZB7EWO",
+    "details": {
+      "method": "POST",
+      "path": "/notices/VILU35ZB7EWO/unpublish",
+      "body": {}
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767575021259-rbdp0y9nj",
-    "timestamp": "2026-01-05T01:03:41.259Z"
+    "id": "1767459999295-sdvgoggqz",
+    "createdAt": "2026-01-03T17:06:39.295Z",
+    "timestamp": "2026-01-03T17:06:39.295Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "notice",
+    "resourceId": "VILU35ZB7EWO",
+    "details": {
+      "method": "PUT",
+      "path": "/notices/VILU35ZB7EWO",
+      "body": {
+        "notice_name": "Saraswati Puja 2026 Updates",
+        "notice_body": "Please check the event details and menu of the upcoming Saraswati Puja 2026.\nMore details will be coming soon. \n\nComplete your RSVP if not done yet:\nhttps://forms.gle/3pbCr8pFFAZiGWbA6",
+        "event_id": "WJWYE0NC4IIY",
+        "notice_image_path": "saraswati-puja-2026-updates-VILU35ZB7EWO",
+        "is_active": false,
+        "is_published": true
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767459776684-3vtzx44dd",
+    "createdAt": "2026-01-03T17:02:56.684Z",
+    "timestamp": "2026-01-03T17:02:56.684Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "PUBLISH",
     "resource": "notice",
-    "resourceId": "DHECLLYC471M",
-    "details": "{\"method\":\"POST\",\"path\":\"/notices/DHECLLYC471M/publish\",\"body\":{}}",
+    "resourceId": "VILU35ZB7EWO",
+    "details": {
+      "method": "POST",
+      "path": "/notices/VILU35ZB7EWO/publish",
+      "body": {}
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767575028033-lsyj7xhf0",
-    "timestamp": "2026-01-05T01:03:48.033Z"
+    "id": "1767459290349-xejy77e5q",
+    "createdAt": "2026-01-03T16:54:50.349Z",
+    "timestamp": "2026-01-03T16:54:50.349Z"
   },
   {
     "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event_gallery",
-    "details": "{\"method\":\"POST\",\"path\":\"/events/XWVI1XL35369/gallery/publish\",\"body\":{\"isPublic\":true}}",
+    "action": "UPLOAD_IMAGE",
+    "resource": "notice",
+    "details": {
+      "method": "POST",
+      "path": "/notices/VILU35ZB7EWO/upload-image",
+      "body": {}
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767575037769-tqntq3eh0",
-    "timestamp": "2026-01-05T01:03:57.769Z"
+    "id": "1767459271159-g6ses033x",
+    "createdAt": "2026-01-03T16:54:31.159Z",
+    "timestamp": "2026-01-03T16:54:31.159Z"
   },
   {
     "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event_gallery",
-    "details": "{\"method\":\"POST\",\"path\":\"/events/XWVI1XL35369/gallery/publish\",\"body\":{\"isPublic\":false}}",
+    "action": "CREATE",
+    "resource": "notice",
+    "details": {
+      "method": "POST",
+      "path": "/notices",
+      "body": {
+        "notice_name": "Saraswati Puja 2026 Updates",
+        "notice_body": "Please check the event details and menu of the upcoming Saraswati Puja 2026.\nMore details will be coming soon. \n\nComplete your RSVP if not done yet:\nhttps://forms.gle/3pbCr8pFFAZiGWbA6",
+        "event_id": "WJWYE0NC4IIY",
+        "is_active": true,
+        "is_published": false
+      }
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767575049787-wt1horbio",
-    "timestamp": "2026-01-05T01:04:09.787Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event_gallery",
-    "details": "{\"method\":\"POST\",\"path\":\"/events/YHO7NY9I7CRU/gallery/publish\",\"body\":{\"isPublic\":false}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767575062025-y3dmnf6br",
-    "timestamp": "2026-01-05T01:04:22.025Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "event_gallery",
-    "details": "{\"method\":\"POST\",\"path\":\"/events/YHO7NY9I7CRU/gallery/publish\",\"body\":{\"isPublic\":true}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767575072834-s44x8p2sn",
-    "timestamp": "2026-01-05T01:04:32.834Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":false,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":false}}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767575133387-jp4spdxd9",
-    "timestamp": "2026-01-05T01:05:33.387Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":false}}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767575138964-pzmxmxvtu",
-    "timestamp": "2026-01-05T01:05:38.964Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "homepage_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/api/homepage/upload\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767626086206-00ar83jou",
-    "timestamp": "2026-01-05T15:14:46.206Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "homepage_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/api/homepage/upload\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767626205470-9l52uy5ms",
-    "timestamp": "2026-01-05T15:16:45.470Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "homepage_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/api/homepage/upload\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767626217904-44et7gdcr",
-    "timestamp": "2026-01-05T15:16:57.904Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "homepage_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/api/homepage/upload\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767626322296-rilkiejlj",
-    "timestamp": "2026-01-05T15:18:42.296Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "homepage_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/homepage/upload\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767626421488-xjztnrbpv",
-    "timestamp": "2026-01-05T15:20:21.488Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "DELETE_ALL",
-    "resource": "homepage_image",
-    "details": "{\"method\":\"DELETE\",\"path\":\"/homepage/images\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767628202571-eklyw4jzz",
-    "timestamp": "2026-01-05T15:50:02.571Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "homepage_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/homepage/upload\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767628230211-yrjxbvc6l",
-    "timestamp": "2026-01-05T15:50:30.211Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "homepage_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/homepage/upload\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767628525555-z43nnlbps",
-    "timestamp": "2026-01-05T15:55:25.555Z"
+    "id": "1767459271148-er5k515ut",
+    "createdAt": "2026-01-03T16:54:31.148Z",
+    "timestamp": "2026-01-03T16:54:31.148Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "DELETE",
-    "resource": "homepage_image",
-    "details": "{\"method\":\"DELETE\",\"path\":\"/homepage/images/1767628230206-Durga2.jpeg\",\"body\":{}}",
+    "resource": "notice",
+    "resourceId": "52SF8DQX4THX",
+    "details": {
+      "method": "DELETE",
+      "path": "/notices/52SF8DQX4THX",
+      "body": {}
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767628534399-1odrgswtb",
-    "timestamp": "2026-01-05T15:55:34.399Z"
+    "id": "1767459107110-bx1hm3nn1",
+    "createdAt": "2026-01-03T16:51:47.110Z",
+    "timestamp": "2026-01-03T16:51:47.110Z"
   },
   {
     "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "boardmember_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/api/boardmembers/upload\",\"body\":{}}",
+    "action": "PUBLISH",
+    "resource": "notice",
+    "resourceId": "52SF8DQX4THX",
+    "details": {
+      "method": "POST",
+      "path": "/notices/52SF8DQX4THX/publish",
+      "body": {}
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767630669041-t7t99t06x",
-    "timestamp": "2026-01-05T16:31:09.041Z"
+    "id": "1767458999911-ek6popg70",
+    "createdAt": "2026-01-03T16:49:59.911Z",
+    "timestamp": "2026-01-03T16:49:59.911Z"
   },
   {
     "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "boardmember_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"President\"}}",
+    "action": "UNPUBLISH",
+    "resource": "notice",
+    "resourceId": "52SF8DQX4THX",
+    "details": {
+      "method": "POST",
+      "path": "/notices/52SF8DQX4THX/unpublish",
+      "body": {}
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767630927007-j6zliyghj",
-    "timestamp": "2026-01-05T16:35:27.007Z"
+    "id": "1767458991084-q2hykvsj3",
+    "createdAt": "2026-01-03T16:49:51.084Z",
+    "timestamp": "2026-01-03T16:49:51.084Z"
   },
   {
     "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "boardmember_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"Secretary\"}}",
+    "action": "PUBLISH",
+    "resource": "notice",
+    "resourceId": "52SF8DQX4THX",
+    "details": {
+      "method": "POST",
+      "path": "/notices/52SF8DQX4THX/publish",
+      "body": {}
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767630936624-9zqms4ve8",
-    "timestamp": "2026-01-05T16:35:36.624Z"
+    "id": "1767458988082-jel4jxx7t",
+    "createdAt": "2026-01-03T16:49:48.082Z",
+    "timestamp": "2026-01-03T16:49:48.082Z"
   },
   {
     "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "boardmember_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"Treasurer\"}}",
+    "action": "UPLOAD_IMAGE",
+    "resource": "notice",
+    "details": {
+      "method": "POST",
+      "path": "/notices/52SF8DQX4THX/upload-image",
+      "body": {}
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767630945725-khucsnxk7",
-    "timestamp": "2026-01-05T16:35:45.725Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "DELETE",
-    "resource": "boardmember_image",
-    "details": "{\"method\":\"DELETE\",\"path\":\"/boardmembers/post/Treasurer\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767630967510-fko81f8jx",
-    "timestamp": "2026-01-05T16:36:07.510Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "boardmember_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"Treasurer\"}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767630976940-fevljo6hw",
-    "timestamp": "2026-01-05T16:36:16.940Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "DELETE",
-    "resource": "boardmember_image",
-    "details": "{\"method\":\"DELETE\",\"path\":\"/boardmembers/post/Treasurer\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767630984768-v9sfs0ba6",
-    "timestamp": "2026-01-05T16:36:24.768Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "boardmember_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"Treasurer\"}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767630994300-59flzc4ik",
-    "timestamp": "2026-01-05T16:36:34.300Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "boardmember_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/boardmembers/upload\",\"body\":{\"postName\":\"Cultural Director\"}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767631003224-gd6vkjz4v",
-    "timestamp": "2026-01-05T16:36:43.224Z"
+    "id": "1767458954380-k8htwlbj5",
+    "createdAt": "2026-01-03T16:49:14.381Z",
+    "timestamp": "2026-01-03T16:49:14.381Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "UPDATE",
-    "resource": "zelle_phone",
-    "details": "{\"method\":\"PUT\",\"path\":\"/settings/zelle-phone\",\"body\":{\"phoneNumber\":\"949-378-6425\"}}",
+    "resource": "notice",
+    "resourceId": "52SF8DQX4THX",
+    "details": {
+      "method": "PUT",
+      "path": "/notices/52SF8DQX4THX",
+      "body": {
+        "notice_name": "Saraswati Puja update",
+        "notice_body": "2026 Saraswati Puja\nEvents and Menu",
+        "event_id": "WJWYE0NC4IIY",
+        "notice_image_path": "saraswati-puja-update-52SF8DQX4THX",
+        "is_active": true,
+        "is_published": false
+      }
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767633507606-per6bq9tk",
-    "timestamp": "2026-01-05T17:18:27.606Z"
+    "id": "1767458954367-1gpr7t7fc",
+    "createdAt": "2026-01-03T16:49:14.367Z",
+    "timestamp": "2026-01-03T16:49:14.367Z"
   },
   {
     "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "paymentqr_image",
-    "details": "{\"method\":\"POST\",\"path\":\"/paymentqr/upload\",\"body\":{}}",
+    "action": "UPLOAD_IMAGE",
+    "resource": "notice",
+    "details": {
+      "method": "POST",
+      "path": "/notices/52SF8DQX4THX/upload-image",
+      "body": {}
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767633652644-mm7a0dvv9",
-    "timestamp": "2026-01-05T17:20:52.644Z"
+    "id": "1767458896216-p4j722vk0",
+    "createdAt": "2026-01-03T16:48:16.216Z",
+    "timestamp": "2026-01-03T16:48:16.216Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "CREATE",
+    "resource": "notice",
+    "details": {
+      "method": "POST",
+      "path": "/notices",
+      "body": {
+        "notice_name": "Saraswati Puja update",
+        "notice_body": "2026 Saraswati Puja\nEvents and Menu",
+        "event_id": "WJWYE0NC4IIY",
+        "is_active": true,
+        "is_published": false
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767458896201-gp1scmxsb",
+    "createdAt": "2026-01-03T16:48:16.201Z",
+    "timestamp": "2026-01-03T16:48:16.201Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_PHOTO",
+    "resource": "gallery",
+    "details": {
+      "method": "POST",
+      "path": "/galleries/HKSSX3WD7R0Q/upload",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767456459646-111qp115f",
+    "createdAt": "2026-01-03T16:07:39.647Z",
+    "timestamp": "2026-01-03T16:07:39.647Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DELETE_PHOTO",
+    "resource": "gallery",
+    "details": {
+      "method": "DELETE",
+      "path": "/galleries/HKSSX3WD7R0Q/photos/1767454739058-6.jpeg",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767456448355-4yiq52kes",
+    "createdAt": "2026-01-03T16:07:28.355Z",
+    "timestamp": "2026-01-03T16:07:28.355Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_PHOTO",
+    "resource": "gallery",
+    "details": {
+      "method": "POST",
+      "path": "/galleries/HKSSX3WD7R0Q/upload",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767454739074-coik4xvq0",
+    "createdAt": "2026-01-03T15:38:59.074Z",
+    "timestamp": "2026-01-03T15:38:59.074Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event_gallery",
+    "details": {
+      "method": "POST",
+      "path": "/events/AMSNCDMJ3QRW/gallery/publish",
+      "body": {
+        "isPublic": true
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767454523793-ao9hqc0og",
+    "createdAt": "2026-01-03T15:35:23.793Z",
+    "timestamp": "2026-01-03T15:35:23.793Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event_gallery",
+    "details": {
+      "method": "POST",
+      "path": "/events/AMSNCDMJ3QRW/gallery/publish",
+      "body": {
+        "isPublic": false
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767454521211-8j8ks3r57",
+    "createdAt": "2026-01-03T15:35:21.211Z",
+    "timestamp": "2026-01-03T15:35:21.211Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event_gallery",
+    "details": {
+      "method": "POST",
+      "path": "/events/AMSNCDMJ3QRW/gallery/publish",
+      "body": {
+        "isPublic": true
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767454513898-979t4uy9r",
+    "createdAt": "2026-01-03T15:35:13.898Z",
+    "timestamp": "2026-01-03T15:35:13.898Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_PHOTO",
+    "resource": "gallery",
+    "details": {
+      "method": "POST",
+      "path": "/galleries/AMSNCDMJ3QRW/upload",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767454507854-30i1s5hdq",
+    "createdAt": "2026-01-03T15:35:07.854Z",
+    "timestamp": "2026-01-03T15:35:07.854Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event_gallery",
+    "details": {
+      "method": "POST",
+      "path": "/events/AMSNCDMJ3QRW/gallery/publish",
+      "body": {
+        "isPublic": false
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767454498512-tild0ddfn",
+    "createdAt": "2026-01-03T15:34:58.512Z",
+    "timestamp": "2026-01-03T15:34:58.512Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event_gallery",
+    "details": {
+      "method": "POST",
+      "path": "/events/YHO7NY9I7CRU/gallery/publish",
+      "body": {
+        "isPublic": true
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767453116315-bpvxbbe2r",
+    "createdAt": "2026-01-03T15:11:56.315Z",
+    "timestamp": "2026-01-03T15:11:56.315Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPLOAD_PHOTO",
+    "resource": "gallery",
+    "details": {
+      "method": "POST",
+      "path": "/galleries/YHO7NY9I7CRU/upload",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767453085172-d8v5eloex",
+    "createdAt": "2026-01-03T15:11:25.172Z",
+    "timestamp": "2026-01-03T15:11:25.172Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "ACTIVATE",
+    "resource": "event",
+    "resourceId": "WJWYE0NC4IIY",
+    "details": {
+      "method": "POST",
+      "path": "/events/WJWYE0NC4IIY/activate",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767452186272-dnlu1lqll",
+    "createdAt": "2026-01-03T14:56:26.272Z",
+    "timestamp": "2026-01-03T14:56:26.272Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DEACTIVATE",
+    "resource": "event",
+    "resourceId": "WJWYE0NC4IIY",
+    "details": {
+      "method": "POST",
+      "path": "/events/WJWYE0NC4IIY/deactivate",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767452164866-cn2vbdvr9",
+    "createdAt": "2026-01-03T14:56:04.866Z",
+    "timestamp": "2026-01-03T14:56:04.866Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "ACTIVATE",
+    "resource": "event",
+    "resourceId": "WJWYE0NC4IIY",
+    "details": {
+      "method": "POST",
+      "path": "/events/WJWYE0NC4IIY/activate",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767452158684-13nuyhm6s",
+    "createdAt": "2026-01-03T14:55:58.684Z",
+    "timestamp": "2026-01-03T14:55:58.684Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DEACTIVATE",
+    "resource": "event",
+    "resourceId": "WJWYE0NC4IIY",
+    "details": {
+      "method": "POST",
+      "path": "/events/WJWYE0NC4IIY/deactivate",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767451602123-lzd0i5e9b",
+    "createdAt": "2026-01-03T14:46:42.123Z",
+    "timestamp": "2026-01-03T14:46:42.123Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "event_gallery",
+    "details": {
+      "method": "POST",
+      "path": "/events/WJWYE0NC4IIY/gallery/publish",
+      "body": {
+        "isPublic": true
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767451592145-dzd50cmq5",
+    "createdAt": "2026-01-03T14:46:32.145Z",
+    "timestamp": "2026-01-03T14:46:32.145Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DEACTIVATE",
+    "resource": "event",
+    "resourceId": "WJWYE0NC4IIY",
+    "details": {
+      "method": "POST",
+      "path": "/events/WJWYE0NC4IIY/deactivate",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767451572562-95ccdet11",
+    "createdAt": "2026-01-03T14:46:12.562Z",
+    "timestamp": "2026-01-03T14:46:12.562Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DEACTIVATE",
+    "resource": "event",
+    "resourceId": "WJWYE0NC4IIY",
+    "details": {
+      "method": "POST",
+      "path": "/events/WJWYE0NC4IIY/deactivate",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767451533673-j8h3ebtbh",
+    "createdAt": "2026-01-03T14:45:33.673Z",
+    "timestamp": "2026-01-03T14:45:33.673Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "DEACTIVATE",
+    "resource": "event",
+    "resourceId": "WJWYE0NC4IIY",
+    "details": {
+      "method": "POST",
+      "path": "/events/WJWYE0NC4IIY/deactivate",
+      "body": {}
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767451341003-tcpxd8miw",
+    "createdAt": "2026-01-03T14:42:21.003Z",
+    "timestamp": "2026-01-03T14:42:21.003Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "CREATE",
+    "resource": "event",
+    "details": {
+      "method": "POST",
+      "path": "/events",
+      "body": {
+        "event_name": "Saraswati Puja",
+        "event_start_dt": "2026-01-24",
+        "event_end_dt": "2026-01-24",
+        "year": 2026,
+        "event_description": "Saraswati Puja, also known as Vasant Panchami, is a Hindu festival celebrating the goddess of knowledge, wisdom, music, and arts, where devotees pray for enlightenment, creativity, and success in learning, marking the arrival of spring with offerings of flowers, books, and instruments to invoke her blessings. ",
+        "location": "Davis Magnet School, CostaMesa, CA",
+        "photo_gallery_link": ""
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767447234213-bteve1mly",
+    "createdAt": "2026-01-03T13:33:54.213Z",
+    "timestamp": "2026-01-03T13:33:54.213Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "CREATE",
+    "resource": "event",
+    "details": {
+      "method": "POST",
+      "path": "/events",
+      "body": {
+        "event_name": "Kali Puja",
+        "event_start_dt": "2025-10-19",
+        "event_end_dt": "2025-10-19",
+        "year": 2025,
+        "event_description": "Sanhoti organizes Kali puja in Irvine Hindu Temple with a cultural evening.",
+        "location": "Mandir, 8 Autry, Irvine, CA 92618",
+        "photo_gallery_link": ""
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767447095228-ochl2tel3",
+    "createdAt": "2026-01-03T13:31:35.228Z",
+    "timestamp": "2026-01-03T13:31:35.228Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "CREATE",
+    "resource": "event",
+    "details": {
+      "method": "POST",
+      "path": "/events",
+      "body": {
+        "event_name": "Durgotsav",
+        "event_start_dt": "2025-09-26",
+        "event_end_dt": "2025-09-28",
+        "year": 2025,
+        "event_description": "Durgotsav or Durgapuja is a vibrant, major Hindu festival celebrating the goddess Durga's victory over evil, marked by elaborate temporary temples (pandals), cultural festivities, art, music, community gatherings, and rituals honoring the divine feminine power (Shakti) and her return to her maternal home, culminating in the immersion of her idol. ",
+        "location": "Estancia High School, 2323 Placentia Ave, Costa Mesa, CA 92627",
+        "photo_gallery_link": ""
+      }
+    },
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "id": "1767446880519-kvol1tuhl",
+    "createdAt": "2026-01-03T13:28:00.519Z",
+    "timestamp": "2026-01-03T13:28:00.519Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "UPDATE",
     "resource": "event",
-    "resourceId": "WJWYE0NC4IIY",
-    "details": "{\"method\":\"PUT\",\"path\":\"/events/WJWYE0NC4IIY\",\"body\":{\"event_name\":\"Saraswati Puja\",\"event_start_dt\":\"2026-01-24\",\"event_end_dt\":\"2026-01-24\",\"year\":2026,\"event_description\":\"Saraswati Puja, also known as Vasant Panchami, is a Hindu festival celebrating the goddess of knowledge, wisdom, music, and arts, where devotees pray for enlightenment, creativity, and success in learning, marking the arrival of spring with offerings of flowers, books, and instruments to invoke her blessings. \",\"location\":\"Davis Magnet School, CostaMesa, CA\",\"is_priority\":true,\"rsvp_link\":\"https://forms.gle/3pbCr8pFFAZiGWbA6\"}}",
+    "resourceId": "HKSSX3WD7R0Q",
+    "details": {
+      "method": "PUT",
+      "path": "/events/HKSSX3WD7R0Q",
+      "body": {
+        "event_name": "Charity Event",
+        "event_start_dt": "2025-07-19",
+        "event_end_dt": "2025-07-19",
+        "year": 2025,
+        "event_description": "Laura's House Charity Event",
+        "location": "Laura's House, Aliso Viejo, CA",
+        "photo_gallery_link": ""
+      }
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767634334945-ythc35p63",
-    "timestamp": "2026-01-05T17:32:14.945Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "user",
-    "details": "{\"method\":\"PUT\",\"path\":\"/users/JAYWA9HP294L\",\"body\":{\"first_name\":\"Anindya\",\"last_name\":\"Chatterjee\",\"email_address\":\"Treasurer@sanhoti.org\",\"phone_number\":\"2137122049\",\"address1\":\"\",\"address2\":\"\",\"city\":\"\",\"state\":\"\",\"zip\":\"\",\"country\":\"USA\",\"user_type\":\"admin\",\"member_type\":\"Treasurer\",\"is_active\":true}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767642010674-a6naceq2v",
-    "timestamp": "2026-01-05T19:40:10.674Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "DELETE",
-    "resource": "message",
-    "resourceId": "1767576803605-izms84zo0",
-    "details": "{\"method\":\"DELETE\",\"path\":\"/messages/1767576803605-izms84zo0\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767644076551-x22sy4emb",
-    "timestamp": "2026-01-05T20:14:36.551Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "social_links",
-    "details": "{\"method\":\"PUT\",\"path\":\"/settings/social-links\",\"body\":{\"facebookLink\":\"https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr\",\"whatsappLink\":\"https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH\"}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767645247121-0skt28nii",
-    "timestamp": "2026-01-05T20:34:07.121Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "email_settings",
-    "details": "{\"method\":\"PUT\",\"path\":\"/settings/email\",\"body\":{\"emailAddress\":\"sanhoti.info@gmail.com\",\"emailPassword\":\"Sanhoti12#Info\"}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767645628552-xx30yxyhe",
-    "timestamp": "2026-01-05T20:40:28.552Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "email_settings",
-    "details": "{\"method\":\"PUT\",\"path\":\"/settings/email\",\"body\":{\"emailAddress\":\"sanhoti.info@gmail.com\",\"emailPassword\":\"hysb yijb neyt fzf\"}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767647729449-s1fesjcj4",
-    "timestamp": "2026-01-05T21:15:29.449Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "email_settings",
-    "details": "{\"method\":\"PUT\",\"path\":\"/settings/email\",\"body\":{\"emailAddress\":\"sanhoti.info@gmail.com\",\"emailPassword\":\"hysb yijb neyt fzfk\"}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767647773756-2vvqplk0l",
-    "timestamp": "2026-01-05T21:16:13.756Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "user",
-    "details": "{\"method\":\"PUT\",\"path\":\"/users/TJNAX4TBBZHG\",\"body\":{\"first_name\":\"Tarasankar\",\"last_name\":\"Panda\",\"email_address\":\"tarasankar02@gmail.com\",\"phone_number\":\"3109568956\",\"address1\":\"352 Santa Louisa\",\"address2\":\"\",\"city\":\"Irvine\",\"state\":\"CA\",\"zip\":\"92606\",\"country\":\"USA\",\"user_type\":\"user\",\"member_type\":\"member\",\"is_active\":true}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767648870868-2ipnjodn0",
-    "timestamp": "2026-01-05T21:34:30.868Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "SEND_EMAIL",
-    "resource": "members",
-    "details": "{\"method\":\"POST\",\"path\":\"/email/members\",\"body\":{\"emails\":[\"debasis.nice@gmail.com\",\"tarasankar02@gmail.com\",\"president@sanhoti.org\",\"Treasurer@sanhoti.org\",\"Secretary@sanhoti.org\",\"Cultural@sanhoti.org\"],\"subject\":\"Test Email\",\"html\":\"Sanhoti Test Email\"}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767649617511-0cw6qj6x0",
-    "timestamp": "2026-01-05T21:46:57.511Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "SEND_EMAIL",
-    "resource": "members",
-    "details": "{\"method\":\"POST\",\"path\":\"/email/members\",\"body\":{\"emails\":[\"debasis.nice@gmail.com\"],\"subject\":\"test\",\"html\":\"test123\"}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767649709365-p9s4hsgkt",
-    "timestamp": "2026-01-05T21:48:29.365Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "user",
-    "details": "{\"method\":\"PUT\",\"path\":\"/users/F2Z85Q668ATD\",\"body\":{\"first_name\":\"Suvendu\",\"last_name\":\"Laha\",\"email_address\":\"laha.suvendu@gmail.com\",\"phone_number\":\"7046414901\",\"address1\":\"\",\"address2\":\"\",\"city\":\"\",\"state\":\"\",\"zip\":\"\",\"country\":\"USA\",\"user_type\":\"user\",\"member_type\":\"President\",\"is_active\":true}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767649740352-hz11cbc3g",
-    "timestamp": "2026-01-05T21:49:00.352Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "user",
-    "details": "{\"method\":\"PUT\",\"path\":\"/users/JAYWA9HP294L\",\"body\":{\"first_name\":\"Anindya\",\"last_name\":\"Chatterjee\",\"email_address\":\"anindya.chatterjee@gmail.com\",\"phone_number\":\"2137122049\",\"address1\":\"\",\"address2\":\"\",\"city\":\"\",\"state\":\"\",\"zip\":\"\",\"country\":\"USA\",\"user_type\":\"admin\",\"member_type\":\"Treasurer\",\"is_active\":true}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767649921478-bwoqxzguu",
-    "timestamp": "2026-01-05T21:52:01.478Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "CREATE",
-    "resource": "user",
-    "details": "{\"method\":\"POST\",\"path\":\"/users\",\"body\":{\"first_name\":\"Sourav\",\"last_name\":\"Nag\",\"email_address\":\"snag75@gmail.com\",\"phone_number\":\"9493576536\",\"password\":\"Sanhoti\",\"address1\":\"\",\"address2\":\"\",\"city\":\"\",\"state\":\"\",\"zip\":\"\",\"country\":\"\",\"user_type\":\"user\",\"member_type\":\"member\",\"is_active\":true}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767650264942-51idncbm5",
-    "timestamp": "2026-01-05T21:57:44.942Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "DELETE",
-    "resource": "message",
-    "resourceId": "1767422435931-q12c951xg",
-    "details": "{\"method\":\"DELETE\",\"path\":\"/messages/1767422435931-q12c951xg\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767651527739-o7vbmrvhx",
-    "timestamp": "2026-01-05T22:18:47.739Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "SEND_EMAIL",
-    "resource": "organizations",
-    "details": "{\"method\":\"POST\",\"path\":\"/email/organizations\",\"body\":{\"organizations\":[\"debasis.nicy@gmail.com\"],\"subject\":\"Re: Your Message from Sanhoti Website\",\"html\":\"responded\"}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767651803878-7mhxaqrxw",
-    "timestamp": "2026-01-05T22:23:23.878Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "MARK_RESPONDED",
-    "resource": "message",
-    "resourceId": "1767651560466-d7kjg49vb",
-    "details": "{\"method\":\"PUT\",\"path\":\"/messages/1767651560466-d7kjg49vb/responded\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767651803887-tysqlh0mu",
-    "timestamp": "2026-01-05T22:23:23.887Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "email_settings",
-    "details": "{\"method\":\"PUT\",\"path\":\"/settings/email\",\"body\":{\"emailAddress\":\"sanhoti.info@gmail.com\",\"emailPassword\":\"hysbyijbneytfzfk\"}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767654221786-lmudr5oho",
-    "timestamp": "2026-01-05T23:03:41.786Z"
+    "id": "1767446658782-bs0it52sz",
+    "createdAt": "2026-01-03T13:24:18.782Z",
+    "timestamp": "2026-01-03T13:24:18.782Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "UPDATE",
     "resource": "event",
-    "resourceId": "WJWYE0NC4IIY",
-    "details": "{\"method\":\"PUT\",\"path\":\"/events/WJWYE0NC4IIY\",\"body\":{\"event_name\":\"Saraswati Puja\",\"event_start_dt\":\"2026-01-24\",\"event_end_dt\":\"2026-01-24\",\"year\":2026,\"event_description\":\"Saraswati Puja, also known as Vasant Panchami, is a Hindu festival celebrating the goddess of knowledge, wisdom, music, and arts, where devotees pray for enlightenment, creativity, and success in learning, marking the arrival of spring with offerings of flowers, books, and instruments to invoke her blessings. \",\"location\":\"Davis Magnet School, CostaMesa, CA\",\"is_priority\":true,\"rsvp_link\":\"https://forms.gle/3pbCr8pFFAZiGWbA6\"}}",
+    "resourceId": "AMSNCDMJ3QRW",
+    "details": {
+      "method": "PUT",
+      "path": "/events/AMSNCDMJ3QRW",
+      "body": {
+        "event_name": "Annual Picnic",
+        "event_start_dt": "2025-08-09",
+        "event_end_dt": "2025-08-09",
+        "year": 2025,
+        "event_description": "First Annual Picnic",
+        "location": "O'Neill Regional Park, Shelter 3, 30892 Trabuco Canyon Rd, Trabuco Canyon, CA 92678",
+        "photo_gallery_link": ""
+      }
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767654319128-odtm44fqo",
-    "timestamp": "2026-01-05T23:05:19.128Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "SEND_EMAIL",
-    "resource": "organizations",
-    "details": "{\"method\":\"POST\",\"path\":\"/email/organizations\",\"body\":{\"organizations\":[\"debasis.nice@gmail.com\"],\"subject\":\"Re: Your Message from Sanhoti Website\",\"html\":\"Responded from deployed site\"}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767654465545-x5j1k5nw9",
-    "timestamp": "2026-01-05T23:07:45.545Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "MARK_RESPONDED",
-    "resource": "message",
-    "resourceId": "1767651507536-ym5zlr8ku",
-    "details": "{\"method\":\"PUT\",\"path\":\"/messages/1767651507536-ym5zlr8ku/responded\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767654465557-auxf3mpl8",
-    "timestamp": "2026-01-05T23:07:45.557Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "social_links",
-    "details": "{\"method\":\"PUT\",\"path\":\"/settings/social-links\",\"body\":{\"facebookLink\":\"https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr\",\"whatsappLink\":\"https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH\",\"instagramLink\":\"https://www.instagram.com/sanhotioc?igsh=NTc4MTIwNjQ2YQ==\"}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767725785356-sza6vytno",
-    "timestamp": "2026-01-06T18:56:25.356Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":true}}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767730446136-gzq7nf9hw",
-    "timestamp": "2026-01-06T20:14:06.136Z"
+    "id": "1767446650855-zsuhrfk72",
+    "createdAt": "2026-01-03T13:24:10.855Z",
+    "timestamp": "2026-01-03T13:24:10.855Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "CREATE",
-    "resource": "sub-event",
-    "details": "{\"method\":\"POST\",\"path\":\"/sub-events\",\"body\":{\"sub_event_name\":\"Mahalakshmi Iyer Concert\",\"sub_event_start_dt\":\"2025-09-28\",\"sub_event_end_dt\":\"2025-09-28\",\"year\":2025,\"event_description\":\"A Magical evening with the Melody Queen\",\"location\":\"Robert B. Moore Theater, Orange Costa College, Arlington Dr, Costa Mesa, CA, 92626\",\"is_active\":true,\"event_id\":\"YHO7NY9I7CRU\"}}",
+    "resource": "event",
+    "details": {
+      "method": "POST",
+      "path": "/events",
+      "body": {
+        "event_name": "Mahalaya Cultural Program",
+        "event_start_dt": "2025-09-20",
+        "event_end_dt": "2025-09-20",
+        "year": 2025,
+        "event_description": "Sanhoti collaborates with Bharat Sevashram Sangha West (BSSW), Dakshini and BASC to present cultural masterpieces.",
+        "location": "Bharat Sevashram Sangha - 5600 Carbon Canyon Rd, Brea, CA 92823",
+        "photo_gallery_link": ""
+      }
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767732340589-otzybcr17",
-    "timestamp": "2026-01-06T20:45:40.589Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_IMAGE",
-    "resource": "sub-event",
-    "resourceId": "M0X449GH1WOR",
-    "details": "{\"method\":\"POST\",\"path\":\"/sub-events/M0X449GH1WOR/upload-image\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767732340601-9itwu2l6n",
-    "timestamp": "2026-01-06T20:45:40.601Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "sub-event",
-    "resourceId": "M0X449GH1WOR",
-    "details": "{\"method\":\"PUT\",\"path\":\"/sub-events/M0X449GH1WOR\",\"body\":{\"sub_event_name\":\"Mahalakshmi Iyer Concert\",\"sub_event_start_dt\":\"2025-09-28\",\"sub_event_end_dt\":\"2025-09-28\",\"event_description\":\"A Magical evening with the Melody Queen\",\"location\":\"Robert B. Moore Theater, Orange Costa College, Arlington Dr, Costa Mesa, CA, 92626\",\"is_active\":true}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767732437562-7b950c82n",
-    "timestamp": "2026-01-06T20:47:17.562Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_IMAGE",
-    "resource": "sub-event",
-    "resourceId": "M0X449GH1WOR",
-    "details": "{\"method\":\"POST\",\"path\":\"/sub-events/M0X449GH1WOR/upload-image\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767732437575-hpkq027al",
-    "timestamp": "2026-01-06T20:47:17.575Z"
+    "id": "1767446625286-quj0rzrdp",
+    "createdAt": "2026-01-03T13:23:45.286Z",
+    "timestamp": "2026-01-03T13:23:45.286Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "CREATE",
-    "resource": "sub-event",
-    "details": "{\"method\":\"POST\",\"path\":\"/sub-events\",\"body\":{\"sub_event_name\":\"Rathijit and Shreya Live\",\"sub_event_start_dt\":\"2025-09-27\",\"sub_event_end_dt\":\"2025-09-27\",\"year\":2025,\"event_description\":\"Bengali musical duo Rathijit Bhattacharjee and Shreya M Bhattacharjee\",\"location\":\"engali musical duo Rathijit Bhattacharjee and Shreya M Bhattacharjee\",\"is_active\":true,\"event_id\":\"YHO7NY9I7CRU\"}}",
+    "resource": "event",
+    "details": {
+      "method": "POST",
+      "path": "/events",
+      "body": {
+        "event_name": "Annual Picnic",
+        "event_start_dt": "2025-08-09",
+        "event_end_dt": "2025-08-09",
+        "year": 2027,
+        "event_description": "First Annual Picnic",
+        "location": "O'Neill Regional Park, Shelter 3, 30892 Trabuco Canyon Rd, Trabuco Canyon, CA 92678",
+        "photo_gallery_link": ""
+      }
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767732808061-nsu39tpfv",
-    "timestamp": "2026-01-06T20:53:28.061Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_IMAGE",
-    "resource": "sub-event",
-    "resourceId": "F3PWXVMC6ML6",
-    "details": "{\"method\":\"POST\",\"path\":\"/sub-events/F3PWXVMC6ML6/upload-image\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767732808082-8m7g4v6dz",
-    "timestamp": "2026-01-06T20:53:28.082Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "sub-event",
-    "resourceId": "M0X449GH1WOR",
-    "details": "{\"method\":\"PUT\",\"path\":\"/sub-events/M0X449GH1WOR\",\"body\":{\"sub_event_name\":\"Mahalakshmi Iyer Concert\",\"sub_event_start_dt\":\"2025-09-28\",\"sub_event_end_dt\":\"2025-09-28\",\"event_description\":\"A Magical evening with the Melody Queen\",\"location\":\"Robert B. Moore Theater, Orange Costa College, Arlington Dr, Costa Mesa, CA, 92626\",\"is_active\":true}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767733244959-nl17hp5et",
-    "timestamp": "2026-01-06T21:00:44.959Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_IMAGE",
-    "resource": "sub-event",
-    "resourceId": "M0X449GH1WOR",
-    "details": "{\"method\":\"POST\",\"path\":\"/sub-events/M0X449GH1WOR/upload-image\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767733244971-7yueu2bd2",
-    "timestamp": "2026-01-06T21:00:44.971Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "sub-event",
-    "resourceId": "F3PWXVMC6ML6",
-    "details": "{\"method\":\"PUT\",\"path\":\"/sub-events/F3PWXVMC6ML6\",\"body\":{\"sub_event_name\":\"Rathijit and Shreya Live\",\"sub_event_start_dt\":\"2025-09-27\",\"sub_event_end_dt\":\"2025-09-27\",\"event_description\":\"Bengali musical duo Rathijit Bhattacharjee and Shreya M Bhattacharjee\",\"location\":\"engali musical duo Rathijit Bhattacharjee and Shreya M Bhattacharjee\",\"is_active\":true}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767733253097-wdbkoezi5",
-    "timestamp": "2026-01-06T21:00:53.097Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD_IMAGE",
-    "resource": "sub-event",
-    "resourceId": "F3PWXVMC6ML6",
-    "details": "{\"method\":\"POST\",\"path\":\"/sub-events/F3PWXVMC6ML6/upload-image\",\"body\":{}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767733253107-l9l3xqa2b",
-    "timestamp": "2026-01-06T21:00:53.107Z"
+    "id": "1767424827369-1nn4jrznv",
+    "createdAt": "2026-01-03T07:20:27.369Z",
+    "timestamp": "2026-01-03T07:20:27.369Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "CREATE",
-    "resource": "sub-event",
-    "details": "{\"method\":\"POST\",\"path\":\"/sub-events\",\"body\":{\"sub_event_name\":\"Test\",\"sub_event_start_dt\":\"2025-09-26\",\"sub_event_end_dt\":\"2025-09-28\",\"year\":2025,\"event_description\":\"test\",\"location\":\"test\",\"is_active\":true,\"event_id\":\"YHO7NY9I7CRU\"}}",
+    "resource": "event",
+    "details": {
+      "method": "POST",
+      "path": "/events",
+      "body": {
+        "event_name": "Charity Event",
+        "event_start_dt": "2025-07-19",
+        "event_end_dt": "2025-07-19",
+        "year": 2027,
+        "event_description": "Laura's House Charity Event",
+        "location": "Laura's House, Aliso Viejo, CA",
+        "photo_gallery_link": ""
+      }
+    },
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767736251187-fe8s4cc96",
-    "timestamp": "2026-01-06T21:50:51.187Z"
+    "id": "1767424732997-rz4orac9p",
+    "createdAt": "2026-01-03T07:18:52.997Z",
+    "timestamp": "2026-01-03T07:18:52.997Z"
   },
   {
     "userId": "U63AAH027DVV",
     "action": "UPDATE",
-    "resource": "sub-event",
-    "resourceId": "M0X449GH1WOR",
-    "details": "{\"method\":\"PUT\",\"path\":\"/sub-events/M0X449GH1WOR\",\"body\":{\"sub_event_name\":\"Mahalakshmi Iyer Concert\",\"sub_event_start_dt\":\"2025-09-28\",\"sub_event_end_dt\":\"2025-09-28\",\"event_description\":\"A Magical evening with the Melody Queen\",\"location\":\"Robert B. Moore Theater, Orange Costa College, Arlington Dr, Costa Mesa, CA, 92626\",\"is_active\":true,\"rsvp_link\":\"https://forms.gle/3pbCr8pFFAZiGWbA6\"}}",
+    "resource": "sponsor_image",
+    "details": "{\"method\":\"PUT\",\"path\":\"/sponsors/images/1767541221856-4.jpg/type\",\"body\":{\"sponsorshipType\":\"Platinum\"}}",
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
     "userEmail": "",
-    "id": "1767736458284-u8hkyqlsz",
-    "timestamp": "2026-01-06T21:54:18.284Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPLOAD",
-    "resource": "document",
-    "details": "{\"method\":\"POST\",\"path\":\"/documents/upload\",\"body\":{\"title\":\"ByLaws\",\"description\":\"Sanhoti ByLaws\",\"isPublic\":\"true\"}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767737533956-gwa7d6mef",
-    "timestamp": "2026-01-06T22:12:13.956Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":true,\"documents\":true}}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767737800927-snyon7xb6",
-    "timestamp": "2026-01-06T22:16:40.927Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":true,\"documents\":false}}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767738760044-xh0erqdb7",
-    "timestamp": "2026-01-06T22:32:40.044Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":false,\"documents\":false}}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767738800333-ipgo58wqw",
-    "timestamp": "2026-01-06T22:33:20.333Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":true,\"documents\":false}}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767738802868-b5m8hfogx",
-    "timestamp": "2026-01-06T22:33:22.868Z"
-  },
-  {
-    "userId": "U63AAH027DVV",
-    "action": "UPDATE",
-    "resource": "settings",
-    "details": "{\"method\":\"PUT\",\"path\":\"/settings/navbar\",\"body\":{\"navbar\":{\"home\":true,\"sponsors\":true,\"events\":true,\"noticeBoard\":true,\"galleries\":true,\"magazines\":true,\"contactUs\":true,\"committee\":true,\"donate\":true,\"joinUs\":false,\"documents\":false}}}",
-    "ipAddress": "::1",
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "userEmail": "",
-    "id": "1767738803495-q59ar5pla",
-    "timestamp": "2026-01-06T22:33:23.495Z"
+    "id": "1767745804070-dl0d0u1tv",
+    "timestamp": "2026-01-07T00:30:04.070Z"
   }
 ]

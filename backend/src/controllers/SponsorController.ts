@@ -4,7 +4,7 @@ import multer from 'multer';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { existsSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, statSync, unlinkSync, renameSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -21,9 +21,14 @@ const storage = multer.diskStorage({
     cb(null, sponsorsDir);
   },
   filename: (req, file, cb) => {
-    // Sanitize filename and add timestamp
+    // Get sponsorship type from request body (sent as form field)
+    const sponsorshipType = (req.body?.sponsorshipType || 'Silver') as string;
+    const validTypes = ['Grand', 'Platinum', 'Gold', 'Silver'];
+    const type = validTypes.includes(sponsorshipType) ? sponsorshipType : 'Silver';
+    
+    // Sanitize filename and add timestamp with sponsorship type prefix
     const sanitized = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
-    cb(null, `${Date.now()}-${sanitized}`);
+    cb(null, `${type}-${Date.now()}-${sanitized}`);
   },
 });
 
@@ -63,11 +68,34 @@ export class SponsorController {
             return false;
           }
         })
-        .map(file => ({
-          filename: file,
-          url: `/api/sponsors/images/${encodeURIComponent(file)}`,
-        }))
-        .sort((a, b) => a.filename.localeCompare(b.filename));
+        .map(file => {
+          // Extract sponsorship type from filename (format: "Type-timestamp-filename.ext")
+          const validTypes = ['Grand', 'Platinum', 'Gold', 'Silver'];
+          let sponsorshipType = 'Silver'; // default
+          
+          for (const type of validTypes) {
+            if (file.startsWith(`${type}-`)) {
+              sponsorshipType = type;
+              break;
+            }
+          }
+          
+          return {
+            filename: file,
+            url: `/api/sponsors/images/${encodeURIComponent(file)}`,
+            sponsorshipType: sponsorshipType,
+          };
+        })
+        .sort((a, b) => {
+          // Sort by sponsorship type priority: Grand > Platinum > Gold > Silver
+          const typeOrder: Record<string, number> = { 'Grand': 0, 'Platinum': 1, 'Gold': 2, 'Silver': 3 };
+          const orderA = typeOrder[a.sponsorshipType] ?? 3;
+          const orderB = typeOrder[b.sponsorshipType] ?? 3;
+          if (orderA !== orderB) {
+            return orderA - orderB;
+          }
+          return a.filename.localeCompare(b.filename);
+        });
 
       res.json(imageFiles);
     } catch (error: any) {
@@ -127,10 +155,24 @@ export class SponsorController {
         return;
       }
 
-      const uploadedFiles = files.map(file => ({
-        filename: file.filename,
-        url: `/api/sponsors/images/${encodeURIComponent(file.filename)}`,
-      }));
+      const uploadedFiles = files.map(file => {
+        // Extract sponsorship type from filename
+        const validTypes = ['Grand', 'Platinum', 'Gold', 'Silver'];
+        let sponsorshipType = 'Silver';
+        
+        for (const type of validTypes) {
+          if (file.filename.startsWith(`${type}-`)) {
+            sponsorshipType = type;
+            break;
+          }
+        }
+        
+        return {
+          filename: file.filename,
+          url: `/api/sponsors/images/${encodeURIComponent(file.filename)}`,
+          sponsorshipType: sponsorshipType,
+        };
+      });
 
       res.json({
         message: 'Images uploaded successfully',
@@ -160,6 +202,54 @@ export class SponsorController {
     } catch (error: any) {
       console.error('Error in deleteImage:', error);
       res.status(500).json({ error: 'Failed to delete image', details: error.message });
+    }
+  }
+
+  // Update sponsorship type (admin only) - renames the file
+  async updateSponsorshipType(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { filename } = req.params;
+      const { sponsorshipType } = req.body;
+      const decodedFilename = decodeURIComponent(filename);
+      
+      const validTypes = ['Grand', 'Platinum', 'Gold', 'Silver'];
+      if (!sponsorshipType || !validTypes.includes(sponsorshipType)) {
+        res.status(400).json({ error: 'Invalid sponsorship type. Must be one of: Grand, Platinum, Gold, Silver' });
+        return;
+      }
+      
+      const oldPath = join(sponsorsDir, decodedFilename);
+      
+      if (!existsSync(oldPath)) {
+        res.status(404).json({ error: 'Image not found' });
+        return;
+      }
+
+      // Extract the original filename without the current type prefix
+      let newFilename = decodedFilename;
+      for (const type of validTypes) {
+        if (newFilename.startsWith(`${type}-`)) {
+          newFilename = newFilename.substring(type.length + 1); // Remove "Type-"
+          break;
+        }
+      }
+      
+      // Add new type prefix
+      newFilename = `${sponsorshipType}-${newFilename}`;
+      const newPath = join(sponsorsDir, newFilename);
+      
+      // Rename file
+      renameSync(oldPath, newPath);
+      
+      res.json({ 
+        message: 'Sponsorship type updated successfully',
+        filename: newFilename,
+        url: `/api/sponsors/images/${encodeURIComponent(newFilename)}`,
+        sponsorshipType: sponsorshipType,
+      });
+    } catch (error: any) {
+      console.error('Error in updateSponsorshipType:', error);
+      res.status(500).json({ error: 'Failed to update sponsorship type', details: error.message });
     }
   }
 

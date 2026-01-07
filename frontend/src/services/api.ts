@@ -356,21 +356,26 @@ export const noticesAPI = {
 
 // Sponsors API
 export const sponsorsAPI = {
-  getImages: async (): Promise<Array<{ filename: string; url: string }>> => {
+  getImages: async (): Promise<Array<{ filename: string; url: string; sponsorshipType?: string }>> => {
     const response = await api.get('/sponsors/images');
     return response.data;
   },
-  uploadImages: async (files: File[]): Promise<any> => {
+  uploadImages: async (files: File[], sponsorshipType: string = 'Silver'): Promise<any> => {
     const formData = new FormData();
     files.forEach(file => {
       formData.append('images', file);
     });
+    formData.append('sponsorshipType', sponsorshipType);
     const response = await api.post('/sponsors/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
     return response.data;
+  },
+  updateSponsorshipType: async (filename: string, newType: string): Promise<void> => {
+    // This will require renaming the file on the backend
+    await api.put(`/sponsors/images/${encodeURIComponent(filename)}/type`, { sponsorshipType: newType });
   },
   deleteImage: async (filename: string): Promise<void> => {
     await api.delete(`/sponsors/images/${encodeURIComponent(filename)}`);

@@ -63,6 +63,7 @@ type TabType = 'navbar' | 'users' | 'sponsors' | 'homepage' | 'boardmembers' | '
 interface SponsorImage {
   filename: string;
   url: string;
+  sponsorshipType?: string;
 }
 
 interface HomePageImage {
@@ -98,6 +99,8 @@ export default function AdminSettings() {
   const [deleting, setDeleting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [selectedBoardMemberFile, setSelectedBoardMemberFile] = useState<File | null>(null);
+  const [selectedSponsorshipType, setSelectedSponsorshipType] = useState<string>('Silver');
+  const [editingSponsorType, setEditingSponsorType] = useState<Record<string, string>>({});
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<User>>({});
   const [showAddUserForm, setShowAddUserForm] = useState<boolean>(false);
@@ -239,9 +242,10 @@ export default function AdminSettings() {
     try {
       setUploading(true);
       if (activeTab === 'sponsors') {
-        await sponsorsAPI.uploadImages(selectedFiles);
+        await sponsorsAPI.uploadImages(selectedFiles, selectedSponsorshipType);
         toast.success('Images uploaded successfully');
         setSelectedFiles([]);
+        setSelectedSponsorshipType('Silver');
         const fileInput = document.getElementById('sponsor-file-input') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
         await fetchSponsorImages();
@@ -271,6 +275,16 @@ export default function AdminSettings() {
       toast.error(error.response?.data?.error || 'Failed to upload images');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleUpdateSponsorshipType = async (filename: string, newType: string) => {
+    try {
+      await sponsorsAPI.updateSponsorshipType(filename, newType);
+      toast.success('Sponsorship type updated successfully');
+      await fetchSponsorImages();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to update sponsorship type');
     }
   };
 
@@ -1109,6 +1123,23 @@ export default function AdminSettings() {
                       className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-600 file:text-white hover:file:bg-primary-700"
                     />
                   </div>
+                  {selectedFiles.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Sponsorship Type
+                      </label>
+                      <select
+                        value={selectedSponsorshipType}
+                        onChange={(e) => setSelectedSponsorshipType(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      >
+                        <option value="Grand">Grand</option>
+                        <option value="Platinum">Platinum</option>
+                        <option value="Gold">Gold</option>
+                        <option value="Silver">Silver</option>
+                      </select>
+                    </div>
+                  )}
 
                   {selectedFiles.length > 0 && (
                     <div className="mt-4">
@@ -1189,7 +1220,25 @@ export default function AdminSettings() {
                           </button>
                         </div>
                         <div className="p-2">
-                          <p className="text-xs text-gray-600 truncate" title={image.filename}>
+                          <div className="mb-2">
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              Sponsorship Type
+                            </label>
+                            <select
+                              value={editingSponsorType[image.filename] ?? image.sponsorshipType ?? 'Silver'}
+                              onChange={(e) => {
+                                setEditingSponsorType(prev => ({ ...prev, [image.filename]: e.target.value }));
+                                handleUpdateSponsorshipType(image.filename, e.target.value);
+                              }}
+                              className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                            >
+                              <option value="Grand">Grand</option>
+                              <option value="Platinum">Platinum</option>
+                              <option value="Gold">Gold</option>
+                              <option value="Silver">Silver</option>
+                            </select>
+                          </div>
+                          <p className="text-xs text-gray-500 truncate" title={image.filename}>
                             {image.filename}
                           </p>
                         </div>

@@ -529,6 +529,11 @@ router.delete('/sponsors/images',
   auditLog('DELETE_ALL', 'sponsor_image'),
   bindController(sponsorController, 'deleteAllImages')
 );
+router.put('/sponsors/images/:filename/type',
+  requireAdmin,
+  auditLog('UPDATE', 'sponsor_image'),
+  bindController(sponsorController, 'updateSponsorshipType')
+);
 
 // Homepage Images - Admin routes
 router.post('/homepage/upload',

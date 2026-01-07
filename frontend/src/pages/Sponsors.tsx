@@ -6,6 +6,7 @@ import { sponsorsAPI } from '../services/api';
 interface SponsorImage {
   filename: string;
   url: string;
+  sponsorshipType?: string;
 }
 
 export default function Sponsors() {
@@ -166,16 +167,23 @@ export default function Sponsors() {
                         height: card.position === 0 ? '320px' : '240px',
                       }}
                     >
-                      <div className="w-full h-full bg-gray-50 relative overflow-hidden">
+                      <div className="w-full h-full bg-gray-50 relative overflow-hidden flex flex-col">
                         <img
                           src={card.image.url}
                           alt={card.image.filename}
-                          className="w-full h-full object-contain p-6"
+                          className="w-full flex-1 object-contain p-6"
                           onError={(e) => {
                             console.error('Failed to load sponsor image:', card.image.url);
                             (e.target as HTMLImageElement).style.display = 'none';
                           }}
                         />
+                        {card.image.sponsorshipType && (
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                            <p className="text-white text-sm font-semibold text-center">
+                              {card.image.sponsorshipType} Sponsor
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </motion.div>
