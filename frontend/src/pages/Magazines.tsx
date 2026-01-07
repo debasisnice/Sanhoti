@@ -239,12 +239,12 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
       const isDesktopView = window.innerWidth >= 768;
       // Account for padding (2*24px = 48px on desktop, 2*8px = 16px on mobile)
       // Account for navigation buttons (2*80px = 160px)
-      // Account for header and footer (approximately 200px total)
+      // Account for header only (approximately 100px, footer removed)
       const padding = isDesktopView ? 48 : 16;
       const buttonSpace = 160;
-      const headerFooter = 200;
+      const headerOnly = 100;
       const availableWidth = window.innerWidth - padding - buttonSpace;
-      const availableHeight = window.innerHeight - headerFooter;
+      const availableHeight = window.innerHeight - headerOnly;
       
       if (isDesktopView) {
         // Desktop: Two pages side by side, need space for gap between pages
@@ -293,31 +293,84 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
         onClick={(e) => e.stopPropagation()}
       >
         <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg shadow-2xl w-full h-full max-w-7xl max-h-[95vh] flex flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between p-3 md:p-4 border-b border-gray-700">
-            <div className="flex-1 min-w-0">
-              <h2 className="text-lg md:text-2xl font-bold text-white truncate">{magazine.title}</h2>
-              {magazine.description && (
-                <p className="text-gray-400 text-xs md:text-sm mt-1 truncate">{magazine.description}</p>
-              )}
+          {/* Header with Navigation */}
+          <div className="flex flex-col p-3 md:p-4 border-b border-gray-700 bg-gray-800">
+            {/* Top Row: Title and Actions */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg md:text-2xl font-bold text-white truncate">{magazine.title}</h2>
+                {magazine.description && (
+                  <p className="text-gray-400 text-xs md:text-sm mt-1 truncate">{magazine.description}</p>
+                )}
+              </div>
+              <div className="flex items-center gap-2 ml-4">
+                <button
+                  onClick={() => window.open(pdfUrl, '_blank', 'noopener,noreferrer')}
+                  className="hidden md:flex items-center gap-2 px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+                  title="Open in a new window"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span className="hidden lg:inline">Open in new window</span>
+                </button>
+                <button
+                  onClick={onClose}
+                  className="p-2 hover:bg-gray-700 rounded-full transition-colors"
+                  title="Close (Esc)"
+                >
+                  <X className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-2 ml-4">
-              <button
-                onClick={() => window.open(pdfUrl, '_blank', 'noopener,noreferrer')}
-                className="hidden md:flex items-center gap-2 px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
-                title="Open in a new window"
-              >
-                <ExternalLink className="w-4 h-4" />
-                <span className="hidden lg:inline">Open in new window</span>
-              </button>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-gray-700 rounded-full transition-colors"
-                title="Close (Esc)"
-              >
-                <X className="w-5 h-5 md:w-6 md:h-6 text-white" />
-              </button>
-            </div>
+
+            {/* Bottom Row: Navigation Controls */}
+            {!pdfLoading && numPages && numPages > 0 && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 md:gap-4">
+                  <button
+                    onClick={handlePreviousPage}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg transition-colors text-sm md:text-base font-medium ${
+                      currentPage === 1
+                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                        : 'bg-primary-600 text-white hover:bg-primary-700'
+                    }`}
+                  >
+                    <ChevronLeft className="w-4 h-4 inline mr-1" />
+                    {isDesktop ? 'Previous Spread' : 'Previous'}
+                  </button>
+                  <button
+                    onClick={handleNextPage}
+                    disabled={isDesktop ? (numPages ? currentPage >= numPages - 1 : false) : (currentPage === numPages)}
+                    className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg transition-colors text-sm md:text-base font-medium ${
+                      (isDesktop ? (numPages ? currentPage >= numPages - 1 : false) : (currentPage === numPages))
+                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                        : 'bg-primary-600 text-white hover:bg-primary-700'
+                    }`}
+                  >
+                    {isDesktop ? 'Next Spread' : 'Next'}
+                    <ChevronRight className="w-4 h-4 inline ml-1" />
+                  </button>
+                </div>
+
+                {/* Page Counter */}
+                <div className="flex items-center gap-2 text-white">
+                  <span className="text-xs md:text-sm text-gray-400">
+                    {isDesktop && numPages && currentPage < numPages 
+                      ? `Pages ${currentPage}-${currentPage + 1}` 
+                      : 'Page'}
+                  </span>
+                  <input
+                    type="number"
+                    min="1"
+                    max={numPages}
+                    value={currentPage}
+                    onChange={handlePageInput}
+                    className="w-12 md:w-16 px-2 py-1 text-center bg-gray-700 text-white rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm md:text-base"
+                  />
+                  <span className="text-xs md:text-sm text-gray-400">of {numPages}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* E-Zine PDF Viewer */}
@@ -425,56 +478,6 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
               ) : null}
             </Document>
           </div>
-
-          {/* Footer Navigation */}
-          {!pdfLoading && numPages && numPages > 0 && (
-            <div className="flex items-center justify-between p-3 md:p-4 border-t border-gray-700 bg-gray-800">
-              <div className="flex items-center gap-2 md:gap-4">
-                <button
-                  onClick={handlePreviousPage}
-                  disabled={currentPage === 1}
-                  className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg transition-colors text-sm md:text-base font-medium ${
-                    currentPage === 1
-                      ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                      : 'bg-primary-600 text-white hover:bg-primary-700'
-                  }`}
-                >
-                  <ChevronLeft className="w-4 h-4 inline mr-1" />
-                  {isDesktop ? 'Previous Spread' : 'Previous'}
-                </button>
-                <button
-                  onClick={handleNextPage}
-                  disabled={isDesktop ? (numPages ? currentPage >= numPages - 1 : false) : (currentPage === numPages)}
-                  className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg transition-colors text-sm md:text-base font-medium ${
-                    (isDesktop ? (numPages ? currentPage >= numPages - 1 : false) : (currentPage === numPages))
-                      ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                      : 'bg-primary-600 text-white hover:bg-primary-700'
-                  }`}
-                >
-                  {isDesktop ? 'Next Spread' : 'Next'}
-                  <ChevronRight className="w-4 h-4 inline ml-1" />
-                </button>
-              </div>
-
-              {/* Page Counter */}
-              <div className="flex items-center gap-2 text-white">
-                <span className="text-xs md:text-sm text-gray-400">
-                  {isDesktop && numPages && currentPage < numPages 
-                    ? `Pages ${currentPage}-${currentPage + 1}` 
-                    : 'Page'}
-                </span>
-                <input
-                  type="number"
-                  min="1"
-                  max={numPages}
-                  value={currentPage}
-                  onChange={handlePageInput}
-                  className="w-12 md:w-16 px-2 py-1 text-center bg-gray-700 text-white rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm md:text-base"
-                />
-                <span className="text-xs md:text-sm text-gray-400">of {numPages}</span>
-              </div>
-            </div>
-          )}
         </div>
       </motion.div>
     </>
