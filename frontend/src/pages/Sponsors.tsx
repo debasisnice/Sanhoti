@@ -95,7 +95,7 @@ export default function Sponsors() {
             <p className="text-gray-500 text-lg">No sponsor images available at this time.</p>
           </div>
         ) : (
-          <div className="relative h-[500px] flex items-center justify-center overflow-hidden py-12">
+          <div className="relative h-[600px] flex items-center justify-center overflow-hidden py-12">
             <div
               className="relative w-full h-full flex items-center justify-center"
               style={{
