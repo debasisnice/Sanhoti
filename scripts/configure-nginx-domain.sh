@@ -22,6 +22,24 @@ else
 fi
 
 echo ""
+echo "🔐 Setting up SSL certificate..."
+
+# Create SSL directory if it doesn't exist
+sudo mkdir -p /etc/nginx/ssl
+
+# Generate self-signed certificate if it doesn't exist
+if [ ! -f /etc/nginx/ssl/sanhoti-selfsigned.crt ]; then
+    echo "   Generating self-signed SSL certificate..."
+    sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout /etc/nginx/ssl/sanhoti-selfsigned.key \
+        -out /etc/nginx/ssl/sanhoti-selfsigned.crt \
+        -subj "/C=US/ST=CA/L=Irvine/O=Sanhoti/CN=sanhoti.org" 2>/dev/null
+    echo "✅ Self-signed certificate generated"
+else
+    echo "✅ SSL certificate already exists"
+fi
+
+echo ""
 echo "📝 Creating/Updating Nginx configuration..."
 
 # Create/update Nginx configuration
@@ -52,15 +70,16 @@ server {
     listen [::]:443 ssl http2;
     server_name sanhoti.org www.sanhoti.org 44.220.179.207;
 
-    # SSL Configuration (Cloudflare will handle SSL, but we keep this for direct access)
+    # SSL Configuration (Cloudflare will handle SSL termination)
+    # For direct HTTPS access, we'll generate a self-signed certificate if needed
     # If using Let's Encrypt, uncomment and update paths:
     # ssl_certificate /etc/letsencrypt/live/sanhoti.org/fullchain.pem;
     # ssl_certificate_key /etc/letsencrypt/live/sanhoti.org/privkey.pem;
     
-    # For Cloudflare, we can use self-signed cert or Let's Encrypt
-    # For now, we'll use a self-signed cert (Cloudflare will handle SSL termination)
-    ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
-    ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
+    # Generate self-signed certificate if it doesn't exist
+    # Note: Cloudflare handles SSL, so this is mainly for direct IP access
+    ssl_certificate /etc/nginx/ssl/sanhoti-selfsigned.crt;
+    ssl_certificate_key /etc/nginx/ssl/sanhoti-selfsigned.key;
     
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
