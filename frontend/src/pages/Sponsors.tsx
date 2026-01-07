@@ -168,21 +168,35 @@ export default function Sponsors() {
                           height: card.position === 0 ? '320px' : '240px',
                         }}
                       >
-                        <div className="w-full h-full bg-gray-50 relative overflow-hidden">
+                        <div className="w-full h-full bg-gray-50 relative overflow-hidden flex flex-col">
                           <img
                             src={card.image.url}
                             alt={card.image.filename}
-                            className="w-full h-full object-contain p-6"
+                            className="w-full flex-1 object-contain p-6"
                             onError={(e) => {
                               console.error('Failed to load sponsor image:', card.image.url);
                               (e.target as HTMLImageElement).style.display = 'none';
                             }}
                           />
+                          {card.image.sponsorshipType && card.image.sponsorshipType !== 'None' && (
+                            <div className="md:hidden px-3 pb-3">
+                              <p 
+                                className={`text-xs font-semibold text-center ${
+                                  card.image.sponsorshipType === 'Grand' ? 'text-yellow-600' :
+                                  card.image.sponsorshipType === 'Platinum' ? 'text-gray-400' :
+                                  card.image.sponsorshipType === 'Gold' ? 'text-yellow-500' :
+                                  'text-gray-500'
+                                }`}
+                              >
+                                {card.image.sponsorshipType} Sponsor
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </div>
                       {card.image.sponsorshipType && card.image.sponsorshipType !== 'None' && (
                         <p 
-                          className={`mt-3 text-sm font-semibold text-center ${
+                          className={`hidden md:block mt-3 text-sm font-semibold text-center ${
                             card.image.sponsorshipType === 'Grand' ? 'text-yellow-600' :
                             card.image.sponsorshipType === 'Platinum' ? 'text-gray-400' :
                             card.image.sponsorshipType === 'Gold' ? 'text-yellow-500' :
