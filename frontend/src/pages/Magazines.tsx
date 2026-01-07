@@ -466,15 +466,15 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                   <div className="w-full h-full flex items-center justify-center min-h-0" style={{ perspective: '2500px', perspectiveOrigin: 'center center' }}>
                     {isDesktop ? (
                       /* Desktop: Realistic book page flip like FlipHTML5 */
-                      <div className="relative flex items-center justify-center gap-4" style={{ transformStyle: 'preserve-3d', perspective: '2000px' }}>
+                      <div className="relative flex items-center justify-center gap-4" style={{ transformStyle: 'preserve-3d', perspective: '2000px', perspectiveOrigin: 'center center' }}>
                         {/* Pages underneath - next pages (shown when right page flips) */}
                         {isFlipping && flipDirection === 'left' && numPages && displayPage + 2 <= numPages && (
                           <div 
                             className="absolute flex items-center gap-4" 
                             style={{ 
                               zIndex: 0, 
-                              opacity: Math.min(flipProgress * 2, 0.4),
-                              transform: `translateZ(-50px)`
+                              opacity: Math.min(flipProgress * 2.5, 0.5),
+                              transform: `translateZ(-30px)`
                             }}
                           >
                             <div className="bg-white shadow-lg rounded-lg overflow-hidden">
@@ -504,8 +504,8 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                             className="absolute flex items-center gap-4" 
                             style={{ 
                               zIndex: 0, 
-                              opacity: Math.min(flipProgress * 2, 0.4),
-                              transform: `translateZ(-50px)`
+                              opacity: Math.min(flipProgress * 2.5, 0.5),
+                              transform: `translateZ(-30px)`
                             }}
                           >
                             {displayPage > 3 && (
@@ -529,127 +529,53 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                           </div>
                         )}
 
-                        {/* Left page */}
+                        {/* Left page - with front and back faces */}
                         <div 
-                          className="bg-white shadow-2xl rounded-lg overflow-hidden relative" 
+                          className="relative"
                           style={{
                             transformStyle: 'preserve-3d',
                             transform: flipDirection === 'right' && isFlipping
-                              ? `rotateY(${flipProgress * 180}deg) scaleX(${1 - flipProgress * 0.3})`
+                              ? `rotateY(${flipProgress * 180}deg)`
                               : flipDirection === 'left' && isFlipping
-                              ? `rotateY(${180 - flipProgress * 180}deg) scaleX(${0.7 + flipProgress * 0.3})`
-                              : 'rotateY(0deg) scaleX(1)',
+                              ? `rotateY(${180 - flipProgress * 180}deg)`
+                              : 'rotateY(0deg)',
                             transformOrigin: 'right center',
                             zIndex: flipDirection === 'right' && isFlipping ? 10 : 1,
-                            opacity: flipDirection === 'right' && isFlipping 
-                              ? Math.max(0, 1 - flipProgress * 1.2)
-                              : flipDirection === 'left' && isFlipping
-                              ? Math.min(1, flipProgress * 1.2)
-                              : 1,
-                            boxShadow: flipDirection === 'right' && isFlipping && flipProgress > 0.1
-                              ? `0 ${20 + flipProgress * 40}px ${60 + flipProgress * 90}px rgba(0, 0, 0, ${0.5 + flipProgress * 0.4}), inset ${20 * flipProgress}px 0 ${40 * flipProgress}px rgba(0, 0, 0, ${0.4 * flipProgress})`
-                              : '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
-                            maxWidth: '100%',
-                            maxHeight: '100%',
-                            transition: isFlipping ? 'none' : 'all 0.3s ease',
-                            minHeight: '400px'
+                            transition: isFlipping ? 'none' : 'transform 0.3s ease'
                           }}
                         >
-                          {/* Front of page (current page) */}
-                          <div
+                          <div 
+                            className="bg-white shadow-2xl rounded-lg overflow-hidden" 
                             style={{
-                              backfaceVisibility: 'hidden',
-                              WebkitBackfaceVisibility: 'hidden',
-                              transform: flipDirection === 'right' && isFlipping && flipProgress > 0.5 ? 'rotateY(180deg)' : 'rotateY(0deg)',
                               transformStyle: 'preserve-3d',
-                              position: 'relative',
-                              width: '100%',
-                              minHeight: '400px'
+                              width: pageWidth,
+                              position: 'relative'
                             }}
                           >
-                            <Page
-                              pageNumber={displayPage}
-                              width={pageWidth}
-                              renderTextLayer={!isFlipping || flipProgress < 0.3}
-                              renderAnnotationLayer={!isFlipping || flipProgress < 0.3}
-                              className="shadow-xl"
-                            />
-                          </div>
-                          {/* Back of page (previous page) - shown when flipping */}
-                          {flipDirection === 'right' && isFlipping && displayPage > 1 && (
+                            {/* Front face - current page */}
                             <div
                               style={{
                                 backfaceVisibility: 'hidden',
                                 WebkitBackfaceVisibility: 'hidden',
-                                transform: 'rotateY(180deg)',
+                                transform: 'rotateY(0deg)',
                                 transformStyle: 'preserve-3d',
                                 position: 'absolute',
                                 width: '100%',
+                                height: '100%',
                                 top: 0,
-                                left: 0,
-                                minHeight: '400px'
+                                left: 0
                               }}
                             >
                               <Page
-                                pageNumber={displayPage - 1}
+                                pageNumber={displayPage}
                                 width={pageWidth}
-                                renderTextLayer={false}
-                                renderAnnotationLayer={false}
+                                renderTextLayer={!isFlipping || flipProgress < 0.4}
+                                renderAnnotationLayer={!isFlipping || flipProgress < 0.4}
                                 className="shadow-xl"
                               />
                             </div>
-                          )}
-                        </div>
-
-                        {/* Right page */}
-                        {numPages && displayPage < numPages && (
-                          <div 
-                            className="bg-white shadow-2xl rounded-lg overflow-hidden relative" 
-                            style={{
-                              transformStyle: 'preserve-3d',
-                              transform: flipDirection === 'left' && isFlipping
-                                ? `rotateY(${-flipProgress * 180}deg) scaleX(${1 - flipProgress * 0.3})`
-                                : flipDirection === 'right' && isFlipping
-                                ? `rotateY(${-180 + flipProgress * 180}deg) scaleX(${0.7 + flipProgress * 0.3})`
-                                : 'rotateY(0deg) scaleX(1)',
-                              transformOrigin: 'left center',
-                              zIndex: flipDirection === 'left' && isFlipping ? 10 : 2,
-                              opacity: flipDirection === 'left' && isFlipping 
-                                ? Math.max(0, 1 - flipProgress * 1.2)
-                                : flipDirection === 'right' && isFlipping
-                                ? Math.min(1, flipProgress * 1.2)
-                                : 1,
-                              boxShadow: flipDirection === 'left' && isFlipping && flipProgress > 0.1
-                                ? `0 ${20 + flipProgress * 40}px ${60 + flipProgress * 90}px rgba(0, 0, 0, ${0.5 + flipProgress * 0.4}), inset ${-20 * flipProgress}px 0 ${40 * flipProgress}px rgba(0, 0, 0, ${0.4 * flipProgress})`
-                                : '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
-                              maxWidth: '100%',
-                              maxHeight: '100%',
-                              transition: isFlipping ? 'none' : 'all 0.3s ease',
-                              minHeight: '400px'
-                            }}
-                          >
-                            {/* Front of page (current right page) */}
-                            <div
-                              style={{
-                                backfaceVisibility: 'hidden',
-                                WebkitBackfaceVisibility: 'hidden',
-                                transform: flipDirection === 'left' && isFlipping && flipProgress > 0.5 ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                                transformStyle: 'preserve-3d',
-                                position: 'relative',
-                                width: '100%',
-                                minHeight: '400px'
-                              }}
-                            >
-                              <Page
-                                pageNumber={displayPage + 1}
-                                width={pageWidth}
-                                renderTextLayer={!isFlipping || flipProgress < 0.3}
-                                renderAnnotationLayer={!isFlipping || flipProgress < 0.3}
-                                className="shadow-xl"
-                              />
-                            </div>
-                            {/* Back of page (next page) - shown when flipping */}
-                            {flipDirection === 'left' && isFlipping && numPages && displayPage + 2 <= numPages && (
+                            {/* Back face - previous page (shown when flipping left) */}
+                            {displayPage > 1 && (
                               <div
                                 style={{
                                   backfaceVisibility: 'hidden',
@@ -658,13 +584,13 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                                   transformStyle: 'preserve-3d',
                                   position: 'absolute',
                                   width: '100%',
+                                  height: '100%',
                                   top: 0,
-                                  left: 0,
-                                  minHeight: '400px'
+                                  left: 0
                                 }}
                               >
                                 <Page
-                                  pageNumber={displayPage + 2}
+                                  pageNumber={displayPage - 1}
                                   width={pageWidth}
                                   renderTextLayer={false}
                                   renderAnnotationLayer={false}
@@ -672,6 +598,85 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                                 />
                               </div>
                             )}
+                          </div>
+                        </div>
+
+                        {/* Right page - with front and back faces */}
+                        {numPages && displayPage < numPages && (
+                          <div 
+                            className="relative"
+                            style={{
+                              transformStyle: 'preserve-3d',
+                              transform: flipDirection === 'left' && isFlipping
+                                ? `rotateY(${-flipProgress * 180}deg)`
+                                : flipDirection === 'right' && isFlipping
+                                ? `rotateY(${-180 + flipProgress * 180}deg)`
+                                : 'rotateY(0deg)',
+                              transformOrigin: 'left center',
+                              zIndex: flipDirection === 'left' && isFlipping ? 10 : 2,
+                              transition: isFlipping ? 'none' : 'transform 0.3s ease'
+                            }}
+                          >
+                            <div 
+                              className="bg-white shadow-2xl rounded-lg overflow-hidden" 
+                              style={{
+                                transformStyle: 'preserve-3d',
+                                width: pageWidth,
+                                position: 'relative',
+                                boxShadow: flipDirection === 'left' && isFlipping && flipProgress > 0.1
+                                  ? `0 ${20 + flipProgress * 50}px ${60 + flipProgress * 100}px rgba(0, 0, 0, ${0.5 + flipProgress * 0.5}), inset ${-25 * flipProgress}px 0 ${50 * flipProgress}px rgba(0, 0, 0, ${0.5 * flipProgress})`
+                                  : flipDirection === 'right' && isFlipping && flipProgress > 0.1
+                                  ? `0 ${20 + flipProgress * 50}px ${60 + flipProgress * 100}px rgba(0, 0, 0, ${0.5 + flipProgress * 0.5}), inset ${25 * flipProgress}px 0 ${50 * flipProgress}px rgba(0, 0, 0, ${0.5 * flipProgress})`
+                                  : '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+                              }}
+                            >
+                              {/* Front face - current right page */}
+                              <div
+                                style={{
+                                  backfaceVisibility: 'hidden',
+                                  WebkitBackfaceVisibility: 'hidden',
+                                  transform: 'rotateY(0deg)',
+                                  transformStyle: 'preserve-3d',
+                                  position: 'absolute',
+                                  width: '100%',
+                                  height: '100%',
+                                  top: 0,
+                                  left: 0
+                                }}
+                              >
+                                <Page
+                                  pageNumber={displayPage + 1}
+                                  width={pageWidth}
+                                  renderTextLayer={!isFlipping || flipProgress < 0.4}
+                                  renderAnnotationLayer={!isFlipping || flipProgress < 0.4}
+                                  className="shadow-xl"
+                                />
+                              </div>
+                              {/* Back face - next page (shown when flipping right) */}
+                              {numPages && displayPage + 2 <= numPages && (
+                                <div
+                                  style={{
+                                    backfaceVisibility: 'hidden',
+                                    WebkitBackfaceVisibility: 'hidden',
+                                    transform: 'rotateY(180deg)',
+                                    transformStyle: 'preserve-3d',
+                                    position: 'absolute',
+                                    width: '100%',
+                                    height: '100%',
+                                    top: 0,
+                                    left: 0
+                                  }}
+                                >
+                                  <Page
+                                    pageNumber={displayPage + 2}
+                                    width={pageWidth}
+                                    renderTextLayer={false}
+                                    renderAnnotationLayer={false}
+                                    className="shadow-xl"
+                                  />
+                                </div>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
