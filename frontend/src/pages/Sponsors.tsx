@@ -156,35 +156,42 @@ export default function Sponsors() {
                     className="will-change-transform cursor-pointer"
                     onClick={() => setSelectedImage(card.image)}
                   >
-                    <div
-                      className={`bg-white rounded-xl overflow-hidden transition-all duration-300 ${
-                        isMiddle
-                          ? 'shadow-2xl ring-4 ring-primary-200 ring-opacity-50'
-                          : 'shadow-lg'
-                      }`}
-                      style={{
-                        width: card.position === 0 ? '280px' : '200px',
-                        height: card.position === 0 ? '320px' : '240px',
-                      }}
-                    >
-                      <div className="w-full h-full bg-gray-50 relative overflow-hidden flex flex-col">
-                        <img
-                          src={card.image.url}
-                          alt={card.image.filename}
-                          className="w-full flex-1 object-contain p-6"
-                          onError={(e) => {
-                            console.error('Failed to load sponsor image:', card.image.url);
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                        {card.image.sponsorshipType && card.image.sponsorshipType !== 'None' && (
-                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
-                            <p className="text-white text-sm font-semibold text-center">
-                              {card.image.sponsorshipType} Sponsor
-                            </p>
-                          </div>
-                        )}
+                    <div className="flex flex-col items-center">
+                      <div
+                        className={`bg-white rounded-xl overflow-hidden transition-all duration-300 ${
+                          isMiddle
+                            ? 'shadow-2xl ring-4 ring-primary-200 ring-opacity-50'
+                            : 'shadow-lg'
+                        }`}
+                        style={{
+                          width: card.position === 0 ? '280px' : '200px',
+                          height: card.position === 0 ? '320px' : '240px',
+                        }}
+                      >
+                        <div className="w-full h-full bg-gray-50 relative overflow-hidden">
+                          <img
+                            src={card.image.url}
+                            alt={card.image.filename}
+                            className="w-full h-full object-contain p-6"
+                            onError={(e) => {
+                              console.error('Failed to load sponsor image:', card.image.url);
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        </div>
                       </div>
+                      {card.image.sponsorshipType && card.image.sponsorshipType !== 'None' && (
+                        <p 
+                          className={`mt-3 text-sm font-semibold text-center ${
+                            card.image.sponsorshipType === 'Grand' ? 'text-yellow-600' :
+                            card.image.sponsorshipType === 'Platinum' ? 'text-gray-400' :
+                            card.image.sponsorshipType === 'Gold' ? 'text-yellow-500' :
+                            'text-gray-500'
+                          }`}
+                        >
+                          {card.image.sponsorshipType} Sponsor
+                        </p>
+                      )}
                     </div>
                   </motion.div>
                 );
