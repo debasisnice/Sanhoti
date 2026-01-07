@@ -266,17 +266,19 @@ export default function Home() {
             transition={{ delay: 0.2, duration: 0.8 }}
             className="mb-6"
           >
-            <img 
-              src="/images/logo.png" 
-              alt="Sanhoti (সংহতি) Bengali Association of Orange County"
-              className="mx-auto h-32 md:h-40 w-auto mb-4"
-              onError={(e) => {
-                // Fallback to text if image not found
-                e.currentTarget.style.display = 'none';
-                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = 'block';
-              }}
-            />
+            <div className="mx-auto w-fit rounded-full bg-white p-4 mb-4 shadow-lg">
+              <img 
+                src="/images/logo.png" 
+                alt="Sanhoti (সংহতি) Bengali Association of Orange County"
+                className="h-32 md:h-40 w-auto"
+                onError={(e) => {
+                  // Fallback to text if image not found
+                  e.currentTarget.style.display = 'none';
+                  const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = 'block';
+                }}
+              />
+            </div>
             <h1 className="text-5xl md:text-7xl font-bold hidden">
               <span className="font-bengali block mb-2">সংহতি</span>
               <span className="block">Bengali Community</span>
