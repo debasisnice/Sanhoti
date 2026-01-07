@@ -169,17 +169,19 @@ export default function Sponsors() {
                         }}
                       >
                         <div className="w-full h-full bg-gray-50 relative overflow-hidden flex flex-col">
-                          <img
-                            src={card.image.url}
-                            alt={card.image.filename}
-                            className="w-full flex-1 object-contain p-6"
-                            onError={(e) => {
-                              console.error('Failed to load sponsor image:', card.image.url);
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
+                          <div className="flex-1 overflow-hidden">
+                            <img
+                              src={card.image.url}
+                              alt={card.image.filename}
+                              className="w-full h-full object-contain p-6"
+                              onError={(e) => {
+                                console.error('Failed to load sponsor image:', card.image.url);
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
                           {card.image.sponsorshipType && card.image.sponsorshipType !== 'None' && (
-                            <div className="md:hidden px-3 pb-3">
+                            <div className="md:hidden bg-white border-t border-gray-200 px-3 py-2">
                               <p 
                                 className={`text-xs font-semibold text-center ${
                                   card.image.sponsorshipType === 'Grand' ? 'text-yellow-600' :
