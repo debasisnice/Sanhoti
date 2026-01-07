@@ -534,7 +534,6 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                           className="bg-white shadow-2xl rounded-lg overflow-hidden relative" 
                           style={{
                             transformStyle: 'preserve-3d',
-                            backfaceVisibility: 'hidden',
                             transform: flipDirection === 'right' && isFlipping
                               ? `rotateY(${flipProgress * 180}deg) scaleX(${1 - flipProgress * 0.3})`
                               : flipDirection === 'left' && isFlipping
@@ -555,13 +554,50 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                             transition: isFlipping ? 'none' : 'all 0.3s ease'
                           }}
                         >
-                          <Page
-                            pageNumber={displayPage}
-                            width={pageWidth}
-                            renderTextLayer={!isFlipping || flipProgress < 0.3}
-                            renderAnnotationLayer={!isFlipping || flipProgress < 0.3}
-                            className="shadow-xl"
-                          />
+                          {/* Front of page (current page) */}
+                          <div
+                            style={{
+                              backfaceVisibility: 'hidden',
+                              transform: flipDirection === 'right' && isFlipping && flipProgress > 0.5 ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                              transformStyle: 'preserve-3d',
+                              position: 'absolute',
+                              width: '100%',
+                              height: '100%',
+                              top: 0,
+                              left: 0
+                            }}
+                          >
+                            <Page
+                              pageNumber={displayPage}
+                              width={pageWidth}
+                              renderTextLayer={!isFlipping || flipProgress < 0.3}
+                              renderAnnotationLayer={!isFlipping || flipProgress < 0.3}
+                              className="shadow-xl"
+                            />
+                          </div>
+                          {/* Back of page (previous page) - shown when flipping */}
+                          {flipDirection === 'right' && isFlipping && displayPage > 1 && (
+                            <div
+                              style={{
+                                backfaceVisibility: 'hidden',
+                                transform: 'rotateY(180deg)',
+                                transformStyle: 'preserve-3d',
+                                position: 'absolute',
+                                width: '100%',
+                                height: '100%',
+                                top: 0,
+                                left: 0
+                              }}
+                            >
+                              <Page
+                                pageNumber={displayPage - 1}
+                                width={pageWidth}
+                                renderTextLayer={false}
+                                renderAnnotationLayer={false}
+                                className="shadow-xl"
+                              />
+                            </div>
+                          )}
                         </div>
 
                         {/* Right page */}
@@ -570,7 +606,6 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                             className="bg-white shadow-2xl rounded-lg overflow-hidden relative" 
                             style={{
                               transformStyle: 'preserve-3d',
-                              backfaceVisibility: 'hidden',
                               transform: flipDirection === 'left' && isFlipping
                                 ? `rotateY(${-flipProgress * 180}deg) scaleX(${1 - flipProgress * 0.3})`
                                 : flipDirection === 'right' && isFlipping
@@ -591,13 +626,50 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                               transition: isFlipping ? 'none' : 'all 0.3s ease'
                             }}
                           >
-                            <Page
-                              pageNumber={displayPage + 1}
-                              width={pageWidth}
-                              renderTextLayer={!isFlipping || flipProgress < 0.3}
-                              renderAnnotationLayer={!isFlipping || flipProgress < 0.3}
-                              className="shadow-xl"
-                            />
+                            {/* Front of page (current right page) */}
+                            <div
+                              style={{
+                                backfaceVisibility: 'hidden',
+                                transform: flipDirection === 'left' && isFlipping && flipProgress > 0.5 ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                                transformStyle: 'preserve-3d',
+                                position: 'absolute',
+                                width: '100%',
+                                height: '100%',
+                                top: 0,
+                                left: 0
+                              }}
+                            >
+                              <Page
+                                pageNumber={displayPage + 1}
+                                width={pageWidth}
+                                renderTextLayer={!isFlipping || flipProgress < 0.3}
+                                renderAnnotationLayer={!isFlipping || flipProgress < 0.3}
+                                className="shadow-xl"
+                              />
+                            </div>
+                            {/* Back of page (next page) - shown when flipping */}
+                            {flipDirection === 'left' && isFlipping && numPages && displayPage + 2 <= numPages && (
+                              <div
+                                style={{
+                                  backfaceVisibility: 'hidden',
+                                  transform: 'rotateY(180deg)',
+                                  transformStyle: 'preserve-3d',
+                                  position: 'absolute',
+                                  width: '100%',
+                                  height: '100%',
+                                  top: 0,
+                                  left: 0
+                                }}
+                              >
+                                <Page
+                                  pageNumber={displayPage + 2}
+                                  width={pageWidth}
+                                  renderTextLayer={false}
+                                  renderAnnotationLayer={false}
+                                  className="shadow-xl"
+                                />
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
