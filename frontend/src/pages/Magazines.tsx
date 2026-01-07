@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Lock, X, ExternalLink } from 'lucide-react';
+import { BookOpen, Lock, X, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 import { magazinesAPI } from '../services/api';
 import { Magazine } from '../types';
 import { format } from 'date-fns';
@@ -109,9 +109,10 @@ export default function Magazines() {
   );
 }
 
-// PDF Modal Component
+// PDF Modal Component - E-Zine Style Reader
 function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => void }) {
   const [numPages, setNumPages] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [pdfLoading, setPdfLoading] = useState(true);
   const [pdfError, setPdfError] = useState<string | null>(null);
 
@@ -138,15 +139,48 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
     return API_BASE_URL && !API_BASE_URL.endsWith('/api') ? `${API_BASE_URL}${fullPath}` : fullPath;
   })();
 
-  // Reset scroll position when PDF loads
+  // Keyboard navigation
   useEffect(() => {
-    if (!pdfLoading && numPages) {
-      const container = document.getElementById('pdf-viewer-container');
-      if (container) {
-        container.scrollTop = 0;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (numPages === null) return;
+      
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        }
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (currentPage < numPages) {
+          setCurrentPage(currentPage + 1);
+        }
+      } else if (e.key === 'Escape') {
+        onClose();
       }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [numPages, currentPage, onClose]);
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
     }
-  }, [pdfLoading, numPages]);
+  };
+
+  const handleNextPage = () => {
+    if (numPages && currentPage < numPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePageInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const page = parseInt(e.target.value);
+    if (page >= 1 && numPages && page <= numPages) {
+      setCurrentPage(page);
+    }
+  };
 
   return (
     <>
@@ -155,92 +189,176 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black bg-opacity-50 z-50"
+        className="fixed inset-0 bg-black bg-opacity-75 z-50"
         onClick={onClose}
       />
       
-      {/* Modal */}
+      {/* Modal - Full Screen E-Zine Reader */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col">
+        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg shadow-2xl w-full h-full max-w-7xl max-h-[95vh] flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b">
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-gray-900">{magazine.title}</h2>
+          <div className="flex items-center justify-between p-3 md:p-4 border-b border-gray-700">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg md:text-2xl font-bold text-white truncate">{magazine.title}</h2>
               {magazine.description && (
-                <p className="text-gray-600 text-sm mt-1">{magazine.description}</p>
+                <p className="text-gray-400 text-xs md:text-sm mt-1 truncate">{magazine.description}</p>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-4">
               <button
                 onClick={() => window.open(pdfUrl, '_blank', 'noopener,noreferrer')}
-                className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+                className="hidden md:flex items-center gap-2 px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
                 title="Open in a new window"
               >
                 <ExternalLink className="w-4 h-4" />
-                Open in a new window
+                <span className="hidden lg:inline">Open in new window</span>
               </button>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                title="Close"
+                className="p-2 hover:bg-gray-700 rounded-full transition-colors"
+                title="Close (Esc)"
               >
-                <X className="w-6 h-6 text-gray-600" />
+                <X className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </button>
             </div>
           </div>
 
-          {/* PDF Viewer */}
-          <div className="flex-1 overflow-auto p-4 bg-gray-100">
+          {/* E-Zine PDF Viewer */}
+          <div className="flex-1 flex items-center justify-center p-2 md:p-6 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden relative">
+            {pdfLoading && (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400"></div>
+              </div>
+            )}
+
             <Document
               file={pdfUrl}
               onLoadSuccess={({ numPages }) => {
                 setNumPages(numPages);
                 setPdfLoading(false);
                 setPdfError(null);
-                // Scroll to top after a brief delay to ensure DOM is ready
-                setTimeout(() => {
-                  const container = document.getElementById('pdf-viewer-container');
-                  if (container) {
-                    container.scrollTop = 0;
-                  }
-                }, 200);
+                setCurrentPage(1);
               }}
               onLoadError={(_error) => {
                 setPdfError('Failed to load PDF');
                 setPdfLoading(false);
               }}
-              loading={
-                <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-                </div>
-              }
+              loading={null}
             >
               {pdfError ? (
                 <div className="text-center py-12">
-                  <p className="text-red-600">{pdfError}</p>
+                  <p className="text-red-400 text-lg">{pdfError}</p>
                 </div>
               ) : !pdfLoading && numPages && numPages > 0 ? (
-                <div className="flex flex-col items-center space-y-4">
-                  {Array.from(new Array(numPages), (_el, index) => (
-                    <div key={`page_${index + 1}`} className="bg-white shadow-lg">
-                      <Page
-                        pageNumber={index + 1}
-                        width={Math.min(800, window.innerWidth - 100)}
-                        renderTextLayer={true}
-                        renderAnnotationLayer={true}
-                      />
-                    </div>
-                  ))}
+                <div className="relative w-full h-full flex items-center justify-center">
+                  {/* Previous Page Button */}
+                  <button
+                    onClick={handlePreviousPage}
+                    disabled={currentPage === 1}
+                    className={`absolute left-2 md:left-4 z-10 p-2 md:p-3 rounded-full transition-all ${
+                      currentPage === 1
+                        ? 'bg-gray-700 opacity-50 cursor-not-allowed'
+                        : 'bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm'
+                    }`}
+                    title="Previous page (←)"
+                  >
+                    <ChevronLeft className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                  </button>
+
+                  {/* PDF Page - Magazine Style */}
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={currentPage}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3 }}
+                      className="flex items-center justify-center"
+                    >
+                      <div className="bg-white shadow-2xl rounded-lg overflow-hidden" style={{
+                        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+                      }}>
+                        <Page
+                          pageNumber={currentPage}
+                          width={Math.min(900, window.innerWidth - 120)}
+                          renderTextLayer={true}
+                          renderAnnotationLayer={true}
+                          className="shadow-xl"
+                        />
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
+
+                  {/* Next Page Button */}
+                  <button
+                    onClick={handleNextPage}
+                    disabled={currentPage === numPages}
+                    className={`absolute right-2 md:right-4 z-10 p-2 md:p-3 rounded-full transition-all ${
+                      currentPage === numPages
+                        ? 'bg-gray-700 opacity-50 cursor-not-allowed'
+                        : 'bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm'
+                    }`}
+                    title="Next page (→)"
+                  >
+                    <ChevronRight className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                  </button>
                 </div>
               ) : null}
             </Document>
           </div>
+
+          {/* Footer Navigation */}
+          {!pdfLoading && numPages && numPages > 0 && (
+            <div className="flex items-center justify-between p-3 md:p-4 border-t border-gray-700 bg-gray-800">
+              <div className="flex items-center gap-2 md:gap-4">
+                <button
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg transition-colors text-sm md:text-base font-medium ${
+                    currentPage === 1
+                      ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                      : 'bg-primary-600 text-white hover:bg-primary-700'
+                  }`}
+                >
+                  <ChevronLeft className="w-4 h-4 inline mr-1" />
+                  Previous
+                </button>
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage === numPages}
+                  className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg transition-colors text-sm md:text-base font-medium ${
+                    currentPage === numPages
+                      ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                      : 'bg-primary-600 text-white hover:bg-primary-700'
+                  }`}
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4 inline ml-1" />
+                </button>
+              </div>
+
+              {/* Page Counter */}
+              <div className="flex items-center gap-2 text-white">
+                <span className="text-xs md:text-sm text-gray-400">Page</span>
+                <input
+                  type="number"
+                  min="1"
+                  max={numPages}
+                  value={currentPage}
+                  onChange={handlePageInput}
+                  className="w-12 md:w-16 px-2 py-1 text-center bg-gray-700 text-white rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm md:text-base"
+                />
+                <span className="text-xs md:text-sm text-gray-400">of {numPages}</span>
+              </div>
+            </div>
+          )}
         </div>
       </motion.div>
     </>
