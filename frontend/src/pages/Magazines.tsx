@@ -115,6 +115,7 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
   const [currentPage, setCurrentPage] = useState(1);
   const [pdfLoading, setPdfLoading] = useState(true);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [pageWidth, setPageWidth] = useState(800);
 
   const pdfUrl = (() => {
     const fileUrl = magazine.fileUrl;
@@ -182,6 +183,33 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
     }
   };
 
+  // Calculate page width based on viewport
+  useEffect(() => {
+    const calculatePageWidth = () => {
+      // Account for padding (2*24px = 48px on desktop, 2*8px = 16px on mobile)
+      // Account for navigation buttons (2*80px = 160px)
+      // Account for header and footer (approximately 200px total)
+      const padding = window.innerWidth >= 768 ? 48 : 16;
+      const buttonSpace = 160;
+      const headerFooter = 200;
+      const availableWidth = window.innerWidth - padding - buttonSpace;
+      const availableHeight = window.innerHeight - headerFooter;
+      
+      // PDF aspect ratio is typically 8.5:11 (0.773) or A4 (0.707)
+      // Calculate width based on both constraints
+      const widthFromHeight = availableHeight * 0.707; // A4 ratio
+      const widthFromWidth = availableWidth;
+      
+      // Use the smaller of the two to ensure page fits
+      const calculatedWidth = Math.min(900, Math.min(widthFromWidth, widthFromHeight));
+      setPageWidth(Math.max(400, calculatedWidth)); // Minimum 400px
+    };
+
+    calculatePageWidth();
+    window.addEventListener('resize', calculatePageWidth);
+    return () => window.removeEventListener('resize', calculatePageWidth);
+  }, []);
+
   return (
     <>
       {/* Backdrop */}
@@ -231,7 +259,7 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
           </div>
 
           {/* E-Zine PDF Viewer */}
-          <div className="flex-1 flex items-center justify-center p-2 md:p-6 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden relative">
+          <div className="flex-1 flex items-center justify-center p-2 md:p-6 bg-gradient-to-br from-gray-800 to-gray-900 overflow-auto relative">
             {pdfLoading && (
               <div className="flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400"></div>
@@ -257,7 +285,7 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                   <p className="text-red-400 text-lg">{pdfError}</p>
                 </div>
               ) : !pdfLoading && numPages && numPages > 0 ? (
-                <div className="relative w-full h-full flex items-center justify-center">
+                <div className="relative w-full h-full flex items-center justify-center min-h-0">
                   {/* Previous Page Button */}
                   <button
                     onClick={handlePreviousPage}
@@ -280,14 +308,16 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -20 }}
                       transition={{ duration: 0.3 }}
-                      className="flex items-center justify-center"
+                      className="flex items-center justify-center max-w-full max-h-full"
                     >
                       <div className="bg-white shadow-2xl rounded-lg overflow-hidden" style={{
-                        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+                        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                        maxWidth: '100%',
+                        maxHeight: '100%'
                       }}>
                         <Page
                           pageNumber={currentPage}
-                          width={Math.min(900, window.innerWidth - 120)}
+                          width={pageWidth}
                           renderTextLayer={true}
                           renderAnnotationLayer={true}
                           className="shadow-xl"
