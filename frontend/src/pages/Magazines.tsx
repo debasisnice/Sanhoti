@@ -549,7 +549,8 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                             style={{
                               transformStyle: 'preserve-3d',
                               width: pageWidth,
-                              position: 'relative'
+                              position: 'relative',
+                              minHeight: '600px'
                             }}
                           >
                             {/* Front face - current page */}
@@ -559,11 +560,8 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                                 WebkitBackfaceVisibility: 'hidden',
                                 transform: 'rotateY(0deg)',
                                 transformStyle: 'preserve-3d',
-                                position: 'absolute',
-                                width: '100%',
-                                height: '100%',
-                                top: 0,
-                                left: 0
+                                position: 'relative',
+                                width: '100%'
                               }}
                             >
                               <Page
@@ -584,7 +582,6 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                                   transformStyle: 'preserve-3d',
                                   position: 'absolute',
                                   width: '100%',
-                                  height: '100%',
                                   top: 0,
                                   left: 0
                                 }}
@@ -623,6 +620,7 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                                 transformStyle: 'preserve-3d',
                                 width: pageWidth,
                                 position: 'relative',
+                                minHeight: '600px',
                                 boxShadow: flipDirection === 'left' && isFlipping && flipProgress > 0.1
                                   ? `0 ${20 + flipProgress * 50}px ${60 + flipProgress * 100}px rgba(0, 0, 0, ${0.5 + flipProgress * 0.5}), inset ${-25 * flipProgress}px 0 ${50 * flipProgress}px rgba(0, 0, 0, ${0.5 * flipProgress})`
                                   : flipDirection === 'right' && isFlipping && flipProgress > 0.1
@@ -637,11 +635,8 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                                   WebkitBackfaceVisibility: 'hidden',
                                   transform: 'rotateY(0deg)',
                                   transformStyle: 'preserve-3d',
-                                  position: 'absolute',
-                                  width: '100%',
-                                  height: '100%',
-                                  top: 0,
-                                  left: 0
+                                  position: 'relative',
+                                  width: '100%'
                                 }}
                               >
                                 <Page
@@ -662,7 +657,6 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                                     transformStyle: 'preserve-3d',
                                     position: 'absolute',
                                     width: '100%',
-                                    height: '100%',
                                     top: 0,
                                     left: 0
                                   }}
