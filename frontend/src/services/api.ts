@@ -291,6 +291,11 @@ export const rsvpAPI = {
     const response = await api.post(`/rsvps/${id}/cancel`);
     return response.data;
   },
+
+  delete: async (id: string): Promise<{ message: string }> => {
+    const response = await api.delete(`/rsvps/${id}`);
+    return response.data;
+  },
 };
 
 // Notices API

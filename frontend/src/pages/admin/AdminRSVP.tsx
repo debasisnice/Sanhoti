@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, UserCheck, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, UserCheck, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { eventsAPI, rsvpAPI } from '../../services/api';
 import { Event, RSVP } from '../../types';
 import { format } from 'date-fns';
@@ -20,6 +20,7 @@ export default function AdminRSVP() {
   const [eventRSVPData, setEventRSVPData] = useState<EventRSVPData[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
+  const [deletingRSVP, setDeletingRSVP] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -99,6 +100,62 @@ export default function AdminRSVP() {
       newExpanded.add(eventId);
     }
     setExpandedEvents(newExpanded);
+  };
+
+  const handleDeleteRSVP = async (rsvpId: string, eventId: string) => {
+    if (!window.confirm('Are you sure you want to delete this RSVP?')) {
+      return;
+    }
+
+    setDeletingRSVP(rsvpId);
+    try {
+      await rsvpAPI.delete(rsvpId);
+      toast.success('RSVP deleted successfully');
+      
+      // Refresh data for the specific event
+      const allEvents = await eventsAPI.getAll();
+      const event = allEvents.find(e => e.event_id === eventId);
+      if (event) {
+        const rsvps = await rsvpAPI.getByEvent(eventId);
+        
+        // Recalculate totals
+        let totalAdults = 0;
+        let totalChildren = 0;
+        let totalGuests = 0;
+
+        rsvps.forEach((rsvp: RSVP) => {
+          if (rsvp.status === 'confirmed') {
+            if (rsvp.numberOfAdults !== undefined) {
+              totalAdults += rsvp.numberOfAdults;
+              totalChildren += rsvp.numberOfChildren || 0;
+              totalGuests += rsvp.numberOfAdults + (rsvp.numberOfChildren || 0);
+            } else if (rsvp.numberOfGuests !== undefined) {
+              totalGuests += rsvp.numberOfGuests;
+              totalAdults += rsvp.numberOfGuests;
+            }
+          }
+        });
+
+        // Update state
+        setEventRSVPData(prevData => 
+          prevData.map(data => 
+            data.event.event_id === eventId
+              ? {
+                  ...data,
+                  rsvps: rsvps.filter((r: RSVP) => r.status === 'confirmed'),
+                  totalAdults,
+                  totalChildren,
+                  totalGuests,
+                }
+              : data
+          )
+        );
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to delete RSVP');
+    } finally {
+      setDeletingRSVP(null);
+    }
   };
 
   if (loading) {
@@ -228,6 +285,9 @@ export default function AdminRSVP() {
                                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
                                     RSVP Date
                                   </th>
+                                  <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">
+                                    Actions
+                                  </th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -263,6 +323,19 @@ export default function AdminRSVP() {
                                           convertPSTToLocal(rsvp.createdAt || ''),
                                           'MMM dd, yyyy'
                                         )}
+                                      </td>
+                                      <td className="py-3 px-4 text-center">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteRSVP(rsvp.id, data.event.event_id);
+                                          }}
+                                          disabled={deletingRSVP === rsvp.id}
+                                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                          title="Delete RSVP"
+                                        >
+                                          <Trash2 className="w-4 h-4" />
+                                        </button>
                                       </td>
                                     </tr>
                                   );
