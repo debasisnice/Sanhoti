@@ -402,31 +402,55 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                     <p className="text-red-400 text-lg">{pdfError}</p>
                   </div>
                 ) : !pdfLoading && numPages && numPages > 0 ? (
-                  <div className="w-full h-full flex items-center justify-center min-h-0" style={{ perspective: '1500px' }}>
-                    {/* PDF Pages - Book Style (Desktop: 2 pages, Mobile: 1 page) with Flip Effect */}
+                  <div className="w-full h-full flex items-center justify-center min-h-0" style={{ perspective: '2500px', perspectiveOrigin: 'center center' }}>
+                    {/* PDF Pages - Book Style (Desktop: 2 pages, Mobile: 1 page) with Realistic Page Flip */}
                     <AnimatePresence mode="wait">
                       <motion.div
                         key={currentPage}
                         initial={flipDirection === 'left' 
-                          ? { opacity: 0, rotateY: 90, x: 100 }
+                          ? { 
+                              opacity: 0, 
+                              rotateY: 180,
+                              scaleX: 0.3,
+                              x: pageWidth * 0.5
+                            }
                           : flipDirection === 'right'
-                          ? { opacity: 0, rotateY: -90, x: -100 }
+                          ? { 
+                              opacity: 0, 
+                              rotateY: -180,
+                              scaleX: 0.3,
+                              x: -pageWidth * 0.5
+                            }
                           : { opacity: 0, x: 20 }
                         }
                         animate={{ 
                           opacity: 1, 
-                          rotateY: 0, 
-                          x: 0 
+                          rotateY: 0,
+                          scaleX: 1,
+                          x: 0
                         }}
                         exit={flipDirection === 'left'
-                          ? { opacity: 0, rotateY: -90, x: -100 }
+                          ? { 
+                              opacity: [1, 1, 0.3, 0],
+                              rotateY: [0, -90, -180],
+                              scaleX: [1, 0.5, 0.2],
+                              x: [0, -pageWidth * 0.3, -pageWidth * 0.6],
+                              z: [0, 50, -100]
+                            }
                           : flipDirection === 'right'
-                          ? { opacity: 0, rotateY: 90, x: 100 }
+                          ? { 
+                              opacity: [1, 1, 0.3, 0],
+                              rotateY: [0, 90, 180],
+                              scaleX: [1, 0.5, 0.2],
+                              x: [0, pageWidth * 0.3, pageWidth * 0.6],
+                              z: [0, 50, -100]
+                            }
                           : { opacity: 0, x: -20 }
                         }
                         transition={{ 
-                          duration: 0.6,
-                          ease: [0.25, 0.1, 0.25, 1]
+                          duration: 1.0,
+                          ease: [0.25, 0.46, 0.45, 0.94],
+                          times: flipDirection ? [0, 0.3, 0.7, 1] : undefined
                         }}
                         style={{
                           transformStyle: 'preserve-3d',
@@ -438,12 +462,17 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                       >
                         {/* Left Page (Desktop) or Single Page (Mobile) */}
                         <motion.div 
-                          className="bg-white shadow-2xl rounded-lg overflow-hidden" 
+                          className="bg-white shadow-2xl rounded-lg overflow-hidden relative" 
                           style={{
-                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                            boxShadow: flipDirection === 'left' 
+                              ? '0 40px 100px rgba(0, 0, 0, 0.7), inset -10px 0 20px rgba(0, 0, 0, 0.2)'
+                              : flipDirection === 'right'
+                              ? '0 40px 100px rgba(0, 0, 0, 0.7), inset 10px 0 20px rgba(0, 0, 0, 0.2)'
+                              : '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
                             maxWidth: '100%',
                             maxHeight: '100%',
-                            transformStyle: 'preserve-3d'
+                            transformStyle: 'preserve-3d',
+                            transformOrigin: flipDirection === 'left' ? 'left center' : flipDirection === 'right' ? 'right center' : 'center center'
                           }}
                         >
                           <Page
@@ -458,12 +487,17 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                         {/* Right Page (Desktop only, if next page exists) */}
                         {isDesktop && numPages && currentPage < numPages && (
                           <motion.div 
-                            className="bg-white shadow-2xl rounded-lg overflow-hidden" 
+                            className="bg-white shadow-2xl rounded-lg overflow-hidden relative" 
                             style={{
-                              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                              boxShadow: flipDirection === 'right'
+                                ? '0 40px 100px rgba(0, 0, 0, 0.7), inset 10px 0 20px rgba(0, 0, 0, 0.2)'
+                                : flipDirection === 'left'
+                                ? '0 40px 100px rgba(0, 0, 0, 0.7), inset -10px 0 20px rgba(0, 0, 0, 0.2)'
+                                : '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
                               maxWidth: '100%',
                               maxHeight: '100%',
-                              transformStyle: 'preserve-3d'
+                              transformStyle: 'preserve-3d',
+                              transformOrigin: flipDirection === 'right' ? 'right center' : flipDirection === 'left' ? 'left center' : 'center center'
                             }}
                           >
                             <Page
