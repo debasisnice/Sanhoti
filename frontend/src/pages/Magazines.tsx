@@ -116,6 +116,7 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
   const [pdfLoading, setPdfLoading] = useState(true);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [pageWidth, setPageWidth] = useState(800);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
 
   const pdfUrl = (() => {
     const fileUrl = magazine.fileUrl;
@@ -140,6 +141,15 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
     return API_BASE_URL && !API_BASE_URL.endsWith('/api') ? `${API_BASE_URL}${fullPath}` : fullPath;
   })();
 
+  // Detect desktop vs mobile
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -147,13 +157,33 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
       
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        if (currentPage > 1) {
-          setCurrentPage(currentPage - 1);
+        if (isDesktop) {
+          // On desktop, go back 2 pages (one spread)
+          if (currentPage > 2) {
+            setCurrentPage(currentPage - 2);
+          } else if (currentPage > 1) {
+            setCurrentPage(1);
+          }
+        } else {
+          // On mobile, go back 1 page
+          if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+          }
         }
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        if (currentPage < numPages) {
-          setCurrentPage(currentPage + 1);
+        if (isDesktop) {
+          // On desktop, go forward 2 pages (one spread)
+          if (numPages && currentPage < numPages - 1) {
+            setCurrentPage(currentPage + 2);
+          } else if (numPages && currentPage < numPages) {
+            setCurrentPage(numPages);
+          }
+        } else {
+          // On mobile, go forward 1 page
+          if (numPages && currentPage < numPages) {
+            setCurrentPage(currentPage + 1);
+          }
         }
       } else if (e.key === 'Escape') {
         onClose();
@@ -162,17 +192,37 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [numPages, currentPage, onClose]);
+  }, [numPages, currentPage, onClose, isDesktop]);
 
   const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+    if (isDesktop) {
+      // On desktop, go back 2 pages (one spread)
+      if (currentPage > 2) {
+        setCurrentPage(currentPage - 2);
+      } else if (currentPage > 1) {
+        setCurrentPage(1);
+      }
+    } else {
+      // On mobile, go back 1 page
+      if (currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
     }
   };
 
   const handleNextPage = () => {
-    if (numPages && currentPage < numPages) {
-      setCurrentPage(currentPage + 1);
+    if (isDesktop) {
+      // On desktop, go forward 2 pages (one spread)
+      if (numPages && currentPage < numPages - 1) {
+        setCurrentPage(currentPage + 2);
+      } else if (numPages && currentPage < numPages) {
+        setCurrentPage(numPages);
+      }
+    } else {
+      // On mobile, go forward 1 page
+      if (numPages && currentPage < numPages) {
+        setCurrentPage(currentPage + 1);
+      }
     }
   };
 
@@ -186,23 +236,35 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
   // Calculate page width based on viewport
   useEffect(() => {
     const calculatePageWidth = () => {
+      const isDesktopView = window.innerWidth >= 768;
       // Account for padding (2*24px = 48px on desktop, 2*8px = 16px on mobile)
       // Account for navigation buttons (2*80px = 160px)
       // Account for header and footer (approximately 200px total)
-      const padding = window.innerWidth >= 768 ? 48 : 16;
+      const padding = isDesktopView ? 48 : 16;
       const buttonSpace = 160;
       const headerFooter = 200;
       const availableWidth = window.innerWidth - padding - buttonSpace;
       const availableHeight = window.innerHeight - headerFooter;
       
-      // PDF aspect ratio is typically 8.5:11 (0.773) or A4 (0.707)
-      // Calculate width based on both constraints
-      const widthFromHeight = availableHeight * 0.707; // A4 ratio
-      const widthFromWidth = availableWidth;
-      
-      // Use the smaller of the two to ensure page fits
-      const calculatedWidth = Math.min(900, Math.min(widthFromWidth, widthFromHeight));
-      setPageWidth(Math.max(400, calculatedWidth)); // Minimum 400px
+      if (isDesktopView) {
+        // Desktop: Two pages side by side, need space for gap between pages
+        const gapBetweenPages = 16;
+        const availableWidthForTwoPages = availableWidth - gapBetweenPages;
+        const widthFromHeight = availableHeight * 0.707; // A4 ratio
+        const widthFromWidth = availableWidthForTwoPages / 2; // Each page gets half
+        
+        // Use the smaller of the two to ensure pages fit
+        const calculatedWidth = Math.min(450, Math.min(widthFromWidth, widthFromHeight));
+        setPageWidth(Math.max(300, calculatedWidth)); // Minimum 300px per page
+      } else {
+        // Mobile: Single page
+        const widthFromHeight = availableHeight * 0.707; // A4 ratio
+        const widthFromWidth = availableWidth;
+        
+        // Use the smaller of the two to ensure page fits
+        const calculatedWidth = Math.min(900, Math.min(widthFromWidth, widthFromHeight));
+        setPageWidth(Math.max(400, calculatedWidth)); // Minimum 400px
+      }
     };
 
     calculatePageWidth();
@@ -295,12 +357,12 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                         ? 'bg-gray-700 opacity-50 cursor-not-allowed'
                         : 'bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm'
                     }`}
-                    title="Previous page (←)"
+                    title={isDesktop ? "Previous spread (←)" : "Previous page (←)"}
                   >
                     <ChevronLeft className="w-6 h-6 md:w-8 md:h-8 text-white" />
                   </button>
 
-                  {/* PDF Page - Magazine Style */}
+                  {/* PDF Pages - Book Style (Desktop: 2 pages, Mobile: 1 page) */}
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={currentPage}
@@ -308,8 +370,11 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -20 }}
                       transition={{ duration: 0.3 }}
-                      className="flex items-center justify-center max-w-full max-h-full"
+                      className={`flex items-center justify-center max-w-full max-h-full ${
+                        isDesktop ? 'gap-4' : ''
+                      }`}
                     >
+                      {/* Left Page (Desktop) or Single Page (Mobile) */}
                       <div className="bg-white shadow-2xl rounded-lg overflow-hidden" style={{
                         boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
                         maxWidth: '100%',
@@ -323,19 +388,36 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                           className="shadow-xl"
                         />
                       </div>
+
+                      {/* Right Page (Desktop only, if next page exists) */}
+                      {isDesktop && numPages && currentPage < numPages && (
+                        <div className="bg-white shadow-2xl rounded-lg overflow-hidden" style={{
+                          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                          maxWidth: '100%',
+                          maxHeight: '100%'
+                        }}>
+                          <Page
+                            pageNumber={currentPage + 1}
+                            width={pageWidth}
+                            renderTextLayer={true}
+                            renderAnnotationLayer={true}
+                            className="shadow-xl"
+                          />
+                        </div>
+                      )}
                     </motion.div>
                   </AnimatePresence>
 
                   {/* Next Page Button */}
                   <button
                     onClick={handleNextPage}
-                    disabled={currentPage === numPages}
+                    disabled={isDesktop ? (numPages ? currentPage >= numPages - 1 : false) : (currentPage === numPages)}
                     className={`absolute right-2 md:right-4 z-10 p-2 md:p-3 rounded-full transition-all ${
-                      currentPage === numPages
+                      (isDesktop ? (numPages ? currentPage >= numPages - 1 : false) : (currentPage === numPages))
                         ? 'bg-gray-700 opacity-50 cursor-not-allowed'
                         : 'bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm'
                     }`}
-                    title="Next page (→)"
+                    title={isDesktop ? "Next spread (→)" : "Next page (→)"}
                   >
                     <ChevronRight className="w-6 h-6 md:w-8 md:h-8 text-white" />
                   </button>
@@ -358,25 +440,29 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                   }`}
                 >
                   <ChevronLeft className="w-4 h-4 inline mr-1" />
-                  Previous
+                  {isDesktop ? 'Previous Spread' : 'Previous'}
                 </button>
                 <button
                   onClick={handleNextPage}
-                  disabled={currentPage === numPages}
+                  disabled={isDesktop ? (numPages ? currentPage >= numPages - 1 : false) : (currentPage === numPages)}
                   className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg transition-colors text-sm md:text-base font-medium ${
-                    currentPage === numPages
+                    (isDesktop ? (numPages ? currentPage >= numPages - 1 : false) : (currentPage === numPages))
                       ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
                       : 'bg-primary-600 text-white hover:bg-primary-700'
                   }`}
                 >
-                  Next
+                  {isDesktop ? 'Next Spread' : 'Next'}
                   <ChevronRight className="w-4 h-4 inline ml-1" />
                 </button>
               </div>
 
               {/* Page Counter */}
               <div className="flex items-center gap-2 text-white">
-                <span className="text-xs md:text-sm text-gray-400">Page</span>
+                <span className="text-xs md:text-sm text-gray-400">
+                  {isDesktop && numPages && currentPage < numPages 
+                    ? `Pages ${currentPage}-${currentPage + 1}` 
+                    : 'Page'}
+                </span>
                 <input
                   type="number"
                   min="1"
