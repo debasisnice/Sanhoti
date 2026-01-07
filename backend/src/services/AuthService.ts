@@ -182,5 +182,25 @@ export class AuthService {
   async deleteUser(userId: string): Promise<boolean> {
     return await this.userDataHelper.delete(userId);
   }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<boolean> {
+    const user = await this.userDataHelper.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Verify current password
+    const isValid = await comparePassword(currentPassword, user.password_hash);
+    if (!isValid) {
+      throw new Error('Current password is incorrect');
+    }
+
+    // Hash new password
+    const newPasswordHash = await hashPassword(newPassword);
+
+    // Update password
+    await this.userDataHelper.update(userId, { password_hash: newPasswordHash });
+    return true;
+  }
 }
 

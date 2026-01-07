@@ -205,5 +205,32 @@ export class AuthController {
       res.status(500).json({ error: 'Failed to delete user', details: error.message });
     }
   }
+
+  async changePassword(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ error: 'Not authenticated' });
+        return;
+      }
+
+      const { currentPassword, newPassword } = req.body;
+
+      if (!currentPassword || !newPassword) {
+        res.status(400).json({ error: 'Current password and new password are required' });
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        res.status(400).json({ error: 'New password must be at least 6 characters long' });
+        return;
+      }
+
+      await this.authService.changePassword(req.user.userId, currentPassword, newPassword);
+      res.json({ message: 'Password changed successfully' });
+    } catch (error: any) {
+      const message = error instanceof Error ? error.message : 'Failed to change password';
+      res.status(400).json({ error: message });
+    }
+  }
 }
 

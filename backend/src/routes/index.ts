@@ -142,6 +142,7 @@ router.get('/sub-events/:id/images', bindController(subEventController, 'getSubE
 router.use(authenticate);
 
 router.get('/auth/profile', bindController(authController, 'getProfile'));
+router.post('/auth/change-password', bindController(authController, 'changePassword'));
 
 // Users - Admin routes
 router.get('/users', requireAdmin, bindController(authController, 'getAllUsers'));
