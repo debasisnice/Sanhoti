@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Lock, X, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
+import { BookOpen, Lock, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { magazinesAPI } from '../services/api';
 import { Magazine } from '../types';
 import { format } from 'date-fns';
@@ -329,14 +329,6 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
-              <button
-                onClick={() => window.open(pdfUrl, '_blank', 'noopener,noreferrer')}
-                className="hidden md:flex items-center gap-2 px-2 md:px-3 py-1.5 md:py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-xs md:text-sm font-medium whitespace-nowrap"
-                title="Open in a new window"
-              >
-                <ExternalLink className="w-3 h-3 md:w-4 md:h-4" />
-                <span className="hidden lg:inline">Open in new window</span>
-              </button>
               <button
                 onClick={onClose}
                 className="p-1.5 md:p-2 hover:bg-gray-700 rounded-full transition-colors flex-shrink-0"
