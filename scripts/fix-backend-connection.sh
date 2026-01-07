@@ -8,28 +8,35 @@ set -e
 echo "🔧 Fixing backend connection issues..."
 echo ""
 
-# 1. Check if backend is running
-echo "1️⃣ Checking backend status..."
+# 1. Rebuild backend with latest code
+echo "1️⃣ Rebuilding backend..."
+cd /var/www/sanhoti/backend
+npm install
+npm run build
+echo "✅ Backend rebuilt"
+
+# 2. Check if backend is running
+echo ""
+echo "2️⃣ Checking backend status..."
 if pm2 list | grep -q "sanhoti-backend"; then
     echo "✅ Backend process exists in PM2"
     pm2 status | grep sanhoti-backend
 else
     echo "❌ Backend not found in PM2"
     echo "   Starting backend..."
-    cd /var/www/sanhoti/backend
     pm2 start dist/server.js --name sanhoti-backend
     pm2 save
 fi
 
-# 2. Restart backend
+# 3. Restart backend
 echo ""
-echo "2️⃣ Restarting backend..."
+echo "3️⃣ Restarting backend..."
 pm2 restart sanhoti-backend
-sleep 2
+sleep 3
 
-# 3. Check if backend is listening
+# 4. Check if backend is listening
 echo ""
-echo "3️⃣ Checking if backend is listening on port 5001..."
+echo "4️⃣ Checking if backend is listening on port 5001..."
 if sudo netstat -tlnp | grep -q ":5001"; then
     echo "✅ Backend is listening on port 5001"
     sudo netstat -tlnp | grep ":5001"
@@ -38,9 +45,9 @@ else
     echo "   Check backend logs: pm2 logs sanhoti-backend --lines 50"
 fi
 
-# 4. Test backend health
+# 5. Test backend health
 echo ""
-echo "4️⃣ Testing backend health endpoint..."
+echo "5️⃣ Testing backend health endpoint..."
 if curl -s http://localhost:5001/health > /dev/null; then
     echo "✅ Backend health check passed"
     curl http://localhost:5001/health
@@ -50,20 +57,25 @@ else
     echo "   Check logs: pm2 logs sanhoti-backend --lines 50"
 fi
 
-# 5. Test Nginx proxy
+# 6. Test Nginx proxy (HTTPS)
 echo ""
-echo "5️⃣ Testing Nginx proxy to backend..."
-if curl -s http://localhost/api/health > /dev/null; then
-    echo "✅ Nginx proxy to backend is working"
-    curl http://localhost/api/health
+echo "6️⃣ Testing Nginx proxy to backend (HTTPS)..."
+if curl -s -k https://localhost/api/health > /dev/null; then
+    echo "✅ Nginx HTTPS proxy to backend is working"
+    curl -k https://localhost/api/health
 else
-    echo "❌ Nginx proxy to backend is NOT working"
-    echo "   Check Nginx error logs: sudo tail -20 /var/log/nginx/error.log"
+    echo "⚠️  Testing HTTP proxy (will redirect to HTTPS)..."
+    if curl -s -L http://localhost/api/health > /dev/null; then
+        echo "✅ Nginx proxy redirects correctly"
+    else
+        echo "❌ Nginx proxy to backend is NOT working"
+        echo "   Check Nginx error logs: sudo tail -20 /var/log/nginx/error.log"
+    fi
 fi
 
-# 6. Check Nginx configuration
+# 7. Check Nginx configuration
 echo ""
-echo "6️⃣ Checking Nginx configuration..."
+echo "7️⃣ Checking Nginx configuration..."
 if sudo nginx -t; then
     echo "✅ Nginx configuration is valid"
 else
@@ -71,9 +83,9 @@ else
     exit 1
 fi
 
-# 7. Reload Nginx
+# 8. Reload Nginx
 echo ""
-echo "7️⃣ Reloading Nginx..."
+echo "8️⃣ Reloading Nginx..."
 sudo systemctl reload nginx
 echo "✅ Nginx reloaded"
 
