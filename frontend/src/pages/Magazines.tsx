@@ -380,7 +380,6 @@ function PDFModal({ magazine, onClose }: { magazine: Magazine; onClose: () => vo
                 setPdfLoading(false);
                 setPdfError(null);
                 setCurrentPage(1);
-                setDisplayPage(1);
               }}
                 onLoadError={(_error) => {
                   setPdfError('Failed to load PDF');
