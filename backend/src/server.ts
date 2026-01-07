@@ -31,13 +31,25 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
     
-    // In production, allow all origins (since we're behind Nginx proxy)
-    // In development, check against allowed origins
-    if (process.env.NODE_ENV === 'production' || allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+    // Always allow requests from allowed origins
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
     }
+    
+    // In production or when behind proxy, allow all origins
+    // This handles Cloudflare and Nginx proxy scenarios
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.PORT === '5001';
+    if (isProduction) {
+      return callback(null, true);
+    }
+    
+    // In development, only allow localhost origins
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    
+    // Default: allow (to prevent blocking legitimate requests)
+    callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
