@@ -17,14 +17,23 @@ const PORT = process.env.PORT || 5001;
 // Middleware - CORS configuration
 const allowedOrigins = process.env.CORS_ORIGIN 
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-  : ['http://localhost:3000', 'http://localhost:5173'];
+  : [
+      'http://localhost:3000', 
+      'http://localhost:5173',
+      'https://www.sanhoti.org',
+      'https://sanhoti.org',
+      'http://www.sanhoti.org',
+      'http://sanhoti.org'
+    ];
 
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+    // In production, allow all origins (since we're behind Nginx proxy)
+    // In development, check against allowed origins
+    if (process.env.NODE_ENV === 'production' || allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
