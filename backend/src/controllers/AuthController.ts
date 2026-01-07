@@ -182,5 +182,28 @@ export class AuthController {
       res.status(400).json({ error: message });
     }
   }
+
+  async deleteUser(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { userId } = req.params;
+      
+      // Prevent deleting yourself
+      if (req.user && req.user.userId === userId) {
+        res.status(400).json({ error: 'You cannot delete your own account' });
+        return;
+      }
+      
+      const deleted = await this.authService.deleteUser(userId);
+      if (!deleted) {
+        res.status(404).json({ error: 'User not found' });
+        return;
+      }
+      
+      res.json({ message: 'User deleted successfully' });
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      res.status(500).json({ error: 'Failed to delete user', details: error.message });
+    }
+  }
 }
 

@@ -155,6 +155,11 @@ router.put('/users/:userId',
   auditLog('UPDATE', 'user'),
   bindController(authController, 'updateUser')
 );
+router.delete('/users/:userId',
+  requireAdmin,
+  auditLog('DELETE', 'user'),
+  bindController(authController, 'deleteUser')
+);
 
 // Events - Protected routes
 router.post('/events', 

@@ -477,6 +477,23 @@ export default function AdminSettings() {
     }
   };
 
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!window.confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      await usersAPI.delete(userId);
+      toast.success('User deleted successfully');
+      await fetchUsers();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to delete user');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleCancelAddUser = () => {
     setShowAddUserForm(false);
     setNewUserFormData({});
@@ -1039,12 +1056,21 @@ export default function AdminSettings() {
                                 </span>
                               </td>
                               <td className="py-3 px-4">
-                                <button
-                                  onClick={() => handleEditUser(user)}
-                                  className="px-3 py-1.5 bg-primary-600 text-white rounded text-sm hover:bg-primary-700"
-                                >
-                                  Edit
-                                </button>
+                                <div className="flex items-center gap-2 justify-center">
+                                  <button
+                                    onClick={() => handleEditUser(user)}
+                                    className="px-3 py-1.5 bg-primary-600 text-white rounded text-sm hover:bg-primary-700"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteUser(user.id || user.userId, `${user.firstName} ${user.lastName}`)}
+                                    className="px-3 py-1.5 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                    Delete
+                                  </button>
+                                </div>
                               </td>
                             </>
                           )}

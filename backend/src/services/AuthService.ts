@@ -178,5 +178,9 @@ export class AuthService {
     if (!user) return null;
     return transformUserForFrontend(user);
   }
+
+  async deleteUser(userId: string): Promise<boolean> {
+    return await this.userDataHelper.delete(userId);
+  }
 }
 

@@ -745,6 +745,9 @@ export const usersAPI = {
     const response = await api.put(`/users/${userId}`, data);
     return response.data;
   },
+  delete: async (userId: string): Promise<void> => {
+    await api.delete(`/users/${userId}`);
+  },
 };
 
 export { api };
