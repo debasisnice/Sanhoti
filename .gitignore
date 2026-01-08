@@ -16,6 +16,11 @@ frontend/.env
 backend/dist/
 frontend/dist/
 frontend/build/
+SANHOTI-APP/dist/
+SANHOTI-APP/node_modules/
+SANHOTI-APP/ios/
+SANHOTI-APP/android/
+SANHOTI-APP/.capacitor/
 
 # Logs
 *.log
