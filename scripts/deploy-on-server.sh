@@ -25,23 +25,23 @@ CURR_HEAD=$(git rev-parse HEAD)
 if [ "$PREV_HEAD" != "$CURR_HEAD" ]; then
     # Check if package files changed between previous and current HEAD
     if git diff "$PREV_HEAD" "$CURR_HEAD" --name-only 2>/dev/null | grep -qE '(package\.json|package-lock\.json)'; then
-        echo "   Dependencies changed, installing..."
-        npm ci --prefer-offline
+        echo "   Dependencies changed, installing (this may take a few minutes)..."
+        npm ci --prefer-offline --no-audit --silent
     else
-        echo "   ✅ Dependencies unchanged, skipping npm ci"
+        echo "   ✅ Dependencies unchanged, skipping npm ci (saves time!)"
     fi
 else
     # First time or can't determine previous HEAD, check if node_modules exists
     if [ ! -d "node_modules" ]; then
-        echo "   Installing dependencies..."
-        npm ci --prefer-offline
+        echo "   Installing dependencies (this may take a few minutes)..."
+        npm ci --prefer-offline --no-audit --silent
     else
-        echo "   ✅ node_modules exists, skipping npm ci"
+        echo "   ✅ node_modules exists, skipping npm ci (saves time!)"
     fi
 fi
 
-echo "🔨 Building frontend..."
-npm run build
+echo "🔨 Building frontend (this may take a minute)..."
+npm run build --silent
 
 echo "🔄 Reloading services..."
 cd ..
