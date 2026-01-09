@@ -244,7 +244,14 @@ export default function EventDetail() {
                         <MapPin className="w-5 h-5 mr-3 text-primary-600" />
                         <div>
                           <p className="text-sm text-gray-500">Location</p>
-                          <p className="font-semibold">{eventLocation}</p>
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(eventLocation)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold hover:text-primary-600 hover:underline cursor-pointer transition-colors"
+                          >
+                            {eventLocation}
+                          </a>
                         </div>
                       </div>
                     )}
@@ -382,7 +389,14 @@ export default function EventDetail() {
                             <MapPin className="w-4 h-4 mr-2 text-primary-600" />
                             <div>
                               <p className="text-xs text-gray-500">Location</p>
-                              <p className="font-semibold text-sm">{subEvent.location}</p>
+                              <a
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(subEvent.location)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-semibold text-sm hover:text-primary-600 hover:underline cursor-pointer transition-colors"
+                              >
+                                {subEvent.location}
+                              </a>
                             </div>
                           </div>
                         )}

@@ -603,7 +603,15 @@ export default function Home() {
                             {eventLocation && (
                               <div className="flex items-center text-gray-700">
                                 <MapPin className="w-5 h-5 mr-3 text-primary-600" />
-                                <span className="text-lg">{eventLocation}</span>
+                                <a
+                                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(eventLocation)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-lg hover:text-primary-600 hover:underline cursor-pointer transition-colors"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {eventLocation}
+                                </a>
                               </div>
                             )}
                           </div>
@@ -724,18 +732,26 @@ export default function Home() {
                           <h2 className="text-4xl font-bold text-gray-900 mb-4">{eventName}</h2>
                           <p className="text-lg text-gray-700 mb-6">{eventDescription}</p>
                           
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <div className="flex items-center text-gray-700">
-                              <Calendar className="w-5 h-5 mr-3 text-primary-600" />
-                              <span className="text-lg">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</span>
-                            </div>
-                            {eventLocation && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                               <div className="flex items-center text-gray-700">
-                                <MapPin className="w-5 h-5 mr-3 text-primary-600" />
-                                <span className="text-lg">{eventLocation}</span>
+                                <Calendar className="w-5 h-5 mr-3 text-primary-600" />
+                                <span className="text-lg">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</span>
                               </div>
-                            )}
-                          </div>
+                              {eventLocation && (
+                                <div className="flex items-center text-gray-700">
+                                  <MapPin className="w-5 h-5 mr-3 text-primary-600" />
+                                  <a
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(eventLocation)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-lg hover:text-primary-600 hover:underline cursor-pointer transition-colors"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {eventLocation}
+                                  </a>
+                                </div>
+                              )}
+                            </div>
 
                           <div className="flex flex-col gap-3">
                             <Link

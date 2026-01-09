@@ -286,7 +286,15 @@ export default function Events() {
                         {eventLocation && (
                           <div className="flex items-center text-gray-700">
                             <MapPin className="w-5 h-5 mr-3 text-primary-600" />
-                            <span className="text-lg">{eventLocation}</span>
+                            <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(eventLocation)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-lg hover:text-primary-600 hover:underline cursor-pointer transition-colors"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {eventLocation}
+                            </a>
                           </div>
                         )}
                       </div>
@@ -596,9 +604,15 @@ export default function Events() {
                               {event.location && (
                                 <div className="flex items-center text-gray-600">
                                   <MapPin className={`${isMiddle ? 'w-3 h-3' : 'w-3 h-3'} mr-2 flex-shrink-0`} />
-                                  <span className={`truncate ${isMiddle ? 'text-xs' : 'text-xs'}`}>
+                                  <a
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`truncate ${isMiddle ? 'text-xs' : 'text-xs'} hover:text-primary-600 hover:underline cursor-pointer transition-colors`}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
                                     {event.location}
-                                  </span>
+                                  </a>
                                 </div>
                               )}
                             </div>
