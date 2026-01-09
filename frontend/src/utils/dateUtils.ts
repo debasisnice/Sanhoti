@@ -4,6 +4,51 @@
  * @param dateString - Date string in PST (can be date-only like "2025-07-19" or ISO string)
  * @returns Date object in user's local timezone
  */
+/**
+ * Generate Google Calendar URL for an event
+ * @param eventName - Name of the event
+ * @param startDate - Start date string (PST)
+ * @param endDate - End date string (PST, optional)
+ * @param location - Location string (optional)
+ * @param description - Event description (optional)
+ * @returns Google Calendar URL
+ */
+export function generateCalendarUrl(
+  eventName: string,
+  startDate: string,
+  endDate?: string,
+  location?: string,
+  description?: string
+): string {
+  const start = convertPSTToLocal(startDate);
+  const end = endDate ? convertPSTToLocal(endDate) : new Date(start.getTime() + 2 * 60 * 60 * 1000); // Default 2 hours if no end date
+  
+  // Format dates for Google Calendar (YYYYMMDDTHHmmssZ in UTC)
+  const formatDate = (date: Date): string => {
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+    return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
+  };
+  
+  const startFormatted = formatDate(start);
+  const endFormatted = formatDate(end);
+  
+  const title = `Sanhoti-${eventName}`;
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: title,
+    dates: `${startFormatted}/${endFormatted}`,
+    ...(location && { location }),
+    ...(description && { details: description }),
+  });
+  
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
 export function convertPSTToLocal(dateString: string): Date {
   if (!dateString) {
     return new Date();

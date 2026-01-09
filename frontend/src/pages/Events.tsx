@@ -5,7 +5,7 @@ import { Calendar, MapPin, ArrowRight, Star, ChevronLeft, ChevronRight } from 'l
 import { eventsAPI } from '../services/api';
 import { Event } from '../types';
 import { format } from 'date-fns';
-import { convertPSTToLocal } from '../utils/dateUtils';
+import { convertPSTToLocal, generateCalendarUrl } from '../utils/dateUtils';
 import { QRCodeSVG } from 'qrcode.react';
 
 export default function Events() {
@@ -281,7 +281,34 @@ export default function Events() {
                       <div className="grid grid-cols-1 gap-4 mb-6">
                         <div className="flex items-center text-gray-700">
                           <Calendar className="w-5 h-5 mr-3 text-primary-600" />
-                          <span className="text-lg">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</span>
+                          {(() => {
+                            const now = new Date();
+                            const eventEndDate = priorityEvent.event_end_dt ? convertPSTToLocal(priorityEvent.event_end_dt) : convertPSTToLocal(eventDate);
+                            const isUpcoming = eventEndDate >= now;
+                            
+                            if (isUpcoming) {
+                              const calendarUrl = generateCalendarUrl(
+                                eventName,
+                                eventDate,
+                                priorityEvent.event_end_dt,
+                                eventLocation,
+                                eventDescription
+                              );
+                              return (
+                                <a
+                                  href={calendarUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-lg underline hover:text-primary-600 cursor-pointer transition-colors"
+                                  onClick={(e) => e.stopPropagation()}
+                                  title="Add to calendar"
+                                >
+                                  {format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}
+                                </a>
+                              );
+                            }
+                            return <span className="text-lg">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</span>;
+                          })()}
                         </div>
                         {eventLocation && (
                           <div className="flex items-center text-gray-700">
@@ -597,9 +624,36 @@ export default function Events() {
                             <div className="space-y-0.5 mb-2">
                               <div className="flex items-center text-gray-600">
                                 <Calendar className={`${isMiddle ? 'w-3 h-3' : 'w-3 h-3'} mr-2 flex-shrink-0`} />
-                                <span className={`truncate ${isMiddle ? 'text-xs' : 'text-xs'}`}>
-                                  {format(convertPSTToLocal(eventDate), 'MMM dd, yyyy')}
-                                </span>
+                                {(() => {
+                                  const now = new Date();
+                                  const eventEndDate = event.event_end_dt ? convertPSTToLocal(event.event_end_dt) : convertPSTToLocal(eventDate);
+                                  const isUpcoming = eventEndDate >= now;
+                                  
+                                  if (isUpcoming) {
+                                    const eventName = event.event_name || event.title || 'Untitled Event';
+                                    const eventDescription = event.event_description || event.description || '';
+                                    const calendarUrl = generateCalendarUrl(
+                                      eventName,
+                                      eventDate,
+                                      event.event_end_dt,
+                                      event.location,
+                                      eventDescription
+                                    );
+                                    return (
+                                      <a
+                                        href={calendarUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`truncate ${isMiddle ? 'text-xs' : 'text-xs'} underline hover:text-primary-600 cursor-pointer transition-colors`}
+                                        onClick={(e) => e.stopPropagation()}
+                                        title="Add to calendar"
+                                      >
+                                        {format(convertPSTToLocal(eventDate), 'MMM dd, yyyy')}
+                                      </a>
+                                    );
+                                  }
+                                  return <span className={`truncate ${isMiddle ? 'text-xs' : 'text-xs'}`}>{format(convertPSTToLocal(eventDate), 'MMM dd, yyyy')}</span>;
+                                })()}
                               </div>
                               {event.location && (
                                 <div className="flex items-center text-gray-600">

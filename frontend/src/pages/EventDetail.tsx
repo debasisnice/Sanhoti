@@ -5,7 +5,7 @@ import { Calendar, MapPin, ArrowLeft, Bell, Image as ImageIcon, ArrowRight } fro
 import { eventsAPI, noticesAPI, galleriesAPI, subEventsAPI } from '../services/api';
 import { Event, Notice, PhotoGallery, SubEvent } from '../types';
 import { format } from 'date-fns';
-import { convertPSTToLocal } from '../utils/dateUtils';
+import { convertPSTToLocal, generateCalendarUrl } from '../utils/dateUtils';
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
 
@@ -227,7 +227,36 @@ export default function EventDetail() {
                       <Calendar className="w-5 h-5 mr-3 text-primary-600" />
                       <div>
                         <p className="text-sm text-gray-500">Start Date</p>
-                        <p className="font-semibold">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</p>
+                        {(() => {
+                          const now = new Date();
+                          const eventEndDate = event.event_end_dt ? convertPSTToLocal(event.event_end_dt) : convertPSTToLocal(eventDate);
+                          const isUpcoming = eventEndDate >= now;
+                          
+                          if (isUpcoming) {
+                            const eventName = event.event_name || event.title || 'Untitled Event';
+                            const eventDescription = event.event_description || event.description || '';
+                            const eventLocation = event.location || '';
+                            const calendarUrl = generateCalendarUrl(
+                              eventName,
+                              eventDate,
+                              event.event_end_dt,
+                              eventLocation,
+                              eventDescription
+                            );
+                            return (
+                              <a
+                                href={calendarUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-semibold underline hover:text-primary-600 cursor-pointer transition-colors"
+                                title="Add to calendar"
+                              >
+                                {format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}
+                              </a>
+                            );
+                          }
+                          return <p className="font-semibold">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</p>;
+                        })()}
                       </div>
                     </div>
                     {event.event_end_dt && (
