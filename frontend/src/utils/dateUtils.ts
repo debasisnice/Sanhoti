@@ -1,10 +1,4 @@
 /**
- * Converts a PST date string to the user's local timezone
- * 
- * @param dateString - Date string in PST (can be date-only like "2025-07-19" or ISO string)
- * @returns Date object in user's local timezone
- */
-/**
  * Generate Google Calendar URL for an event
  * @param eventName - Name of the event
  * @param startDate - Start date string (PST)
@@ -49,6 +43,12 @@ export function generateCalendarUrl(
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
+/**
+ * Converts a PST date string to the user's local timezone
+ * 
+ * @param dateString - Date string in PST (can be date-only like "2025-07-19" or ISO string)
+ * @returns Date object in user's local timezone
+ */
 export function convertPSTToLocal(dateString: string): Date {
   if (!dateString) {
     return new Date();
