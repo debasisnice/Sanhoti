@@ -42,12 +42,21 @@ fi
 
 echo "🔨 Building frontend (this may take a minute)..."
 npm run build --silent
+echo "   ✅ Build completed"
 
 echo "🔄 Reloading services..."
 cd ..
-sudo systemctl reload nginx
-pm2 restart sanhoti-backend
+echo "   Reloading nginx..."
+sudo systemctl reload nginx || echo "   ⚠️  Nginx reload had issues (may be ok)"
+echo "   ✅ Nginx reloaded"
 
+echo "   Restarting backend..."
+pm2 restart sanhoti-backend || (echo "   ❌ PM2 restart failed" && exit 1)
+echo "   ✅ Backend restarted"
+
+echo ""
 echo "✅ Deployment complete!"
+echo ""
+echo "📊 Backend status:"
 pm2 status sanhoti-backend
 
