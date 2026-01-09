@@ -8,6 +8,9 @@ set -e
 cd /var/www/sanhoti
 
 echo "📥 Pulling latest code..."
+# Discard local changes to files that are in .gitignore (data files)
+echo "   Discarding local changes to ignored data files..."
+git checkout -- backend/data/*.json 2>/dev/null || true
 git pull origin main
 
 echo "📦 Checking dependencies..."
