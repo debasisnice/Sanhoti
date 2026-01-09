@@ -255,75 +255,100 @@ export default function Home() {
           }}
         ></div>
         
+        {/* Logo and Welcome Text - Top Left */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
-          className="relative z-10 text-center px-4 max-w-4xl mx-auto"
+          className="absolute top-4 left-2 md:top-8 md:left-12 lg:left-16 z-20 max-w-[calc(100vw-1rem)] md:max-w-none"
         >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.8 }}
-            className="mb-6"
-          >
-            <div className="mx-auto w-fit rounded-full bg-white bg-opacity-50 p-2 md:p-3 mb-4 shadow-lg">
-              <img 
-                src="/images/logo.png" 
-                alt="Sanhoti (সংহতি) Bengali Association of Orange County"
-                className="h-32 md:h-40 w-auto"
-                onError={(e) => {
-                  // Fallback to text if image not found
-                  e.currentTarget.style.display = 'none';
-                  const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                  if (fallback) fallback.style.display = 'block';
-                }}
-              />
-            </div>
-            <h1 className="text-5xl md:text-7xl font-bold hidden">
-              <span className="font-bengali block mb-2">সংহতি</span>
-              <span className="block">Bengali Community</span>
-            </h1>
-          </motion.div>
+          <div className="flex flex-col gap-2 md:gap-4">
+            {/* Logo and Welcome Text */}
+            <div className="flex items-center gap-2 md:gap-4">
+              <div className="rounded-lg bg-white bg-opacity-70 p-1.5 md:p-2 md:p-3 shadow-lg flex-shrink-0">
+            <img 
+              src="/images/logo.png" 
+                  alt="Sanhoti (সংহতি) Bengali Association of Orange County"
+                  className="h-12 w-12 md:h-20 md:w-20 lg:h-24 lg:w-24 object-contain opacity-90"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
+              <div className="text-left min-w-0 flex-shrink">
+                <motion.h1
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2, duration: 0.8 }}
+                  className="text-base md:text-2xl lg:text-3xl font-bold text-white drop-shadow-lg mb-0.5 md:mb-1 opacity-95"
+                >
+                  Welcome to Sanhoti
+                </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="text-xl md:text-2xl mb-8 text-primary-100"
+                  transition={{ delay: 0.4, duration: 0.8 }}
+                  className="text-xs md:text-base lg:text-lg text-white drop-shadow-lg opacity-90"
           >
-            Welcome to Sanhoti<br />
-            Bengali Association of Orange County, CA
+                  Bengali Association of Orange County, CA
           </motion.p>
+              </div>
+            </div>
+            
+            {/* Buttons - Vertically Stacked */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-          >
-            <a
-              href={facebookLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-blue-400 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-500 transition-all transform hover:scale-105 shadow-xl inline-block"
+              className="flex flex-col gap-1.5 md:gap-2 w-fit"
             >
-              Join our Facebook Page
-            </a>
-            <a
-              href={whatsappLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-green-400 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-green-500 transition-all transform hover:scale-105 shadow-xl inline-block"
-            >
-              Join us in WhatsApp
-            </a>
+              <a
+                href={facebookLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-blue-400 text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-blue-500 transition-all transform hover:scale-105 shadow-lg text-center whitespace-nowrap"
+              >
+                Join our Facebook Page
+              </a>
+              <a
+                href={whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-green-400 text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-green-500 transition-all transform hover:scale-105 shadow-lg text-center whitespace-nowrap"
+              >
+                Join us in WhatsApp
+              </a>
             <Link
               to="/events"
-              className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105"
+                className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap"
             >
               View Events
             </Link>
           </motion.div>
+
+            {/* Priority Event Card */}
+            {priorityEvent && priorityEventImage && (() => {
+              const eventId = priorityEvent.event_id || priorityEvent.id || '';
+              return (
+                <Link to={`/events/${eventId}`} className="w-fit">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.8 }}
+                    className="relative rounded-lg shadow-xl w-32 md:w-80 lg:w-96 overflow-hidden aspect-[3/4] border-2 md:border-4 border-yellow-400 cursor-pointer hover:shadow-2xl transition-shadow"
+                    style={{
+                      backgroundImage: `url(${priorityEventImage})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }}
+                  >
+                  </motion.div>
+                </Link>
+              );
+            })()}
+          </div>
         </motion.div>
+        
 
         {/* Scroll indicator */}
         <motion.div
@@ -395,24 +420,24 @@ export default function Home() {
           {/* Tab Content */}
           <AnimatePresence mode="wait">
             {activeAboutTab === 'about' && (
-              <motion.div
+            <motion.div
                 key="about"
-                initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
-                className="bg-gray-50 rounded-xl shadow-lg p-8 max-w-6xl mx-auto"
-              >
-                <p className="text-lg text-gray-700 leading-relaxed mb-4">
-                  Sanhoti is a non-profit 501(c)(3) cultural and charitable organization dedicated to preserving and celebrating the rich heritage of Bengali culture in Orange County, California.
-                </p>
-                <p className="text-lg text-gray-700 leading-relaxed mb-4">
-                  Established in 2025, Sanhoti strives to build an inclusive and vibrant community where Bengali traditions flourish through festivals, arts, and meaningful community connections. From the grandeur of Durga Puja and Saraswati Puja to the joyous spirit of Poila Boishakh, we proudly bring people together to honor our roots and celebrate togetherness.
-                </p>
-                <p className="text-lg text-gray-700 leading-relaxed">
-                  While our foundation is deeply rooted in Bengali customs, Sanhoti embraces diversity and warmly welcomes individuals from all backgrounds to join in and experience the richness of our culture. Our doors are open to everyone—regardless of race, religion, or ethnicity.
-                </p>
-              </motion.div>
+              className="bg-gray-50 rounded-xl shadow-lg p-8 max-w-6xl mx-auto"
+            >
+              <p className="text-lg text-gray-700 leading-relaxed mb-4">
+                Sanhoti is a non-profit 501(c)(3) cultural and charitable organization dedicated to preserving and celebrating the rich heritage of Bengali culture in Orange County, California.
+              </p>
+              <p className="text-lg text-gray-700 leading-relaxed mb-4">
+                Established in 2025, Sanhoti strives to build an inclusive and vibrant community where Bengali traditions flourish through festivals, arts, and meaningful community connections. From the grandeur of Durga Puja and Saraswati Puja to the joyous spirit of Poila Boishakh, we proudly bring people together to honor our roots and celebrate togetherness.
+              </p>
+              <p className="text-lg text-gray-700 leading-relaxed">
+                While our foundation is deeply rooted in Bengali customs, Sanhoti embraces diversity and warmly welcomes individuals from all backgrounds to join in and experience the richness of our culture. Our doors are open to everyone—regardless of race, religion, or ethnicity.
+              </p>
+            </motion.div>
             )}
 
             {activeAboutTab === 'vision' && (
@@ -759,62 +784,60 @@ export default function Home() {
               if (otherEvents.length === 0) return null;
               
               return (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {otherEvents.map((event, index) => {
-                      const eventId = event.event_id || event.id || '';
-                      const eventName = event.event_name || event.title || 'Untitled Event';
-                      const eventDescription = event.event_description || event.description || '';
-                      const eventDate = event.event_start_dt || event.date || '';
-                      const eventYear = event.year || new Date(eventDate).getFullYear();
-                      
-                      return (
-                        <motion.div
-                          key={eventId}
-                          initial={{ opacity: 0, y: 30 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: index * 0.1, duration: 0.6 }}
-                          className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all"
-                        >
-                          <div className="flex items-center justify-between mb-4">
-                            <span className="bg-primary-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                              {eventYear}
-                            </span>
-                            <span className="text-primary-700 font-semibold">
-                              {format(convertPSTToLocal(eventDate), 'MMM dd')}
-                            </span>
-                          </div>
-                          <h3 className="text-2xl font-bold text-gray-900 mb-2">{eventName}</h3>
-                          <p className="text-gray-600 mb-4 line-clamp-2">{eventDescription}</p>
-                          <Link
-                            to={`/events/${eventId}`}
-                            className="text-primary-600 font-medium flex items-center hover:text-primary-700"
-                          >
-                            View Details <ArrowRight className="w-4 h-4 ml-1" />
-                          </Link>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {otherEvents.map((event, index) => {
+                const eventId = event.event_id || event.id || '';
+                const eventName = event.event_name || event.title || 'Untitled Event';
+                const eventDescription = event.event_description || event.description || '';
+                const eventDate = event.event_start_dt || event.date || '';
+                const eventYear = event.year || new Date(eventDate).getFullYear();
+                
+                return (
                   <motion.div
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
+                    key={eventId}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: 0.4 }}
-                    className="text-center mt-8"
+                    transition={{ delay: index * 0.1, duration: 0.6 }}
+                    className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all"
                   >
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="bg-primary-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+                        {eventYear}
+                      </span>
+                      <span className="text-primary-700 font-semibold">
+                        {format(convertPSTToLocal(eventDate), 'MMM dd')}
+                      </span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{eventName}</h3>
+                    <p className="text-gray-600 mb-4 line-clamp-2">{eventDescription}</p>
                     <Link
-                      to="/events"
-                      className="inline-block bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+                      to={`/events/${eventId}`}
+                      className="text-primary-600 font-medium flex items-center hover:text-primary-700"
                     >
-                      View All Events
+                      View Details <ArrowRight className="w-4 h-4 ml-1" />
                     </Link>
                   </motion.div>
-                </>
+                );
+              })}
+            </div>
               );
             })()}
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4 }}
+              className="text-center mt-8"
+            >
+              <Link
+                to="/events"
+                className="inline-block bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+              >
+                View All Events
+              </Link>
+            </motion.div>
           </div>
         </section>
       )}
