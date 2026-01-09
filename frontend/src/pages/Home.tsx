@@ -23,8 +23,52 @@ export default function Home() {
   // Share functions
   const shareToFacebook = (eventId: string, _eventName: string) => {
     const url = `${window.location.origin}/events/${eventId}`;
-    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-    window.open(shareUrl, '_blank', 'width=600,height=400');
+    const encodedUrl = encodeURIComponent(url);
+    
+    // Detect mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // Try to open Facebook app on mobile
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      
+      if (isIOS) {
+        // iOS: Use fb:// URL scheme to open Facebook app
+        const appUrl = `fb://share?u=${encodedUrl}`;
+        const link = document.createElement('a');
+        link.href = appUrl;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Fallback to web if app doesn't open (after a delay)
+        setTimeout(() => {
+          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, '_blank');
+        }, 1000);
+      } else if (isAndroid) {
+        // Android: Use intent URL to open Facebook app
+        const intentUrl = `intent://share#Intent;scheme=fb;package=com.facebook.katana;S.url=${encodedUrl};end`;
+        const link = document.createElement('a');
+        link.href = intentUrl;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Fallback to web if app doesn't open (after a delay)
+        setTimeout(() => {
+          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, '_blank');
+        }, 1000);
+      } else {
+        // Other mobile devices - use web version
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, '_blank');
+      }
+    } else {
+      // Desktop - use web version with popup
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, '_blank', 'width=600,height=400');
+    }
   };
 
   const shareToWhatsApp = (eventId: string, eventName: string) => {
