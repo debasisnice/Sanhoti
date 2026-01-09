@@ -238,5 +238,6 @@ export interface Settings {
   instagramLink?: string;
   emailAddress?: string;
   emailPassword?: string;
+  committeeYear?: string;
   updated_at: string;
 }

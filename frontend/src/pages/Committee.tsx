@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Phone, Mail, Users } from 'lucide-react';
-import { committeeAPI, boardMembersAPI } from '../services/api';
+import { committeeAPI, boardMembersAPI, settingsAPI } from '../services/api';
 
 interface CommitteeMember {
   role: string;
@@ -36,6 +36,21 @@ const committeeMembersConfig: Omit<CommitteeMember, 'firstName' | 'lastName'>[] 
 
 export default function Committee() {
   const [committeeMembers, setCommitteeMembers] = useState<CommitteeMember[]>(committeeMembersConfig);
+  const [committeeYear, setCommitteeYear] = useState<string>('2025');
+
+  useEffect(() => {
+    const fetchCommitteeYear = async () => {
+      try {
+        const settings = await settingsAPI.getSettings();
+        setCommitteeYear(settings.committeeYear || '2025');
+      } catch (error) {
+        console.error('Failed to fetch committee year:', error);
+        // Keep default value on error
+      }
+    };
+
+    fetchCommitteeYear();
+  }, []);
 
   useEffect(() => {
     const fetchCommitteeMembers = async () => {
@@ -98,7 +113,7 @@ export default function Committee() {
             </h1>
           </div>
           <p className="text-2xl text-gray-600 mb-6">
-            Executive Committee 2025
+            Executive Committee {committeeYear}
           </p>
           
           {/* Contact Information */}

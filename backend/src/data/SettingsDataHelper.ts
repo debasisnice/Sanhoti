@@ -101,6 +101,22 @@ export class SettingsDataHelper extends DatabaseHelper {
     return updated;
   }
 
+  async updateCommitteeYear(committeeYear: string): Promise<Settings> {
+    let current = await this.get();
+    if (!current) {
+      current = this.getDefaultSettings();
+    }
+
+    const updated: Settings = {
+      ...current,
+      committeeYear: committeeYear,
+      updated_at: new Date().toISOString(),
+    };
+
+    this.writeFile(this.filename, [updated]);
+    return updated;
+  }
+
   private getDefaultSettings(): Settings {
     return {
       navbar: {

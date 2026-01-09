@@ -109,6 +109,22 @@ export class SettingsController {
       res.status(500).json({ error: 'Failed to fetch email settings', details: error.message });
     }
   }
+
+  async updateCommitteeYear(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { committeeYear } = req.body;
+      if (typeof committeeYear !== 'string') {
+        res.status(400).json({ error: 'Invalid committee year' });
+        return;
+      }
+
+      const settings = await this.settingsService.updateCommitteeYear(committeeYear);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error updating committee year:', error);
+      res.status(500).json({ error: 'Failed to update committee year', details: error.message });
+    }
+  }
 }
 
 

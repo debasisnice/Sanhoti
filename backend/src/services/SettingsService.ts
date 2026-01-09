@@ -40,6 +40,10 @@ export class SettingsService {
       emailPassword: settings?.emailPassword,
     };
   }
+
+  async updateCommitteeYear(committeeYear: string): Promise<Settings> {
+    return this.settingsDataHelper.updateCommitteeYear(committeeYear);
+  }
 }
 
 

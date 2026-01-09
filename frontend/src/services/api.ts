@@ -710,6 +710,10 @@ export const settingsAPI = {
     const response = await api.put('/settings/email', { emailAddress, emailPassword });
     return response.data;
   },
+  updateCommitteeYear: async (committeeYear: string): Promise<any> => {
+    const response = await api.put('/settings/committee-year', { committeeYear });
+    return response.data;
+  },
   getEmailSettings: async (): Promise<any> => {
     const response = await api.get('/settings/email');
     return response.data;

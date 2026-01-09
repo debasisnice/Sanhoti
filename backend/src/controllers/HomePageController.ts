@@ -100,6 +100,11 @@ export class HomePageController {
       };
       const contentType = contentTypeMap[ext || ''] || 'image/jpeg';
 
+      // Set CORS headers for image loading
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      
       // sendFile requires an absolute path
       const absolutePath = resolve(imagePath);
       res.sendFile(absolutePath, {

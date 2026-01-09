@@ -605,6 +605,11 @@ router.get('/settings/email',
   requireAdmin,
   bindController(settingsController, 'getEmailSettings')
 );
+router.put('/settings/committee-year',
+  requireAdmin,
+  auditLog('UPDATE', 'committee_year'),
+  bindController(settingsController, 'updateCommitteeYear')
+);
 
 export default router;
 

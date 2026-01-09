@@ -3,6 +3,17 @@
     "userId": "U63AAH027DVV",
     "action": "UPDATE",
     "resource": "sponsor_image",
+    "details": "{\"method\":\"PUT\",\"path\":\"/sponsors/images/1767541221856-4.jpg/type\",\"body\":{\"sponsorshipType\":\"Platinum\"}}",
+    "ipAddress": "::1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "userEmail": "",
+    "id": "1767745804070-dl0d0u1tv",
+    "timestamp": "2026-01-07T00:30:04.070Z"
+  },
+  {
+    "userId": "U63AAH027DVV",
+    "action": "UPDATE",
+    "resource": "sponsor_image",
     "details": "{\"method\":\"PUT\",\"path\":\"/sponsors/images/1767541221856-3.jpg/type\",\"body\":{\"sponsorshipType\":\"Gold\"}}",
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
@@ -2545,12 +2556,12 @@
   {
     "userId": "U63AAH027DVV",
     "action": "UPDATE",
-    "resource": "sponsor_image",
-    "details": "{\"method\":\"PUT\",\"path\":\"/sponsors/images/1767541221856-4.jpg/type\",\"body\":{\"sponsorshipType\":\"Platinum\"}}",
+    "resource": "committee_year",
+    "details": "{\"method\":\"PUT\",\"path\":\"/settings/committee-year\",\"body\":{\"committeeYear\":\"2025-2026\"}}",
     "ipAddress": "::1",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
     "userEmail": "",
-    "id": "1767745804070-dl0d0u1tv",
-    "timestamp": "2026-01-07T00:30:04.070Z"
+    "id": "1767944179026-dlmx1lzt3",
+    "timestamp": "2026-01-09T07:36:19.026Z"
   }
 ]

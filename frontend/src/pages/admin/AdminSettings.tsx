@@ -93,6 +93,7 @@ export default function AdminSettings() {
   const [facebookLink, setFacebookLink] = useState<string>('');
   const [whatsappLink, setWhatsappLink] = useState<string>('');
   const [instagramLink, setInstagramLink] = useState<string>('');
+  const [committeeYear, setCommitteeYear] = useState<string>('2025');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -118,6 +119,7 @@ export default function AdminSettings() {
     } else if (activeTab === 'boardmembers') {
       fetchBoardMemberImages();
       fetchPostNames();
+      fetchCommitteeYear();
     } else if (activeTab === 'paymentqr') {
       fetchPaymentQRImage();
       fetchZellePhoneNumber();
@@ -132,6 +134,7 @@ export default function AdminSettings() {
       if (data.facebookLink) setFacebookLink(data.facebookLink);
       if (data.whatsappLink) setWhatsappLink(data.whatsappLink);
       if (data.instagramLink) setInstagramLink(data.instagramLink);
+      if (data.committeeYear) setCommitteeYear(data.committeeYear);
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to fetch settings');
     } finally {
@@ -209,6 +212,15 @@ export default function AdminSettings() {
       setZellePhoneNumber(settings.zellePhoneNumber || '');
     } catch (error: any) {
       console.error('Failed to fetch Zelle phone number:', error);
+    }
+  };
+
+  const fetchCommitteeYear = async () => {
+    try {
+      const settings = await settingsAPI.getSettings();
+      setCommitteeYear(settings.committeeYear || '2025');
+    } catch (error: any) {
+      console.error('Failed to fetch committee year:', error);
     }
   };
 
@@ -358,6 +370,19 @@ export default function AdminSettings() {
       await fetchZellePhoneNumber();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to update Zelle phone number');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveCommitteeYear = async () => {
+    try {
+      setSaving(true);
+      await settingsAPI.updateCommitteeYear(committeeYear);
+      toast.success('Committee year updated successfully');
+      await fetchCommitteeYear();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to update committee year');
     } finally {
       setSaving(false);
     }
@@ -1436,6 +1461,35 @@ export default function AdminSettings() {
                 <p className="text-gray-600">
                   Upload and manage board member images. Select a post name from the dropdown and upload an image. The image will be stored in the BoardMembers directory with the post name as the filename.
                 </p>
+              </div>
+
+              {/* Committee Year Section */}
+              <div className="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Executive Committee Year</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Committee Year/Term
+                    </label>
+                    <input
+                      type="text"
+                      value={committeeYear}
+                      onChange={(e) => setCommitteeYear(e.target.value)}
+                      placeholder="e.g., 2025, 2025-2026, 2026-2027"
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Enter the committee year or term (e.g., "2025", "2025-2026", "2026-2027")
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleSaveCommitteeYear}
+                    disabled={saving}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {saving ? 'Saving...' : 'Save Committee Year'}
+                  </button>
+                </div>
               </div>
 
               {/* Upload Section */}
