@@ -18,6 +18,7 @@ export default function Home() {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [facebookLink, setFacebookLink] = useState<string>('https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr');
   const [whatsappLink, setWhatsappLink] = useState<string>('https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH');
+  const [activeAboutTab, setActiveAboutTab] = useState<'about' | 'vision' | 'mission'>('about');
 
   // Share functions
   const shareToFacebook = (eventId: string, _eventName: string) => {
@@ -355,37 +356,75 @@ export default function Home() {
             <p className="text-xl text-gray-600">Learn more about our community</p>
           </motion.div>
 
-          <div className="space-y-8">
-            {/* Main About Section - Wider */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="bg-gray-50 rounded-xl shadow-lg p-8 max-w-6xl mx-auto"
-            >
-              <p className="text-lg text-gray-700 leading-relaxed mb-4">
-                Sanhoti is a non-profit 501(c)(3) cultural and charitable organization dedicated to preserving and celebrating the rich heritage of Bengali culture in Orange County, California.
-              </p>
-              <p className="text-lg text-gray-700 leading-relaxed mb-4">
-                Established in 2025, Sanhoti strives to build an inclusive and vibrant community where Bengali traditions flourish through festivals, arts, and meaningful community connections. From the grandeur of Durga Puja and Saraswati Puja to the joyous spirit of Poila Boishakh, we proudly bring people together to honor our roots and celebrate togetherness.
-              </p>
-              <p className="text-lg text-gray-700 leading-relaxed">
-                While our foundation is deeply rooted in Bengali customs, Sanhoti embraces diversity and warmly welcomes individuals from all backgrounds to join in and experience the richness of our culture. Our doors are open to everyone—regardless of race, religion, or ethnicity.
-              </p>
-            </motion.div>
-
-            {/* Vision and Mission Statement - Side by Side */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
-              {/* Vision Section */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 }}
-                className="bg-gray-50 rounded-xl shadow-lg p-8"
+          {/* Tabs */}
+          <div className="flex justify-center mb-8">
+            <div className="bg-white rounded-lg p-1 shadow-md inline-flex">
+              <button
+                onClick={() => setActiveAboutTab('about')}
+                className={`px-6 py-3 rounded-md font-medium transition-all duration-200 ${
+                  activeAboutTab === 'about'
+                    ? 'bg-primary-600 text-white shadow-md'
+                    : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                }`}
               >
-                <div className="flex items-center mb-4">
+                About Us
+              </button>
+              <button
+                onClick={() => setActiveAboutTab('vision')}
+                className={`px-6 py-3 rounded-md font-medium transition-all duration-200 ${
+                  activeAboutTab === 'vision'
+                    ? 'bg-primary-600 text-white shadow-md'
+                    : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                }`}
+              >
+                Vision
+              </button>
+              <button
+                onClick={() => setActiveAboutTab('mission')}
+                className={`px-6 py-3 rounded-md font-medium transition-all duration-200 ${
+                  activeAboutTab === 'mission'
+                    ? 'bg-primary-600 text-white shadow-md'
+                    : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                }`}
+              >
+                Mission
+              </button>
+            </div>
+          </div>
+
+          {/* Tab Content */}
+          <AnimatePresence mode="wait">
+            {activeAboutTab === 'about' && (
+              <motion.div
+                key="about"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="bg-gray-50 rounded-xl shadow-lg p-8 max-w-6xl mx-auto"
+              >
+                <p className="text-lg text-gray-700 leading-relaxed mb-4">
+                  Sanhoti is a non-profit 501(c)(3) cultural and charitable organization dedicated to preserving and celebrating the rich heritage of Bengali culture in Orange County, California.
+                </p>
+                <p className="text-lg text-gray-700 leading-relaxed mb-4">
+                  Established in 2025, Sanhoti strives to build an inclusive and vibrant community where Bengali traditions flourish through festivals, arts, and meaningful community connections. From the grandeur of Durga Puja and Saraswati Puja to the joyous spirit of Poila Boishakh, we proudly bring people together to honor our roots and celebrate togetherness.
+                </p>
+                <p className="text-lg text-gray-700 leading-relaxed">
+                  While our foundation is deeply rooted in Bengali customs, Sanhoti embraces diversity and warmly welcomes individuals from all backgrounds to join in and experience the richness of our culture. Our doors are open to everyone—regardless of race, religion, or ethnicity.
+                </p>
+              </motion.div>
+            )}
+
+            {activeAboutTab === 'vision' && (
+              <motion.div
+                key="vision"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="bg-gray-50 rounded-xl shadow-lg p-8 max-w-6xl mx-auto"
+              >
+                <div className="flex items-center mb-6">
                   <div className="bg-primary-100 rounded-lg p-3 mr-4">
                     <Eye className="w-6 h-6 text-primary-600" />
                   </div>
@@ -395,16 +434,18 @@ export default function Home() {
                   Sanhoti also serves as a nurturing platform for the next generation to stay connected to their cultural roots. Through a variety of cultural, literary, and social events held year-round, we create meaningful opportunities for children to explore and engage with the Bengali language, literature, music, and traditions.
                 </p>
               </motion.div>
+            )}
 
-              {/* Mission Statement Section */}
+            {activeAboutTab === 'mission' && (
               <motion.div
+                key="mission"
                 initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3 }}
-                className="bg-gray-50 rounded-xl shadow-lg p-8"
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="bg-gray-50 rounded-xl shadow-lg p-8 max-w-6xl mx-auto"
               >
-                <div className="flex items-center mb-4">
+                <div className="flex items-center mb-6">
                   <div className="bg-primary-100 rounded-lg p-3 mr-4">
                     <Users className="w-6 h-6 text-primary-600" />
                   </div>
@@ -414,8 +455,8 @@ export default function Home() {
                   Sanhoti is committed to fostering an inclusive, diverse, and harmonious community in the Greater Orange County, CA region, while enriching the broader cultural landscape with the distinctive values and contributions of Indian heritage.
                 </p>
               </motion.div>
-            </div>
-          </div>
+            )}
+          </AnimatePresence>
         </div>
       </section>
 

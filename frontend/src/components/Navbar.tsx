@@ -277,7 +277,7 @@ export default function Navbar() {
                 to="/login"
                 className="hover:text-primary-200 transition-colors font-medium whitespace-nowrap text-base ml-3 lg:ml-4"
               >
-                Login
+                Admin
               </Link>
             )}
           </div>
@@ -383,7 +383,7 @@ export default function Navbar() {
                   onClick={() => setIsOpen(false)}
                   className="block text-white hover:text-primary-200 transition-colors"
                 >
-                  Login
+                  Admin
                 </Link>
               )}
             </div>
