@@ -379,7 +379,7 @@ export default function Home() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.8 }}
-                    className="relative rounded-lg shadow-xl w-32 md:w-80 lg:w-96 overflow-hidden aspect-[3/4] border-2 md:border-4 border-yellow-400 cursor-pointer hover:shadow-2xl transition-shadow"
+                    className="relative rounded-lg shadow-xl w-32 md:w-80 lg:w-96 overflow-hidden aspect-[3/4] md:aspect-[3/3.5] border-2 md:border-4 border-yellow-400 cursor-pointer hover:shadow-2xl transition-shadow"
                     style={{
                       backgroundImage: `url(${priorityEventImage})`,
                       backgroundSize: 'cover',
