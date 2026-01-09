@@ -598,7 +598,47 @@ export default function Home() {
                           <div className="grid grid-cols-1 gap-4 mb-6">
                             <div className="flex items-center text-gray-700">
                               <Calendar className="w-5 h-5 mr-3 text-primary-600" />
-                              <span className="text-lg">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</span>
+                              <div className="flex items-center gap-2">
+                                {(() => {
+                                  const now = new Date();
+                                  const eventEndDate = priorityEvent.event_end_dt ? convertPSTToLocal(priorityEvent.event_end_dt) : convertPSTToLocal(eventDate);
+                                  const isUpcoming = eventEndDate >= now;
+                                  
+                                  if (isUpcoming) {
+                                    const calendarUrl = generateCalendarUrl(
+                                      eventName,
+                                      eventDate,
+                                      priorityEvent.event_end_dt,
+                                      eventLocation,
+                                      eventDescription
+                                    );
+                                    return (
+                                      <>
+                                        <a
+                                          href={calendarUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-lg underline hover:text-primary-600 cursor-pointer transition-colors"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          {format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}
+                                        </a>
+                                        <span className="text-sm text-gray-500">•</span>
+                                        <a
+                                          href={calendarUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-sm text-primary-600 underline hover:text-primary-700 cursor-pointer transition-colors"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          Add to Calendar
+                                        </a>
+                                      </>
+                                    );
+                                  }
+                                  return <span className="text-lg">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</span>;
+                                })()}
+                              </div>
                             </div>
                             {eventLocation && (
                               <div className="flex items-center text-gray-700">
@@ -733,8 +773,9 @@ export default function Home() {
                           <p className="text-lg text-gray-700 mb-6">{eventDescription}</p>
                           
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                              <div className="flex items-center text-gray-700">
-                                <Calendar className="w-5 h-5 mr-3 text-primary-600" />
+                            <div className="flex items-center text-gray-700">
+                              <Calendar className="w-5 h-5 mr-3 text-primary-600" />
+                              <div className="flex items-center gap-2">
                                 {(() => {
                                   const now = new Date();
                                   const eventEndDate = priorityEvent.event_end_dt ? convertPSTToLocal(priorityEvent.event_end_dt) : convertPSTToLocal(eventDate);
@@ -749,21 +790,33 @@ export default function Home() {
                                       eventDescription
                                     );
                                     return (
-                                      <a
-                                        href={calendarUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-lg underline hover:text-primary-600 cursor-pointer transition-colors"
-                                        onClick={(e) => e.stopPropagation()}
-                                        title="Add to calendar"
-                                      >
-                                        {format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}
-                                      </a>
+                                      <>
+                                        <a
+                                          href={calendarUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-lg underline hover:text-primary-600 cursor-pointer transition-colors"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          {format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}
+                                        </a>
+                                        <span className="text-sm text-gray-500">•</span>
+                                        <a
+                                          href={calendarUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-sm text-primary-600 underline hover:text-primary-700 cursor-pointer transition-colors"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          Add to Calendar
+                                        </a>
+                                      </>
                                     );
                                   }
                                   return <span className="text-lg">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</span>;
                                 })()}
                               </div>
+                            </div>
                               {eventLocation && (
                                 <div className="flex items-center text-gray-700">
                                   <MapPin className="w-5 h-5 mr-3 text-primary-600" />

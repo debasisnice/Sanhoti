@@ -244,15 +244,25 @@ export default function EventDetail() {
                               eventDescription
                             );
                             return (
-                              <a
-                                href={calendarUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-semibold underline hover:text-primary-600 cursor-pointer transition-colors"
-                                title="Add to calendar"
-                              >
-                                {format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}
-                              </a>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <a
+                                  href={calendarUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="font-semibold underline hover:text-primary-600 cursor-pointer transition-colors"
+                                >
+                                  {format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}
+                                </a>
+                                <span className="text-sm text-gray-400">•</span>
+                                <a
+                                  href={calendarUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-primary-600 underline hover:text-primary-700 cursor-pointer transition-colors"
+                                >
+                                  Add to Calendar
+                                </a>
+                              </div>
                             );
                           }
                           return <p className="font-semibold">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</p>;
