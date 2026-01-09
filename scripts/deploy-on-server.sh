@@ -8,9 +8,9 @@ set -e
 cd /var/www/sanhoti
 
 echo "📥 Pulling latest code..."
-# Stash local changes to data files (we'll drop the stash after pulling since we don't want local data changes)
-echo "   Stashing local changes to data files..."
-git stash push -m "Deployment stash - data files" backend/data/*.json 2>/dev/null || true
+# Stash local changes to tracked data files (we'll drop the stash after pulling since we don't want local data changes)
+echo "   Stashing local changes to tracked data files..."
+git stash push -m "Deployment stash - data files" backend/data/users.json backend/data/documents.json backend/data/events.json backend/data/notices.json backend/data/rsvps.json backend/data/subEvents.json 2>/dev/null || true
 git pull origin main
 # Drop the stash since we don't want to keep local data file changes
 git stash drop 2>/dev/null || true
