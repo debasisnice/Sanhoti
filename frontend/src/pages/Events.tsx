@@ -290,7 +290,7 @@ export default function Events() {
                               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(eventLocation)}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-lg hover:text-primary-600 hover:underline cursor-pointer transition-colors"
+                              className="text-lg underline hover:text-primary-600 cursor-pointer transition-colors"
                               onClick={(e) => e.stopPropagation()}
                             >
                               {eventLocation}
@@ -608,7 +608,7 @@ export default function Events() {
                                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className={`truncate ${isMiddle ? 'text-xs' : 'text-xs'} hover:text-primary-600 hover:underline cursor-pointer transition-colors`}
+                                    className={`truncate ${isMiddle ? 'text-xs' : 'text-xs'} underline hover:text-primary-600 cursor-pointer transition-colors`}
                                     onClick={(e) => e.stopPropagation()}
                                   >
                                     {event.location}

@@ -248,7 +248,7 @@ export default function EventDetail() {
                             href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(eventLocation)}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-semibold hover:text-primary-600 hover:underline cursor-pointer transition-colors"
+                            className="font-semibold underline hover:text-primary-600 cursor-pointer transition-colors"
                           >
                             {eventLocation}
                           </a>
@@ -393,7 +393,7 @@ export default function EventDetail() {
                                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(subEvent.location)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="font-semibold text-sm hover:text-primary-600 hover:underline cursor-pointer transition-colors"
+                                className="font-semibold text-sm underline hover:text-primary-600 cursor-pointer transition-colors"
                               >
                                 {subEvent.location}
                               </a>

@@ -607,7 +607,7 @@ export default function Home() {
                                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(eventLocation)}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-lg hover:text-primary-600 hover:underline cursor-pointer transition-colors"
+                                  className="text-lg underline hover:text-primary-600 cursor-pointer transition-colors"
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   {eventLocation}
