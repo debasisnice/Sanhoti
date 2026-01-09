@@ -70,3 +70,12 @@ docs/AWS_ACCOUNT_INFO.md
 # Data files with sensitive information
 backend/data/settings.json
 backend/data/auditLogs.json
+backend/data/documents.json
+backend/data/events.json
+backend/data/galleries.json
+backend/data/magazines.json
+backend/data/messages.json
+backend/data/notices.json
+backend/data/rsvps.json
+backend/data/subEvents.json
+backend/data/users.json
