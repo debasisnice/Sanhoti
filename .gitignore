@@ -69,3 +69,4 @@ docs/AWS_ACCOUNT_INFO.md
 
 # Data files with sensitive information
 backend/data/settings.json
+backend/data/auditLogs.json
