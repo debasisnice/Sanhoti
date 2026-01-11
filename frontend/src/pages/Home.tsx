@@ -285,7 +285,7 @@ export default function Home() {
   return (
     <div className="overflow-hidden">
       {/* Hero Section */}
-      <section className="relative min-h-screen md:min-h-[110vh] flex items-center justify-center text-white overflow-hidden">
+      <section className="relative min-h-screen md:min-h-[120vh] flex items-center justify-center text-white overflow-hidden">
         {/* Background Slideshow */}
         <div className="absolute inset-0 z-0">
           {/* Fallback gradient background if no images load */}
@@ -431,47 +431,55 @@ export default function Home() {
                             transition={{ delay: 1 }}
                             className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg shadow-lg p-2.5 border-2 border-yellow-300 hover:border-yellow-400 transition-all"
                           >
-                            <div className="flex items-center justify-between gap-2 flex-wrap">
-                              <Link
-                                to={`/events/${parentEventId}`}
-                                className="flex-1 font-semibold text-gray-900 text-xs md:text-sm hover:text-primary-600 transition-colors"
-                              >
-                                {subEvent.sub_event_name}
-                              </Link>
-                              <div className="flex items-center gap-2">
-                                {subEvent.rsvp_enabled && (
-                                  <button
-                                    onClick={(e) => shareSubEventRSVP(subEvent, subEventId, e)}
-                                    className="p-1.5 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
-                                    title="Share RSVP link"
-                                  >
-                                    <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                                  </button>
-                                )}
-                                {subEvent.rsvp_enabled ? (
-                                  subEvent.rsvp_link ? (
-                                    <a
-                                      href={subEvent.rsvp_link}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      onClick={(e) => e.stopPropagation()}
-                                      className="bg-primary-600 hover:bg-primary-700 text-white text-xs md:text-sm font-semibold px-3 md:px-4 py-0.5 md:py-1 rounded transition-colors whitespace-nowrap"
+                            <div className="flex flex-col gap-1.5">
+                              <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <Link
+                                  to={`/events/${parentEventId}`}
+                                  className="flex-1 font-semibold text-gray-900 text-xs md:text-sm hover:text-primary-600 transition-colors"
+                                >
+                                  {subEvent.sub_event_name}
+                                </Link>
+                                <div className="flex items-center gap-2">
+                                  {subEvent.rsvp_enabled && (
+                                    <button
+                                      onClick={(e) => shareSubEventRSVP(subEvent, subEventId, e)}
+                                      className="p-1.5 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                                      title="Share RSVP link"
                                     >
-                                      RSVP
-                                    </a>
+                                      <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                                    </button>
+                                  )}
+                                  {subEvent.rsvp_enabled ? (
+                                    subEvent.rsvp_link ? (
+                                      <a
+                                        href={subEvent.rsvp_link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="bg-primary-600 hover:bg-primary-700 text-white text-xs md:text-sm font-semibold px-3 md:px-4 py-0.5 md:py-1 rounded transition-colors whitespace-nowrap"
+                                      >
+                                        RSVP
+                                      </a>
+                                    ) : (
+                                      <Link
+                                        to={`/sub-events/${subEventId}/rsvp`}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="bg-primary-600 hover:bg-primary-700 text-white text-xs md:text-sm font-semibold px-3 md:px-4 py-0.5 md:py-1 rounded transition-colors whitespace-nowrap"
+                                      >
+                                        RSVP
+                                      </Link>
+                                    )
                                   ) : (
-                                    <Link
-                                      to={`/sub-events/${subEventId}/rsvp`}
-                                      onClick={(e) => e.stopPropagation()}
-                                      className="bg-primary-600 hover:bg-primary-700 text-white text-xs md:text-sm font-semibold px-3 md:px-4 py-0.5 md:py-1 rounded transition-colors whitespace-nowrap"
-                                    >
-                                      RSVP
-                                    </Link>
-                                  )
-                                ) : (
-                                  <div className="w-[60px] h-[1.5rem]"></div>
-                                )}
+                                    <div className="w-[60px] h-[1.5rem]"></div>
+                                  )}
+                                </div>
                               </div>
+                              {subEvent.sub_event_start_dt && (
+                                <div className="text-[10px] md:text-xs text-gray-600 flex items-center gap-1">
+                                  <Calendar className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                                  <span>{formatDateWithTime(subEvent.sub_event_start_dt)}</span>
+                                </div>
+                              )}
                             </div>
                           </motion.div>
                         );
