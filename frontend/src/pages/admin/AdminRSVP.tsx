@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, UserCheck, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { eventsAPI, rsvpAPI, subEventsAPI } from '../../services/api';
-import { Event, RSVP, SubEvent } from '../../types';
+import { Event, RSVP } from '../../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal } from '../../utils/dateUtils';
 import toast from 'react-hot-toast';
