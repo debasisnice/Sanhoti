@@ -71,11 +71,14 @@ export interface SubEvent {
   updated_at: string;
   event_image_path?: string;
   rsvp_link?: string;
+  rsvp_enabled?: boolean; // If true, allow RSVP (either external link or internal form)
+  show_in_home_page?: boolean; // If true, show this sub-event on home page below priority event
 }
 
 export interface RSVP {
   id: string;
-  eventId: string;
+  eventId?: string; // Optional - required if subEventId is not provided
+  subEventId?: string; // Optional - required if eventId is not provided
   userId?: string;
   email: string;
   name: string;
@@ -83,6 +86,7 @@ export interface RSVP {
   numberOfGuests?: number; // Legacy field for backward compatibility
   numberOfAdults: number;
   numberOfChildren: number;
+  attendeeNames?: string[]; // Names of all attendees (adults + children)
   status: 'confirmed' | 'cancelled';
   createdAt: string;
   updatedAt: string;

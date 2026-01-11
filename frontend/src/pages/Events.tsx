@@ -5,7 +5,7 @@ import { Calendar, MapPin, ArrowRight, Star, ChevronLeft, ChevronRight } from 'l
 import { eventsAPI } from '../services/api';
 import { Event } from '../types';
 import { format } from 'date-fns';
-import { convertPSTToLocal, generateCalendarUrl } from '../utils/dateUtils';
+import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime } from '../utils/dateUtils';
 import { QRCodeSVG } from 'qrcode.react';
 
 export default function Events() {
@@ -304,7 +304,7 @@ export default function Events() {
                                       className="text-lg underline hover:text-primary-600 cursor-pointer transition-colors"
                                       onClick={(e) => e.stopPropagation()}
                                     >
-                                      {format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}
+                                      {formatDateWithTime(eventDate)}
                                     </a>
                                     <span className="text-sm text-gray-500">•</span>
                                     <a
@@ -319,7 +319,7 @@ export default function Events() {
                                   </>
                                 );
                               }
-                              return <span className="text-lg">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</span>;
+                              return <span className="text-lg">{formatDateWithTime(eventDate)}</span>;
                             })()}
                           </div>
                         </div>
@@ -447,7 +447,7 @@ export default function Events() {
                                       className="text-lg underline hover:text-primary-600 cursor-pointer transition-colors"
                                       onClick={(e) => e.stopPropagation()}
                                     >
-                                      {format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}
+                                      {formatDateWithTime(eventDate)}
                                     </a>
                                     <span className="text-sm text-gray-500">•</span>
                                     <a
@@ -462,7 +462,7 @@ export default function Events() {
                                   </>
                                 );
                               }
-                              return <span className="text-lg">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</span>;
+                              return <span className="text-lg">{formatDateWithTime(eventDate)}</span>;
                             })()}
                           </div>
                         </div>
@@ -709,11 +709,11 @@ export default function Events() {
                                         onClick={(e) => e.stopPropagation()}
                                         title="Add to calendar"
                                       >
-                                        {format(convertPSTToLocal(eventDate), 'MMM dd, yyyy')}
+                                        {formatDateWithTime(eventDate, 'MMM dd, yyyy', 'h:mm a')}
                                       </a>
                                     );
                                   }
-                                  return <span className={`truncate ${isMiddle ? 'text-xs' : 'text-xs'}`}>{format(convertPSTToLocal(eventDate), 'MMM dd, yyyy')}</span>;
+                                  return <span className={`truncate ${isMiddle ? 'text-xs' : 'text-xs'}`}>{formatDateWithTime(eventDate, 'MMM dd, yyyy', 'h:mm a')}</span>;
                                 })()}
                               </div>
                               {event.location && (

@@ -5,7 +5,7 @@ import { Calendar, MapPin, ArrowLeft, Bell, Image as ImageIcon, ArrowRight } fro
 import { eventsAPI, noticesAPI, galleriesAPI, subEventsAPI } from '../services/api';
 import { Event, Notice, PhotoGallery, SubEvent } from '../types';
 import { format } from 'date-fns';
-import { convertPSTToLocal, generateCalendarUrl } from '../utils/dateUtils';
+import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime } from '../utils/dateUtils';
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
 
@@ -251,7 +251,7 @@ export default function EventDetail() {
                                   rel="noopener noreferrer"
                                   className="font-semibold underline hover:text-primary-600 cursor-pointer transition-colors"
                                 >
-                                  {format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}
+                                  {formatDateWithTime(eventDate)}
                                 </a>
                                 <span className="text-sm text-gray-400">•</span>
                                 <a
@@ -265,7 +265,7 @@ export default function EventDetail() {
                               </div>
                             );
                           }
-                          return <p className="font-semibold">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</p>;
+                          return <p className="font-semibold">{formatDateWithTime(eventDate)}</p>;
                         })()}
                       </div>
                     </div>
@@ -274,7 +274,7 @@ export default function EventDetail() {
                         <Calendar className="w-5 h-5 mr-3 text-primary-600" />
                         <div>
                           <p className="text-sm text-gray-500">End Date</p>
-                          <p className="font-semibold">{format(convertPSTToLocal(event.event_end_dt), 'MMMM dd, yyyy')}</p>
+                          <p className="font-semibold">{formatDateWithTime(event.event_end_dt)}</p>
                         </div>
                       </div>
                     )}
@@ -382,25 +382,6 @@ export default function EventDetail() {
                           />
                         </div>
                       )}
-                      {(() => {
-                        const now = new Date();
-                        const subEventEndDate = subEvent.sub_event_end_dt 
-                          ? convertPSTToLocal(subEvent.sub_event_end_dt) 
-                          : convertPSTToLocal(subEvent.sub_event_start_dt);
-                        const isPastSubEvent = subEventEndDate < now;
-                        
-                        return subEvent.rsvp_link && !isPastSubEvent ? (
-                          <div className="flex flex-col items-center justify-center bg-white p-3 rounded-lg">
-                            <QRCodeSVG 
-                              value={subEvent.rsvp_link} 
-                              size={120}
-                              level="M"
-                              includeMargin={true}
-                            />
-                            <p className="text-xs text-gray-600 mt-1 text-center">Scan to RSVP</p>
-                          </div>
-                        ) : null;
-                      })()}
                     </div>
                     <div className="p-6">
                       <h3 className="text-xl font-bold text-gray-900 mb-3">{subEvent.sub_event_name}</h3>
@@ -410,7 +391,7 @@ export default function EventDetail() {
                             <Calendar className="w-4 h-4 mr-2 text-primary-600" />
                             <div>
                               <p className="text-xs text-gray-500">Start Date</p>
-                              <p className="font-semibold text-sm">{format(convertPSTToLocal(subEvent.sub_event_start_dt), 'MMMM dd, yyyy')}</p>
+                              <p className="font-semibold text-sm">{formatDateWithTime(subEvent.sub_event_start_dt)}</p>
                             </div>
                           </div>
                           {subEvent.sub_event_end_dt && (
@@ -418,7 +399,7 @@ export default function EventDetail() {
                               <Calendar className="w-4 h-4 mr-2 text-primary-600" />
                               <div>
                                 <p className="text-xs text-gray-500">End Date</p>
-                                <p className="font-semibold text-sm">{format(convertPSTToLocal(subEvent.sub_event_end_dt), 'MMMM dd, yyyy')}</p>
+                                <p className="font-semibold text-sm">{formatDateWithTime(subEvent.sub_event_end_dt)}</p>
                               </div>
                             </div>
                           )}
@@ -454,18 +435,35 @@ export default function EventDetail() {
                           : convertPSTToLocal(subEvent.sub_event_start_dt);
                         const isPastSubEvent = subEventEndDate < now;
                         
-                        return subEvent.rsvp_link && !isPastSubEvent ? (
-                          <div className="mt-4">
-                            <a
-                              href={subEvent.rsvp_link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-700 transition-colors text-sm"
-                            >
-                              RSVP for This Sub-Event
-                            </a>
-                          </div>
-                        ) : null;
+                        if (!subEvent.rsvp_enabled || isPastSubEvent) return null;
+                        
+                        if (subEvent.rsvp_link) {
+                          // External RSVP link
+                          return (
+                            <div className="mt-4">
+                              <a
+                                href={subEvent.rsvp_link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-700 transition-colors text-sm"
+                              >
+                                RSVP for This Sub-Event
+                              </a>
+                            </div>
+                          );
+                        } else {
+                          // Internal RSVP - use sub-events route
+                          return (
+                            <div className="mt-4">
+                              <Link
+                                to={`/sub-events/${subEvent.sub_event_id}/rsvp`}
+                                className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-700 transition-colors text-sm"
+                              >
+                                RSVP for This Sub-Event
+                              </Link>
+                            </div>
+                          );
+                        }
                       })()}
                     </div>
                   </motion.div>

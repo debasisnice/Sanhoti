@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LayoutDashboard, Calendar, Bell, Image, BookOpen, Mail, Settings, MessageSquare, Users, ClipboardList, Menu, X, FileText, FileCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { eventsAPI, rsvpAPI, noticesAPI } from '../../services/api';
-import { Event, RSVP } from '../../types';
+import { eventsAPI, rsvpAPI, noticesAPI, subEventsAPI } from '../../services/api';
+import { Event, RSVP, SubEvent } from '../../types';
 import AdminEvents from './AdminEvents';
 import AdminGalleries from './AdminGalleries';
 import AdminMessages from './AdminMessages';
@@ -142,18 +142,45 @@ function AdminOverview() {
         });
         setTotalGalleries(publishedGalleries.length);
 
-        // Find priority event and fetch RSVPs
-        const priorityEvent = events.find((e: Event) => e.is_priority === true);
-        
-        if (priorityEvent && priorityEvent.event_id) {
-          try {
-            // Fetch RSVPs for the priority event
-            const rsvps = await rsvpAPI.getByEvent(priorityEvent.event_id);
-            
-            // Calculate total adults and children
-            let adults = 0;
-            let children = 0;
-            
+        // Fetch all RSVPs from all events and sub-events
+        try {
+          // Fetch all active events and sub-events
+          const activeEvents = events.filter((e: Event) => e.is_active === true);
+          const allSubEvents = await subEventsAPI.getAll();
+          const activeSubEvents = allSubEvents.filter((se: SubEvent) => se.rsvp_enabled === true);
+
+          // Fetch RSVPs for all events
+          const eventRSVPsPromises = activeEvents.map(async (event: Event) => {
+            try {
+              return await rsvpAPI.getByEvent(event.event_id);
+            } catch (error) {
+              console.error(`Error fetching RSVPs for event ${event.event_id}:`, error);
+              return [];
+            }
+          });
+
+          // Fetch RSVPs for all sub-events
+          const subEventRSVPsPromises = activeSubEvents.map(async (subEvent: SubEvent) => {
+            try {
+              return await rsvpAPI.getBySubEvent(subEvent.sub_event_id);
+            } catch (error) {
+              console.error(`Error fetching RSVPs for sub-event ${subEvent.sub_event_id}:`, error);
+              return [];
+            }
+          });
+
+          // Wait for all RSVP fetches to complete
+          const [eventRSVPsArrays, subEventRSVPsArrays] = await Promise.all([
+            Promise.all(eventRSVPsPromises),
+            Promise.all(subEventRSVPsPromises),
+          ]);
+
+          // Flatten and calculate totals
+          let adults = 0;
+          let children = 0;
+
+          // Sum RSVPs from events
+          eventRSVPsArrays.forEach((rsvps: RSVP[]) => {
             rsvps.forEach((rsvp: RSVP) => {
               if (rsvp.status === 'confirmed') {
                 // Handle both new format and legacy format
@@ -166,16 +193,28 @@ function AdminOverview() {
                 }
               }
             });
-            
-            setTotalAdults(adults);
-            setTotalChildren(children);
-          } catch (rsvpError) {
-            console.error('Error fetching RSVPs:', rsvpError);
-            setTotalAdults(0);
-            setTotalChildren(0);
-          }
-        } else {
-          // No priority event found
+          });
+
+          // Sum RSVPs from sub-events
+          subEventRSVPsArrays.forEach((rsvps: RSVP[]) => {
+            rsvps.forEach((rsvp: RSVP) => {
+              if (rsvp.status === 'confirmed') {
+                // Handle both new format and legacy format
+                if (rsvp.numberOfAdults !== undefined) {
+                  adults += rsvp.numberOfAdults;
+                  children += rsvp.numberOfChildren || 0;
+                } else if (rsvp.numberOfGuests !== undefined) {
+                  // Legacy format: assume all guests are adults
+                  adults += rsvp.numberOfGuests;
+                }
+              }
+            });
+          });
+
+          setTotalAdults(adults);
+          setTotalChildren(children);
+        } catch (rsvpError) {
+          console.error('Error fetching RSVPs:', rsvpError);
           setTotalAdults(0);
           setTotalChildren(0);
         }

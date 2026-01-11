@@ -37,6 +37,20 @@ export class RSVPDataHelper extends DatabaseHelper {
     ) || null;
   }
 
+  async findBySubEventId(subEventId: string): Promise<RSVP[]> {
+    const rsvps = await this.findAll();
+    return rsvps.filter(r => r.subEventId === subEventId && r.status === 'confirmed');
+  }
+
+  async findBySubEventIdAndEmail(subEventId: string, email: string): Promise<RSVP | null> {
+    const rsvps = await this.findAll();
+    return rsvps.find(r => 
+      r.subEventId === subEventId && 
+      r.email.toLowerCase() === email.toLowerCase() &&
+      r.status === 'confirmed'
+    ) || null;
+  }
+
   async create(rsvp: Omit<RSVP, 'id' | 'createdAt' | 'updatedAt'>): Promise<RSVP> {
     const rsvps = await this.findAll();
     
@@ -50,8 +64,8 @@ export class RSVPDataHelper extends DatabaseHelper {
       numberOfAdults = rsvp.numberOfGuests;
       numberOfChildren = 0;
     } else if (numberOfAdults === undefined) {
-      // Default to 1 adult if not provided
-      numberOfAdults = 1;
+      // Default to 0 adults if not provided (controller should validate this, but this is a fallback)
+      numberOfAdults = 0;
     }
     
     const newRSVP: RSVP = {

@@ -77,6 +77,25 @@ export class SubEventController {
     }
   }
 
+  async getSubEventByIdPublic(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const subEvent = await this.subEventService.getSubEventById(id);
+      if (!subEvent) {
+        res.status(404).json({ error: 'Sub-event not found' });
+        return;
+      }
+      // Only return active sub-events for public access
+      if (!subEvent.is_active) {
+        res.status(404).json({ error: 'Sub-event not found' });
+        return;
+      }
+      res.json(subEvent);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch sub-event' });
+    }
+  }
+
   async getSubEventsByEventId(req: Request, res: Response): Promise<void> {
     try {
       const { eventId } = req.params;

@@ -20,6 +20,10 @@ export class RSVPService {
     return this.rsvpDataHelper.findByEventId(eventId);
   }
 
+  async getRSVPsBySubEvent(subEventId: string): Promise<RSVP[]> {
+    return this.rsvpDataHelper.findBySubEventId(subEventId);
+  }
+
   async getRSVPsByUser(userId: string): Promise<RSVP[]> {
     return this.rsvpDataHelper.findByUserId(userId);
   }
@@ -29,7 +33,8 @@ export class RSVPService {
   }
 
   async createRSVP(data: {
-    eventId: string;
+    eventId?: string;
+    subEventId?: string;
     userId?: string;
     email: string;
     name: string;
@@ -37,11 +42,19 @@ export class RSVPService {
     numberOfGuests?: number; // Legacy field
     numberOfAdults: number;
     numberOfChildren: number;
+    attendeeNames?: string[];
   }): Promise<RSVP> {
-    // Check if email has already RSVP'd for this event
-    const existingRSVP = await this.rsvpDataHelper.findByEventIdAndEmail(data.eventId, data.email);
-    if (existingRSVP) {
-      throw new Error('This email address has already RSVP\'d for this event');
+    // Check if email has already RSVP'd for this event or sub-event
+    if (data.eventId) {
+      const existingRSVP = await this.rsvpDataHelper.findByEventIdAndEmail(data.eventId, data.email);
+      if (existingRSVP) {
+        throw new Error('This email address has already RSVP\'d for this event');
+      }
+    } else if (data.subEventId) {
+      const existingRSVP = await this.rsvpDataHelper.findBySubEventIdAndEmail(data.subEventId, data.email);
+      if (existingRSVP) {
+        throw new Error('This email address has already RSVP\'d for this sub-event');
+      }
     }
 
     return this.rsvpDataHelper.create({

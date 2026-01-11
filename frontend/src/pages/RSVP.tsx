@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { Calendar, CheckCircle } from 'lucide-react';
-import { eventsAPI, rsvpAPI } from '../services/api';
-import { Event } from '../types';
+import { eventsAPI, rsvpAPI, subEventsAPI } from '../services/api';
+import { Event, SubEvent } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal } from '../utils/dateUtils';
 import toast from 'react-hot-toast';
@@ -16,6 +16,7 @@ interface RSVPForm {
   phone: string;
   numberOfAdults: number;
   numberOfChildren: number;
+  attendeeNames: string[]; // Names of all attendees
 }
 
 // Simple profanity filter - common inappropriate words
@@ -32,8 +33,10 @@ function containsProfanity(text: string): boolean {
 export default function RSVP() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isAuthenticated } = useAuthStore();
   const [event, setEvent] = useState<Event | null>(null);
+  const [subEvent, setSubEvent] = useState<SubEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,25 +45,55 @@ export default function RSVP() {
     handleSubmit,
     formState: { errors },
     setValue,
+    watch,
   } = useForm<RSVPForm>({
     defaultValues: {
-      numberOfAdults: 1,
+      numberOfAdults: 0,
       numberOfChildren: 0,
+      attendeeNames: [],
     },
   });
 
+  const numberOfAdults = watch('numberOfAdults', 0);
+  const numberOfChildren = watch('numberOfChildren', 0);
+  const totalAttendees = (numberOfAdults || 0) + (numberOfChildren || 0);
+
   useEffect(() => {
     if (id) {
-      eventsAPI
-        .getById(id)
-        .then(setEvent)
-        .catch((err) => {
-          console.error(err);
-          toast.error('Failed to load event');
-        })
-        .finally(() => setLoading(false));
+      // Check if URL path contains 'sub-events' to determine which to fetch
+      const isSubEvent = location.pathname.includes('/sub-events/');
+      
+      if (isSubEvent) {
+        // Fetch sub-event
+        subEventsAPI
+          .getById(id)
+          .then((subEventData) => {
+            setSubEvent(subEventData);
+            setEvent(null);
+            setLoading(false);
+          })
+          .catch((err) => {
+            console.error(err);
+            toast.error('Failed to load sub-event');
+            setLoading(false);
+          });
+      } else {
+        // Fetch event
+        eventsAPI
+          .getById(id)
+          .then((eventData) => {
+            setEvent(eventData);
+            setSubEvent(null);
+            setLoading(false);
+          })
+          .catch((err) => {
+            console.error(err);
+            toast.error('Failed to load event');
+            setLoading(false);
+          });
+      }
     }
-  }, [id]);
+  }, [id, location.pathname]);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -72,20 +105,81 @@ export default function RSVP() {
     }
   }, [isAuthenticated, user, setValue]);
 
+  // Update attendeeNames array when total attendees changes
+  useEffect(() => {
+    const currentNames = watch('attendeeNames') || [];
+    const newLength = totalAttendees;
+    
+    if (currentNames.length < newLength) {
+      // Add empty strings for new attendees
+      const newNames = [...currentNames, ...Array(newLength - currentNames.length).fill('')];
+      setValue('attendeeNames', newNames);
+    } else if (currentNames.length > newLength) {
+      // Remove excess names
+      const newNames = currentNames.slice(0, newLength);
+      setValue('attendeeNames', newNames);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalAttendees, setValue]);
+
   const onSubmit = async (data: RSVPForm) => {
     if (!id) return;
 
     setSubmitting(true);
     try {
-      const rsvpData = {
-        eventId: id,
-        ...data,
+      // Validate that at least one attendee is entered
+      if (totalAttendees === 0) {
+        toast.error('At least one attendee must be entered');
+        setSubmitting(false);
+        return;
+      }
+
+      // Filter out empty names and ensure all names are provided
+      const attendeeNames = (data.attendeeNames || []).filter(name => name.trim() !== '');
+      if (attendeeNames.length !== totalAttendees) {
+        toast.error('Please provide names for all attendees');
+        setSubmitting(false);
+        return;
+      }
+
+      // Check for duplicate names (case-insensitive, trimmed)
+      const nameMap = new Map<string, number>();
+      for (let i = 0; i < attendeeNames.length; i++) {
+        const trimmedName = attendeeNames[i].trim().toLowerCase();
+        if (nameMap.has(trimmedName)) {
+          toast.error('All attendee names must be unique. Please use different names for each attendee.');
+          setSubmitting(false);
+          return;
+        }
+        nameMap.set(trimmedName, i);
+      }
+
+      const rsvpData: any = {
+        name: data.name,
+        email: data.email,
         phone: data.phone.trim(),
+        numberOfAdults: data.numberOfAdults,
+        numberOfChildren: data.numberOfChildren,
+        attendeeNames: attendeeNames,
       };
+      
+      // Include eventId or subEventId based on which type it is
+      if (subEvent) {
+        rsvpData.subEventId = id;
+      } else {
+        rsvpData.eventId = id;
+      }
       
       await rsvpAPI.create(rsvpData);
       toast.success('RSVP submitted successfully!');
-      navigate(`/events/${id}`);
+      
+      // Navigate back to event detail page
+      if (event) {
+        navigate(`/events/${id}`);
+      } else if (subEvent) {
+        // Get parent event ID from sub-event
+        navigate(`/events/${subEvent.event_id}`);
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to submit RSVP');
     } finally {
@@ -101,15 +195,22 @@ export default function RSVP() {
     );
   }
 
-  if (!event) {
+  if (!event && !subEvent) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Event not found</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Event/Sub-Event not found</h2>
         </div>
       </div>
     );
   }
+
+  const displayName = event 
+    ? (event.event_name || event.title || 'Event')
+    : (subEvent?.sub_event_name || 'Sub-Event');
+  const displayDate = event
+    ? (event.event_start_dt || event.date || '')
+    : (subEvent?.sub_event_start_dt || '');
 
   return (
     <div className="py-12 pb-32">
@@ -122,20 +223,16 @@ export default function RSVP() {
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
               <Calendar className="w-8 h-8 text-primary-600" />
-              <h1 className="text-2xl font-bold text-gray-900">RSVP for Event</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                RSVP for {event ? 'Event' : 'Sub-Event'}
+              </h1>
             </div>
             <p className="text-2xl text-gray-600 mb-4">
-              {(() => {
-                const eventName = event.event_name || event.title || 'Event';
-                const eventDate = event.event_start_dt || event.date || '';
-                return (
-                  <span>
-                    <span className="font-semibold">{eventName}</span>
-                    <span className="mx-2">•</span>
-                    <span>{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</span>
-                  </span>
-                );
-              })()}
+              <span>
+                <span className="font-semibold">{displayName}</span>
+                <span className="mx-2">•</span>
+                <span>{format(convertPSTToLocal(displayDate), 'MMMM dd, yyyy')}</span>
+              </span>
             </p>
           </div>
 
@@ -232,12 +329,12 @@ export default function RSVP() {
                 <input
                   {...register('numberOfAdults', {
                     required: 'Number of adults is required',
-                    min: { value: 1, message: 'At least 1 adult is required' },
+                    min: { value: 0, message: 'Cannot be negative' },
                     valueAsNumber: true,
                   })}
                   type="number"
                   id="adults"
-                  min="1"
+                  min="0"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="Enter number of adults"
                 />
@@ -267,6 +364,61 @@ export default function RSVP() {
               </div>
             </div>
 
+            {totalAttendees > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Attendee Names * (Enter name for each attendee)
+                </label>
+                <div className="space-y-3">
+                  {Array.from({ length: totalAttendees }).map((_, index) => {
+                    const label = index < numberOfAdults 
+                      ? `Adult ${index + 1} Name *`
+                      : `Child ${index - numberOfAdults + 1} Name *`;
+                    return (
+                      <div key={index}>
+                        <input
+                          {...register(`attendeeNames.${index}` as const, {
+                            required: `${label} is required`,
+                            maxLength: {
+                              value: 40,
+                              message: 'Name must be 40 characters or less',
+                            },
+                            pattern: {
+                              value: /^[A-Za-z\s\-'\.]+$/,
+                              message: 'Name cannot contain numbers or special characters',
+                            },
+                            validate: (value, formValues) => {
+                              if (containsProfanity(value)) {
+                                return 'Name contains inappropriate language. Please use appropriate language.';
+                              }
+                              // Check for duplicate names (case-insensitive, trimmed)
+                              const allNames = formValues.attendeeNames || [];
+                              const trimmedValue = value.trim().toLowerCase();
+                              const duplicateIndex = allNames.findIndex((name: string, idx: number) => 
+                                idx !== index && name && name.trim().toLowerCase() === trimmedValue
+                              );
+                              if (duplicateIndex !== -1) {
+                                return 'This name is already entered. Please use a unique name for each attendee.';
+                              }
+                              return true;
+                            },
+                          })}
+                          type="text"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          placeholder={label}
+                        />
+                        {errors.attendeeNames?.[index] && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors.attendeeNames[index]?.message}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="flex space-x-4">
               <button
                 type="submit"
@@ -287,7 +439,13 @@ export default function RSVP() {
               </button>
               <button
                 type="button"
-                onClick={() => navigate(`/events/${id}`)}
+                onClick={() => {
+                  if (event) {
+                    navigate(`/events/${id}`);
+                  } else if (subEvent) {
+                    navigate(`/events/${subEvent.event_id}`);
+                  }
+                }}
                 className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
               >
                 Cancel

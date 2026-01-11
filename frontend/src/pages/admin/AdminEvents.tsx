@@ -63,7 +63,11 @@ export default function AdminEvents() {
     location: '',
     is_active: true,
     rsvp_link: '',
+    rsvp_enabled: false,
+    show_in_home_page: false,
   });
+  const [subEventStartTime, setSubEventStartTime] = useState('');
+  const [subEventEndTime, setSubEventEndTime] = useState('');
   const [formData, setFormData] = useState<EventForm>({
     event_name: '',
     event_start_dt: '',
@@ -74,6 +78,8 @@ export default function AdminEvents() {
     is_priority: false,
     rsvp_link: '',
   });
+  const [eventStartTime, setEventStartTime] = useState('');
+  const [eventEndTime, setEventEndTime] = useState('');
 
   useEffect(() => {
     fetchEvents();
@@ -143,26 +149,73 @@ export default function AdminEvents() {
     return dateB - dateA; // Descending order (newest first)
   });
 
+  // Helper function to combine date and time into ISO string
+  const combineDateAndTime = (date: string, time: string): string => {
+    if (!date) return '';
+    if (!time) return date; // If no time provided, return just the date
+    
+    // Combine date and time: "2025-07-19" + "14:30" = "2025-07-19T14:30:00"
+    return `${date}T${time}:00`;
+  };
+
+  // Helper function to parse datetime string and extract date and time
+  const parseDateTime = (datetime: string): { date: string; time: string } => {
+    if (!datetime) return { date: '', time: '' };
+    
+    // Check if it's date-only format (YYYY-MM-DD)
+    const dateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/;
+    if (dateOnlyPattern.test(datetime)) {
+      return { date: datetime, time: '' };
+    }
+    
+    // Parse ISO datetime string (YYYY-MM-DDTHH:mm:ss or YYYY-MM-DDTHH:mm)
+    const parts = datetime.split('T');
+    const date = parts[0];
+    const timePart = parts[1] || '';
+    
+    // Extract time (HH:mm) from time part (could be "14:30:00" or "14:30")
+    const timeMatch = timePart.match(/^(\d{2}:\d{2})/);
+    const time = timeMatch ? timeMatch[1] : '';
+    
+    return { date, time };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate that end date is not before start date
-    if (formData.event_start_dt && formData.event_end_dt) {
-      const startDate = convertPSTToLocal(formData.event_start_dt);
-      const endDate = convertPSTToLocal(formData.event_end_dt);
+    // Combine date and time
+    const startDateTime = combineDateAndTime(formData.event_start_dt, eventStartTime);
+    const endDateTime = combineDateAndTime(formData.event_end_dt, eventEndTime);
+    
+    // Validate that end date/time is not before start date/time
+    if (startDateTime && endDateTime) {
+      const startDate = new Date(startDateTime);
+      const endDate = new Date(endDateTime);
       
       if (endDate < startDate) {
-        toast.error('End date cannot be prior to start date');
+        toast.error('End date/time cannot be prior to start date/time');
         return;
       }
     }
     
     try {
-      // Convert dates from local timezone to PST before sending to backend
+      // Combine date and time into ISO format strings
+      // For datetime strings with time, we send them directly (backend can parse ISO strings)
+      // For date-only strings, we use convertLocalToPST
+      const getPSTDateTime = (dateTime: string): string => {
+        if (!dateTime) return '';
+        // If it's a datetime string (contains T), send as-is (will be treated as local time, backend will handle)
+        // If it's date-only, use convertLocalToPST
+        if (dateTime.includes('T')) {
+          return dateTime;
+        }
+        return convertLocalToPST(dateTime);
+      };
+      
       const formDataWithPST = {
         ...formData,
-        event_start_dt: formData.event_start_dt ? convertLocalToPST(formData.event_start_dt) : formData.event_start_dt,
-        event_end_dt: formData.event_end_dt ? convertLocalToPST(formData.event_end_dt) : formData.event_end_dt,
+        event_start_dt: startDateTime ? getPSTDateTime(startDateTime) : formData.event_start_dt,
+        event_end_dt: endDateTime ? getPSTDateTime(endDateTime) : formData.event_end_dt,
       };
       
       let savedEvent: Event;
@@ -269,15 +322,24 @@ export default function AdminEvents() {
   const handleCreateSubEvent = (event: Event) => {
     setSelectedEventForSubEvent(event);
     setEditingSubEvent(null);
+    
+    // Parse datetime strings to extract date
+    const startDateTime = parseDateTime(event.event_start_dt);
+    const endDateTime = parseDateTime(event.event_end_dt);
+    
     setSubEventFormData({
       sub_event_name: '',
-      sub_event_start_dt: event.event_start_dt.split('T')[0],
-      sub_event_end_dt: event.event_end_dt.split('T')[0],
+      sub_event_start_dt: startDateTime.date,
+      sub_event_end_dt: endDateTime.date,
       event_description: '',
       location: '',
       is_active: true,
       rsvp_link: '',
+      rsvp_enabled: false,
+      show_in_home_page: false,
     });
+    setSubEventStartTime('');
+    setSubEventEndTime('');
     setSubEventImage(null);
     setShowSubEventForm(true);
   };
@@ -285,15 +347,24 @@ export default function AdminEvents() {
   const handleEditSubEvent = async (subEvent: SubEvent, event: Event) => {
     setSelectedEventForSubEvent(event);
     setEditingSubEvent(subEvent);
+    
+    // Parse datetime strings to extract date and time
+    const startDateTime = parseDateTime(subEvent.sub_event_start_dt);
+    const endDateTime = parseDateTime(subEvent.sub_event_end_dt);
+    
     setSubEventFormData({
       sub_event_name: subEvent.sub_event_name,
-      sub_event_start_dt: subEvent.sub_event_start_dt.split('T')[0],
-      sub_event_end_dt: subEvent.sub_event_end_dt.split('T')[0],
+      sub_event_start_dt: startDateTime.date,
+      sub_event_end_dt: endDateTime.date,
       event_description: subEvent.event_description,
       location: subEvent.location,
       is_active: subEvent.is_active,
       rsvp_link: subEvent.rsvp_link || '',
+      rsvp_enabled: subEvent.rsvp_enabled || false,
+      show_in_home_page: subEvent.show_in_home_page || false,
     });
+    setSubEventStartTime(startDateTime.time);
+    setSubEventEndTime(endDateTime.time);
     setSubEventImage(null);
     setShowSubEventForm(true);
   };
@@ -318,18 +389,37 @@ export default function AdminEvents() {
     try {
       setUploadingSubEventImage(false);
       
+      // Combine date and time
+      const startDateTime = combineDateAndTime(subEventFormData.sub_event_start_dt, subEventStartTime);
+      const endDateTime = combineDateAndTime(subEventFormData.sub_event_end_dt, subEventEndTime);
+      
+      // Helper to get PST datetime
+      const getPSTDateTime = (dateTime: string): string => {
+        if (!dateTime) return '';
+        if (dateTime.includes('T')) {
+          return dateTime;
+        }
+        return convertLocalToPST(dateTime);
+      };
+      
       if (editingSubEvent) {
         // Update existing sub-event
         const updateData: any = {
           sub_event_name: subEventFormData.sub_event_name,
-          sub_event_start_dt: convertLocalToPST(subEventFormData.sub_event_start_dt),
-          sub_event_end_dt: convertLocalToPST(subEventFormData.sub_event_end_dt),
+          sub_event_start_dt: startDateTime ? getPSTDateTime(startDateTime) : convertLocalToPST(subEventFormData.sub_event_start_dt),
+          sub_event_end_dt: endDateTime ? getPSTDateTime(endDateTime) : convertLocalToPST(subEventFormData.sub_event_end_dt),
           event_description: subEventFormData.event_description,
           location: subEventFormData.location,
           is_active: subEventFormData.is_active,
+          rsvp_enabled: subEventFormData.rsvp_enabled,
+          show_in_home_page: subEventFormData.show_in_home_page,
         };
-        if (subEventFormData.rsvp_link) {
-          updateData.rsvp_link = subEventFormData.rsvp_link;
+        
+        // Handle rsvp_link: set to null if empty to remove it, otherwise set to the value
+        if (subEventFormData.rsvp_link && subEventFormData.rsvp_link.trim() !== '') {
+          updateData.rsvp_link = subEventFormData.rsvp_link.trim();
+        } else {
+          updateData.rsvp_link = null;
         }
         
         await subEventsAPI.update(editingSubEvent.sub_event_id, updateData);
@@ -352,14 +442,16 @@ export default function AdminEvents() {
         // Create new sub-event
         const newSubEvent = await subEventsAPI.create({
           sub_event_name: subEventFormData.sub_event_name,
-          sub_event_start_dt: convertLocalToPST(subEventFormData.sub_event_start_dt),
-          sub_event_end_dt: convertLocalToPST(subEventFormData.sub_event_end_dt),
+          sub_event_start_dt: startDateTime ? getPSTDateTime(startDateTime) : convertLocalToPST(subEventFormData.sub_event_start_dt),
+          sub_event_end_dt: endDateTime ? getPSTDateTime(endDateTime) : convertLocalToPST(subEventFormData.sub_event_end_dt),
           year: selectedEventForSubEvent.year,
           event_description: subEventFormData.event_description,
           location: subEventFormData.location,
           is_active: subEventFormData.is_active,
           event_id: selectedEventForSubEvent.event_id,
           rsvp_link: subEventFormData.rsvp_link || undefined,
+          rsvp_enabled: subEventFormData.rsvp_enabled,
+          show_in_home_page: subEventFormData.show_in_home_page,
         });
         
         // Upload image if selected
@@ -395,7 +487,11 @@ export default function AdminEvents() {
       location: '',
       is_active: true,
       rsvp_link: '',
+      rsvp_enabled: false,
+      show_in_home_page: false,
     });
+    setSubEventStartTime('');
+    setSubEventEndTime('');
     setEditingSubEvent(null);
     setSelectedEventForSubEvent(null);
     setSubEventImage(null);
@@ -412,6 +508,8 @@ export default function AdminEvents() {
       is_priority: false,
       rsvp_link: '',
     });
+    setEventStartTime('');
+    setEventEndTime('');
     setEditingEvent(null);
     setSelectedImage(null);
   };
@@ -548,6 +646,19 @@ export default function AdminEvents() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Start Time (Optional)
+                    </label>
+                    <input
+                      type="time"
+                      value={eventStartTime}
+                      onChange={(e) => setEventStartTime(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       End Date *
                     </label>
                     <input
@@ -566,9 +677,17 @@ export default function AdminEvents() {
                       }}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
-                    {formData.event_start_dt && formData.event_end_dt && convertPSTToLocal(formData.event_end_dt) < convertPSTToLocal(formData.event_start_dt) && (
-                      <p className="mt-1 text-sm text-red-600">End date cannot be prior to start date</p>
-                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      End Time (Optional)
+                    </label>
+                    <input
+                      type="time"
+                      value={eventEndTime}
+                      onChange={(e) => setEventEndTime(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
                   </div>
                 </div>
 
@@ -916,7 +1035,19 @@ export default function AdminEvents() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
-
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Start Time (Optional)
+                    </label>
+                    <input
+                      type="time"
+                      value={subEventStartTime}
+                      onChange={(e) => setSubEventStartTime(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       End Date *
@@ -928,6 +1059,17 @@ export default function AdminEvents() {
                       max={selectedEventForSubEvent.event_end_dt.split('T')[0]}
                       value={subEventFormData.sub_event_end_dt}
                       onChange={(e) => setSubEventFormData({ ...subEventFormData, sub_event_end_dt: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      End Time (Optional)
+                    </label>
+                    <input
+                      type="time"
+                      value={subEventEndTime}
+                      onChange={(e) => setSubEventEndTime(e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
@@ -961,17 +1103,54 @@ export default function AdminEvents() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    RSVP Link (Optional)
-                  </label>
+                <div className="flex items-center space-x-2">
                   <input
-                    type="url"
-                    value={subEventFormData.rsvp_link}
-                    onChange={(e) => setSubEventFormData({ ...subEventFormData, rsvp_link: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="https://example.com/rsvp"
+                    type="checkbox"
+                    id="sub_event_rsvp_enabled"
+                    checked={subEventFormData.rsvp_enabled}
+                    onChange={(e) => setSubEventFormData({ ...subEventFormData, rsvp_enabled: e.target.checked })}
+                    className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
                   />
+                  <label htmlFor="sub_event_rsvp_enabled" className="text-sm font-medium text-gray-700">
+                    Enable RSVP
+                  </label>
+                  <span className="text-xs text-gray-500">
+                    (If checked, users can RSVP for this sub-event)
+                  </span>
+                </div>
+
+                {subEventFormData.rsvp_enabled && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      RSVP Link (Optional)
+                    </label>
+                    <input
+                      type="url"
+                      value={subEventFormData.rsvp_link}
+                      onChange={(e) => setSubEventFormData({ ...subEventFormData, rsvp_link: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      placeholder="https://example.com/rsvp"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      If provided, clicking RSVP will open this external link. If left empty, RSVP will be saved to the system.
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="sub_event_show_in_home_page"
+                    checked={subEventFormData.show_in_home_page}
+                    onChange={(e) => setSubEventFormData({ ...subEventFormData, show_in_home_page: e.target.checked })}
+                    className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                  />
+                  <label htmlFor="sub_event_show_in_home_page" className="text-sm font-medium text-gray-700">
+                    Show in Home Page
+                  </label>
+                  <span className="text-xs text-gray-500">
+                    (If checked, this sub-event will be shown on the home page below the priority event)
+                  </span>
                 </div>
 
                 <div className="flex items-center space-x-2">

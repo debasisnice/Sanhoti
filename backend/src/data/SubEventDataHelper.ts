@@ -99,6 +99,28 @@ export class SubEventDataHelper extends DatabaseHelper {
     }
     newSubEvent.event_image_path = subEventFolderName;
 
+    // Limit show_in_home_page to maximum 3 per parent event
+    if (newSubEvent.show_in_home_page === true) {
+      // Get all sub-events for the same parent event that currently have show_in_home_page: true
+      const alreadyShowing = subEvents
+        .filter(se => se.event_id === subEvent.event_id && se.show_in_home_page === true)
+        .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+      
+      // If there are already 3 or more showing, set the oldest ones to false
+      // We want to keep only the 3 most recently updated ones (including the new one being created)
+      if (alreadyShowing.length >= 3) {
+        // Keep only the 2 most recently updated ones, set others to false
+        // Since we're adding a new one, we need to set the oldest of the existing ones to false
+        alreadyShowing.slice(2).forEach(se => {
+          const idx = subEvents.findIndex(s => s.sub_event_id === se.sub_event_id);
+          if (idx !== -1) {
+            subEvents[idx].show_in_home_page = false;
+            subEvents[idx].updated_at = new Date().toISOString();
+          }
+        });
+      }
+    }
+
     subEvents.push(newSubEvent);
     this.writeFile(this.filename, subEvents);
     return newSubEvent;
@@ -117,6 +139,36 @@ export class SubEventDataHelper extends DatabaseHelper {
       ...updates,
       updated_at: new Date().toISOString(),
     };
+
+    // Handle removal of optional fields (if set to null, remove the property)
+    if ('rsvp_link' in updates && updates.rsvp_link === null) {
+      delete updatedSubEvent.rsvp_link;
+    }
+
+    // Limit show_in_home_page to maximum 3 per parent event
+    if ('show_in_home_page' in updates && updates.show_in_home_page === true) {
+      const parentEventId = subEvents[index].event_id;
+      
+      // Get all sub-events for the same parent event that currently have show_in_home_page: true
+      // Exclude the current sub-event being updated
+      const alreadyShowing = subEvents
+        .filter(se => se.event_id === parentEventId && se.sub_event_id !== id && se.show_in_home_page === true)
+        .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+      
+      // If there are already 3 or more showing, set the oldest ones to false
+      // We want to keep only 3 total (the current one being updated + 2 others)
+      if (alreadyShowing.length >= 3) {
+        // Keep only the 2 most recently updated ones, set others to false
+        alreadyShowing.slice(2).forEach(se => {
+          const idx = subEvents.findIndex(s => s.sub_event_id === se.sub_event_id);
+          if (idx !== -1) {
+            subEvents[idx].show_in_home_page = false;
+            subEvents[idx].updated_at = new Date().toISOString();
+          }
+        });
+      }
+      // If alreadyShowing.length === 0, 1, or 2, we're adding the 1st, 2nd, or 3rd one, that's fine
+    }
 
     // If sub_event_name changed, update folder name
     if (updates.sub_event_name && updates.sub_event_name !== subEvents[index].sub_event_name) {

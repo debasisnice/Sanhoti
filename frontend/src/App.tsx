@@ -46,6 +46,7 @@ function App() {
           <Route path="/events" element={<Events />} />
           <Route path="/events/:id" element={<EventDetail />} />
           <Route path="/events/:id/rsvp" element={<RSVP />} />
+          <Route path="/sub-events/:id/rsvp" element={<RSVP />} />
           <Route path="/notices" element={<Notices />} />
           <Route path="/galleries" element={<Galleries />} />
           <Route path="/galleries/:id" element={<GalleryDetail />} />

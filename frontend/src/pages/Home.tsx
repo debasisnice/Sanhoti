@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Users, Image, BookOpen, ArrowRight, Eye, Star, MapPin } from 'lucide-react';
-import { eventsAPI, homepageAPI, settingsAPI } from '../services/api';
-import { Event } from '../types';
+import { Calendar, Users, Image, BookOpen, ArrowRight, Eye, Star, MapPin, Share2 } from 'lucide-react';
+import { eventsAPI, homepageAPI, settingsAPI, subEventsAPI } from '../services/api';
+import { Event, SubEvent } from '../types';
 import { format } from 'date-fns';
-import { convertPSTToLocal, generateCalendarUrl } from '../utils/dateUtils';
+import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime } from '../utils/dateUtils';
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
 
@@ -19,6 +19,7 @@ export default function Home() {
   const [facebookLink, setFacebookLink] = useState<string>('https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr');
   const [whatsappLink, setWhatsappLink] = useState<string>('https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH');
   const [activeAboutTab, setActiveAboutTab] = useState<'about' | 'vision' | 'mission'>('about');
+  const [priorityEventSubEvents, setPriorityEventSubEvents] = useState<SubEvent[]>([]);
 
   // Share functions
   const shareToFacebook = (eventId: string, _eventName: string) => {
@@ -125,6 +126,17 @@ export default function Home() {
     }
   };
 
+  const shareSubEventRSVP = async (subEvent: SubEvent, subEventId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const rsvpUrl = subEvent.rsvp_link 
+      ? subEvent.rsvp_link 
+      : `${window.location.origin}/sub-events/${subEventId}/rsvp`;
+    
+    await copyToClipboard(rsvpUrl);
+  };
+
   // Function to detect image orientation
   const detectImageOrientation = (imageUrl: string): Promise<'portrait' | 'landscape'> => {
     return new Promise((resolve) => {
@@ -189,6 +201,22 @@ export default function Home() {
             // Reset image orientation if no image
             setImageOrientation(null);
           }
+          
+          // Fetch sub-events for priority event that should be shown on home page
+          try {
+            const subEvents = await subEventsAPI.getByEventId(priority.event_id);
+            const homePageSubEvents = subEvents.filter(
+              (se: SubEvent) => se.show_in_home_page === true && se.is_active === true
+            );
+            console.log('Sub-events fetched:', subEvents.length, 'Home page sub-events:', homePageSubEvents.length);
+            setPriorityEventSubEvents(homePageSubEvents);
+          } catch (error) {
+            console.error('Error fetching sub-events:', error);
+            // Silently fail if no sub-events are found
+            setPriorityEventSubEvents([]);
+          }
+        } else {
+          setPriorityEventSubEvents([]);
         }
       } catch (error) {
         console.error('Error fetching events:', error);
@@ -258,7 +286,7 @@ export default function Home() {
   return (
     <div className="overflow-hidden">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center text-white overflow-hidden">
+      <section className="relative min-h-screen md:min-h-[110vh] flex items-center justify-center text-white overflow-hidden">
         {/* Background Slideshow */}
         <div className="absolute inset-0 z-0">
           {/* Fallback gradient background if no images load */}
@@ -339,12 +367,12 @@ export default function Home() {
               </div>
             </div>
             
-            {/* Buttons - Vertically Stacked */}
+            {/* Buttons - Vertically Stacked on Mobile, Side by Side on Desktop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-              className="flex flex-col gap-1.5 md:gap-2 w-fit"
+              className="flex flex-col md:flex-row gap-1.5 md:gap-2 w-fit"
             >
               <a
                 href={facebookLink}
@@ -374,20 +402,84 @@ export default function Home() {
             {priorityEvent && priorityEventImage && (() => {
               const eventId = priorityEvent.event_id || priorityEvent.id || '';
               return (
-                <Link to={`/events/${eventId}`} className="w-fit">
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.8 }}
-                    className="relative rounded-lg shadow-xl w-32 md:w-80 lg:w-96 overflow-hidden aspect-[3/4] md:aspect-[3/3.5] border-2 md:border-4 border-yellow-400 cursor-pointer hover:shadow-2xl transition-shadow"
-                    style={{
-                      backgroundImage: `url(${priorityEventImage})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                    }}
-                  >
-                  </motion.div>
-                </Link>
+                <div className="w-fit">
+                  <Link to={`/events/${eventId}`} className="w-fit block">
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.8 }}
+                      className="relative rounded-lg shadow-xl w-32 md:w-80 lg:w-96 overflow-hidden aspect-[3/4] md:aspect-[3/3.5] border-2 md:border-4 border-yellow-400 cursor-pointer hover:shadow-2xl transition-shadow"
+                      style={{
+                        backgroundImage: `url(${priorityEventImage})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }}
+                    >
+                    </motion.div>
+                  </Link>
+                  
+                  {/* Sub-Events below Priority Event Card */}
+                  {priorityEventSubEvents.length > 0 && (
+                    <div className="mt-4 space-y-3 w-32 md:w-80 lg:w-96">
+                      {priorityEventSubEvents.map((subEvent) => {
+                        const subEventId = subEvent.sub_event_id;
+                        const parentEventId = priorityEvent.event_id || priorityEvent.id || '';
+                        return (
+                          <motion.div
+                            key={subEventId}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 1 }}
+                            className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg shadow-lg p-2.5 border-2 border-yellow-300 hover:border-yellow-400 transition-all"
+                          >
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                              <Link
+                                to={`/events/${parentEventId}`}
+                                className="flex-1 font-semibold text-gray-900 text-xs md:text-sm hover:text-primary-600 transition-colors"
+                              >
+                                {subEvent.sub_event_name}
+                              </Link>
+                              <div className="flex items-center gap-2">
+                                {subEvent.rsvp_enabled && (
+                                  <button
+                                    onClick={(e) => shareSubEventRSVP(subEvent, subEventId, e)}
+                                    className="p-1.5 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                                    title="Share RSVP link"
+                                  >
+                                    <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                                  </button>
+                                )}
+                                {subEvent.rsvp_enabled ? (
+                                  subEvent.rsvp_link ? (
+                                    <a
+                                      href={subEvent.rsvp_link}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="bg-primary-600 hover:bg-primary-700 text-white text-xs md:text-sm font-semibold px-3 md:px-4 py-0.5 md:py-1 rounded transition-colors whitespace-nowrap"
+                                    >
+                                      RSVP
+                                    </a>
+                                  ) : (
+                                    <Link
+                                      to={`/sub-events/${subEventId}/rsvp`}
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="bg-primary-600 hover:bg-primary-700 text-white text-xs md:text-sm font-semibold px-3 md:px-4 py-0.5 md:py-1 rounded transition-colors whitespace-nowrap"
+                                    >
+                                      RSVP
+                                    </Link>
+                                  )
+                                ) : (
+                                  <div className="w-[60px] h-[1.5rem]"></div>
+                                )}
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               );
             })()}
           </div>
@@ -621,7 +713,7 @@ export default function Home() {
                                           className="text-lg underline hover:text-primary-600 cursor-pointer transition-colors"
                                           onClick={(e) => e.stopPropagation()}
                                         >
-                                          {format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}
+                                          {formatDateWithTime(eventDate)}
                                         </a>
                                         <span className="text-sm text-gray-500">•</span>
                                         <a
@@ -636,7 +728,7 @@ export default function Home() {
                                       </>
                                     );
                                   }
-                                  return <span className="text-lg">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</span>;
+                                  return <span className="text-lg">{formatDateWithTime(eventDate)}</span>;
                                 })()}
                               </div>
                             </div>
@@ -798,7 +890,7 @@ export default function Home() {
                                           className="text-lg underline hover:text-primary-600 cursor-pointer transition-colors"
                                           onClick={(e) => e.stopPropagation()}
                                         >
-                                          {format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}
+                                          {formatDateWithTime(eventDate)}
                                         </a>
                                         <span className="text-sm text-gray-500">•</span>
                                         <a
@@ -813,7 +905,7 @@ export default function Home() {
                                       </>
                                     );
                                   }
-                                  return <span className="text-lg">{format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}</span>;
+                                  return <span className="text-lg">{formatDateWithTime(eventDate)}</span>;
                                 })()}
                               </div>
                             </div>
@@ -967,11 +1059,11 @@ export default function Home() {
                                     onClick={(e) => e.stopPropagation()}
                                     title="Add to calendar"
                                   >
-                                    {format(convertPSTToLocal(eventDate), 'MMM dd')}
+                                    {formatDateWithTime(eventDate, 'MMM dd', 'h:mm a')}
                                   </a>
                                 );
                               }
-                              return <span className="text-primary-700 font-semibold">{format(convertPSTToLocal(eventDate), 'MMM dd')}</span>;
+                              return <span className="text-primary-700 font-semibold">{formatDateWithTime(eventDate, 'MMM dd', 'h:mm a')}</span>;
                             })()}
                           </div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">{eventName}</h3>

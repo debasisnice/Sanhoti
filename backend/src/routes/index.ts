@@ -135,6 +135,7 @@ router.get('/paymentqr/has-image', bindController(paymentQRController, 'hasImage
 
 // Sub-Events - Public routes (for event detail page) - MUST be before authenticate middleware
 router.get('/sub-events/event/:eventId', bindController(subEventController, 'getSubEventsByEventId'));
+router.get('/sub-events/public/:id', bindController(subEventController, 'getSubEventByIdPublic'));
 router.get('/sub-events/:id/image/:filename', bindController(subEventController, 'getSubEventImage'));
 router.get('/sub-events/:id/images', bindController(subEventController, 'getSubEventImages'));
 
@@ -229,6 +230,7 @@ router.get('/rsvps', requireMember, bindController(rsvpController, 'getAllRSVPs'
 router.get('/rsvps/my', bindController(rsvpController, 'getMyRSVPs'));
 router.get('/rsvps/:id', requireMember, bindController(rsvpController, 'getRSVPById'));
 router.get('/rsvps/event/:eventId', requireMember, bindController(rsvpController, 'getRSVPsByEvent'));
+router.get('/rsvps/sub-event/:subEventId', requireMember, bindController(rsvpController, 'getRSVPsBySubEvent'));
 router.put('/rsvps/:id', bindController(rsvpController, 'updateRSVP'));
 router.post('/rsvps/:id/cancel', bindController(rsvpController, 'cancelRSVP'));
 router.delete('/rsvps/:id', requireAdmin, auditLog('DELETE', 'rsvp'), bindController(rsvpController, 'deleteRSVP'));

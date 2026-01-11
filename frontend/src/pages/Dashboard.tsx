@@ -3,14 +3,17 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, Image, BookOpen, User, Key, X, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { rsvpAPI, galleriesAPI, magazinesAPI, eventsAPI, authAPI } from '../services/api';
-import { RSVP, PhotoGallery, Magazine, Event } from '../types';
+import { rsvpAPI, galleriesAPI, magazinesAPI, eventsAPI, authAPI, subEventsAPI } from '../services/api';
+import { RSVP, PhotoGallery, Magazine, Event, SubEvent } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal } from '../utils/dateUtils';
 import toast from 'react-hot-toast';
 
 interface RSVPWithEvent extends RSVP {
   event?: Event;
+  subEvent?: SubEvent;
+  displayName?: string; // Formatted display name (e.g., "Event Name - Sub Event Name")
+  linkTo?: string; // Link to event or sub-event page
 }
 
 export default function Dashboard() {
@@ -68,16 +71,49 @@ export default function Dashboard() {
           return;
         }
         
-        // Fetch event details for each RSVP
+        // Fetch event/sub-event details for each RSVP
         const rsvpsWithEvents = await Promise.all(
           rsvps.map(async (rsvp) => {
             try {
-              const event = await eventsAPI.getById(rsvp.eventId);
-              return { ...rsvp, event };
+              if (rsvp.subEventId) {
+                // This is a sub-event RSVP
+                const subEvent = await subEventsAPI.getById(rsvp.subEventId);
+                const parentEvent = await eventsAPI.getById(subEvent.event_id);
+                return {
+                  ...rsvp,
+                  subEvent,
+                  event: parentEvent,
+                  displayName: `${parentEvent.event_name} - ${subEvent.sub_event_name}`,
+                  linkTo: `/events/${parentEvent.event_id}`,
+                };
+              } else if (rsvp.eventId) {
+                // This is a regular event RSVP
+                const event = await eventsAPI.getById(rsvp.eventId);
+                return {
+                  ...rsvp,
+                  event,
+                  displayName: event.event_name,
+                  linkTo: `/events/${rsvp.eventId}`,
+                };
+              } else {
+                // Neither eventId nor subEventId is present
+                return {
+                  ...rsvp,
+                  event: undefined,
+                  displayName: 'Unknown Event',
+                  linkTo: '/events',
+                };
+              }
             } catch (error) {
-              console.error(`Error fetching event ${rsvp.eventId} for RSVP:`, error);
-              // If event fetch fails, just return RSVP without event
-              return { ...rsvp, event: undefined };
+              console.error(`Error fetching event/sub-event for RSVP:`, error);
+              // If fetch fails, just return RSVP without event/sub-event
+              return {
+                ...rsvp,
+                event: undefined,
+                subEvent: undefined,
+                displayName: 'Unknown Event',
+                linkTo: '/events',
+              };
             }
           })
         );
@@ -139,26 +175,37 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-4">
                 {myRSVPs.map((rsvp) => {
-                  const event = rsvp.event;
-                  const eventName = event?.event_name || event?.title || 'Event';
-                  const eventDate = event?.event_start_dt || event?.date || '';
-                  const guestsText = rsvp.numberOfAdults && rsvp.numberOfChildren
-                    ? `${rsvp.numberOfAdults} adult${rsvp.numberOfAdults > 1 ? 's' : ''}, ${rsvp.numberOfChildren} child${rsvp.numberOfChildren > 1 ? 'ren' : ''}`
-                    : rsvp.numberOfAdults
-                    ? `${rsvp.numberOfAdults} adult${rsvp.numberOfAdults > 1 ? 's' : ''}`
-                    : rsvp.numberOfGuests
-                    ? `${rsvp.numberOfGuests} guest${rsvp.numberOfGuests > 1 ? 's' : ''}`
-                    : 'No guests';
+                  const eventDate = rsvp.subEvent?.sub_event_start_dt 
+                    || rsvp.event?.event_start_dt 
+                    || rsvp.event?.date 
+                    || '';
+                  
+                  // Calculate total attendees
+                  const totalAttendees = (rsvp.numberOfAdults || 0) + (rsvp.numberOfChildren || 0);
+                  
+                  // Format guests text
+                  let guestsText = '';
+                  if (rsvp.numberOfAdults && rsvp.numberOfChildren) {
+                    guestsText = `${rsvp.numberOfAdults} adult${rsvp.numberOfAdults > 1 ? 's' : ''}, ${rsvp.numberOfChildren} child${rsvp.numberOfChildren > 1 ? 'ren' : ''}`;
+                  } else if (rsvp.numberOfAdults) {
+                    guestsText = `${rsvp.numberOfAdults} adult${rsvp.numberOfAdults > 1 ? 's' : ''}`;
+                  } else if (rsvp.numberOfChildren) {
+                    guestsText = `${rsvp.numberOfChildren} child${rsvp.numberOfChildren > 1 ? 'ren' : ''}`;
+                  } else if (rsvp.numberOfGuests) {
+                    guestsText = `${rsvp.numberOfGuests} guest${rsvp.numberOfGuests > 1 ? 's' : ''}`;
+                  } else {
+                    guestsText = 'No guests';
+                  }
                   
                   return (
                     <Link
                       key={rsvp.id}
-                      to={`/events/${rsvp.eventId}`}
+                      to={rsvp.linkTo || '/events'}
                       className="block border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 mb-1">{eventName}</h3>
+                          <h3 className="font-semibold text-gray-900 mb-1">{rsvp.displayName || 'Event'}</h3>
                           {eventDate && (
                             <p className="text-sm text-gray-600 mb-1">
                               {format(convertPSTToLocal(eventDate), 'MMMM dd, yyyy')}

@@ -1,3 +1,34 @@
+import { format } from 'date-fns';
+
+/**
+ * Formats a date string to include time if available
+ * 
+ * @param dateString - Date string (can be date-only like "2025-07-19" or ISO string with time)
+ * @param dateFormat - Format string for date part (default: 'MMMM dd, yyyy')
+ * @param timeFormat - Format string for time part (default: 'h:mm a')
+ * @returns Formatted string with date and time if time exists, otherwise just date
+ */
+export function formatDateWithTime(
+  dateString: string,
+  dateFormat: string = 'MMMM dd, yyyy',
+  timeFormat: string = 'h:mm a'
+): string {
+  if (!dateString) return '';
+  
+  const date = convertPSTToLocal(dateString);
+  
+  // Check if the original date string has a time component
+  const hasTime = dateString.includes('T') && dateString.match(/T\d{2}:\d{2}/);
+  
+  if (hasTime) {
+    // Format with both date and time
+    return `${format(date, dateFormat)} at ${format(date, timeFormat)}`;
+  } else {
+    // Format with just date
+    return format(date, dateFormat);
+  }
+}
+
 /**
  * Generate Google Calendar URL for an event
  * @param eventName - Name of the event

@@ -204,7 +204,8 @@ export const subEventsAPI = {
   },
 
   getById: async (id: string): Promise<SubEvent> => {
-    const response = await api.get(`/sub-events/${id}`);
+    // Use public endpoint (no auth required) for RSVP page
+    const response = await axios.get(`${API_BASE_URL}/sub-events/public/${id}`);
     return response.data;
   },
 
@@ -218,6 +219,8 @@ export const subEventsAPI = {
     is_active: boolean;
     event_id: string;
     rsvp_link?: string;
+    rsvp_enabled?: boolean;
+    show_in_home_page?: boolean;
   }): Promise<SubEvent> => {
     const response = await api.post('/sub-events', data);
     return response.data;
@@ -284,6 +287,11 @@ export const rsvpAPI = {
 
   getByEvent: async (eventId: string): Promise<RSVP[]> => {
     const response = await api.get(`/rsvps/event/${eventId}`);
+    return response.data;
+  },
+
+  getBySubEvent: async (subEventId: string): Promise<RSVP[]> => {
+    const response = await api.get(`/rsvps/sub-event/${subEventId}`);
     return response.data;
   },
 
