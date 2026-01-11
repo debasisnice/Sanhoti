@@ -181,7 +181,6 @@ export default function Dashboard() {
                     || '';
                   
                   // Calculate total attendees
-                  const totalAttendees = (rsvp.numberOfAdults || 0) + (rsvp.numberOfChildren || 0);
                   
                   // Format guests text
                   let guestsText = '';

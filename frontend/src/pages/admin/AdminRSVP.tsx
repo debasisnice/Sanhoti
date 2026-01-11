@@ -16,14 +16,6 @@ interface EventRSVPData {
   isSubEvent?: boolean;
 }
 
-interface SubEventRSVPData {
-  subEvent: SubEvent;
-  rsvps: RSVP[];
-  totalAdults: number;
-  totalChildren: number;
-  totalGuests: number;
-}
-
 export default function AdminRSVP() {
   const [, setEvents] = useState<Event[]>([]);
   const [eventRSVPData, setEventRSVPData] = useState<EventRSVPData[]>([]);

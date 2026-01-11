@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Users, Image, BookOpen, ArrowRight, Eye, Star, MapPin, Share2 } from 'lucide-react';
 import { eventsAPI, homepageAPI, settingsAPI, subEventsAPI } from '../services/api';
 import { Event, SubEvent } from '../types';
-import { format } from 'date-fns';
 import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime } from '../utils/dateUtils';
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
