@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Lock, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { BookOpen, Lock, X, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Download } from 'lucide-react';
 import { magazinesAPI } from '../services/api';
 import { Magazine } from '../types';
 import { format } from 'date-fns';
@@ -19,14 +19,137 @@ export default function Magazines() {
   const [magazines, setMagazines] = useState<Magazine[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMagazine, setSelectedMagazine] = useState<Magazine | null>(null);
+  const [expandedYears, setExpandedYears] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     magazinesAPI
       .getPublic()
-      .then(setMagazines)
+      .then((magazines) => {
+        // Sort magazines by publish date in descending order (newest first)
+        const sorted = magazines.sort((a, b) => {
+          const dateA = a.publishDate ? convertPSTToLocal(a.publishDate).getTime() : null;
+          const dateB = b.publishDate ? convertPSTToLocal(b.publishDate).getTime() : null;
+          
+          // If both have publish dates, sort by date desc
+          if (dateA !== null && dateB !== null) {
+            return dateB - dateA;
+          }
+          
+          // If only one has publish date, prioritize it
+          if (dateA !== null && dateB === null) {
+            return -1; // a comes first
+          }
+          if (dateA === null && dateB !== null) {
+            return 1; // b comes first
+          }
+          
+          // If neither has publish date, sort by createdAt desc
+          const createdA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const createdB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return createdB - createdA;
+        });
+        setMagazines(sorted);
+        
+        // Group magazines by year and expand current year by default
+        const currentYear = new Date().getFullYear();
+        const years = new Set<number>();
+        sorted.forEach(magazine => {
+          if (magazine.publishDate) {
+            const year = convertPSTToLocal(magazine.publishDate).getFullYear();
+            years.add(year);
+          }
+        });
+        
+        // Expand current year and most recent year by default
+        const yearsArray = Array.from(years).sort((a, b) => b - a);
+        const defaultExpanded = new Set<number>();
+        if (yearsArray.length > 0) {
+          defaultExpanded.add(yearsArray[0]); // Most recent year
+          if (years.has(currentYear)) {
+            defaultExpanded.add(currentYear);
+          }
+        }
+        setExpandedYears(defaultExpanded);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+  
+  const toggleYear = (year: number) => {
+    setExpandedYears(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(year)) {
+        newSet.delete(year);
+      } else {
+        newSet.add(year);
+      }
+      return newSet;
+    });
+  };
+  
+  // Get latest 3 magazines to show at top
+  const latestMagazines = magazines.slice(0, 3);
+  const remainingMagazines = magazines.slice(3);
+  
+  // Group remaining magazines by year (excluding the latest 3)
+  const magazinesByYear = remainingMagazines.reduce((acc, magazine) => {
+    let year: number;
+    if (magazine.publishDate) {
+      year = convertPSTToLocal(magazine.publishDate).getFullYear();
+    } else if (magazine.createdAt) {
+      year = new Date(magazine.createdAt).getFullYear();
+    } else {
+      year = new Date().getFullYear(); // Fallback to current year
+    }
+    
+    if (!acc[year]) {
+      acc[year] = [];
+    }
+    acc[year].push(magazine);
+    return acc;
+  }, {} as Record<number, Magazine[]>);
+  
+  // Sort years in descending order
+  const sortedYears = Object.keys(magazinesByYear)
+    .map(Number)
+    .sort((a, b) => b - a);
+
+  // Helper function to get download URL
+  const getDownloadUrl = (magazine: Magazine): string => {
+    const fileUrl = magazine.fileUrl;
+    if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
+      return fileUrl;
+    }
+    // Use relative path in production (when served by Nginx), absolute URL in development
+    const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
+    // If fileUrl already starts with /api/, backend already includes /api
+    if (fileUrl.startsWith('/api/')) {
+      // In production (API_BASE_URL is empty), use as-is
+      // In development (API_BASE_URL is http://localhost:5001), prepend it
+      if (API_BASE_URL && !API_BASE_URL.endsWith('/api')) {
+        return `${API_BASE_URL}${fileUrl}`;
+      } else {
+        // In production, use as-is (fileUrl already has /api/)
+        return fileUrl;
+      }
+    }
+    // Otherwise, add /api prefix
+    const fullPath = `/api${fileUrl.startsWith('/') ? fileUrl : `/${fileUrl}`}`;
+    return API_BASE_URL && !API_BASE_URL.endsWith('/api') ? `${API_BASE_URL}${fullPath}` : fullPath;
+  };
+
+  // Handle download
+  const handleDownload = (e: React.MouseEvent, magazine: Magazine) => {
+    e.stopPropagation(); // Prevent card click
+    const downloadUrl = getDownloadUrl(magazine);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `${magazine.title}.pdf`; // Set download filename
+    link.target = '_blank'; // Open in new tab as fallback
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="py-12 pb-32">
@@ -56,40 +179,148 @@ export default function Magazines() {
             <p className="text-gray-500 text-lg">No magazines available at this time.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {magazines.map((magazine, index) => (
-              <motion.div
-                key={magazine.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-2 cursor-pointer"
-                onClick={() => setSelectedMagazine(magazine)}
-              >
-                <div className="relative h-64 bg-gradient-to-br from-primary-400 to-primary-600 overflow-hidden">
-                  <PDFThumbnail
-                    fileUrl={magazine.fileUrl}
-                    alt={magazine.title}
-                  />
-                  {!magazine.isPublic && (
-                    <div className="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-2 z-10">
-                      <Lock className="w-4 h-4 text-white" />
+          <div className="space-y-6">
+            {/* Latest 3 Magazines - Always on Top */}
+            {latestMagazines.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Latest Magazines</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                  {latestMagazines.map((magazine, index) => (
+                    <motion.div
+                      key={magazine.id}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-2 cursor-pointer"
+                      onClick={() => setSelectedMagazine(magazine)}
+                    >
+                      <div className="relative h-64 bg-gradient-to-br from-primary-400 to-primary-600 overflow-hidden">
+                        <PDFThumbnail
+                          fileUrl={magazine.fileUrl}
+                          alt={magazine.title}
+                        />
+                        {!magazine.isPublic && (
+                          <div className="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-2 z-10">
+                            <Lock className="w-4 h-4 text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-6">
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">{magazine.title}</h3>
+                        {magazine.description && (
+                          <p className="text-gray-600 mb-4 line-clamp-2">{magazine.description}</p>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500">
+                            {format(convertPSTToLocal(magazine.publishDate), 'MMM dd, yyyy')}
+                          </span>
+                          <button
+                            onClick={(e) => handleDownload(e, magazine)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+                            title="Download Magazine"
+                          >
+                            <Download className="w-4 h-4" />
+                            <span>Download</span>
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Year-wise Magazines */}
+            {sortedYears.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Old Magazines</h2>
+              </div>
+            )}
+            {sortedYears.map((year) => {
+              const yearMagazines = magazinesByYear[year];
+              const isExpanded = expandedYears.has(year);
+              
+              return (
+                <div key={year} className="border border-gray-200 rounded-xl overflow-hidden">
+                  {/* Year Header */}
+                  <button
+                    onClick={() => toggleYear(year)}
+                    className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-4 flex items-center justify-between hover:from-primary-700 hover:to-primary-800 transition-colors"
+                  >
+                    <h2 className="text-2xl font-bold">{year}</h2>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">
+                        {yearMagazines.length} {yearMagazines.length === 1 ? 'magazine' : 'magazines'}
+                      </span>
+                      {isExpanded ? (
+                        <ChevronUp className="w-6 h-6" />
+                      ) : (
+                        <ChevronDown className="w-6 h-6" />
+                      )}
                     </div>
-                  )}
+                  </button>
+                  
+                  {/* Year Magazines */}
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="p-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {yearMagazines.map((magazine, index) => (
+                              <motion.div
+                                key={magazine.id}
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-2 cursor-pointer"
+                                onClick={() => setSelectedMagazine(magazine)}
+                              >
+                                <div className="relative h-64 bg-gradient-to-br from-primary-400 to-primary-600 overflow-hidden">
+                                  <PDFThumbnail
+                                    fileUrl={magazine.fileUrl}
+                                    alt={magazine.title}
+                                  />
+                                  {!magazine.isPublic && (
+                                    <div className="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-2 z-10">
+                                      <Lock className="w-4 h-4 text-white" />
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="p-6">
+                                  <h3 className="text-xl font-bold text-gray-900 mb-2">{magazine.title}</h3>
+                                  {magazine.description && (
+                                    <p className="text-gray-600 mb-4 line-clamp-2">{magazine.description}</p>
+                                  )}
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-500">
+                                      {format(convertPSTToLocal(magazine.publishDate), 'MMM dd, yyyy')}
+                                    </span>
+                                    <button
+                                      onClick={(e) => handleDownload(e, magazine)}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+                                      title="Download Magazine"
+                                    >
+                                      <Download className="w-4 h-4" />
+                                      <span>Download</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{magazine.title}</h3>
-                  {magazine.description && (
-                    <p className="text-gray-600 mb-4 line-clamp-2">{magazine.description}</p>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">
-                      {format(convertPSTToLocal(magazine.publishDate), 'MMM dd, yyyy')}
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

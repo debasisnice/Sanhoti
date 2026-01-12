@@ -114,6 +114,28 @@ export default function Galleries() {
     .map(Number)
     .sort((a, b) => b - a);
 
+  // Helper function to format gallery title: "Event Name - Year"
+  const formatGalleryTitle = (gallery: PhotoGallery): string => {
+    // Remove " Gallery" from the title if it exists
+    let eventName = gallery.title.replace(/\s+Gallery$/i, '').trim();
+    
+    // Get year from event_start_dt if available, otherwise from createdAt
+    let year: number | null = null;
+    if (gallery.event_start_dt) {
+      year = convertPSTToLocal(gallery.event_start_dt).getFullYear();
+    } else if (gallery.createdAt) {
+      year = new Date(gallery.createdAt).getFullYear();
+    }
+    
+    // Format as "Event Name - Year" if year is available
+    if (year !== null) {
+      return `${eventName} - ${year}`;
+    }
+    
+    // Fallback to just the event name if no year is available
+    return eventName;
+  };
+
   return (
     <div className="py-12 pb-32">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -212,7 +234,7 @@ export default function Galleries() {
                   )}
                 </div>
                 <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{gallery.title}</h3>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{formatGalleryTitle(gallery)}</h3>
                   {gallery.description && (
                     <p className="text-gray-600 mb-4 line-clamp-2">{gallery.description}</p>
                   )}
@@ -342,7 +364,7 @@ export default function Galleries() {
                                   )}
                                 </div>
                                 <div className="p-6">
-                                  <h3 className="text-xl font-bold text-gray-900 mb-2">{gallery.title}</h3>
+                                  <h3 className="text-xl font-bold text-gray-900 mb-2">{formatGalleryTitle(gallery)}</h3>
                                   {gallery.description && (
                                     <p className="text-gray-600 mb-4 line-clamp-2">{gallery.description}</p>
                                   )}
