@@ -30,13 +30,13 @@ export default function About() {
             className="bg-white rounded-xl shadow-lg p-8"
           >
             <p className="text-lg text-gray-700 leading-relaxed mb-4">
-              Sanhoti is a non-profit 501(c)(3) cultural and charitable organization dedicated to preserving and celebrating the rich heritage of Bengali culture in Orange County, California.
+              Sanhoti is a non-profit 501(c)(3) cultural and charitable organization dedicated to preserving and celebrating the rich heritage of Bengali culture in Orange County, California. As the premier Bengali Association near me in Orange County, we serve Bengali families in Rancho Santa Margarita (RSM), Irvine, Tustin, Mission Viejo, and throughout Orange County, CA.
             </p>
             <p className="text-lg text-gray-700 leading-relaxed mb-4">
-              Established in 2025, Sanhoti strives to build an inclusive and vibrant community where Bengali traditions flourish through festivals, arts, and meaningful community connections. From the grandeur of Durga Puja and Saraswati Puja to the joyous spirit of Poila Boishakh, we proudly bring people together to honor our roots and celebrate togetherness.
+              Established in 2025, Sanhoti strives to build an inclusive and vibrant Bengali community where traditions flourish through festivals, arts, and meaningful community connections. From the grandeur of Durga Puja and Saraswati Puja to the joyous spirit of Poila Boishakh, we proudly bring Bengali families together to honor our roots and celebrate togetherness in Orange County.
             </p>
             <p className="text-lg text-gray-700 leading-relaxed">
-              While our foundation is deeply rooted in Bengali customs, Sanhoti embraces diversity and warmly welcomes individuals from all backgrounds to join in and experience the richness of our culture. Our doors are open to everyone—regardless of race, religion, or ethnicity.
+              While our foundation is deeply rooted in Bengali customs, Sanhoti embraces diversity and warmly welcomes individuals from all backgrounds to join in and experience the richness of Bengali culture. Our doors are open to everyone—regardless of race, religion, or ethnicity. If you're searching for a Bengali association near me in Orange County, look no further than Sanhoti.
             </p>
           </motion.div>
 
