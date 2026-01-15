@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, User, LogOut, Mail, Phone, ChevronDown, Shield } from 'lucide-react';
+import { Menu, X, User, LogOut, Mail, Phone, ChevronDown, Shield, MapPin } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { authAPI, settingsAPI } from '../services/api';
 
@@ -118,7 +118,7 @@ export default function Navbar() {
         <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-primary-600 z-20"></div>
         {/* Left Section - Beige */}
         <div className="bg-amber-50 w-auto max-w-md relative pr-16">
-          <div className="h-full px-2 sm:px-4 lg:px-8 flex items-center space-x-2 sm:space-x-4 lg:space-x-6">
+          <div className="h-full pl-0.5 sm:pl-2 lg:pl-4 pr-2 sm:pr-4 lg:pr-8 flex items-center space-x-1.5 sm:space-x-3 lg:space-x-4">
             <Link to="/" className="flex items-center hover:opacity-90 transition-opacity">
               <img
                 src="/images/logo.png"
@@ -147,6 +147,10 @@ export default function Navbar() {
                 <a href="mailto:info@sanhoti.org" className="hover:text-primary-600 transition-colors whitespace-nowrap">
                   info@sanhoti.org
                 </a>
+              </div>
+              <div className="flex items-start space-x-1.5">
+                <MapPin className="w-3 h-3 text-primary-600 flex-shrink-0 mt-0.5" />
+                <span className="leading-tight">23 Calle Alamitos, RSM, CA 92688</span>
               </div>
               <div className="flex items-center space-x-1.5">
                 <Phone className="w-3 h-3 text-primary-600 flex-shrink-0" />

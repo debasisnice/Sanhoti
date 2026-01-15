@@ -55,7 +55,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4" />
-                <span>USA</span>
+                <span>23 Calle Alamitos, RSM, CA 92688</span>
               </div>
               <div className="flex items-center space-x-2">
                 <span className="font-semibold">EIN:</span>
