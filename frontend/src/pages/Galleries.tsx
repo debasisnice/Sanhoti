@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image, Lock, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { Image, Lock, ArrowRight, ChevronDown, ChevronUp, Video } from 'lucide-react';
 import { galleriesAPI } from '../services/api';
 import { PhotoGallery } from '../types';
 import { format } from 'date-fns';
@@ -228,7 +228,12 @@ export default function Galleries() {
                   {gallery.photos.length > 0 && (
                     <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 rounded px-2 py-1">
                       <span className="text-white text-sm font-medium">
-                        {gallery.photos.length} {gallery.photos.length === 1 ? 'photo' : 'photos'}
+                        {gallery.photos.length} {gallery.photos.length === 1 ? 'item' : 'items'}
+                        {gallery.photos.some(p => p.type === 'video') && (
+                          <span className="ml-1">
+                            ({gallery.photos.filter(p => p.type === 'video').length} {gallery.photos.filter(p => p.type === 'video').length === 1 ? 'video' : 'videos'})
+                          </span>
+                        )}
                       </span>
                     </div>
                   )}
@@ -358,7 +363,12 @@ export default function Galleries() {
                                   {gallery.photos.length > 0 && (
                                     <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 rounded px-2 py-1">
                                       <span className="text-white text-sm font-medium">
-                                        {gallery.photos.length} {gallery.photos.length === 1 ? 'photo' : 'photos'}
+                                        {gallery.photos.length} {gallery.photos.length === 1 ? 'item' : 'items'}
+                                        {gallery.photos.some(p => p.type === 'video') && (
+                                          <span className="ml-1">
+                                            ({gallery.photos.filter(p => p.type === 'video').length} {gallery.photos.filter(p => p.type === 'video').length === 1 ? 'video' : 'videos'})
+                                          </span>
+                                        )}
                                       </span>
                                     </div>
                                   )}

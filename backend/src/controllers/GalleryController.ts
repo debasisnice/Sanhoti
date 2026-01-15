@@ -33,15 +33,16 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit (for videos)
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const allowedTypes = /jpeg|jpg|png|gif|webp|mp4|mov|avi|webm|mkv/;
+    const allowedMimeTypes = /image\/(jpeg|jpg|png|gif|webp)|video\/(mp4|quicktime|x-msvideo|webm|x-matroska)/;
     const extname = allowedTypes.test(file.originalname.toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
+    const mimetype = allowedMimeTypes.test(file.mimetype);
     if (extname && mimetype) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed (jpeg, jpg, png, gif, webp)'));
+      cb(new Error('Only image files (jpeg, jpg, png, gif, webp) and video files (mp4, mov, avi, webm, mkv) are allowed'));
     }
   },
 });
@@ -384,6 +385,11 @@ export class GalleryController {
                          ext === 'png' ? 'image/png' :
                          ext === 'gif' ? 'image/gif' :
                          ext === 'webp' ? 'image/webp' :
+                         ext === 'mp4' ? 'video/mp4' :
+                         ext === 'mov' ? 'video/quicktime' :
+                         ext === 'avi' ? 'video/x-msvideo' :
+                         ext === 'webm' ? 'video/webm' :
+                         ext === 'mkv' ? 'video/x-matroska' :
                          'application/octet-stream';
       
       // Set CORS headers for image loading

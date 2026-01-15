@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Image as ImageIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon, ChevronLeft, ChevronRight, X, Video } from 'lucide-react';
 import { galleriesAPI } from '../services/api';
 import { PhotoGallery } from '../types';
 import { useAuthStore } from '../store/authStore';
@@ -158,7 +158,7 @@ export default function GalleryDetail() {
         {gallery.photos.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-xl">
             <ImageIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">No photos in this gallery yet.</p>
+            <p className="text-gray-500 text-lg">No photos or videos in this gallery yet.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -168,15 +168,36 @@ export default function GalleryDetail() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all cursor-pointer"
+                className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all cursor-pointer relative"
                 onClick={() => setSelectedPhotoIndex(index)}
               >
                 <div className="aspect-square bg-gray-200 relative overflow-hidden">
-                  <img
-                    src={photo.thumbnailUrl || photo.url}
-                    alt={`Photo ${index + 1}`}
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
-                  />
+                  {photo.type === 'video' ? (
+                    <>
+                      <div className="w-full h-full bg-black flex items-center justify-center">
+                        <Video className="w-16 h-16 text-white opacity-50" />
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="bg-black bg-opacity-60 rounded-full p-4">
+                          <Video className="w-8 h-8 text-white" />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <img
+                      src={photo.thumbnailUrl || photo.url}
+                      alt={`Photo ${index + 1}`}
+                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                    />
+                  )}
+                  {photo.type === 'video' && (
+                    <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 rounded px-2 py-1">
+                      <span className="text-white text-xs font-medium flex items-center gap-1">
+                        <Video className="w-3 h-3" />
+                        Video
+                      </span>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             ))}
@@ -212,17 +233,28 @@ export default function GalleryDetail() {
               </button>
             )}
 
-            {/* Photo Display */}
+            {/* Photo/Video Display */}
             <div className="flex flex-col items-center justify-center w-full h-full max-w-7xl">
-              <img
-                src={gallery.photos[selectedPhotoIndex].url || gallery.photos[selectedPhotoIndex].thumbnailUrl}
-                alt={`Photo ${selectedPhotoIndex + 1}`}
-                className="max-w-full max-h-[85vh] object-contain"
-                onClick={(e) => e.stopPropagation()}
-              />
+              {gallery.photos[selectedPhotoIndex].type === 'video' ? (
+                <video
+                  key={gallery.photos[selectedPhotoIndex].id}
+                  src={gallery.photos[selectedPhotoIndex].url}
+                  controls
+                  className="max-w-full max-h-[85vh] rounded-lg"
+                  style={{ maxWidth: '100%', maxHeight: '85vh' }}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              ) : (
+                <img
+                  src={gallery.photos[selectedPhotoIndex].url || gallery.photos[selectedPhotoIndex].thumbnailUrl}
+                  alt={`Photo ${selectedPhotoIndex + 1}`}
+                  className="max-w-full max-h-[85vh] object-contain"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              )}
               {gallery.photos.length > 1 && (
                 <p className="mt-4 text-white text-sm text-center opacity-75">
-                  {selectedPhotoIndex + 1} / {gallery.photos.length}
+                  {selectedPhotoIndex + 1} / {gallery.photos.length} {gallery.photos[selectedPhotoIndex].type === 'video' ? '(Video)' : '(Photo)'}
                 </p>
               )}
             </div>

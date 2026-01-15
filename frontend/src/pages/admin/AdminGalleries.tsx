@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Folder, Calendar, Eye, EyeOff, Upload, Trash2, X, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Folder, Calendar, Eye, EyeOff, Upload, Trash2, X, Image as ImageIcon, ChevronLeft, ChevronRight, Video } from 'lucide-react';
 import { eventsAPI, galleriesAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -141,28 +141,39 @@ function ThumbnailImage({
       className="relative rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-100"
       style={{ width: '180px', height: '144px', flexShrink: 0 }}
     >
-      <img
-        src={imageSrc}
-        alt={photo.caption || `Photo`}
-        className="w-full h-full object-cover"
-        onError={() => {
-          // If image fails to load, remove from blob URLs and retry
-          console.error('Image load error, removing blob URL:', photo.id);
-          setPhotoBlobUrls(prev => {
-            const updated = { ...prev };
-            if (updated[photo.id]) {
-              try {
-                URL.revokeObjectURL(updated[photo.id]);
-              } catch (e) {
-                // Ignore errors
+      {photo.type === 'video' ? (
+        <div className="w-full h-full flex items-center justify-center bg-black">
+          <Video className="w-12 h-12 text-white opacity-75" />
+        </div>
+      ) : (
+        <img
+          src={imageSrc}
+          alt={photo.caption || `Photo`}
+          className="w-full h-full object-cover"
+          onError={() => {
+            // If image fails to load, remove from blob URLs and retry
+            console.error('Image load error, removing blob URL:', photo.id);
+            setPhotoBlobUrls(prev => {
+              const updated = { ...prev };
+              if (updated[photo.id]) {
+                try {
+                  URL.revokeObjectURL(updated[photo.id]);
+                } catch (e) {
+                  // Ignore errors
+                }
+                delete updated[photo.id];
               }
-              delete updated[photo.id];
-            }
-            return updated;
-          });
-          setImageSrc(null);
-        }}
-      />
+              return updated;
+            });
+            setImageSrc(null);
+          }}
+        />
+      )}
+      {photo.type === 'video' && (
+        <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 rounded px-1.5 py-0.5">
+          <Video className="w-3 h-3 text-white" />
+        </div>
+      )}
     </div>
   );
 }
@@ -657,7 +668,7 @@ export default function AdminGalleries() {
     setUploading(true);
     try {
       const result = await galleriesAPI.uploadPhotos(selectedFolder.event_id, selectedFiles);
-      toast.success(result.message || `${selectedFiles.length} photo(s) uploaded successfully`);
+      toast.success(result.message || `${selectedFiles.length} file(s) uploaded successfully`);
       setShowUploadModal(false);
       setSelectedFolder(null);
       setSelectedFiles([]);
@@ -759,7 +770,7 @@ export default function AdminGalleries() {
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">
-                  Upload Photos to {formatFolderName(selectedFolder)}
+                  Upload Photos & Videos to {formatFolderName(selectedFolder)}
                 </h2>
                 <button
                   onClick={() => {
@@ -776,18 +787,18 @@ export default function AdminGalleries() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Photos
+                    Select Photos & Videos
                   </label>
                   <input
                     type="file"
                     multiple
-                    accept="image/*"
+                    accept="image/*,video/*"
                     onChange={handleFileSelect}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     disabled={uploading}
                   />
                   <p className="mt-2 text-sm text-gray-500">
-                    You can select multiple images to upload (max 20 files, 10MB each)
+                    You can select multiple images and videos to upload (max 20 files, 100MB each). Supported formats: Images (jpeg, jpg, png, gif, webp), Videos (mp4, mov, avi, webm, mkv)
                   </p>
                   {selectedFiles.length > 0 && (
                     <div className="mt-3">
@@ -829,7 +840,7 @@ export default function AdminGalleries() {
                     className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                     disabled={uploading || selectedFiles.length === 0}
                   >
-                    {uploading ? 'Uploading...' : `Upload ${selectedFiles.length} Photo(s)`}
+                    {uploading ? 'Uploading...' : `Upload ${selectedFiles.length} File(s)`}
                   </button>
                 </div>
               </div>
@@ -952,7 +963,7 @@ export default function AdminGalleries() {
                           className="px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium flex items-center"
                         >
                           <ImageIcon className="w-4 h-4 mr-2" />
-                          View Photos
+                          View Gallery
                         </button>
                       </div>
                     </div>
@@ -1097,27 +1108,39 @@ export default function AdminGalleries() {
               <ChevronLeft className="w-8 h-8" />
             </button>
 
-            {/* Photo Display */}
+            {/* Photo/Video Display */}
             <div className="flex flex-col items-center justify-center w-full h-full">
               {viewingPhotos[currentPhotoIndex] ? (
                 <>
-                  <PhotoViewerImage
-                    photo={viewingPhotos[currentPhotoIndex]}
-                    photoBlobUrls={photoBlobUrls}
-                    setPhotoBlobUrls={setPhotoBlobUrls}
-                  />
+                  {viewingPhotos[currentPhotoIndex].type === 'video' ? (
+                    <div className="max-w-full max-h-[85vh] flex items-center justify-center">
+                      <video
+                        key={viewingPhotos[currentPhotoIndex].id}
+                        src={viewingPhotos[currentPhotoIndex].url}
+                        controls
+                        className="max-w-full max-h-[85vh] rounded-lg"
+                        style={{ maxWidth: '100%', maxHeight: '85vh' }}
+                      />
+                    </div>
+                  ) : (
+                    <PhotoViewerImage
+                      photo={viewingPhotos[currentPhotoIndex]}
+                      photoBlobUrls={photoBlobUrls}
+                      setPhotoBlobUrls={setPhotoBlobUrls}
+                    />
+                  )}
                   {viewingPhotos[currentPhotoIndex].caption && (
                     <p className="mt-4 text-white text-lg text-center max-w-4xl px-4">
                       {viewingPhotos[currentPhotoIndex].caption}
                     </p>
                   )}
                   <p className="mt-2 text-white text-sm text-center opacity-75">
-                    {currentPhotoIndex + 1} / {viewingPhotos.length}
+                    {currentPhotoIndex + 1} / {viewingPhotos.length} {viewingPhotos[currentPhotoIndex].type === 'video' ? '(Video)' : '(Photo)'}
                   </p>
                 </>
               ) : (
                 <div className="flex items-center justify-center w-full h-[85vh]">
-                  <div className="text-white">Loading photo...</div>
+                  <div className="text-white">Loading...</div>
                 </div>
               )}
             </div>

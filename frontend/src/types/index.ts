@@ -121,6 +121,7 @@ export interface Photo {
   caption?: string;
   uploadedAt: string;
   filename?: string; // For deletion purposes
+  type?: 'image' | 'video'; // Media type: image or video
 }
 
 export interface PhotoGallery {

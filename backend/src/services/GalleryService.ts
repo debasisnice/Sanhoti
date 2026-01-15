@@ -40,17 +40,19 @@ export class GalleryService {
           if (statSync(folderPath).isDirectory()) {
             const files = readdirSync(folderPath);
             photos = files
-              .filter(file => /\.(jpg|jpeg|png|gif|webp)$/i.test(file))
+              .filter(file => /\.(jpg|jpeg|png|gif|webp|mp4|mov|avi|webm|mkv)$/i.test(file))
               .map((file, index) => {
                 // URL encode the filename to handle special characters
                 const encodedFile = encodeURIComponent(file);
+                const isVideo = /\.(mp4|mov|avi|webm|mkv)$/i.test(file);
                 return {
                   id: `photo-${event.event_id}-${index}`,
                   url: `/api/galleries/${event.event_id}/photos/${encodedFile}`,
-                  thumbnailUrl: `/api/galleries/${event.event_id}/photos/${encodedFile}`,
+                  thumbnailUrl: isVideo ? undefined : `/api/galleries/${event.event_id}/photos/${encodedFile}`, // Videos don't have thumbnails yet
                   caption: file.replace(/\.[^/.]+$/, ''), // Use filename as caption
                   uploadedAt: new Date().toISOString(), // Could get from file stats if needed
                   filename: file, // Store original filename for reference
+                  type: isVideo ? 'video' as const : 'image' as const,
                 };
               });
           }
@@ -103,17 +105,19 @@ export class GalleryService {
         if (statSync(folderPath).isDirectory()) {
           const files = readdirSync(folderPath);
           photos = files
-            .filter(file => /\.(jpg|jpeg|png|gif|webp)$/i.test(file))
+            .filter(file => /\.(jpg|jpeg|png|gif|webp|mp4|mov|avi|webm|mkv)$/i.test(file))
             .map((file, index) => {
               // URL encode the filename to handle special characters
               const encodedFile = encodeURIComponent(file);
+              const isVideo = /\.(mp4|mov|avi|webm|mkv)$/i.test(file);
               return {
                 id: `photo-${event.event_id}-${index}`,
                 url: `/api/galleries/${event.event_id}/photos/${encodedFile}`,
-                thumbnailUrl: `/api/galleries/${event.event_id}/photos/${encodedFile}`,
+                thumbnailUrl: isVideo ? undefined : `/api/galleries/${event.event_id}/photos/${encodedFile}`,
                 caption: file.replace(/\.[^/.]+$/, ''),
                 uploadedAt: new Date().toISOString(),
                 filename: file, // Store original filename for reference
+                type: isVideo ? 'video' as const : 'image' as const,
               };
             });
         }
@@ -205,17 +209,19 @@ export class GalleryService {
       if (existsSync(folderPath) && statSync(folderPath).isDirectory()) {
         const files = readdirSync(folderPath);
         photos = files
-          .filter(file => /\.(jpg|jpeg|png|gif|webp)$/i.test(file))
+          .filter(file => /\.(jpg|jpeg|png|gif|webp|mp4|mov|avi|webm|mkv)$/i.test(file))
           .map((file, index) => {
             const filePath = join(folderPath, file);
             const stats = statSync(filePath);
+            const isVideo = /\.(mp4|mov|avi|webm|mkv)$/i.test(file);
             return {
               id: `photo-${eventId}-${index}-${file}`,
               url: `/api/galleries/${eventId}/photos/${encodeURIComponent(file)}`,
-              thumbnailUrl: `/api/galleries/${eventId}/photos/${encodeURIComponent(file)}`,
+              thumbnailUrl: isVideo ? undefined : `/api/galleries/${eventId}/photos/${encodeURIComponent(file)}`,
               caption: file.replace(/\.[^/.]+$/, ''),
               uploadedAt: stats.birthtime.toISOString(),
               filename: file, // Store filename for deletion
+              type: isVideo ? 'video' as const : 'image' as const,
             };
           });
       }
