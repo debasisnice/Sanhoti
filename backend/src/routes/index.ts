@@ -22,6 +22,7 @@ import { HomePageController } from '../controllers/HomePageController.js';
 import { BoardMembersController } from '../controllers/BoardMembersController.js';
 import { PaymentQRController } from '../controllers/PaymentQRController.js';
 import { SubEventController } from '../controllers/SubEventController.js';
+import { SitemapController } from '../controllers/SitemapController.js';
 
 const router = Router();
 
@@ -44,6 +45,7 @@ const homePageController = new HomePageController();
 const boardMembersController = new BoardMembersController();
 const paymentQRController = new PaymentQRController();
 const subEventController = new SubEventController();
+const sitemapController = new SitemapController();
 
 // Helper to bind controller methods
 function bindController(controller: any, methodName: string) {
@@ -55,6 +57,11 @@ function bindController(controller: any, methodName: string) {
 // Public routes
 router.post('/auth/register', bindController(authController, 'register'));
 router.post('/auth/login', bindController(authController, 'login'));
+
+// Sitemap - Public route (must be early to avoid conflicts)
+router.get('/sitemap.xml', (req, res) => {
+  return sitemapController.generateSitemap(req, res);
+});
 
 // Events - Public routes
 router.get('/events', bindController(eventController, 'getActiveEvents'));

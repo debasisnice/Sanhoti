@@ -239,6 +239,78 @@ export default function Home() {
     fetchSocialLinks();
   }, []);
 
+  // Add Events structured data (Schema.org) for SEO
+  useEffect(() => {
+    if (upcomingEvents.length === 0) return;
+
+    // Remove existing events structured data
+    const existingScript = document.getElementById('events-structured-data');
+    if (existingScript) {
+      existingScript.remove();
+    }
+
+    // Create structured data for events
+    const eventsData = upcomingEvents.slice(0, 10).map((event) => {
+      const startDate = event.event_start_dt ? convertPSTToLocal(event.event_start_dt) : null;
+      const endDate = event.event_end_dt ? convertPSTToLocal(event.event_end_dt) : null;
+      
+      return {
+        "@type": "Event",
+        "name": event.event_name,
+        "description": event.event_description || `${event.event_name} - Join us for this cultural event`,
+        "startDate": startDate ? startDate.toISOString() : undefined,
+        "endDate": endDate ? endDate.toISOString() : undefined,
+        "location": event.location ? {
+          "@type": "Place",
+          "name": event.location,
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Orange County",
+            "addressRegion": "CA",
+            "addressCountry": "US"
+          }
+        } : {
+          "@type": "Place",
+          "name": "Sanhoti Bengali Association",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "23 Calle Alamitos",
+            "addressLocality": "Rancho Santa Margarita",
+            "addressRegion": "CA",
+            "postalCode": "92688",
+            "addressCountry": "US"
+          }
+        },
+        "organizer": {
+          "@type": "Organization",
+          "name": "Sanhoti Bengali Association of Orange County",
+          "url": "https://www.sanhoti.org",
+          "email": "info@sanhoti.org",
+          "telephone": "+1-949-378-6425"
+        },
+        "url": `https://www.sanhoti.org/events/${event.event_id}`,
+        "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+        "eventStatus": "https://schema.org/EventScheduled"
+      };
+    }).filter(event => event.startDate); // Only include events with start dates
+
+    if (eventsData.length > 0) {
+      const script = document.createElement('script');
+      script.id = 'events-structured-data';
+      script.type = 'application/ld+json';
+      script.text = JSON.stringify(eventsData.length === 1 ? eventsData[0] : eventsData);
+      document.head.appendChild(script);
+    }
+
+    // Cleanup function
+    return () => {
+      const script = document.getElementById('events-structured-data');
+      if (script) {
+        script.remove();
+      }
+    };
+  }, [upcomingEvents]);
+
   // Slideshow auto-advance
   useEffect(() => {
     if (slideshowImages.length <= 1) return;
@@ -572,7 +644,7 @@ export default function Home() {
               className="bg-gray-50 rounded-xl shadow-lg p-8 max-w-6xl mx-auto"
             >
               <p className="text-lg text-gray-700 leading-relaxed mb-4">
-                Sanhoti is a non-profit 501(c)(3) cultural and charitable organization dedicated to preserving and celebrating the rich heritage of Bengali culture in Orange County, California.
+                Sanhoti is a non-profit 501(c)(3) cultural and charitable organization dedicated to preserving and celebrating the rich heritage of Bengali culture in Orange County, California. As the premier Bengali Association in Orange County, we serve the Bengali community in Orange County, and surrounding areas.
               </p>
               <p className="text-lg text-gray-700 leading-relaxed mb-4">
                 Established in 2025, Sanhoti strives to build an inclusive and vibrant community where Bengali traditions flourish through festivals, arts, and meaningful community connections. From the grandeur of Durga Puja and Saraswati Puja to the joyous spirit of Poila Boishakh, we proudly bring people together to honor our roots and celebrate togetherness.

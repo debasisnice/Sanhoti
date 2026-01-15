@@ -1,0 +1,17 @@
+# Robots.txt for Sanhoti Bengali Association
+# https://www.sanhoti.org/robots.txt
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /login
+Disallow: /register
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://www.sanhoti.org/sitemap.xml
+
+# Crawl-delay (optional, helps prevent server overload)
+Crawl-delay: 1
+
