@@ -27,6 +27,42 @@ const allowedOrigins = process.env.CORS_ORIGIN
       'http://sanhoti.org'
     ];
 
+// Security Headers Middleware - Improve trust signals and security
+app.use((req, res, next) => {
+  // Prevent clickjacking attacks
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  
+  // Prevent MIME-type sniffing attacks
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  
+  // Enable HSTS (force HTTPS for 1 year, including subdomains)
+  // Preload allows inclusion in browser HSTS preload lists
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  
+  // Referrer Policy - control what referrer information is sent
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // Permissions Policy - control browser features and APIs
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  
+  // Content Security Policy - prevent XSS attacks
+  // Adjust based on your specific needs (fonts, scripts, etc.)
+  const cspHeader = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: https:",
+    "connect-src 'self' https:",
+    "frame-ancestors 'self'",
+    "base-uri 'self'",
+    "form-action 'self'"
+  ].join('; ');
+  res.setHeader('Content-Security-Policy', cspHeader);
+  
+  next();
+});
+
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, Postman, etc.)
