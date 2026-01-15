@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image, Lock, ArrowRight, ChevronDown, ChevronUp, Video } from 'lucide-react';
+import { Image, Lock, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { galleriesAPI } from '../services/api';
 import { PhotoGallery } from '../types';
 import { format } from 'date-fns';

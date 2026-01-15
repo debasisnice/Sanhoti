@@ -23,6 +23,7 @@ interface Photo {
   caption?: string;
   uploadedAt: string;
   filename?: string;
+  type?: 'image' | 'video'; // Media type: image or video
 }
 
 // Component to handle thumbnail image loading with blob URLs
