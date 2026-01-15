@@ -30,7 +30,7 @@ You need to verify that you own the website. Choose one of these methods:
    
    # Upload the HTML file (using scp from your local machine)
    # From your local terminal:
-   scp -i ~/Downloads/sanhoti-keypair.pem /path/to/google-verification-file.html ubuntu@44.220.179.207:/var/www/sanhoti/frontend/public/
+   scp -i ~/Downloads/sanhoti-keypair.pem /path/to/google43afdbcf7f78daf7.html ubuntu@44.220.179.207:/var/www/sanhoti/frontend/public/
    ```
 3. Ensure the file is accessible at: `https://www.sanhoti.org/google-verification-file.html`
 4. Click **"Verify"** in Google Search Console
