@@ -5,6 +5,7 @@ import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import routes from './routes/index.js';
+import { SitemapController } from './controllers/SitemapController.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -61,6 +62,12 @@ app.use(express.urlencoded({ extended: true }));
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Sitemap - Serve at root level for SEO (before API routes)
+const sitemapController = new SitemapController();
+app.get('/sitemap.xml', (req, res) => {
+  return sitemapController.generateSitemap(req, res);
 });
 
 // API routes
