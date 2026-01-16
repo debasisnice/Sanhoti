@@ -113,6 +113,21 @@ export interface Photo {
   type?: 'image' | 'video'; // Media type: image or video
 }
 
+export interface News {
+  news_id: string; // 12 digit alphanumeric, auto-generated
+  title: string;
+  content: string; // Article text content
+  media_type: 'video' | 'link' | 'article' | 'image'; // Type of media
+  media_url?: string; // URL for video, link, or image
+  media_file_path?: string; // Path for uploaded video/image file
+  is_active: boolean; // defaults to true
+  is_published: boolean; // defaults to false
+  is_archived?: boolean; // defaults to false
+  created_at: string;
+  updated_at: string;
+  created_by?: string; // User ID who created the news
+}
+
 export interface PhotoGallery {
   id: string;
   eventId?: string;
@@ -231,6 +246,7 @@ export interface Settings {
     noticeBoard: boolean;
     galleries: boolean;
     magazines: boolean;
+    news: boolean;
     contactUs: boolean;
     committee: boolean;
     documents: boolean;

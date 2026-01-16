@@ -152,6 +152,23 @@ export interface Magazine {
   createdBy: string;
 }
 
+export interface News {
+  news_id: string;
+  title: string;
+  content: string;
+  media_type: 'video' | 'link' | 'article' | 'image';
+  media_url?: string;
+  media_file_path?: string;
+  is_active: boolean;
+  is_published: boolean;
+  is_archived?: boolean;
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+  // Legacy fields for backward compatibility
+  id?: string;
+}
+
 export interface Document {
   id: string;
   title: string;

@@ -74,6 +74,7 @@ export default function Navbar() {
     noticeBoard: true,
     galleries: true,
     magazines: true,
+    news: true,
     contactUs: true,
     committee: true,
     documents: true,
@@ -103,6 +104,7 @@ export default function Navbar() {
     { path: '/notices', label: 'Notice Board', key: 'noticeBoard' as const },
     { path: '/galleries', label: 'Galleries', key: 'galleries' as const },
     { path: '/magazines', label: 'Magazines', key: 'magazines' as const },
+    { path: '/news', label: 'News', key: 'news' as const },
     { path: '/contact', label: 'Contact Us', key: 'contactUs' as const },
     { path: '/committee', label: 'Committee', key: 'committee' as const },
     { path: '/documents', label: 'Documents', key: 'documents' as const },
@@ -188,7 +190,7 @@ export default function Navbar() {
                   )}
                   <Link
                     to={link.path}
-                    className={`hover:text-primary-200 transition-colors font-medium whitespace-nowrap text-base relative pb-1 ${
+                    className={`hover:text-primary-200 transition-colors font-medium whitespace-nowrap text-[15px] relative pb-1 ${
                       isActive ? 'border-b-2 border-white' : ''
                     }`}
                   >
@@ -202,7 +204,7 @@ export default function Navbar() {
             {navbarSettings.donate && (
               <Link
                 to="/donate"
-                className="bg-white text-primary-600 px-3 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors whitespace-nowrap text-base ml-3 lg:ml-4"
+                className="bg-white text-primary-600 px-3 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors whitespace-nowrap text-[15px] ml-3 lg:ml-4"
               >
                 Donate
               </Link>
@@ -210,7 +212,7 @@ export default function Navbar() {
             {!isAuthenticated && navbarSettings.joinUs && (
               <Link
                 to="/register"
-                className="bg-white text-primary-600 px-3 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors whitespace-nowrap text-base ml-1"
+                className="bg-white text-primary-600 px-3 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors whitespace-nowrap text-[15px] ml-1"
               >
                 Join Us
               </Link>
@@ -222,7 +224,7 @@ export default function Navbar() {
                 <button
                   ref={buttonRef}
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-1.5 hover:text-primary-200 transition-colors font-medium whitespace-nowrap px-2.5 py-2 rounded-lg hover:bg-primary-800 text-base"
+                  className="flex items-center space-x-1.5 hover:text-primary-200 transition-colors font-medium whitespace-nowrap px-2.5 py-2 rounded-lg hover:bg-primary-800 text-[15px]"
                 >
                   <User className="w-4 h-4" />
                   <span>{user.firstName || 'User'}</span>
@@ -276,14 +278,14 @@ export default function Navbar() {
                   document.body
                 )}
               </div>
-            ) : (
-              <Link
-                to="/login"
-                className="hover:text-primary-200 transition-colors font-medium whitespace-nowrap text-base ml-3 lg:ml-4"
-              >
-                Admin
-              </Link>
-            )}
+              ) : (
+                <Link
+                  to="/login"
+                  className="hover:text-primary-200 transition-colors font-medium whitespace-nowrap text-[15px] ml-3 lg:ml-4"
+                >
+                  Admin
+                </Link>
+              )}
           </div>
 
           {/* Mobile menu button */}
@@ -318,7 +320,7 @@ export default function Navbar() {
                     key={link.path}
                     to={link.path}
                     onClick={() => setIsOpen(false)}
-                    className={`block text-white hover:text-primary-200 transition-colors pb-1 ${
+                    className={`block text-white hover:text-primary-200 transition-colors pb-1 text-[15px] ${
                       isActive ? 'border-b-2 border-white' : ''
                     }`}
                   >

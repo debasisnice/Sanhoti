@@ -12,6 +12,7 @@ interface NavbarSettings {
   noticeBoard: boolean;
   galleries: boolean;
   magazines: boolean;
+  news: boolean;
   contactUs: boolean;
   committee: boolean;
   documents: boolean;
@@ -51,6 +52,7 @@ const menuItemLabels: Record<keyof NavbarSettings, string> = {
   noticeBoard: 'Notice Board',
   galleries: 'Galleries',
   magazines: 'Magazines',
+  news: 'News',
   contactUs: 'Contact Us',
   committee: 'Committee',
   documents: 'Documents',

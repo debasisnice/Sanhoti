@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AuthResponse, Event, RSVP, Notice, PhotoGallery, Magazine, Document, SubEvent, AuditLog } from '../types';
+import { AuthResponse, Event, RSVP, Notice, PhotoGallery, Magazine, Document, SubEvent, AuditLog, News } from '../types';
 
 // Use relative path in production (when served by Nginx), absolute URL in development
 // Force relative /api in production to avoid mixed-content, ignore VITE_API_URL there
@@ -579,6 +579,85 @@ export const magazinesAPI = {
 
   getFileUrl: (filename: string): string => {
     return `${API_BASE_URL}/magazines/files/${encodeURIComponent(filename)}`;
+  },
+};
+
+// News API
+export const newsAPI = {
+  getPublic: async (): Promise<News[]> => {
+    const response = await api.get('/news/public');
+    return response.data;
+  },
+
+  getAll: async (): Promise<News[]> => {
+    const response = await api.get('/news');
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<News> => {
+    const response = await api.get(`/news/${id}`);
+    return response.data;
+  },
+
+  create: async (data: {
+    title: string;
+    content: string;
+    media_type: 'video' | 'link' | 'article' | 'image';
+    media_url?: string;
+    media?: File; // File for video/image upload
+    is_active?: boolean;
+    is_published?: boolean;
+  }): Promise<News> => {
+    const formData = new FormData();
+    formData.append('title', data.title);
+    formData.append('content', data.content);
+    formData.append('media_type', data.media_type);
+    if (data.media_url) formData.append('media_url', data.media_url);
+    if (data.media) formData.append('media', data.media);
+    if (data.is_active !== undefined) formData.append('is_active', String(data.is_active));
+    if (data.is_published !== undefined) formData.append('is_published', String(data.is_published));
+
+    const response = await api.post('/news', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  update: async (id: string, data: {
+    title?: string;
+    content?: string;
+    media_type?: 'video' | 'link' | 'article' | 'image';
+    media_url?: string;
+    is_active?: boolean;
+    is_published?: boolean;
+  }): Promise<News> => {
+    const response = await api.put(`/news/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/news/${id}`);
+  },
+
+  getArchived: async (): Promise<News[]> => {
+    const response = await axios.get(`${API_BASE_URL}/news/archived`);
+    return response.data;
+  },
+
+  archive: async (id: string): Promise<News> => {
+    const response = await api.post(`/news/${id}/archive`);
+    return response.data;
+  },
+
+  unarchive: async (id: string): Promise<News> => {
+    const response = await api.post(`/news/${id}/unarchive`);
+    return response.data;
+  },
+
+  getMediaUrl: (filename: string): string => {
+    return `${API_BASE_URL}/news/media/${encodeURIComponent(filename)}`;
   },
 };
 

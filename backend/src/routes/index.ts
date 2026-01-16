@@ -8,6 +8,7 @@ import { AuthController } from '../controllers/AuthController.js';
 import { EventController } from '../controllers/EventController.js';
 import { RSVPController } from '../controllers/RSVPController.js';
 import { NoticeController } from '../controllers/NoticeController.js';
+import { NewsController } from '../controllers/NewsController.js';
 import { GalleryController } from '../controllers/GalleryController.js';
 import { MagazineController } from '../controllers/MagazineController.js';
 import { DocumentController } from '../controllers/DocumentController.js';
@@ -31,6 +32,7 @@ const authController = new AuthController();
 const eventController = new EventController();
 const rsvpController = new RSVPController();
 const noticeController = new NoticeController();
+const newsController = new NewsController();
 const galleryController = new GalleryController();
 const magazineController = new MagazineController();
 const documentController = new DocumentController();
@@ -87,6 +89,11 @@ router.get('/notices/:noticeId/images',
 router.get('/notices/:noticeId/images/:filename',
   bindController(noticeController, 'getNoticeImage')
 );
+
+// News - Public routes
+router.get('/news/public', bindController(newsController, 'getPublishedNews'));
+router.get('/news/archived', bindController(newsController, 'getArchivedNews'));
+router.get('/news/media/:filename', bindController(newsController, 'serveMedia'));
 
 // Galleries - Public routes (specific routes first)
 router.get('/galleries/public', bindController(galleryController, 'getPublicGalleries'));
@@ -280,6 +287,36 @@ router.delete('/notices/:noticeId/images/:filename',
   requireAdmin,
   auditLog('DELETE_IMAGE', 'notice'),
   bindController(noticeController, 'deleteNoticeImage')
+);
+
+// News - Admin routes
+router.get('/news', requireAdmin, bindController(newsController, 'getAllNews'));
+router.get('/news/:id', requireAdmin, bindController(newsController, 'getNewsById'));
+router.post('/news',
+  requireAdmin,
+  auditLog('CREATE', 'news'),
+  newsController.uploadMedia(),
+  bindController(newsController, 'createNews')
+);
+router.put('/news/:id',
+  requireAdmin,
+  auditLog('UPDATE', 'news'),
+  bindController(newsController, 'updateNews')
+);
+router.delete('/news/:id',
+  requireAdmin,
+  auditLog('DELETE', 'news'),
+  bindController(newsController, 'deleteNews')
+);
+router.post('/news/:id/archive',
+  requireAdmin,
+  auditLog('ARCHIVE', 'news'),
+  bindController(newsController, 'archiveNews')
+);
+router.post('/news/:id/unarchive',
+  requireAdmin,
+  auditLog('UNARCHIVE', 'news'),
+  bindController(newsController, 'unarchiveNews')
 );
 
 // Galleries - Member routes (specific routes first)

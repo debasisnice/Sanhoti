@@ -126,6 +126,7 @@ export class SettingsDataHelper extends DatabaseHelper {
         noticeBoard: true,
         galleries: true,
         magazines: true,
+        news: true,
         contactUs: true,
         committee: true,
         documents: true,
