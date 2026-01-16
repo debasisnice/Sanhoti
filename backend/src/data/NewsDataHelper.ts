@@ -26,7 +26,7 @@ export class NewsDataHelper extends DatabaseHelper {
 
   async findById(newsId: string): Promise<News | null> {
     const news = await this.findAll();
-    return news.find(n => n.news_id === newsId || n.id === newsId) || null;
+    return news.find(n => n.news_id === newsId) || null;
   }
 
   async findPublished(): Promise<News[]> {
@@ -56,7 +56,7 @@ export class NewsDataHelper extends DatabaseHelper {
     const now = new Date().toISOString();
     
     // Generate unique 12-digit alphanumeric news_id
-    let news_id: string;
+    let news_id: string = '';
     let exists = true;
     while (exists) {
       news_id = this.generate12DigitAlphanumericId();
@@ -78,7 +78,7 @@ export class NewsDataHelper extends DatabaseHelper {
 
   async update(newsId: string, updates: Partial<Omit<News, 'news_id' | 'created_at'>>): Promise<News | null> {
     const news = await this.findAll();
-    const index = news.findIndex(n => n.news_id === newsId || n.id === newsId);
+    const index = news.findIndex(n => n.news_id === newsId);
     
     if (index === -1) {
       return null;
@@ -96,7 +96,7 @@ export class NewsDataHelper extends DatabaseHelper {
 
   async delete(newsId: string): Promise<boolean> {
     const news = await this.findAll();
-    const index = news.findIndex(n => n.news_id === newsId || n.id === newsId);
+    const index = news.findIndex(n => n.news_id === newsId);
     
     if (index === -1) {
       return false;
