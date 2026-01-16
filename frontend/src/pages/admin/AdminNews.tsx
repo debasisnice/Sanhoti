@@ -414,122 +414,164 @@ export default function AdminNews() {
       )}
 
       {/* News List */}
-      {news.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-          <Newspaper className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500 text-lg">No news items yet. Create your first news item!</p>
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="overflow-x-auto -mx-4 md:mx-0">
+          <div className="inline-block min-w-full align-middle px-4 md:px-0">
+            <div className="relative max-h-[600px] overflow-y-auto">
+              <table className="w-full min-w-[700px] md:min-w-0">
+                <thead className="bg-gray-50 sticky top-0 z-10">
+                  <tr>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                      Title
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                      Type
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                      Status
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                      Published
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                      Archived
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                      Created
+                    </th>
+                    <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {news.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-3 py-12 text-center text-gray-500">
+                      <Newspaper className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                      <p>No news items yet. Create your first news item!</p>
+                    </td>
+                  </tr>
+                ) : (
+                  news.map((newsItem) => (
+                    <tr key={newsItem.news_id} className="hover:bg-gray-50">
+                      <td className="px-3 py-3">
+                        <div className="flex items-center space-x-1.5">
+                          {getMediaTypeIcon(newsItem.media_type)}
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium text-gray-900 truncate max-w-xs">{newsItem.title}</div>
+                            <div className="text-xs text-gray-500 truncate max-w-xs">
+                              {newsItem.content.substring(0, 80)}...
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-2 py-3 whitespace-nowrap">
+                        <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-800 capitalize">
+                          {newsItem.media_type}
+                        </span>
+                      </td>
+                      <td className="px-2 py-3 whitespace-nowrap">
+                        <span
+                          className={`inline-block px-1.5 py-0.5 text-xs font-medium rounded-full ${
+                            newsItem.is_active
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {newsItem.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-2 py-3 whitespace-nowrap">
+                        <span
+                          className={`inline-block px-1.5 py-0.5 text-xs font-medium rounded-full ${
+                            newsItem.is_published
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          {newsItem.is_published ? 'Yes' : 'No'}
+                        </span>
+                      </td>
+                      <td className="px-2 py-3 whitespace-nowrap">
+                        {newsItem.is_archived ? (
+                          <span className="inline-block px-1.5 py-0.5 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                            Yes
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-500">
+                        {formatDate(newsItem.created_at)}
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end space-x-1">
+                          <button
+                            onClick={() => handleTogglePublish(newsItem)}
+                            disabled={!newsItem.is_active && !newsItem.is_published}
+                            className={`${
+                              newsItem.is_published
+                                ? 'text-gray-600 hover:text-gray-900'
+                                : newsItem.is_active
+                                ? 'text-green-600 hover:text-green-900'
+                                : 'text-gray-400 cursor-not-allowed'
+                            }`}
+                            title={!newsItem.is_active && !newsItem.is_published 
+                              ? 'News must be active before publishing'
+                              : newsItem.is_published 
+                              ? 'Unpublish news'
+                              : 'Publish news'
+                            }
+                          >
+                            {newsItem.is_published ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </button>
+                          {!newsItem.is_archived ? (
+                            <button
+                              onClick={() => handleArchive(newsItem)}
+                              className="text-yellow-600 hover:text-yellow-900"
+                              title="Archive news"
+                            >
+                              <Archive className="w-4 h-4" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleUnarchive(newsItem)}
+                              className="text-green-600 hover:text-green-900"
+                              title="Unarchive news"
+                            >
+                              <ArchiveRestore className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleEdit(newsItem)}
+                            className="text-primary-600 hover:text-primary-900"
+                            title="Edit"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(newsItem.news_id)}
+                            className="text-red-600 hover:text-red-900"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-      ) : (
-        <div className="space-y-4">
-          {news.map((newsItem) => (
-            <motion.div
-              key={newsItem.news_id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-xl shadow-lg p-6"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    {getMediaTypeIcon(newsItem.media_type)}
-                    <h3 className="text-xl font-bold text-gray-900">{newsItem.title}</h3>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      newsItem.is_published
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {newsItem.is_published ? 'Published' : 'Draft'}
-                    </span>
-                    {!newsItem.is_active && (
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
-                        Inactive
-                      </span>
-                    )}
-                    {newsItem.is_archived && (
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
-                        Archived
-                      </span>
-                    )}
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 capitalize">
-                      {newsItem.media_type}
-                    </span>
-                  </div>
-                  <p className="text-gray-600 mb-2 line-clamp-2">{newsItem.content}</p>
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <span>Created: {formatDate(newsItem.created_at)}</span>
-                    {newsItem.media_url && (
-                      <span className="flex items-center space-x-1">
-                        <LinkIcon className="w-3 h-3" />
-                        <span>Has {newsItem.media_type === 'link' ? 'Link' : 'Media URL'}</span>
-                      </span>
-                    )}
-                    {newsItem.media_file_path && (
-                      <span className="flex items-center space-x-1">
-                        <ImageIcon className="w-3 h-3" />
-                        <span>Has Uploaded File</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2 ml-4">
-                  <button
-                    onClick={() => handleTogglePublish(newsItem)}
-                    disabled={!newsItem.is_active && !newsItem.is_published}
-                    className={`p-2 rounded-lg transition-colors ${
-                      newsItem.is_published
-                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        : newsItem.is_active
-                        ? 'bg-green-50 text-green-700 hover:bg-green-100'
-                        : 'bg-gray-50 text-gray-400 cursor-not-allowed'
-                    }`}
-                    title={!newsItem.is_active && !newsItem.is_published 
-                      ? 'News must be active before publishing'
-                      : newsItem.is_published 
-                      ? 'Unpublish news'
-                      : 'Publish news'
-                    }
-                  >
-                    {newsItem.is_published ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
-                  {!newsItem.is_archived ? (
-                    <button
-                      onClick={() => handleArchive(newsItem)}
-                      className="p-2 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition-colors"
-                      title="Archive news"
-                    >
-                      <Archive className="w-5 h-5" />
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleUnarchive(newsItem)}
-                      className="p-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
-                      title="Unarchive news"
-                    >
-                      <ArchiveRestore className="w-5 h-5" />
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleEdit(newsItem)}
-                    className="p-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
-                  >
-                    <Edit className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(newsItem.news_id)}
-                    className="p-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
+      </div>
     </div>
   );
 }

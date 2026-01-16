@@ -116,18 +116,18 @@ export default function AdminMagazines() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Magazines</h1>
-          <p className="text-gray-600">Manage community magazines and publications</p>
+          <h1 className="text-3xl font-bold text-gray-900">Magazines Management</h1>
+          <p className="text-gray-600 mt-1">Manage community magazines and publications</p>
         </div>
         {!showAddForm && (
           <button
             onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+            className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
           >
             <Plus className="w-5 h-5" />
-            Add New Magazine
+            <span>Add Magazine</span>
           </button>
         )}
       </div>
@@ -242,73 +242,84 @@ export default function AdminMagazines() {
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Title</th>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Description</th>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Status</th>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Published Date</th>
-                  <th className="text-center py-3 px-6 text-sm font-semibold text-gray-700">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {magazines.map((magazine) => (
-                  <tr key={magazine.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <BookOpen className="w-5 h-5 text-primary-600" />
-                        <span className="font-medium text-gray-900">{magazine.title}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <p className="text-sm text-gray-600 line-clamp-2">
-                        {magazine.description || '-'}
-                      </p>
-                    </td>
-                    <td className="py-4 px-6">
-                      {magazine.isPublic ? (
-                        <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded">
-                          Public
-                        </span>
-                      ) : (
-                        <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
-                          Private
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="text-sm text-gray-600">
+          <div className="overflow-x-auto -mx-4 md:mx-0">
+            <div className="inline-block min-w-full align-middle px-4 md:px-0">
+              <div className="relative max-h-[600px] overflow-y-auto">
+                <table className="w-full min-w-[700px] md:min-w-0">
+                  <thead className="bg-gray-50 sticky top-0 z-10">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                        Title
+                      </th>
+                      <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                        Description
+                      </th>
+                      <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                        Status
+                      </th>
+                      <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                        Published Date
+                      </th>
+                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {magazines.map((magazine) => (
+                    <tr key={magazine.id} className="hover:bg-gray-50">
+                      <td className="px-3 py-3">
+                        <div className="flex items-center space-x-1.5">
+                          <BookOpen className="w-4 h-4 text-primary-600" />
+                          <span className="text-sm font-medium text-gray-900 truncate max-w-xs">{magazine.title}</span>
+                        </div>
+                      </td>
+                      <td className="px-2 py-3">
+                        <p className="text-xs text-gray-500 truncate max-w-xs line-clamp-2">
+                          {magazine.description || '-'}
+                        </p>
+                      </td>
+                      <td className="px-2 py-3 whitespace-nowrap">
+                        {magazine.isPublic ? (
+                          <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                            Public
+                          </span>
+                        ) : (
+                          <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+                            Private
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-500">
                         {format(convertPSTToLocal(magazine.publishDate), 'MMM dd, yyyy')}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center justify-center gap-2">
-                        <a
-                          href={magazine.fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium flex items-center gap-1"
-                        >
-                          <BookOpen className="w-4 h-4" />
-                          View PDF
-                        </a>
-                        <button
-                          onClick={() => handleDeleteMagazine(magazine.id, magazine.title)}
-                          disabled={deleting}
-                          className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                          title="Delete magazine"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end space-x-1">
+                          <a
+                            href={magazine.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-900"
+                            title="View PDF"
+                          >
+                            <BookOpen className="w-4 h-4" />
+                          </a>
+                          <button
+                            onClick={() => handleDeleteMagazine(magazine.id, magazine.title)}
+                            disabled={deleting}
+                            className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Delete magazine"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       )}

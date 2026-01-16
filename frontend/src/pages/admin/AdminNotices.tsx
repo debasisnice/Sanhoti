@@ -406,33 +406,34 @@ export default function AdminNotices() {
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
         <div className="overflow-x-auto -mx-4 md:mx-0">
           <div className="inline-block min-w-full align-middle px-4 md:px-0">
-            <table className="w-full min-w-[800px] md:min-w-0">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Notice Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Event
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Published
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Created
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
+            <div className="relative max-h-[600px] overflow-y-auto">
+              <table className="w-full min-w-[700px] md:min-w-0">
+                <thead className="bg-gray-50 sticky top-0 z-10">
+                  <tr>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                      Notice Name
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                      Event
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                      Status
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                      Published
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                      Created
+                    </th>
+                    <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {notices.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={6} className="px-3 py-12 text-center text-gray-500">
                     No notices found. Click "Add Notice" to create your first notice.
                   </td>
                 </tr>
@@ -444,18 +445,18 @@ export default function AdminNotices() {
                   
                   return (
                     <tr key={notice.notice_id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{notice.notice_name}</div>
-                        <div className="text-sm text-gray-500 truncate max-w-md">
-                          {notice.notice_body.substring(0, 100)}...
+                      <td className="px-3 py-3">
+                        <div className="text-sm font-medium text-gray-900 truncate max-w-xs">{notice.notice_name}</div>
+                        <div className="text-xs text-gray-500 truncate max-w-xs">
+                          {notice.notice_body.substring(0, 80)}...
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-500 truncate max-w-[150px]">
                         {relatedEvent ? relatedEvent.event_name : '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-2 py-3 whitespace-nowrap">
                         <span
-                          className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
+                          className={`inline-block px-1.5 py-0.5 text-xs font-medium rounded-full ${
                             notice.is_active
                               ? 'bg-green-100 text-green-800'
                               : 'bg-red-100 text-red-800'
@@ -464,29 +465,29 @@ export default function AdminNotices() {
                           {notice.is_active ? 'Active' : 'Inactive'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-2 py-3 whitespace-nowrap">
                         <span
-                          className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
+                          className={`inline-block px-1.5 py-0.5 text-xs font-medium rounded-full ${
                             notice.is_published
                               ? 'bg-blue-100 text-blue-800'
                               : 'bg-gray-100 text-gray-800'
                           }`}
                         >
-                          {notice.is_published ? 'Published' : 'Unpublished'}
+                          {notice.is_published ? 'Yes' : 'No'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-500">
                         {formatDate(notice.created_at)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex items-center justify-end space-x-2">
+                      <td className="px-3 py-3 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end space-x-1">
                           {notice.is_published ? (
                             <button
                               onClick={() => handleUnpublish(notice.notice_id)}
                               className="text-yellow-600 hover:text-yellow-900"
                               title="Unpublish"
                             >
-                              <EyeOff className="w-5 h-5" />
+                              <EyeOff className="w-4 h-4" />
                             </button>
                           ) : (
                             <button
@@ -503,7 +504,7 @@ export default function AdminNotices() {
                                   : 'Cannot publish inactive notice. Please activate the notice first.'
                               }
                             >
-                              <Eye className="w-5 h-5" />
+                              <Eye className="w-4 h-4" />
                             </button>
                           )}
                           <button
@@ -511,14 +512,14 @@ export default function AdminNotices() {
                             className="text-primary-600 hover:text-primary-900"
                             title="Edit"
                           >
-                            <Edit className="w-5 h-5" />
+                            <Edit className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(notice.notice_id)}
                             className="text-red-600 hover:text-red-900"
                             title="Delete"
                           >
-                            <Trash2 className="w-5 h-5" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
@@ -526,8 +527,9 @@ export default function AdminNotices() {
                   );
                 })
               )}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+            </div>
           </div>
         </div>
       </div>

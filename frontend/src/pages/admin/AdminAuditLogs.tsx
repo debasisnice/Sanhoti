@@ -187,10 +187,10 @@ export default function AdminAuditLogs() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Audit Logs</h1>
-          <p className="text-gray-600">View all system activity and changes</p>
+          <h1 className="text-3xl font-bold text-gray-900">Audit Logs Management</h1>
+          <p className="text-gray-600 mt-1">View all system activity and changes</p>
         </div>
       </div>
 
@@ -257,60 +257,61 @@ export default function AdminAuditLogs() {
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <div className="relative max-h-[600px] overflow-y-auto">
-              <table className="w-full min-w-[1000px]">
-                <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
-                  <tr>
-                    <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700 bg-gray-50">Timestamp</th>
-                    <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700 bg-gray-50">User</th>
-                    <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700 bg-gray-50">Action</th>
-                    <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700 bg-gray-50">Resource</th>
-                    <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700 bg-gray-50">Resource ID</th>
-                    <th className="text-left py-2 px-4 text-xs font-semibold text-gray-700 bg-gray-50">IP Address</th>
-                    <th className="text-center py-2 px-4 text-xs font-semibold text-gray-700 bg-gray-50">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="py-2 px-4">
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                        <span className="text-xs text-gray-900">
-                          {format(convertPSTToLocal(log.timestamp), 'MMM dd, yyyy HH:mm:ss')}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-2 px-4">
-                      <div className="flex items-center gap-1.5">
-                        <User className="w-3.5 h-3.5 text-gray-400" />
-                        <div>
-                          <p className="text-xs font-medium text-gray-900 leading-tight">
-                            {userNameMap[log.userId] || log.userEmail || log.userId}
-                          </p>
-                          <p className="text-xs text-gray-500 leading-tight">{log.userEmail}</p>
+          <div className="overflow-x-auto -mx-4 md:mx-0">
+            <div className="inline-block min-w-full align-middle px-4 md:px-0">
+              <div className="relative max-h-[600px] overflow-y-auto">
+                <table className="w-full min-w-[1000px] md:min-w-0">
+                  <thead className="bg-gray-50 sticky top-0 z-10">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Timestamp</th>
+                      <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">User</th>
+                      <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Action</th>
+                      <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Resource</th>
+                      <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Resource ID</th>
+                      <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">IP Address</th>
+                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-gray-50">
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        <div className="flex items-center space-x-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                          <span className="text-xs text-gray-900">
+                            {format(convertPSTToLocal(log.timestamp), 'MMM dd, yyyy HH:mm:ss')}
+                          </span>
                         </div>
-                      </div>
-                    </td>
-                    <td className="py-2 px-4">
-                      <span className={`px-1.5 py-0.5 text-xs font-medium rounded ${
-                        log.action === 'CREATE' ? 'bg-green-100 text-green-800' :
-                        log.action === 'UPDATE' ? 'bg-blue-100 text-blue-800' :
-                        log.action === 'DELETE' ? 'bg-red-100 text-red-800' :
-                        log.action === 'UPLOAD' ? 'bg-purple-100 text-purple-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {log.action}
-                      </span>
-                    </td>
-                    <td className="py-2 px-4">
-                      <div className="flex items-center gap-1.5">
-                        <Activity className="w-3.5 h-3.5 text-gray-400" />
-                        <span className="text-xs text-gray-900">{log.resource}</span>
-                      </div>
-                    </td>
-                    <td className="py-2 px-4">
+                      </td>
+                      <td className="px-2 py-3">
+                        <div className="flex items-center space-x-1.5">
+                          <User className="w-3.5 h-3.5 text-gray-400" />
+                          <div>
+                            <p className="text-xs font-medium text-gray-900 leading-tight">
+                              {userNameMap[log.userId] || log.userEmail || log.userId}
+                            </p>
+                            <p className="text-xs text-gray-500 leading-tight">{log.userEmail}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-2 py-3 whitespace-nowrap">
+                        <span className={`px-1.5 py-0.5 text-xs font-medium rounded-full ${
+                          log.action === 'CREATE' ? 'bg-green-100 text-green-800' :
+                          log.action === 'UPDATE' ? 'bg-blue-100 text-blue-800' :
+                          log.action === 'DELETE' ? 'bg-red-100 text-red-800' :
+                          log.action === 'UPLOAD' ? 'bg-purple-100 text-purple-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="px-2 py-3 whitespace-nowrap">
+                        <div className="flex items-center space-x-1.5">
+                          <Activity className="w-3.5 h-3.5 text-gray-400" />
+                          <span className="text-xs text-gray-900">{log.resource}</span>
+                        </div>
+                      </td>
+                      <td className="px-2 py-3">
                       {(() => {
                         // Extract resource ID
                         let resourceId: string | null = null;
@@ -357,28 +358,29 @@ export default function AdminAuditLogs() {
                         return <span className="text-xs text-gray-600 font-mono">-</span>;
                       })()}
                     </td>
-                    <td className="py-2 px-4">
-                      <span className="text-xs text-gray-600 font-mono">
-                        {log.ipAddress || '-'}
-                      </span>
-                    </td>
-                    <td className="py-2 px-4">
-                      <div className="flex items-center justify-center">
-                        {log.details && (
-                          <button
-                            onClick={() => setSelectedLogDetails(log)}
-                            className="px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors text-xs font-medium flex items-center gap-1"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            View Details
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                  ))}
-                </tbody>
-              </table>
+                      <td className="px-2 py-3 whitespace-nowrap">
+                        <span className="text-xs text-gray-500 font-mono">
+                          {log.ipAddress || '-'}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end space-x-1">
+                          {log.details && (
+                            <button
+                              onClick={() => setSelectedLogDetails(log)}
+                              className="text-blue-600 hover:text-blue-900"
+                              title="View Details"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
           <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
