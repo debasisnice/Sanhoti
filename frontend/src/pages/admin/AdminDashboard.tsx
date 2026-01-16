@@ -51,9 +51,9 @@ export default function AdminDashboard() {
         <aside className={`w-64 bg-white shadow-lg min-h-screen fixed md:static z-40 transition-transform duration-300 ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}>
-          <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8">Admin Panel</h2>
-            <nav className="space-y-2">
+          <div className="p-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Admin Panel</h2>
+            <nav className="space-y-1">
               {menuItems.map((item) => {
                 const isActive = location.pathname === item.path || 
                   (item.path !== '/admin' && location.pathname.startsWith(item.path));
@@ -62,7 +62,7 @@ export default function AdminDashboard() {
                     key={item.path}
                     to={item.path}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                    className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
                       isActive
                         ? 'bg-primary-600 text-white'
                         : 'hover:bg-primary-50 hover:text-primary-600 text-gray-700'
