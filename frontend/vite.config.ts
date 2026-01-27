@@ -61,6 +61,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         skipWaiting: true,
         clientsClaim: true,
+        // Don't handle navigation for user-manual (loaded in iframe)
+        navigateFallbackDenylist: [/^\/api\/user-manual/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -89,6 +91,11 @@ export default defineConfig({
                 statuses: [0, 200]
               }
             }
+          },
+          {
+            // Exclude user-manual from API caching (HTML pages don't cache well)
+            urlPattern: /\/api\/user-manual\/.*/i,
+            handler: 'NetworkOnly'
           },
           {
             urlPattern: /\/api\/.*/i,
