@@ -125,6 +125,15 @@ export class EventDataHelper extends DatabaseHelper {
       is_priority: event.is_priority !== undefined ? event.is_priority : false, // Default to false
     };
     
+    // If setting this event as priority, unset priority from all other events
+    if (newEvent.is_priority === true) {
+      events.forEach((existingEvent) => {
+        if (existingEvent.is_priority === true) {
+          existingEvent.is_priority = false;
+        }
+      });
+    }
+    
     // Create gallery folder for the new event and set photo_gallery_link
     const folderName = `${this.sanitizeFolderName(newEvent.event_name)}-${newEvent.year}-${newEvent.event_id}`;
     this.createEventGalleryFolder(newEvent);

@@ -97,11 +97,18 @@ export const eventsAPI = {
     return response.data;
   },
 
+  // Get all active events (public endpoint)
+  getActive: async (): Promise<Event[]> => {
+    const response = await api.get('/events');
+    return response.data;
+  },
+
   getById: async (id: string): Promise<Event> => {
     const response = await api.get(`/events/${id}`);
     return response.data;
   },
 
+  // Get all events including inactive (admin only)
   getAll: async (): Promise<Event[]> => {
     const response = await api.get('/events/all');
     return response.data;

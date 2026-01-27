@@ -171,11 +171,15 @@ export default function Home() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
+        // Fetch upcoming events for the "Upcoming Events" section
         const upcoming = await eventsAPI.getUpcoming();
         setUpcomingEvents(upcoming);
         
-        // Find priority event
-        const priority = upcoming.find(e => e.is_priority === true);
+        // Fetch ALL active events to find priority event (regardless of past/future)
+        const allActiveEvents = await eventsAPI.getActive();
+        
+        // Find priority event from all active events
+        const priority = allActiveEvents.find(e => e.is_priority === true);
         
         if (priority) {
           setPriorityEvent(priority);

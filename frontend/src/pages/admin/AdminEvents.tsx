@@ -251,16 +251,25 @@ export default function AdminEvents() {
 
   const handleEdit = async (event: Event) => {
     setEditingEvent(event);
+    
+    // Parse datetime strings to extract date and time separately
+    const startDateTime = parseDateTime(event.event_start_dt);
+    const endDateTime = parseDateTime(event.event_end_dt);
+    
     setFormData({
       event_name: event.event_name,
-      event_start_dt: event.event_start_dt.split('T')[0],
-      event_end_dt: event.event_end_dt.split('T')[0],
+      event_start_dt: startDateTime.date,
+      event_end_dt: endDateTime.date,
       year: event.year,
       event_description: event.event_description,
       location: (event as any).location || '',
       is_priority: event.is_priority || false,
       rsvp_link: (event as any).rsvp_link || '',
     });
+    
+    // Set the time fields
+    setEventStartTime(startDateTime.time);
+    setEventEndTime(endDateTime.time);
     
     // Load existing images for this event
     if (event.event_id) {
@@ -515,11 +524,26 @@ export default function AdminEvents() {
   };
 
   const formatDate = (dateString: string) => {
-    return convertPSTToLocal(dateString).toLocaleDateString('en-US', {
+    const date = convertPSTToLocal(dateString);
+    const hasTime = dateString.includes('T') && !dateString.endsWith('T00:00:00');
+    
+    const dateOptions: Intl.DateTimeFormatOptions = {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    });
+    };
+    
+    if (hasTime) {
+      // Check if time is not midnight (00:00)
+      const hours = date.getHours();
+      const minutes = date.getMinutes();
+      if (hours !== 0 || minutes !== 0) {
+        return date.toLocaleDateString('en-US', dateOptions) + ' ' + 
+               date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      }
+    }
+    
+    return date.toLocaleDateString('en-US', dateOptions);
   };
 
   if (loading) {
