@@ -1,11 +1,41 @@
 import { motion } from 'framer-motion';
-import { ExternalLink, Download } from 'lucide-react';
+import { ExternalLink, Download, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export default function AdminUserManual() {
   // Use relative path in production (when served by Nginx), absolute URL in development
   const isProd = import.meta.env.MODE === 'production' || import.meta.env.PROD;
   const apiUrl = isProd ? '/api' : (import.meta.env.VITE_API_URL || 'http://localhost:5001/api');
   const manualUrl = `${apiUrl}/user-manual/index.html`;
+
+  const [htmlContent, setHtmlContent] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchManual = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(manualUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to load manual: ${response.status}`);
+        }
+        let html = await response.text();
+        
+        // Fix image paths to use API URL
+        html = html.replace(/src="(\d+\.png)"/g, `src="${apiUrl}/user-manual/$1"`);
+        
+        setHtmlContent(html);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load manual');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchManual();
+  }, [manualUrl, apiUrl]);
 
   const handleOpenInNewTab = () => {
     window.open(manualUrl, '_blank');
@@ -50,13 +80,24 @@ export default function AdminUserManual() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
-        <iframe
-          src={manualUrl}
-          title="Admin User Manual"
-          className="w-full h-full border-0"
-          style={{ minHeight: '600px' }}
-        />
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden" style={{ height: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+        {loading && (
+          <div className="flex items-center justify-center h-full">
+            <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+            <span className="ml-2 text-gray-600">Loading manual...</span>
+          </div>
+        )}
+        {error && (
+          <div className="flex items-center justify-center h-full text-red-600">
+            <p>{error}</p>
+          </div>
+        )}
+        {!loading && !error && (
+          <div 
+            className="manual-content"
+            dangerouslySetInnerHTML={{ __html: htmlContent }}
+          />
+        )}
       </div>
     </motion.div>
   );
