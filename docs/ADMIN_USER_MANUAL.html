@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanhoti Admin User Manual</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: #fff;
+        }
+        
+        /* Cover Page */
+        .cover-page {
+            text-align: center;
+            padding: 100px 20px;
+            page-break-after: always;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .cover-page h1 {
+            font-size: 3em;
+            color: #c53030;
+            margin-bottom: 20px;
+        }
+        
+        .cover-page .subtitle {
+            font-size: 1.5em;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        
+        .cover-page .version {
+            font-size: 1.1em;
+            color: #888;
+            margin-top: 60px;
+        }
+        
+        .cover-page .logo {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #c53030, #9b2c2c);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+        
+        /* Table of Contents */
+        .toc {
+            page-break-after: always;
+            padding: 40px 0;
+        }
+        
+        .toc h2 {
+            font-size: 2em;
+            color: #c53030;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #c53030;
+            padding-bottom: 10px;
+        }
+        
+        .toc ul {
+            list-style: none;
+        }
+        
+        .toc li {
+            padding: 10px 0;
+            border-bottom: 1px dotted #ddd;
+        }
+        
+        .toc a {
+            color: #333;
+            text-decoration: none;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .toc a:hover {
+            color: #c53030;
+        }
+        
+        .toc .section-number {
+            font-weight: bold;
+            color: #c53030;
+            margin-right: 15px;
+        }
+        
+        /* Sections */
+        .section {
+            page-break-before: always;
+            padding: 20px 0;
+        }
+        
+        .section:first-of-type {
+            page-break-before: avoid;
+        }
+        
+        h2 {
+            font-size: 1.8em;
+            color: #c53030;
+            margin: 30px 0 20px 0;
+            border-bottom: 2px solid #c53030;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            font-size: 1.4em;
+            color: #2d3748;
+            margin: 25px 0 15px 0;
+        }
+        
+        h4 {
+            font-size: 1.1em;
+            color: #4a5568;
+            margin: 20px 0 10px 0;
+        }
+        
+        p {
+            margin: 10px 0;
+            text-align: justify;
+        }
+        
+        /* Screenshot placeholders */
+        .screenshot {
+            background: #f7fafc;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 60px 20px;
+            text-align: center;
+            margin: 20px 0;
+            color: #718096;
+        }
+        
+        .screenshot-caption {
+            font-style: italic;
+            color: #718096;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        
+        /* Lists */
+        ul, ol {
+            margin: 15px 0 15px 25px;
+        }
+        
+        li {
+            margin: 8px 0;
+        }
+        
+        /* Tips, Notes, Warnings */
+        .tip, .note, .warning {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .tip {
+            background: #f0fff4;
+            border-left: 4px solid #38a169;
+        }
+        
+        .tip::before {
+            content: "💡 Tip: ";
+            font-weight: bold;
+            color: #38a169;
+        }
+        
+        .note {
+            background: #ebf8ff;
+            border-left: 4px solid #3182ce;
+        }
+        
+        .note::before {
+            content: "📝 Note: ";
+            font-weight: bold;
+            color: #3182ce;
+        }
+        
+        .warning {
+            background: #fffaf0;
+            border-left: 4px solid #dd6b20;
+        }
+        
+        .warning::before {
+            content: "⚠️ Warning: ";
+            font-weight: bold;
+            color: #dd6b20;
+        }
+        
+        /* Steps */
+        .steps {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .steps ol {
+            margin-left: 20px;
+        }
+        
+        .steps li {
+            padding: 8px 0;
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background: #c53030;
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background: #f7fafc;
+        }
+        
+        /* Keyboard shortcuts */
+        kbd {
+            background: #edf2f7;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        
+        /* Code/paths */
+        code {
+            background: #edf2f7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 0;
+            color: #718096;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 40px;
+        }
+        
+        @media print {
+            body {
+                padding: 20px;
+            }
+            
+            .section {
+                page-break-before: always;
+            }
+            
+            .screenshot {
+                background: #f5f5f5 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Cover Page -->
+    <div class="cover-page">
+        <div class="logo">S</div>
+        <h1>Sanhoti</h1>
+        <div class="subtitle">Admin User Manual</div>
+        <p>Bengali Association of Orange County, CA</p>
+        <div class="version">
+            Version 1.0<br>
+            January 2026
+        </div>
+    </div>
+
+    <!-- Table of Contents -->
+    <div class="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+            <li><a href="#getting-started"><span class="section-number">1.</span> Getting Started <span>3</span></a></li>
+            <li><a href="#dashboard"><span class="section-number">2.</span> Dashboard Overview <span>4</span></a></li>
+            <li><a href="#events"><span class="section-number">3.</span> Events Management <span>5</span></a></li>
+            <li><a href="#notices"><span class="section-number">4.</span> Notices Management <span>8</span></a></li>
+            <li><a href="#galleries"><span class="section-number">5.</span> Photo Galleries <span>10</span></a></li>
+            <li><a href="#magazines"><span class="section-number">6.</span> Magazines <span>12</span></a></li>
+            <li><a href="#news"><span class="section-number">7.</span> News & Media <span>14</span></a></li>
+            <li><a href="#documents"><span class="section-number">8.</span> Documents <span>16</span></a></li>
+            <li><a href="#messages"><span class="section-number">9.</span> Messages <span>17</span></a></li>
+            <li><a href="#rsvp"><span class="section-number">10.</span> RSVP Management <span>18</span></a></li>
+            <li><a href="#email"><span class="section-number">11.</span> Email Communications <span>20</span></a></li>
+            <li><a href="#settings"><span class="section-number">12.</span> Settings <span>21</span></a></li>
+            <li><a href="#audit-logs"><span class="section-number">13.</span> Audit Logs <span>23</span></a></li>
+            <li><a href="#troubleshooting"><span class="section-number">14.</span> Troubleshooting <span>24</span></a></li>
+        </ul>
+    </div>
+
+    <!-- Section 1: Getting Started -->
+    <div class="section" id="getting-started">
+        <h2>1. Getting Started</h2>
+        
+        <h3>1.1 Accessing the Admin Panel</h3>
+        <p>To access the Sanhoti admin panel, follow these steps:</p>
+        
+        <div class="steps">
+            <ol>
+                <li>Open your web browser and navigate to <code>https://www.sanhoti.org</code></li>
+                <li>Click on the <strong>"Login"</strong> button in the navigation bar</li>
+                <li>Enter your admin email address and password</li>
+                <li>Click <strong>"Sign In"</strong></li>
+                <li>Once logged in, click on your profile icon and select <strong>"Admin Dashboard"</strong></li>
+            </ol>
+        </div>
+        
+        <div class="screenshot">
+            📷 Screenshot: Login Page<br>
+            <small>/Users/debasispramanik/Desktop/Screenshots/1.png</small>
+        </div>
+        
+        <h3>1.2 Admin Panel Navigation</h3>
+        <p>The admin panel features a sidebar navigation menu on the left side with the following sections:</p>
+        
+        <table>
+            <tr>
+                <th>Menu Item</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>Overview</td>
+                <td>Dashboard with quick stats and recent activity</td>
+            </tr>
+            <tr>
+                <td>Events</td>
+                <td>Create and manage community events</td>
+            </tr>
+            <tr>
+                <td>Notices</td>
+                <td>Post announcements and notices</td>
+            </tr>
+            <tr>
+                <td>Galleries</td>
+                <td>Manage event photo and video galleries</td>
+            </tr>
+            <tr>
+                <td>Magazines</td>
+                <td>Upload community magazines</td>
+            </tr>
+            <tr>
+                <td>News</td>
+                <td>Post news articles and media coverage</td>
+            </tr>
+            <tr>
+                <td>Documents</td>
+                <td>Manage downloadable documents</td>
+            </tr>
+            <tr>
+                <td>Messages</td>
+                <td>View contact form submissions</td>
+            </tr>
+            <tr>
+                <td>RSVP</td>
+                <td>View and export event RSVPs</td>
+            </tr>
+            <tr>
+                <td>Email</td>
+                <td>Send emails to members</td>
+            </tr>
+            <tr>
+                <td>Settings</td>
+                <td>Configure website settings</td>
+            </tr>
+            <tr>
+                <td>Audit Logs</td>
+                <td>View admin activity history</td>
+            </tr>
+        </table>
+        
+        <div class="screenshot">
+            📷 Screenshot: Admin Dashboard Sidebar<br>
+            <small>(Insert screenshot of admin sidebar navigation here)</small>
+        </div>
+        
+        <div class="tip">
+            On mobile devices, tap the menu icon (☰) in the top-left corner to open the navigation sidebar.
+        </div>
+    </div>
+
+    <!-- Section 2: Dashboard Overview -->
+    <div class="section" id="dashboard">
+        <h2>2. Dashboard Overview</h2>
+        
+        <p>The Overview page provides a quick summary of your website's content and recent activity.</p>
+        
+        <h3>2.1 Dashboard Statistics</h3>
+        <p>At a glance, you can see:</p>
+        <ul>
+            <li><strong>Total Events</strong> - Number of events in the system</li>
+            <li><strong>Active Notices</strong> - Currently published notices</li>
+            <li><strong>Photo Galleries</strong> - Number of event galleries</li>
+            <li><strong>Unread Messages</strong> - New contact form submissions</li>
+        </ul>
+        
+        <div class="screenshot">
+            📷 Screenshot: Dashboard Overview<br>
+            <small>(Insert screenshot of dashboard overview page here)</small>
+        </div>
+        
+        <h3>2.2 Quick Actions</h3>
+        <p>From the dashboard, you can quickly:</p>
+        <ul>
+            <li>Create a new event</li>
+            <li>Post a new notice</li>
+            <li>View recent RSVPs</li>
+            <li>Check unread messages</li>
+        </ul>
+    </div>
+
+    <!-- Section 3: Events Management -->
+    <div class="section" id="events">
+        <h2>3. Events Management</h2>
+        
+        <p>The Events section allows you to create, edit, and manage all community events including festivals, cultural programs, and gatherings.</p>
+        
+        <h3>3.1 Viewing Events</h3>
+        <p>The events list displays all events organized by year. You can filter events by year using the filter buttons at the top.</p>
+        
+        <div class="screenshot">
+            📷 Screenshot: Events List View<br>
+            <small>(Insert screenshot of events management page here)</small>
+        </div>
+        
+        <h4>Event Status Indicators:</h4>
+        <ul>
+            <li><strong>Green background</strong> - Active event (visible to public)</li>
+            <li><strong>Star icon (⭐)</strong> - Priority event (featured on homepage)</li>
+            <li><strong>Eye icon</strong> - Toggle visibility</li>
+        </ul>
+        
+        <h3>3.2 Creating a New Event</h3>
+        
+        <div class="steps">
+            <ol>
+                <li>Click the <strong>"Add Event"</strong> button in the top-right corner</li>
+                <li>Fill in the event details:
+                    <ul>
+                        <li><strong>Event Name</strong> (required) - e.g., "Durga Puja 2026"</li>
+                        <li><strong>Start Date & Time</strong> (required) - When the event begins</li>
+                        <li><strong>End Date & Time</strong> (required) - When the event ends</li>
+                        <li><strong>Year</strong> (required) - The event year for filtering</li>
+                        <li><strong>Description</strong> (required) - Detailed event description</li>
+                        <li><strong>Location</strong> (optional) - Venue address</li>
+                        <li><strong>RSVP Link</strong> (optional) - External RSVP form URL</li>
+                    </ul>
+                </li>
+                <li>Check <strong>"Mark as Priority Event"</strong> if this should be featured on the homepage</li>
+                <li>Upload an <strong>Event Image/Flyer</strong> (optional but recommended)</li>
+                <li>Click <strong>"Create Event"</strong></li>
+            </ol>
+        </div>
+        
+        <div class="screenshot">
+            📷 Screenshot: Create Event Form<br>
+            <small>(Insert screenshot of create event popup form here)</small>
+        </div>
+        
+        <div class="note">
+            Only ONE event can be marked as Priority at a time. When you mark a new event as priority, the previous priority event will automatically be unmarked.
+        </div>
+        
+        <h3>3.3 Editing an Event</h3>
+        <div class="steps">
+            <ol>
+                <li>Find the event in the list</li>
+                <li>Click the <strong>Edit icon (✏️)</strong> in the Actions column</li>
+                <li>Modify the desired fields</li>
+                <li>Click <strong>"Update Event"</strong></li>
+            </ol>
+        </div>
+        
+        <div class="tip">
+            When editing an event, the start and end times will be pre-populated if they were previously set.
+        </div>
+        
+        <h3>3.4 Managing Sub-Events</h3>
+        <p>Large events like Durga Puja can have multiple sub-events (e.g., Puja days, cultural programs).</p>
+        
+        <div class="steps">
+            <ol>
+                <li>Find the parent event in the list</li>
+                <li>Click <strong>"Add Sub Event"</strong> below the event</li>
+                <li>Fill in sub-event details:
+                    <ul>
+                        <li>Sub-event name</li>
+                        <li>Start/End date and time</li>
+                        <li>Description and location</li>
+                        <li>Enable RSVP if needed</li>
+                        <li>Check "Show in Home Page" to display on homepage</li>
+                    </ul>
+                </li>
+                <li>Click <strong>"Create Sub-Event"</strong></li>
+            </ol>
+        </div>
+        
+        <div class="screenshot">
+            📷 Screenshot: Sub-Event Form<br>
+            <small>(Insert screenshot of sub-event creation form here)</small>
+        </div>
+        
+        <h3>3.5 Event Actions</h3>
+        <table>
+            <tr>
+                <th>Icon</th>
+                <th>Action</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>🖼️</td>
+                <td>View Gallery</td>
+                <td>Navigate to event's photo gallery</td>
+            </tr>
+            <tr>
+                <td>✏️</td>
+                <td>Edit</td>
+                <td>Modify event details</td>
+            </tr>
+            <tr>
+                <td>👁️</td>
+                <td>Activate</td>
+                <td>Make event visible to public</td>
+            </tr>
+            <tr>
+                <td>👁️‍🗨️</td>
+                <td>Deactivate</td>
+                <td>Hide event from public</td>
+            </tr>
+            <tr>
+                <td>🗑️</td>
+                <td>Delete</td>
+                <td>Permanently remove event</td>
+            </tr>
+        </table>
+        
+        <div class="warning">
+            Deleting an event is permanent and cannot be undone. The event's gallery folder and images will also be deleted.
+        </div>
+    </div>
+
+    <!-- Section 4: Notices Management -->
+    <div class="section" id="notices">
+        <h2>4. Notices Management</h2>
+        
+        <p>The Notices section allows you to create and publish announcements that appear on the Notice Board page.</p>
+        
+        <h3>4.1 Creating a Notice</h3>
+        
+        <div class="steps">
+            <ol>
+                <li>Click <strong>"Add Notice"</strong> button</li>
+                <li>Enter the notice details:
+                    <ul>
+                        <li><strong>Title</strong> - Brief, descriptive title</li>
+                        <li><strong>Content</strong> - Full notice text</li>
+                        <li><strong>Priority</strong> - Normal, Important, or Urgent</li>
+                    </ul>
+                </li>
+                <li>Upload any <strong>attachments or images</strong> (optional)</li>
+                <li>Check <strong>"Publish"</strong> to make it visible immediately</li>
+                <li>Click <strong>"Create Notice"</strong></li>
+            </ol>
+        </div>
+        
+        <div class="screenshot">
+            📷 Screenshot: Notices Management<br>
+            <small>(Insert screenshot of notices management page here)</small>
+        </div>
+        
+        <h3>4.2 Notice Priority Levels</h3>
+        <table>
+            <tr>
+                <th>Priority</th>
+                <th>Display</th>
+                <th>Use Case</th>
+            </tr>
+            <tr>
+                <td>Normal</td>
+                <td>Standard styling</td>
+                <td>General announcements</td>
+            </tr>
+            <tr>
+                <td>Important</td>
+                <td>Yellow highlight</td>
+                <td>Event reminders, deadlines</td>
+            </tr>
+            <tr>
+                <td>Urgent</td>
+                <td>Red highlight</td>
+                <td>Emergency announcements, cancellations</td>
+            </tr>
+        </table>
+        
+        <h3>4.3 Managing Notice Images</h3>
+        <p>You can attach multiple images to a notice:</p>
+        <ul>
+            <li>Supported formats: JPEG, PNG, GIF, WebP</li>
+            <li>Maximum file size: 10MB per image</li>
+            <li>Images appear in a gallery format on the notice</li>
+        </ul>
+        
+        <div class="tip">
+            Use high-quality images for better presentation. Compress large images before uploading to improve page load times.
+        </div>
+    </div>
+
+    <!-- Section 5: Photo Galleries -->
+    <div class="section" id="galleries">
+        <h2>5. Photo Galleries</h2>
+        
+        <p>The Galleries section manages photo and video collections for each event. Every event automatically gets a gallery folder created.</p>
+        
+        <h3>5.1 Viewing Galleries</h3>
+        <p>Galleries are listed by event, sorted with the most recent events first. Each gallery shows:</p>
+        <ul>
+            <li>Event name and year</li>
+            <li>Number of photos/videos</li>
+            <li>Public/Private status</li>
+            <li>Thumbnail preview</li>
+        </ul>
+        
+        <div class="screenshot">
+            📷 Screenshot: Galleries List<br>
+            <small>(Insert screenshot of galleries management page here)</small>
+        </div>
+        
+        <h3>5.2 Uploading Photos & Videos</h3>
+        
+        <div class="steps">
+            <ol>
+                <li>Find the event gallery in the list</li>
+                <li>Click <strong>"View Gallery"</strong> or the gallery card</li>
+                <li>Click <strong>"Upload Files"</strong> button</li>
+                <li>Select one or multiple files:
+                    <ul>
+                        <li><strong>Photos:</strong> JPEG, PNG, GIF, WebP (max 10MB each)</li>
+                        <li><strong>Videos:</strong> MP4, MOV, AVI, WebM (max 100MB each)</li>
+                    </ul>
+                </li>
+                <li>Wait for upload to complete</li>
+            </ol>
+        </div>
+        
+        <div class="screenshot">
+            📷 Screenshot: Gallery Upload<br>
+            <small>(Insert screenshot of gallery with upload interface here)</small>
+        </div>
+        
+        <h3>5.3 Publishing a Gallery</h3>
+        <p>By default, galleries are private. To make them publicly visible:</p>
+        
+        <div class="steps">
+            <ol>
+                <li>Find the gallery in the list</li>
+                <li>Click the <strong>"Publish"</strong> button</li>
+                <li>Confirm the action</li>
+            </ol>
+        </div>
+        
+        <div class="note">
+            Publishing a gallery makes all its photos and videos visible on the public Galleries page. Ensure all content is appropriate before publishing.
+        </div>
+        
+        <h3>5.4 Deleting Photos</h3>
+        <div class="steps">
+            <ol>
+                <li>Open the gallery</li>
+                <li>Hover over the photo/video you want to delete</li>
+                <li>Click the <strong>delete icon (🗑️)</strong></li>
+                <li>Confirm the deletion</li>
+            </ol>
+        </div>
+        
+        <div class="warning">
+            Deleted photos cannot be recovered. Make sure you have backups of important images.
+        </div>
+    </div>
+
+    <!-- Section 6: Magazines -->
+    <div class="section" id="magazines">
+        <h2>6. Magazines</h2>
+        
+        <p>The Magazines section allows you to upload and manage community magazine PDFs that members can view and download.</p>
+        
+        <h3>6.1 Uploading a Magazine</h3>
+        
+        <div class="steps">
+            <ol>
+                <li>Click <strong>"Add Magazine"</strong> button</li>
+                <li>Enter magazine details:
+                    <ul>
+                        <li><strong>Title</strong> - Magazine name (e.g., "Sanhoti Souvenir 2026")</li>
+                        <li><strong>Year</strong> - Publication year</li>
+                        <li><strong>Description</strong> - Brief description (optional)</li>
+                    </ul>
+                </li>
+                <li>Click <strong>"Choose File"</strong> and select the PDF file</li>
+                <li>Check <strong>"Publish"</strong> to make it immediately visible</li>
+                <li>Click <strong>"Upload Magazine"</strong></li>
+            </ol>
+        </div>
+        
+        <div class="screenshot">
+            📷 Screenshot: Magazine Upload<br>
+            <small>(Insert screenshot of magazine management page here)</small>
+        </div>
+        
+        <h3>6.2 Magazine File Requirements</h3>
+        <table>
+            <tr>
+                <th>Requirement</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td>File Format</td>
+                <td>PDF only</td>
+            </tr>
+            <tr>
+                <td>Maximum Size</td>
+                <td>50MB</td>
+            </tr>
+            <tr>
+                <td>Recommended</td>
+                <td>Optimized/compressed PDF for faster loading</td>
+            </tr>
+        </table>
+        
+        <div class="tip">
+            Use PDF compression tools to reduce file size before uploading. This improves the viewing experience for users on slower connections.
+        </div>
+    </div>
+
+    <!-- Section 7: News -->
+    <div class="section" id="news">
+        <h2>7. News & Media Coverage</h2>
+        
+        <p>The News section allows you to share news articles, media coverage, videos, and external links with the community.</p>
+        
+        <h3>7.1 Creating a News Item</h3>
+        
+        <div class="steps">
+            <ol>
+                <li>Click <strong>"Add News"</strong> button</li>
+                <li>Enter news details:
+                    <ul>
+                        <li><strong>Title</strong> - News headline</li>
+                        <li><strong>Content</strong> - Full article text</li>
+                        <li><strong>Media Type</strong> - Choose from:
+                            <ul>
+                                <li><strong>Article</strong> - Text-only news</li>
+                                <li><strong>Image</strong> - News with featured image</li>
+                                <li><strong>Video</strong> - News with video</li>
+                                <li><strong>Link</strong> - External media coverage link</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>Upload media file or enter URL based on media type</li>
+                <li>Check <strong>"Active"</strong> and <strong>"Published"</strong></li>
+                <li>Click <strong>"Create News"</strong></li>
+            </ol>
+        </div>
+        
+        <div class="screenshot">
+            📷 Screenshot: News Management<br>
+            <small>(Insert screenshot of news management page here)</small>
+        </div>
+        
+        <h3>7.2 News Media Types</h3>
+        <table>
+            <tr>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Input Required</th>
+            </tr>
+            <tr>
+                <td>Article</td>
+                <td>Text-based news story</td>
+                <td>Title and content only</td>
+            </tr>
+            <tr>
+                <td>Image</td>
+                <td>News with featured image</td>
+                <td>Upload image file</td>
+            </tr>
+            <tr>
+                <td>Video</td>
+                <td>News with embedded video</td>
+                <td>Upload video file</td>
+            </tr>
+            <tr>
+                <td>Link</td>
+                <td>External article/coverage</td>
+                <td>Enter external URL</td>
+            </tr>
+        </table>
+        
+        <h3>7.3 Archiving News</h3>
+        <p>Old news items can be archived instead of deleted:</p>
+        <ul>
+            <li>Archived news appears in a separate "Archived News" section on the public page</li>
+            <li>Click the <strong>"Archive"</strong> button to archive a news item</li>
+            <li>Click <strong>"Unarchive"</strong> to restore it to the main news feed</li>
+        </ul>
+    </div>
+
+    <!-- Section 8: Documents -->
+    <div class="section" id="documents">
+        <h2>8. Documents</h2>
+        
+        <p>The Documents section manages downloadable files like bylaws, forms, and other community documents.</p>
+        
+        <h3>8.1 Uploading Documents</h3>
+        
+        <div class="steps">
+            <ol>
+                <li>Click <strong>"Add Document"</strong></li>
+                <li>Enter document details:
+                    <ul>
+                        <li><strong>Title</strong> - Document name</li>
+                        <li><strong>Description</strong> - Brief description</li>
+                        <li><strong>Category</strong> - Document type/category</li>
+                    </ul>
+                </li>
+                <li>Upload the document file (PDF, DOC, DOCX, etc.)</li>
+                <li>Click <strong>"Upload"</strong></li>
+            </ol>
+        </div>
+        
+        <div class="screenshot">
+            📷 Screenshot: Documents Management<br>
+            <small>(Insert screenshot of documents page here)</small>
+        </div>
+        
+        <h3>8.2 Supported File Types</h3>
+        <ul>
+            <li>PDF documents</li>
+            <li>Microsoft Word (DOC, DOCX)</li>
+            <li>Microsoft Excel (XLS, XLSX)</li>
+            <li>Images (for forms that need to be printed)</li>
+        </ul>
+    </div>
+
+    <!-- Section 9: Messages -->
+    <div class="section" id="messages">
+        <h2>9. Messages</h2>
+        
+        <p>The Messages section displays all contact form submissions from the public website.</p>
+        
+        <h3>9.1 Viewing Messages</h3>
+        <p>Messages are displayed in a table format showing:</p>
+        <ul>
+            <li>Sender's name and email</li>
+            <li>Subject line</li>
+            <li>Date received</li>
+            <li>Read/Unread status</li>
+        </ul>
+        
+        <div class="screenshot">
+            📷 Screenshot: Messages Inbox<br>
+            <small>(Insert screenshot of messages page here)</small>
+        </div>
+        
+        <h3>9.2 Responding to Messages</h3>
+        <p>To respond to a message:</p>
+        <div class="steps">
+            <ol>
+                <li>Click on the message to view full content</li>
+                <li>Note the sender's email address</li>
+                <li>Use your email client to send a response, or use the Email section to compose a reply</li>
+            </ol>
+        </div>
+        
+        <div class="tip">
+            Respond to messages promptly to maintain good community relations. Unread messages are highlighted for easy identification.
+        </div>
+    </div>
+
+    <!-- Section 10: RSVP Management -->
+    <div class="section" id="rsvp">
+        <h2>10. RSVP Management</h2>
+        
+        <p>The RSVP section allows you to view and manage event registrations submitted through the website.</p>
+        
+        <h3>10.1 Viewing RSVPs</h3>
+        <p>RSVPs are organized by event. Select an event to view its registrations:</p>
+        <ul>
+            <li>Attendee name and contact information</li>
+            <li>Number of guests</li>
+            <li>Registration date</li>
+            <li>Any additional notes</li>
+        </ul>
+        
+        <div class="screenshot">
+            📷 Screenshot: RSVP List<br>
+            <small>(Insert screenshot of RSVP management page here)</small>
+        </div>
+        
+        <h3>10.2 Exporting RSVPs</h3>
+        <p>To export RSVP data for an event:</p>
+        
+        <div class="steps">
+            <ol>
+                <li>Select the event from the dropdown</li>
+                <li>Click <strong>"Export to CSV"</strong> or <strong>"Export to Excel"</strong></li>
+                <li>The file will download automatically</li>
+            </ol>
+        </div>
+        
+        <div class="tip">
+            Export RSVP lists before events to prepare name tags, seating arrangements, or catering orders.
+        </div>
+        
+        <h3>10.3 Sub-Event RSVPs</h3>
+        <p>If an event has sub-events with RSVP enabled, you can filter RSVPs by sub-event to see registrations for specific programs or activities.</p>
+    </div>
+
+    <!-- Section 11: Email Communications -->
+    <div class="section" id="email">
+        <h2>11. Email Communications</h2>
+        
+        <p>The Email section allows you to send communications to community members directly from the admin panel.</p>
+        
+        <h3>11.1 Composing an Email</h3>
+        
+        <div class="steps">
+            <ol>
+                <li>Navigate to the <strong>Email</strong> section</li>
+                <li>Select recipients:
+                    <ul>
+                        <li>All members</li>
+                        <li>Event attendees (select specific event)</li>
+                        <li>Custom email list</li>
+                    </ul>
+                </li>
+                <li>Enter <strong>Subject</strong> line</li>
+                <li>Compose your <strong>Message</strong></li>
+                <li>Click <strong>"Send Email"</strong></li>
+            </ol>
+        </div>
+        
+        <div class="screenshot">
+            📷 Screenshot: Email Composer<br>
+            <small>(Insert screenshot of email composition page here)</small>
+        </div>
+        
+        <div class="warning">
+            Be careful when sending to "All Members" - ensure the message is relevant to the entire community. For event-specific communications, use the event attendee list.
+        </div>
+    </div>
+
+    <!-- Section 12: Settings -->
+    <div class="section" id="settings">
+        <h2>12. Settings</h2>
+        
+        <p>The Settings section allows you to configure various aspects of the website.</p>
+        
+        <h3>12.1 Navbar Menu Visibility</h3>
+        <p>Control which menu items appear in the public website navigation:</p>
+        
+        <table>
+            <tr>
+                <th>Menu Item</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>Sponsors</td>
+                <td>Show/hide Sponsors page link</td>
+            </tr>
+            <tr>
+                <td>Events</td>
+                <td>Show/hide Events page link</td>
+            </tr>
+            <tr>
+                <td>Notice Board</td>
+                <td>Show/hide Notice Board link</td>
+            </tr>
+            <tr>
+                <td>Galleries</td>
+                <td>Show/hide Photo Galleries link</td>
+            </tr>
+            <tr>
+                <td>Magazines</td>
+                <td>Show/hide Magazines link</td>
+            </tr>
+            <tr>
+                <td>News</td>
+                <td>Show/hide News page link</td>
+            </tr>
+            <tr>
+                <td>Contact Us</td>
+                <td>Show/hide Contact page link</td>
+            </tr>
+        </table>
+        
+        <div class="screenshot">
+            📷 Screenshot: Settings Page<br>
+            <small>(Insert screenshot of settings page here)</small>
+        </div>
+        
+        <h3>12.2 Social Media Links</h3>
+        <p>Configure the community's social media links:</p>
+        <ul>
+            <li>Facebook Group URL</li>
+            <li>WhatsApp Group invite link</li>
+        </ul>
+        
+        <h3>12.3 Homepage Images</h3>
+        <p>Manage the slideshow images that appear on the homepage hero section:</p>
+        
+        <div class="steps">
+            <ol>
+                <li>Scroll to the <strong>"Homepage Images"</strong> section</li>
+                <li>Click <strong>"Upload Images"</strong> to add new slideshow images</li>
+                <li>Drag to reorder images</li>
+                <li>Click the delete icon to remove an image</li>
+            </ol>
+        </div>
+        
+        <div class="tip">
+            Use high-quality landscape images (recommended ratio 16:9 or 5:3) for the best appearance on the homepage slideshow.
+        </div>
+        
+        <h3>12.4 Payment QR Code</h3>
+        <p>Upload a QR code image for the donation/payment page:</p>
+        <ul>
+            <li>Supported formats: PNG, JPEG</li>
+            <li>The QR code will appear on the Donate page</li>
+        </ul>
+    </div>
+
+    <!-- Section 13: Audit Logs -->
+    <div class="section" id="audit-logs">
+        <h2>13. Audit Logs</h2>
+        
+        <p>The Audit Logs section provides a complete history of all administrative actions performed on the website.</p>
+        
+        <h3>13.1 What's Logged</h3>
+        <p>The following actions are automatically recorded:</p>
+        <ul>
+            <li>Event creation, updates, and deletions</li>
+            <li>Notice publications</li>
+            <li>Image and document uploads</li>
+            <li>Settings changes</li>
+            <li>User login activities</li>
+        </ul>
+        
+        <div class="screenshot">
+            📷 Screenshot: Audit Logs<br>
+            <small>(Insert screenshot of audit logs page here)</small>
+        </div>
+        
+        <h3>13.2 Log Information</h3>
+        <p>Each log entry contains:</p>
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>Timestamp</td>
+                <td>Date and time of action</td>
+            </tr>
+            <tr>
+                <td>User</td>
+                <td>Admin who performed the action</td>
+            </tr>
+            <tr>
+                <td>Action</td>
+                <td>Type of action (CREATE, UPDATE, DELETE, etc.)</td>
+            </tr>
+            <tr>
+                <td>Resource</td>
+                <td>What was affected (event, notice, etc.)</td>
+            </tr>
+            <tr>
+                <td>Details</td>
+                <td>Additional information about the action</td>
+            </tr>
+        </table>
+        
+        <div class="note">
+            Audit logs are read-only and cannot be modified or deleted. They serve as a permanent record for accountability and troubleshooting.
+        </div>
+    </div>
+
+    <!-- Section 14: Troubleshooting -->
+    <div class="section" id="troubleshooting">
+        <h2>14. Troubleshooting</h2>
+        
+        <h3>14.1 Common Issues</h3>
+        
+        <h4>Issue: Unable to upload images</h4>
+        <p><strong>Solution:</strong></p>
+        <ul>
+            <li>Check file size (images: max 10MB, videos: max 100MB)</li>
+            <li>Ensure file format is supported (JPEG, PNG, GIF, WebP for images)</li>
+            <li>Try refreshing the page and uploading again</li>
+            <li>Clear browser cache if the problem persists</li>
+        </ul>
+        
+        <h4>Issue: Changes not appearing on public site</h4>
+        <p><strong>Solution:</strong></p>
+        <ul>
+            <li>Ensure the item is marked as "Active" or "Published"</li>
+            <li>Clear your browser cache (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> or <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>)</li>
+            <li>Check if the feature is enabled in Settings (navbar visibility)</li>
+        </ul>
+        
+        <h4>Issue: Session expired / Logged out unexpectedly</h4>
+        <p><strong>Solution:</strong></p>
+        <ul>
+            <li>Admin sessions expire after 30 minutes of inactivity</li>
+            <li>Simply log in again to continue</li>
+            <li>Save your work frequently when editing long content</li>
+        </ul>
+        
+        <h4>Issue: Priority event not showing on homepage</h4>
+        <p><strong>Solution:</strong></p>
+        <ul>
+            <li>Ensure the event has an image uploaded</li>
+            <li>Verify the event is marked as "Active"</li>
+            <li>Check that "is_priority" is checked in the event settings</li>
+        </ul>
+        
+        <h3>14.2 Getting Help</h3>
+        <p>If you encounter issues not covered in this manual:</p>
+        <ul>
+            <li>Contact the technical administrator</li>
+            <li>Check the Audit Logs for recent changes that might have caused the issue</li>
+            <li>Document the exact steps to reproduce the problem</li>
+        </ul>
+        
+        <h3>14.3 Best Practices</h3>
+        <ul>
+            <li><strong>Regular backups:</strong> Ensure data is backed up regularly</li>
+            <li><strong>Image optimization:</strong> Compress images before uploading</li>
+            <li><strong>Consistent naming:</strong> Use clear, descriptive names for events and documents</li>
+            <li><strong>Review before publishing:</strong> Double-check content before making it public</li>
+            <li><strong>Keep passwords secure:</strong> Use strong passwords and don't share admin credentials</li>
+        </ul>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p><strong>Sanhoti Bengali Association of Orange County</strong></p>
+        <p>Admin User Manual v1.0 | January 2026</p>
+        <p>For technical support, contact the IT administrator</p>
+    </div>
+</body>
+</html>

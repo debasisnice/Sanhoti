@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, UserCheck, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { Calendar, UserCheck, ChevronDown, ChevronUp, Trash2, Download } from 'lucide-react';
 import { eventsAPI, rsvpAPI, subEventsAPI } from '../../services/api';
 import { Event, RSVP } from '../../types';
 import { format } from 'date-fns';
@@ -251,6 +251,183 @@ export default function AdminRSVP() {
     }
   };
 
+  const exportToCSV = (data: EventRSVPData) => {
+    if (data.rsvps.length === 0) {
+      toast.error('No RSVPs to export');
+      return;
+    }
+
+    // Create CSV header
+    const headers = [
+      'Name',
+      'Email',
+      'Phone',
+      'Adults',
+      'Children',
+      'Total Guests',
+      'Attendee Names',
+      'RSVP Date',
+      'Status'
+    ];
+
+    // Create CSV rows
+    const rows = data.rsvps.map(rsvp => {
+      const adults = rsvp.numberOfAdults ?? rsvp.numberOfGuests ?? 0;
+      const children = rsvp.numberOfChildren ?? 0;
+      const total = adults + children;
+      const attendeeNames = rsvp.attendeeNames ? rsvp.attendeeNames.join('; ') : '';
+      const rsvpDate = rsvp.createdAt 
+        ? format(convertPSTToLocal(rsvp.createdAt), 'MMM dd, yyyy')
+        : '';
+
+      return [
+        rsvp.name || '',
+        rsvp.email || '',
+        rsvp.phone || '',
+        adults.toString(),
+        children.toString(),
+        total.toString(),
+        attendeeNames,
+        rsvpDate,
+        rsvp.status || 'confirmed'
+      ];
+    });
+
+    // Add summary row
+    rows.push([]);
+    rows.push(['--- SUMMARY ---', '', '', '', '', '', '', '', '']);
+    rows.push(['Total RSVPs:', data.rsvps.length.toString(), '', '', '', '', '', '', '']);
+    rows.push(['Total Adults:', data.totalAdults.toString(), '', '', '', '', '', '', '']);
+    rows.push(['Total Children:', data.totalChildren.toString(), '', '', '', '', '', '', '']);
+    rows.push(['Total Guests:', data.totalGuests.toString(), '', '', '', '', '', '', '']);
+
+    // Convert to CSV string
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    // Create filename from event name
+    const eventName = data.event.event_name.replace(/[^a-zA-Z0-9]/g, '_');
+    const dateStr = format(new Date(), 'yyyy-MM-dd');
+    const filename = `RSVP_${eventName}_${dateStr}.csv`;
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success(`Exported ${data.rsvps.length} RSVPs to CSV`);
+  };
+
+  const exportAllToCSV = () => {
+    // Filter events with RSVPs
+    const eventsWithRSVPs = eventRSVPData.filter(data => data.rsvps.length > 0);
+    
+    if (eventsWithRSVPs.length === 0) {
+      toast.error('No RSVPs to export');
+      return;
+    }
+
+    // Create CSV header
+    const headers = [
+      'Event Name',
+      'Event Date',
+      'Name',
+      'Email',
+      'Phone',
+      'Adults',
+      'Children',
+      'Total Guests',
+      'Attendee Names',
+      'RSVP Date',
+      'Status'
+    ];
+
+    // Create CSV rows for all events
+    const rows: string[][] = [];
+    
+    eventsWithRSVPs.forEach(data => {
+      const eventDate = format(convertPSTToLocal(data.event.event_start_dt), 'MMM dd, yyyy');
+      
+      data.rsvps.forEach(rsvp => {
+        const adults = rsvp.numberOfAdults ?? rsvp.numberOfGuests ?? 0;
+        const children = rsvp.numberOfChildren ?? 0;
+        const total = adults + children;
+        const attendeeNames = rsvp.attendeeNames ? rsvp.attendeeNames.join('; ') : '';
+        const rsvpDate = rsvp.createdAt 
+          ? format(convertPSTToLocal(rsvp.createdAt), 'MMM dd, yyyy')
+          : '';
+
+        rows.push([
+          data.event.event_name,
+          eventDate,
+          rsvp.name || '',
+          rsvp.email || '',
+          rsvp.phone || '',
+          adults.toString(),
+          children.toString(),
+          total.toString(),
+          attendeeNames,
+          rsvpDate,
+          rsvp.status || 'confirmed'
+        ]);
+      });
+    });
+
+    // Add summary
+    rows.push([]);
+    rows.push(['--- OVERALL SUMMARY ---', '', '', '', '', '', '', '', '', '', '']);
+    
+    let grandTotalRSVPs = 0;
+    let grandTotalAdults = 0;
+    let grandTotalChildren = 0;
+    let grandTotalGuests = 0;
+    
+    eventsWithRSVPs.forEach(data => {
+      grandTotalRSVPs += data.rsvps.length;
+      grandTotalAdults += data.totalAdults;
+      grandTotalChildren += data.totalChildren;
+      grandTotalGuests += data.totalGuests;
+    });
+    
+    rows.push(['Total Events with RSVPs:', eventsWithRSVPs.length.toString(), '', '', '', '', '', '', '', '', '']);
+    rows.push(['Total RSVPs:', grandTotalRSVPs.toString(), '', '', '', '', '', '', '', '', '']);
+    rows.push(['Total Adults:', grandTotalAdults.toString(), '', '', '', '', '', '', '', '', '']);
+    rows.push(['Total Children:', grandTotalChildren.toString(), '', '', '', '', '', '', '', '', '']);
+    rows.push(['Total Guests:', grandTotalGuests.toString(), '', '', '', '', '', '', '', '', '']);
+
+    // Convert to CSV string
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    const dateStr = format(new Date(), 'yyyy-MM-dd');
+    const filename = `RSVP_All_Events_${dateStr}.csv`;
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success(`Exported ${grandTotalRSVPs} RSVPs from ${eventsWithRSVPs.length} events`);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -265,9 +442,20 @@ export default function AdminRSVP() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">RSVP Management</h1>
-        <p className="text-gray-600">View event-wise RSVP details</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">RSVP Management</h1>
+          <p className="text-gray-600">View event-wise RSVP details</p>
+        </div>
+        {eventRSVPData.some(data => data.rsvps.length > 0) && (
+          <button
+            onClick={exportAllToCSV}
+            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <Download className="w-5 h-5" />
+            <span>Export All to CSV</span>
+          </button>
+        )}
       </div>
 
       {eventRSVPData.length === 0 ? (
@@ -355,9 +543,21 @@ export default function AdminRSVP() {
                         </p>
                       ) : (
                         <div className="space-y-3">
-                          <h4 className="font-semibold text-gray-900 mb-4">
-                            RSVP Details ({data.rsvps.length})
-                          </h4>
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="font-semibold text-gray-900">
+                              RSVP Details ({data.rsvps.length})
+                            </h4>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                exportToCSV(data);
+                              }}
+                              className="flex items-center gap-2 bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                            >
+                              <Download className="w-4 h-4" />
+                              <span>Export to CSV</span>
+                            </button>
+                          </div>
                           <div className="overflow-x-auto">
                             <table className="w-full">
                               <thead>
