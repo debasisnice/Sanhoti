@@ -29,6 +29,15 @@ const allowedOrigins = process.env.CORS_ORIGIN
 
 // Security Headers Middleware - Improve trust signals and security
 app.use((req, res, next) => {
+  // Skip restrictive headers for user manual (to allow iframe embedding)
+  if (req.path.startsWith('/api/user-manual')) {
+    // Allow embedding from sanhoti.org and localhost
+    res.setHeader('X-Frame-Options', 'ALLOWALL');
+    res.removeHeader('X-Frame-Options');
+    res.setHeader('Content-Security-Policy', "frame-ancestors 'self' https://www.sanhoti.org https://sanhoti.org http://localhost:3000 http://localhost:5173");
+    return next();
+  }
+  
   // Prevent clickjacking attacks
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   
@@ -94,6 +103,9 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve User Manual static files
+app.use('/api/user-manual', express.static(join(__dirname, '../data/UserManual')));
 
 // Health check
 app.get('/health', (req, res) => {

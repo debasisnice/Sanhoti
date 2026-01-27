@@ -1,7 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Calendar, Bell, Image, BookOpen, Mail, Settings, MessageSquare, Users, ClipboardList, Menu, X, FileText, FileCheck, Newspaper } from 'lucide-react';
+import { LayoutDashboard, Calendar, Bell, Image, BookOpen, Mail, Settings, MessageSquare, Users, ClipboardList, Menu, X, FileText, FileCheck, Newspaper, HelpCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { eventsAPI, rsvpAPI, noticesAPI, subEventsAPI } from '../../services/api';
 import { Event, RSVP, SubEvent } from '../../types';
@@ -16,6 +16,7 @@ import AdminNews from './AdminNews';
 import AdminDocuments from './AdminDocuments';
 import AdminEmail from './AdminEmail';
 import AdminAuditLogs from './AdminAuditLogs';
+import AdminUserManual from './AdminUserManual';
 
 export default function AdminDashboard() {
   const location = useLocation();
@@ -33,6 +34,7 @@ export default function AdminDashboard() {
     { icon: Mail, label: 'Email', path: '/admin/email' },
     { icon: Settings, label: 'Settings', path: '/admin/settings' },
     { icon: FileCheck, label: 'Audit Logs', path: '/admin/audit-logs' },
+    { icon: HelpCircle, label: 'User Manual', path: '/admin/user-manual' },
   ];
 
   return (
@@ -105,6 +107,7 @@ export default function AdminDashboard() {
             <Route path="/email" element={<AdminEmail />} />
             <Route path="/settings" element={<AdminSettings />} />
             <Route path="/audit-logs" element={<AdminAuditLogs />} />
+            <Route path="/user-manual" element={<AdminUserManual />} />
           </Routes>
         </main>
       </div>
