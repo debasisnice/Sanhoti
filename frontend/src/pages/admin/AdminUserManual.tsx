@@ -2,7 +2,9 @@ import { motion } from 'framer-motion';
 import { ExternalLink, Download } from 'lucide-react';
 
 export default function AdminUserManual() {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+  // Use relative path in production (when served by Nginx), absolute URL in development
+  const isProd = import.meta.env.MODE === 'production' || import.meta.env.PROD;
+  const apiUrl = isProd ? '/api' : (import.meta.env.VITE_API_URL || 'http://localhost:5001/api');
   const manualUrl = `${apiUrl}/user-manual/index.html`;
 
   const handleOpenInNewTab = () => {
