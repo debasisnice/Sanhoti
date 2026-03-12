@@ -475,7 +475,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-              className="flex flex-col md:flex-row gap-1.5 md:gap-2 w-fit"
+              className="flex flex-col md:flex-row gap-1.5 md:gap-2 w-full md:w-fit"
             >
               <a
                 href={facebookLink}
@@ -495,7 +495,7 @@ export default function Home() {
               </a>
             <Link
               to="/events"
-                className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap w-[11rem] md:w-auto"
+                className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap"
             >
               View Events
             </Link>
@@ -600,11 +600,11 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
-            className="w-fit flex-shrink-0 flex flex-col items-center md:items-end gap-3"
+            className="w-full md:w-fit flex-shrink-0 flex flex-col items-stretch md:items-end gap-3"
           >
             <Link
               to="/events?type=Charity"
-              className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap w-[11rem] md:w-auto"
+              className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap"
             >
               View Charity Events
             </Link>
