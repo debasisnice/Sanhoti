@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState, useMemo } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, ArrowRight, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { eventsAPI } from '../services/api';
@@ -9,6 +9,9 @@ import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime } from '../u
 import { QRCodeSVG } from 'qrcode.react';
 
 export default function Events() {
+  const [searchParams] = useSearchParams();
+  const eventTypeFilter = searchParams.get('type'); // 'Festival' | 'Charity' | null (All)
+  
   const [allEvents, setAllEvents] = useState<Event[]>([]);
   const [priorityEvent, setPriorityEvent] = useState<Event | null>(null);
   const [priorityEventImage, setPriorityEventImage] = useState<string | null>(null);
@@ -117,10 +120,24 @@ export default function Events() {
     fetchEventsAndImages();
   }, []);
 
+  // Filter events by type from URL (Festival, Charity, or All)
+  const filteredEvents = useMemo(() => {
+    if (eventTypeFilter === 'Festival' || eventTypeFilter === 'Charity') {
+      return allEvents.filter(e => (e as any).event_type === eventTypeFilter);
+    }
+    return allEvents;
+  }, [allEvents, eventTypeFilter]);
+
+  // Only show priority event if it matches the current filter
+  const displayPriorityEvent = priorityEvent && (
+    !eventTypeFilter ||
+    (priorityEvent as any).event_type === eventTypeFilter
+  ) ? priorityEvent : null;
+
   // Sort events chronologically and position priority event at front (index 0)
   // Sequence: past events (newest to oldest) on left, then upcoming events (nearest to farthest) on right
   const eventsForCarousel = (() => {
-    const filtered = allEvents; // Include all events, including priority events
+    const filtered = filteredEvents; // Include all events, including priority events
     
     if (filtered.length === 0) return [];
     
@@ -219,24 +236,26 @@ export default function Events() {
           <div className="flex items-center justify-center gap-3 mb-4">
             <Calendar className="w-8 h-8 text-primary-600" />
             <h1 className="text-2xl font-bold text-gray-900">
-              Community Events
+              {eventTypeFilter === 'Festival' ? 'Festivals' : eventTypeFilter === 'Charity' ? 'Charity Events' : 'Community Events'}
             </h1>
           </div>
           <p className="text-2xl text-gray-600">
-            Join us in celebrating Bengali culture and traditions
+            {eventTypeFilter === 'Charity'
+              ? 'Coming together to give back and strengthen humanity'
+              : 'Join us in celebrating Bengali culture and traditions'}
           </p>
         </motion.div>
 
         {/* Priority Event Card */}
-        {priorityEvent && (() => {
-          const eventId = priorityEvent.event_id || priorityEvent.id || '';
-          const eventName = priorityEvent.event_name || priorityEvent.title || 'Untitled Event';
-          const eventDescription = priorityEvent.event_description || priorityEvent.description || '';
-          const eventDate = priorityEvent.event_start_dt || priorityEvent.date || '';
-          const eventLocation = priorityEvent.location || '';
+        {displayPriorityEvent && (() => {
+          const eventId = displayPriorityEvent.event_id || displayPriorityEvent.id || '';
+          const eventName = displayPriorityEvent.event_name || displayPriorityEvent.title || 'Untitled Event';
+          const eventDescription = displayPriorityEvent.event_description || displayPriorityEvent.description || '';
+          const eventDate = displayPriorityEvent.event_start_dt || displayPriorityEvent.date || '';
+          const eventLocation = displayPriorityEvent.location || '';
           
           // Use event image from Events_Flyers if available, otherwise use the old imageUrl/photo_gallery_link as fallback
-          const eventImage = priorityEventImage || priorityEvent.photo_gallery_link || priorityEvent.imageUrl;
+          const eventImage = priorityEventImage || displayPriorityEvent.photo_gallery_link || displayPriorityEvent.imageUrl;
           
           // Determine layout based on image orientation
           const isPortrait = imageOrientation === 'portrait' && eventImage;
@@ -272,7 +291,7 @@ export default function Events() {
                     <div className="md:w-1/2 p-8 flex flex-col justify-center">
                       <div className="flex items-center gap-3 mb-4">
                         <span className="bg-primary-600 text-white px-4 py-2 rounded-full text-sm font-medium">
-                          {priorityEvent.year || new Date(eventDate).getFullYear()}
+                          {displayPriorityEvent.year || new Date(eventDate).getFullYear()}
                         </span>
                       </div>
                       <h2 className="text-4xl font-bold text-gray-900 mb-4">{eventName}</h2>
@@ -284,14 +303,14 @@ export default function Events() {
                           <div className="flex items-center gap-2">
                             {(() => {
                               const now = new Date();
-                              const eventEndDate = priorityEvent.event_end_dt ? convertPSTToLocal(priorityEvent.event_end_dt) : convertPSTToLocal(eventDate);
+                              const eventEndDate = displayPriorityEvent.event_end_dt ? convertPSTToLocal(displayPriorityEvent.event_end_dt) : convertPSTToLocal(eventDate);
                               const isUpcoming = eventEndDate >= now;
                               
                               if (isUpcoming) {
                                 const calendarUrl = generateCalendarUrl(
                                   eventName,
                                   eventDate,
-                                  priorityEvent.event_end_dt,
+                                  displayPriorityEvent.event_end_dt,
                                   eventLocation,
                                   eventDescription
                                 );
@@ -347,14 +366,15 @@ export default function Events() {
                           View Details <ArrowRight className="w-5 h-5 ml-2" />
                         </Link>
                         
-                        {/* Show RSVP link only for upcoming events */}
+                        {/* Show RSVP link only for upcoming events when RSVP is enabled */}
                         {(() => {
                           const now = new Date();
-                          const eventEndDate = priorityEvent.event_end_dt ? new Date(priorityEvent.event_end_dt) : new Date(eventDate);
+                          const eventEndDate = displayPriorityEvent.event_end_dt ? new Date(displayPriorityEvent.event_end_dt) : new Date(eventDate);
                           const isPastEvent = eventEndDate < now;
-                          const rsvpLink = (priorityEvent as any).rsvp_link;
+                          const rsvpEnabled = (displayPriorityEvent as any).rsvp_enabled;
+                          const rsvpLink = (displayPriorityEvent as any).rsvp_link;
                           
-                          if (!isPastEvent) {
+                          if (!isPastEvent && rsvpEnabled) {
                             if (rsvpLink) {
                               return (
                                 <div className="flex flex-col items-center">
@@ -415,7 +435,7 @@ export default function Events() {
                     <div className="p-8">
                       <div className="flex items-center gap-3 mb-4">
                         <span className="bg-primary-600 text-white px-4 py-2 rounded-full text-sm font-medium">
-                          {priorityEvent.year || new Date(eventDate).getFullYear()}
+                          {displayPriorityEvent.year || new Date(eventDate).getFullYear()}
                         </span>
                       </div>
                       <h2 className="text-4xl font-bold text-gray-900 mb-4">{eventName}</h2>
@@ -427,14 +447,14 @@ export default function Events() {
                           <div className="flex items-center gap-2">
                             {(() => {
                               const now = new Date();
-                              const eventEndDate = priorityEvent.event_end_dt ? convertPSTToLocal(priorityEvent.event_end_dt) : convertPSTToLocal(eventDate);
+                              const eventEndDate = displayPriorityEvent.event_end_dt ? convertPSTToLocal(displayPriorityEvent.event_end_dt) : convertPSTToLocal(eventDate);
                               const isUpcoming = eventEndDate >= now;
                               
                               if (isUpcoming) {
                                 const calendarUrl = generateCalendarUrl(
                                   eventName,
                                   eventDate,
-                                  priorityEvent.event_end_dt,
+                                  displayPriorityEvent.event_end_dt,
                                   eventLocation,
                                   eventDescription
                                 );
@@ -490,14 +510,15 @@ export default function Events() {
                           View Details <ArrowRight className="w-5 h-5 ml-2" />
                         </Link>
                         
-                        {/* Show RSVP link only for upcoming events */}
+                        {/* Show RSVP link only for upcoming events when RSVP is enabled */}
                         {(() => {
                           const now = new Date();
-                          const eventEndDate = priorityEvent.event_end_dt ? new Date(priorityEvent.event_end_dt) : new Date(eventDate);
+                          const eventEndDate = displayPriorityEvent.event_end_dt ? new Date(displayPriorityEvent.event_end_dt) : new Date(eventDate);
                           const isPastEvent = eventEndDate < now;
-                          const rsvpLink = (priorityEvent as any).rsvp_link;
+                          const rsvpEnabled = (displayPriorityEvent as any).rsvp_enabled;
+                          const rsvpLink = (displayPriorityEvent as any).rsvp_link;
                           
-                          if (!isPastEvent) {
+                          if (!isPastEvent && rsvpEnabled) {
                             if (rsvpLink) {
                               return (
                                 <div className="flex flex-col items-center">
@@ -623,7 +644,7 @@ export default function Events() {
               
               return (
                 <motion.div
-                      key={`event-${eventId}`}
+                      key={`event-${eventId}-${card.position}-${card.index}`}
                       animate={{
                         opacity,
                         x: xOffset,
@@ -744,7 +765,10 @@ export default function Events() {
                       {/* Month and Year - Outside and below the card */}
                       <div className="mt-3 text-center">
                         <p className={`text-primary-600 font-semibold ${isMiddle ? 'text-base' : 'text-sm'}`}>
-                          {format(convertPSTToLocal(eventDate), 'MMMM yyyy')}
+                          {eventDate ? (() => {
+                            const date = convertPSTToLocal(eventDate);
+                            return !isNaN(date.getTime()) ? format(date, 'MMMM yyyy') : '';
+                          })() : ''}
                         </p>
                       </div>
                     </motion.div>

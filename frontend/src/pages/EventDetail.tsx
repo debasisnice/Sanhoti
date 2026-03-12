@@ -303,16 +303,17 @@ export default function EventDetail() {
                     </p>
                   </div>
 
-                  {/* Only show RSVP option for upcoming events */}
+                  {/* Only show RSVP option for upcoming events when RSVP is enabled */}
                   {(() => {
                     const now = new Date();
                     const eventEndDate = event.event_end_dt 
                       ? convertPSTToLocal(event.event_end_dt) 
                       : convertPSTToLocal(eventDate);
                     const isPastEvent = eventEndDate < now;
+                    const rsvpEnabled = (event as any).rsvp_enabled;
                     const rsvpLink = (event as any).rsvp_link;
                     
-                    if (!isPastEvent) {
+                    if (!isPastEvent && rsvpEnabled) {
                       if (rsvpLink) {
                         return (
                           <div className="flex flex-col items-center">

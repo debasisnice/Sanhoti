@@ -7,6 +7,9 @@ import toast from 'react-hot-toast';
 import { convertPSTToLocal, convertLocalToPST } from '../../utils/dateUtils';
 import { SubEvent } from '../../types';
 
+const EVENT_TYPE_OPTIONS = ['Festival', 'Charity', 'Other'] as const;
+type EventTypeValue = typeof EVENT_TYPE_OPTIONS[number];
+
 interface Event {
   event_id: string;
   event_name: string;
@@ -14,6 +17,7 @@ interface Event {
   event_end_dt: string;
   year: number;
   event_description: string;
+  event_type?: EventTypeValue;
   is_active: boolean;
   is_priority?: boolean;
   created_at: string;
@@ -27,8 +31,10 @@ interface EventForm {
   event_end_dt: string;
   year: number;
   event_description: string;
+  event_type: EventTypeValue;
   location: string;
   is_priority?: boolean;
+  rsvp_enabled: boolean;
   rsvp_link?: string;
 }
 
@@ -74,8 +80,10 @@ export default function AdminEvents() {
     event_end_dt: '',
     year: new Date().getFullYear(),
     event_description: '',
+    event_type: 'Festival',
     location: '',
     is_priority: false,
+    rsvp_enabled: false,
     rsvp_link: '',
   });
   const [eventStartTime, setEventStartTime] = useState('');
@@ -262,8 +270,10 @@ export default function AdminEvents() {
       event_end_dt: endDateTime.date,
       year: event.year,
       event_description: event.event_description,
+      event_type: event.event_type && EVENT_TYPE_OPTIONS.includes(event.event_type as EventTypeValue) ? (event.event_type as EventTypeValue) : 'Festival',
       location: (event as any).location || '',
       is_priority: event.is_priority || false,
+      rsvp_enabled: (event as any).rsvp_enabled ?? false,
       rsvp_link: (event as any).rsvp_link || '',
     });
     
@@ -513,8 +523,10 @@ export default function AdminEvents() {
       event_end_dt: '',
       year: new Date().getFullYear(),
       event_description: '',
+      event_type: 'Festival',
       location: '',
       is_priority: false,
+      rsvp_enabled: false,
       rsvp_link: '',
     });
     setEventStartTime('');
@@ -655,6 +667,21 @@ export default function AdminEvents() {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Event Type
+                  </label>
+                  <select
+                    value={formData.event_type}
+                    onChange={(e) => setFormData({ ...formData, event_type: e.target.value as EventTypeValue })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  >
+                    {EVENT_TYPE_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -757,21 +784,39 @@ export default function AdminEvents() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    RSVP Link (Optional)
-                  </label>
+                <div className="flex items-center space-x-2">
                   <input
-                    type="url"
-                    value={formData.rsvp_link || ''}
-                    onChange={(e) => setFormData({ ...formData, rsvp_link: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="https://example.com/rsvp"
+                    type="checkbox"
+                    id="rsvp_enabled"
+                    checked={formData.rsvp_enabled}
+                    onChange={(e) => setFormData({ ...formData, rsvp_enabled: e.target.checked })}
+                    className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
                   />
-                  <p className="mt-1 text-xs text-gray-500">
-                    If provided, clicking RSVP will open this link instead of the default RSVP form
-                  </p>
+                  <label htmlFor="rsvp_enabled" className="text-sm font-medium text-gray-700">
+                    Enable RSVP
+                  </label>
+                  <span className="text-xs text-gray-500">
+                    (If checked, RSVP option will be shown for this event)
+                  </span>
                 </div>
+
+                {formData.rsvp_enabled && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      RSVP Link (Optional)
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.rsvp_link || ''}
+                      onChange={(e) => setFormData({ ...formData, rsvp_link: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      placeholder="https://example.com/rsvp"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      If provided, clicking RSVP will open this link instead of the default RSVP form
+                    </p>
+                  </div>
+                )}
 
                 <div className="flex items-center space-x-2">
                   <input

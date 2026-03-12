@@ -1,5 +1,5 @@
 import { EventDataHelper } from '../data/EventDataHelper.js';
-import { Event, EventType } from '../models/types.js';
+import { Event } from '../models/types.js';
 
 export class EventService {
   private eventDataHelper: EventDataHelper;
@@ -34,6 +34,8 @@ export class EventService {
     event_end_dt: string;
     year: number;
     event_description: string;
+    event_type?: 'Festival' | 'Charity' | 'Other';
+    rsvp_enabled?: boolean;
     location?: string;
     photo_gallery_link?: string;
     is_priority?: boolean;
@@ -53,6 +55,8 @@ export class EventService {
       event_end_dt: data.event_end_dt,
       year: data.year,
       event_description: data.event_description,
+      event_type: data.event_type,
+      rsvp_enabled: data.rsvp_enabled,
       location: data.location,
       photo_gallery_link: data.photo_gallery_link,
       rsvp_link: data.rsvp_link,

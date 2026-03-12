@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { Calendar, CheckCircle } from 'lucide-react';
@@ -200,6 +200,24 @@ export default function RSVP() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Event/Sub-Event not found</h2>
+        </div>
+      </div>
+    );
+  }
+
+  // For events, RSVP is only available when rsvp_enabled is true
+  if (event && !(event as any).rsvp_enabled) {
+    return (
+      <div className="min-h-screen flex items-center justify-center py-12">
+        <div className="text-center max-w-md mx-auto px-4">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">RSVP Not Available</h2>
+          <p className="text-gray-600 mb-6">RSVP is not enabled for this event.</p>
+          <Link
+            to={`/events/${event.event_id}`}
+            className="inline-block bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+          >
+            View Event Details
+          </Link>
         </div>
       </div>
     );

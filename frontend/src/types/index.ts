@@ -34,6 +34,7 @@ export interface Event {
   event_end_dt: string;
   year: number;
   event_description: string;
+  event_type?: 'Festival' | 'Charity' | 'Other';
   location?: string;
   is_active: boolean;
   is_priority?: boolean; // Only one event can have is_priority: true at a time
@@ -43,6 +44,7 @@ export interface Event {
   gallery_is_public?: boolean; // Whether the gallery for this event is public
   event_image_path?: string; // Folder path for event flyer/image in Events_Flyers
   rsvp_link?: string; // Optional external RSVP link
+  rsvp_enabled?: boolean; // If true, show RSVP option for this event
   // Legacy fields for backward compatibility
   id?: string;
   title?: string;

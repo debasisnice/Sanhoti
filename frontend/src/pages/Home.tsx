@@ -19,6 +19,8 @@ export default function Home() {
   const [whatsappLink, setWhatsappLink] = useState<string>('https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH');
   const [activeAboutTab, setActiveAboutTab] = useState<'about' | 'vision' | 'mission'>('about');
   const [priorityEventSubEvents, setPriorityEventSubEvents] = useState<SubEvent[]>([]);
+  const [charityEventImages, setCharityEventImages] = useState<string[]>([]);
+  const [charityCardSlideIndex, setCharityCardSlideIndex] = useState(0);
 
   // Share functions
   const shareToFacebook = (eventId: string, _eventName: string) => {
@@ -221,6 +223,21 @@ export default function Home() {
         } else {
           setPriorityEventSubEvents([]);
         }
+
+        // Fetch charity event images for hero right card slideshow
+        const charityEvents = allActiveEvents.filter((e) => (e as any).event_type === 'Charity');
+        const charityImagePromises = charityEvents
+          .filter((e) => e.event_id && (e as any).event_image_path)
+          .map(async (e) => {
+            try {
+              const imageData = await eventsAPI.getImagePublic(e.event_id!);
+              return imageData ? eventsAPI.getImageUrl(e.event_id!, imageData.filename) : null;
+            } catch {
+              return null;
+            }
+          });
+        const charityImages = (await Promise.all(charityImagePromises)).filter((url): url is string => !!url);
+        setCharityEventImages(charityImages);
       } catch (error) {
         console.error('Error fetching events:', error);
       }
@@ -326,6 +343,17 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [slideshowImages.length]);
 
+  // Charity card slideshow - fade between charity event images
+  useEffect(() => {
+    if (charityEventImages.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCharityCardSlideIndex((prev) => (prev + 1) % charityEventImages.length);
+    }, 4000); // Change every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [charityEventImages.length]);
+
   const features = [
     {
       icon: Calendar,
@@ -402,14 +430,14 @@ export default function Home() {
           }}
         ></div>
         
-        {/* Logo and Welcome Text - Top Left */}
+        {/* Hero Content - Logo, Welcome, Buttons, and Event Cards */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
-          className="absolute top-4 left-2 md:top-8 md:left-12 lg:left-16 z-20 max-w-[calc(100vw-1rem)] md:max-w-none"
+          className="absolute top-4 left-2 right-2 md:top-8 md:left-12 md:right-12 lg:left-16 lg:right-16 z-20 flex flex-col md:flex-row md:items-end md:justify-between gap-6 md:gap-8"
         >
-          <div className="flex flex-col gap-2 md:gap-4">
+          <div className="flex flex-col gap-2 md:gap-4 max-w-[calc(100vw-1rem)] md:max-w-none">
             {/* Logo and Welcome Text */}
             <div className="flex items-center gap-2 md:gap-4">
               <div className="rounded-lg bg-white bg-opacity-70 p-1.5 md:p-2 md:p-3 shadow-lg flex-shrink-0">
@@ -566,6 +594,48 @@ export default function Home() {
               );
             })()}
           </div>
+
+          {/* Right-side Charity Events Card - Fade slideshow of charity event images */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="w-fit flex-shrink-0 flex flex-col items-center md:items-end gap-3"
+          >
+            <Link
+              to="/events?type=Charity"
+              className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap"
+            >
+              View Charity Events
+            </Link>
+            <Link to="/events?type=Charity" className="w-fit block">
+              <div className="relative rounded-lg shadow-xl w-32 md:w-80 lg:w-96 overflow-hidden aspect-[3/4] md:aspect-[3/3.5] border-2 md:border-4 border-yellow-400 cursor-pointer hover:shadow-2xl transition-shadow">
+                {charityEventImages.length > 0 ? (
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={charityCardSlideIndex}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.8 }}
+                      className="absolute inset-0"
+                      style={{
+                        backgroundImage: `url(${charityEventImages[charityCardSlideIndex]})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }}
+                    />
+                  </AnimatePresence>
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center p-4">
+                    <span className="text-white font-bold text-center text-sm md:text-lg">
+                      Charity Events
+                    </span>
+                  </div>
+                )}
+              </div>
+            </Link>
+          </motion.div>
         </motion.div>
         
 
@@ -873,14 +943,15 @@ export default function Home() {
                               </button>
                             </div>
                             
-                            {/* Show RSVP link only for upcoming events */}
+                            {/* Show RSVP link only for upcoming events when RSVP is enabled */}
                             {(() => {
                               const now = new Date();
                               const eventEndDate = priorityEvent.event_end_dt ? new Date(priorityEvent.event_end_dt) : new Date(eventDate);
                               const isPastEvent = eventEndDate < now;
+                              const rsvpEnabled = (priorityEvent as any).rsvp_enabled;
                               const rsvpLink = (priorityEvent as any).rsvp_link;
                               
-                              if (!isPastEvent) {
+                              if (!isPastEvent && rsvpEnabled) {
                                 if (rsvpLink) {
                                   return (
                                     <div className="flex flex-col items-center">
@@ -1050,14 +1121,15 @@ export default function Home() {
                               </button>
                             </div>
                             
-                            {/* Show RSVP link only for upcoming events */}
+                            {/* Show RSVP link only for upcoming events when RSVP is enabled */}
                             {(() => {
                               const now = new Date();
                               const eventEndDate = priorityEvent.event_end_dt ? new Date(priorityEvent.event_end_dt) : new Date(eventDate);
                               const isPastEvent = eventEndDate < now;
+                              const rsvpEnabled = (priorityEvent as any).rsvp_enabled;
                               const rsvpLink = (priorityEvent as any).rsvp_link;
                               
-                              if (!isPastEvent) {
+                              if (!isPastEvent && rsvpEnabled) {
                                 if (rsvpLink) {
                                   return (
                                     <a

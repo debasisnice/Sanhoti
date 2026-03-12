@@ -9,9 +9,13 @@ import { authAPI, settingsAPI } from '../services/api';
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [eventsDropdownOpen, setEventsDropdownOpen] = useState(false);
+  const eventsDropdownCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
+  const [eventsDropdownPosition, setEventsDropdownPosition] = useState({ top: 0, left: 0 });
   const userMenuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const eventsTriggerRef = useRef<HTMLDivElement>(null);
   const { isAuthenticated, user, logout: logoutStore, isAdmin } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -50,6 +54,30 @@ export default function Navbar() {
       window.removeEventListener('resize', updatePosition);
     };
   }, [isUserMenuOpen]);
+
+  // Update Events dropdown position on hover
+  useEffect(() => {
+    const updateEventsPosition = () => {
+      if (eventsDropdownOpen && eventsTriggerRef.current) {
+        const rect = eventsTriggerRef.current.getBoundingClientRect();
+        setEventsDropdownPosition({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
+      }
+    };
+
+    if (eventsDropdownOpen) {
+      updateEventsPosition();
+      window.addEventListener('scroll', updateEventsPosition, true);
+      window.addEventListener('resize', updateEventsPosition);
+    }
+
+    return () => {
+      window.removeEventListener('scroll', updateEventsPosition, true);
+      window.removeEventListener('resize', updateEventsPosition);
+    };
+  }, [eventsDropdownOpen]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -183,6 +211,88 @@ export default function Navbar() {
                 ? location.pathname === '/' 
                 : location.pathname === link.path || location.pathname.startsWith(link.path + '/');
               
+              // Events has a hover dropdown: Festivals, Charity Events, All
+              if (link.key === 'events') {
+                return (
+                  <div key={link.path} className="flex items-center">
+                    {index > 0 && (
+                      <span className="mx-1 lg:mx-1.5 font-bold" style={{ color: '#8B0000' }}>|</span>
+                    )}
+                    <div
+                      ref={eventsTriggerRef}
+                      className="relative"
+                      onMouseEnter={() => {
+                        if (eventsDropdownCloseTimeoutRef.current) {
+                          clearTimeout(eventsDropdownCloseTimeoutRef.current);
+                          eventsDropdownCloseTimeoutRef.current = null;
+                        }
+                        setEventsDropdownOpen(true);
+                      }}
+                      onMouseLeave={() => {
+                        eventsDropdownCloseTimeoutRef.current = setTimeout(() => {
+                          setEventsDropdownOpen(false);
+                          eventsDropdownCloseTimeoutRef.current = null;
+                        }, 150);
+                      }}
+                    >
+                      <span
+                        className={`inline-block hover:text-primary-200 transition-colors font-medium whitespace-nowrap text-[15px] relative pb-1 cursor-pointer ${
+                          isActive ? 'border-b-2 border-white' : ''
+                        }`}
+                      >
+                        {link.label}
+                        <ChevronDown className={`inline-block w-4 h-4 ml-1 align-middle transition-transform ${eventsDropdownOpen ? 'rotate-180' : ''}`} />
+                      </span>
+                      {typeof window !== 'undefined' && eventsDropdownOpen && createPortal(
+                        <div
+                          className="fixed bg-white rounded-lg shadow-xl py-1 min-w-[140px] border border-gray-200 z-[100]"
+                          style={{
+                            top: `${eventsDropdownPosition.top}px`,
+                            left: `${eventsDropdownPosition.left}px`,
+                          }}
+                          onMouseEnter={() => {
+                            if (eventsDropdownCloseTimeoutRef.current) {
+                              clearTimeout(eventsDropdownCloseTimeoutRef.current);
+                              eventsDropdownCloseTimeoutRef.current = null;
+                            }
+                            setEventsDropdownOpen(true);
+                          }}
+                          onMouseLeave={() => {
+                            eventsDropdownCloseTimeoutRef.current = setTimeout(() => {
+                              setEventsDropdownOpen(false);
+                              eventsDropdownCloseTimeoutRef.current = null;
+                            }, 150);
+                          }}
+                        >
+                          <Link
+                            to="/events?type=Festival"
+                            onClick={() => setEventsDropdownOpen(false)}
+                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors text-sm font-medium"
+                          >
+                            Festivals
+                          </Link>
+                          <Link
+                            to="/events?type=Charity"
+                            onClick={() => setEventsDropdownOpen(false)}
+                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors text-sm font-medium"
+                          >
+                            Charity Events
+                          </Link>
+                          <Link
+                            to="/events"
+                            onClick={() => setEventsDropdownOpen(false)}
+                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors text-sm font-medium"
+                          >
+                            All
+                          </Link>
+                        </div>,
+                        document.body
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+              
               return (
                 <div key={link.path} className="flex items-center">
                   {index > 0 && (
@@ -313,7 +423,47 @@ export default function Navbar() {
                 // Check if current path matches the link path
                 const isActive = link.path === '/' 
                   ? location.pathname === '/' 
-                  : location.pathname === link.path || location.pathname.startsWith(link.path + '/');
+                  : link.key === 'events'
+                    ? location.pathname === link.path || location.pathname.startsWith(link.path + '/')
+                    : location.pathname === link.path || location.pathname.startsWith(link.path + '/');
+                
+                // Events has sub-items: Festivals, Charity Events, All
+                if (link.key === 'events') {
+                  return (
+                    <div key={link.path}>
+                      <div className="text-primary-200 font-medium text-sm mb-1">{link.label}</div>
+                      <div className="pl-3 space-y-1">
+                        <Link
+                          to="/events?type=Festival"
+                          onClick={() => setIsOpen(false)}
+                          className={`block text-white hover:text-primary-200 transition-colors text-[15px] ${
+                            location.pathname === '/events' && new URLSearchParams(location.search).get('type') === 'Festival' ? 'border-b-2 border-white' : ''
+                          }`}
+                        >
+                          Festivals
+                        </Link>
+                        <Link
+                          to="/events?type=Charity"
+                          onClick={() => setIsOpen(false)}
+                          className={`block text-white hover:text-primary-200 transition-colors text-[15px] ${
+                            location.pathname === '/events' && new URLSearchParams(location.search).get('type') === 'Charity' ? 'border-b-2 border-white' : ''
+                          }`}
+                        >
+                          Charity Events
+                        </Link>
+                        <Link
+                          to="/events"
+                          onClick={() => setIsOpen(false)}
+                          className={`block text-white hover:text-primary-200 transition-colors text-[15px] ${
+                            location.pathname === '/events' && !new URLSearchParams(location.search).get('type') ? 'border-b-2 border-white' : ''
+                          }`}
+                        >
+                          All
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                }
                 
                 return (
                   <Link
