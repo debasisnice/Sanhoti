@@ -6,14 +6,19 @@ import { eventsAPI } from '../services/api';
 import { Event } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime } from '../utils/dateUtils';
+import {
+  getEffectiveEventType,
+  getScopedPriorityEvent,
+  parseEventsTypeQueryParam,
+} from '../utils/eventType';
 import { QRCodeSVG } from 'qrcode.react';
 
 export default function Events() {
   const [searchParams] = useSearchParams();
-  const eventTypeFilter = searchParams.get('type'); // 'Festival' | 'Charity' | null (All)
-  
+  const typeQueryRaw = searchParams.get('type');
+  const eventTypeScope = useMemo(() => parseEventsTypeQueryParam(typeQueryRaw), [typeQueryRaw]);
+
   const [allEvents, setAllEvents] = useState<Event[]>([]);
-  const [priorityEvent, setPriorityEvent] = useState<Event | null>(null);
   const [priorityEventImage, setPriorityEventImage] = useState<string | null>(null);
   const [imageOrientation, setImageOrientation] = useState<'portrait' | 'landscape' | null>(null);
   const [eventImages, setEventImages] = useState<Record<string, string>>({});
@@ -49,35 +54,7 @@ export default function Events() {
         // Combine all events
         const combined = [...upcoming, ...past];
         setAllEvents(combined);
-        
-        // Find priority event
-        const priority = combined.find(e => e.is_priority === true);
-        
-        if (priority) {
-          setPriorityEvent(priority);
-          
-          // Fetch event image if event has event_image_path
-          if (priority.event_id && priority.event_image_path) {
-            try {
-              const imageData = await eventsAPI.getImagePublic(priority.event_id);
-              if (imageData) {
-                // Construct full URL using getImageUrl method
-                const imageUrl = eventsAPI.getImageUrl(priority.event_id, imageData.filename);
-                setPriorityEventImage(imageUrl);
-                
-                // Detect image orientation
-                const orientation = await detectImageOrientation(imageUrl);
-                setImageOrientation(orientation);
-              }
-            } catch (error) {
-              // Silently fail if no images are found - image is optional
-            }
-          } else {
-            // Reset image orientation if no image
-            setImageOrientation(null);
-          }
-        }
-        
+
         // Fetch images for all events
         const imagePromises = combined
           .filter(e => e.event_id && e.event_image_path)
@@ -120,19 +97,55 @@ export default function Events() {
     fetchEventsAndImages();
   }, []);
 
-  // Filter events by type from URL (Festival, Charity, or All)
+  const scopedPriorityEvent = useMemo(
+    () => getScopedPriorityEvent(allEvents, eventTypeScope),
+    [allEvents, eventTypeScope]
+  );
+
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [eventTypeScope]);
+
+  useEffect(() => {
+    if (!scopedPriorityEvent?.event_id || !scopedPriorityEvent.event_image_path) {
+      setPriorityEventImage(null);
+      setImageOrientation(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const imageData = await eventsAPI.getImagePublic(scopedPriorityEvent.event_id!);
+        if (cancelled || !imageData) {
+          if (!cancelled) {
+            setPriorityEventImage(null);
+            setImageOrientation(null);
+          }
+          return;
+        }
+        const imageUrl = eventsAPI.getImageUrl(scopedPriorityEvent.event_id!, imageData.filename);
+        setPriorityEventImage(imageUrl);
+        const orientation = await detectImageOrientation(imageUrl);
+        if (!cancelled) setImageOrientation(orientation);
+      } catch {
+        if (!cancelled) {
+          setPriorityEventImage(null);
+          setImageOrientation(null);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [scopedPriorityEvent]);
+
+  // Filter events by type from URL (Festival, Charity, Other, or All)
   const filteredEvents = useMemo(() => {
-    if (eventTypeFilter === 'Festival' || eventTypeFilter === 'Charity') {
-      return allEvents.filter(e => (e as any).event_type === eventTypeFilter);
+    if (eventTypeScope === 'Festival' || eventTypeScope === 'Charity' || eventTypeScope === 'Other') {
+      return allEvents.filter((e) => getEffectiveEventType(e) === eventTypeScope);
     }
     return allEvents;
-  }, [allEvents, eventTypeFilter]);
-
-  // Only show priority event if it matches the current filter
-  const displayPriorityEvent = priorityEvent && (
-    !eventTypeFilter ||
-    (priorityEvent as any).event_type === eventTypeFilter
-  ) ? priorityEvent : null;
+  }, [allEvents, eventTypeScope]);
 
   // Sort events chronologically and position priority event at front (index 0)
   // Sequence: past events (newest to oldest) on left, then upcoming events (nearest to farthest) on right
@@ -144,21 +157,20 @@ export default function Events() {
     const now = new Date();
     
     // Separate past and upcoming events
+    // Split by end time so ongoing multi-day events are not dropped (start < now but end >= now).
     const pastEvents = filtered.filter(e => {
-      const eventDate = e.event_end_dt ? new Date(e.event_end_dt) : new Date(e.event_start_dt || e.date || 0);
-      return eventDate < now;
+      const endDate = new Date(e.event_end_dt || e.event_start_dt || e.date || 0);
+      return endDate < now;
     }).sort((a, b) => {
-      // Sort past events by end date (or start date) descending (newest first)
-      const dateA = a.event_end_dt ? new Date(a.event_end_dt) : new Date(a.event_start_dt || a.date || 0);
-      const dateB = b.event_end_dt ? new Date(b.event_end_dt) : new Date(b.event_start_dt || b.date || 0);
+      const dateA = new Date(a.event_end_dt || a.event_start_dt || a.date || 0);
+      const dateB = new Date(b.event_end_dt || b.event_start_dt || b.date || 0);
       return dateB.getTime() - dateA.getTime();
     });
-    
+
     const upcomingEvents = filtered.filter(e => {
-      const eventDate = new Date(e.event_start_dt || e.date || 0);
-      return eventDate >= now;
+      const endDate = new Date(e.event_end_dt || e.event_start_dt || e.date || 0);
+      return endDate >= now;
     }).sort((a, b) => {
-      // Sort upcoming events by start date ascending (nearest first)
       const dateA = new Date(a.event_start_dt || a.date || 0);
       const dateB = new Date(b.event_start_dt || b.date || 0);
       return dateA.getTime() - dateB.getTime();
@@ -170,9 +182,8 @@ export default function Events() {
     
     // Reverse the sequence so the carousel flows in opposite direction
     const reversed = [...chronological].reverse();
-    
-    // Find priority event
-    const priority = reversed.find(e => e.is_priority === true);
+
+    const priority = getScopedPriorityEvent(reversed, eventTypeScope);
     
     // If priority event exists, rotate the array so priority is at index 0
     // This maintains the reversed chronological order while ensuring priority is at front
@@ -236,26 +247,34 @@ export default function Events() {
           <div className="flex items-center justify-center gap-3 mb-4">
             <Calendar className="w-8 h-8 text-primary-600" />
             <h1 className="text-2xl font-bold text-gray-900">
-              {eventTypeFilter === 'Festival' ? 'Festivals' : eventTypeFilter === 'Charity' ? 'Charity Events' : 'Community Events'}
+              {eventTypeScope === 'Festival'
+                ? 'Festivals'
+                : eventTypeScope === 'Charity'
+                  ? 'Charity Events'
+                  : eventTypeScope === 'Other'
+                    ? 'Other Events'
+                    : 'Community Events'}
             </h1>
           </div>
           <p className="text-2xl text-gray-600">
-            {eventTypeFilter === 'Charity'
+            {eventTypeScope === 'Charity'
               ? 'Coming together to give back and strengthen humanity'
-              : 'Join us in celebrating Bengali culture and traditions'}
+              : eventTypeScope === 'Other'
+                ? 'Additional community programs and gatherings'
+                : 'Join us in celebrating Bengali culture and traditions'}
           </p>
         </motion.div>
 
         {/* Priority Event Card */}
-        {displayPriorityEvent && (() => {
-          const eventId = displayPriorityEvent.event_id || displayPriorityEvent.id || '';
-          const eventName = displayPriorityEvent.event_name || displayPriorityEvent.title || 'Untitled Event';
-          const eventDescription = displayPriorityEvent.event_description || displayPriorityEvent.description || '';
-          const eventDate = displayPriorityEvent.event_start_dt || displayPriorityEvent.date || '';
-          const eventLocation = displayPriorityEvent.location || '';
+        {scopedPriorityEvent && (() => {
+          const eventId = scopedPriorityEvent.event_id || scopedPriorityEvent.id || '';
+          const eventName = scopedPriorityEvent.event_name || scopedPriorityEvent.title || 'Untitled Event';
+          const eventDescription = scopedPriorityEvent.event_description || scopedPriorityEvent.description || '';
+          const eventDate = scopedPriorityEvent.event_start_dt || scopedPriorityEvent.date || '';
+          const eventLocation = scopedPriorityEvent.location || '';
           
           // Use event image from Events_Flyers if available, otherwise use the old imageUrl/photo_gallery_link as fallback
-          const eventImage = priorityEventImage || displayPriorityEvent.photo_gallery_link || displayPriorityEvent.imageUrl;
+          const eventImage = priorityEventImage || scopedPriorityEvent.photo_gallery_link || scopedPriorityEvent.imageUrl;
           
           // Determine layout based on image orientation
           const isPortrait = imageOrientation === 'portrait' && eventImage;
@@ -291,7 +310,7 @@ export default function Events() {
                     <div className="md:w-1/2 p-8 flex flex-col justify-center">
                       <div className="flex items-center gap-3 mb-4">
                         <span className="bg-primary-600 text-white px-4 py-2 rounded-full text-sm font-medium">
-                          {displayPriorityEvent.year || new Date(eventDate).getFullYear()}
+                          {scopedPriorityEvent.year || new Date(eventDate).getFullYear()}
                         </span>
                       </div>
                       <h2 className="text-4xl font-bold text-gray-900 mb-4">{eventName}</h2>
@@ -303,14 +322,14 @@ export default function Events() {
                           <div className="flex items-center gap-2">
                             {(() => {
                               const now = new Date();
-                              const eventEndDate = displayPriorityEvent.event_end_dt ? convertPSTToLocal(displayPriorityEvent.event_end_dt) : convertPSTToLocal(eventDate);
+                              const eventEndDate = scopedPriorityEvent.event_end_dt ? convertPSTToLocal(scopedPriorityEvent.event_end_dt) : convertPSTToLocal(eventDate);
                               const isUpcoming = eventEndDate >= now;
                               
                               if (isUpcoming) {
                                 const calendarUrl = generateCalendarUrl(
                                   eventName,
                                   eventDate,
-                                  displayPriorityEvent.event_end_dt,
+                                  scopedPriorityEvent.event_end_dt,
                                   eventLocation,
                                   eventDescription
                                 );
@@ -369,10 +388,10 @@ export default function Events() {
                         {/* Show RSVP link only for upcoming events when RSVP is enabled */}
                         {(() => {
                           const now = new Date();
-                          const eventEndDate = displayPriorityEvent.event_end_dt ? new Date(displayPriorityEvent.event_end_dt) : new Date(eventDate);
+                          const eventEndDate = scopedPriorityEvent.event_end_dt ? new Date(scopedPriorityEvent.event_end_dt) : new Date(eventDate);
                           const isPastEvent = eventEndDate < now;
-                          const rsvpEnabled = (displayPriorityEvent as any).rsvp_enabled;
-                          const rsvpLink = (displayPriorityEvent as any).rsvp_link;
+                          const rsvpEnabled = (scopedPriorityEvent as any).rsvp_enabled;
+                          const rsvpLink = (scopedPriorityEvent as any).rsvp_link;
                           
                           if (!isPastEvent && rsvpEnabled) {
                             if (rsvpLink) {
@@ -435,7 +454,7 @@ export default function Events() {
                     <div className="p-8">
                       <div className="flex items-center gap-3 mb-4">
                         <span className="bg-primary-600 text-white px-4 py-2 rounded-full text-sm font-medium">
-                          {displayPriorityEvent.year || new Date(eventDate).getFullYear()}
+                          {scopedPriorityEvent.year || new Date(eventDate).getFullYear()}
                         </span>
                       </div>
                       <h2 className="text-4xl font-bold text-gray-900 mb-4">{eventName}</h2>
@@ -447,14 +466,14 @@ export default function Events() {
                           <div className="flex items-center gap-2">
                             {(() => {
                               const now = new Date();
-                              const eventEndDate = displayPriorityEvent.event_end_dt ? convertPSTToLocal(displayPriorityEvent.event_end_dt) : convertPSTToLocal(eventDate);
+                              const eventEndDate = scopedPriorityEvent.event_end_dt ? convertPSTToLocal(scopedPriorityEvent.event_end_dt) : convertPSTToLocal(eventDate);
                               const isUpcoming = eventEndDate >= now;
                               
                               if (isUpcoming) {
                                 const calendarUrl = generateCalendarUrl(
                                   eventName,
                                   eventDate,
-                                  displayPriorityEvent.event_end_dt,
+                                  scopedPriorityEvent.event_end_dt,
                                   eventLocation,
                                   eventDescription
                                 );
@@ -513,10 +532,10 @@ export default function Events() {
                         {/* Show RSVP link only for upcoming events when RSVP is enabled */}
                         {(() => {
                           const now = new Date();
-                          const eventEndDate = displayPriorityEvent.event_end_dt ? new Date(displayPriorityEvent.event_end_dt) : new Date(eventDate);
+                          const eventEndDate = scopedPriorityEvent.event_end_dt ? new Date(scopedPriorityEvent.event_end_dt) : new Date(eventDate);
                           const isPastEvent = eventEndDate < now;
-                          const rsvpEnabled = (displayPriorityEvent as any).rsvp_enabled;
-                          const rsvpLink = (displayPriorityEvent as any).rsvp_link;
+                          const rsvpEnabled = (scopedPriorityEvent as any).rsvp_enabled;
+                          const rsvpLink = (scopedPriorityEvent as any).rsvp_link;
                           
                           if (!isPastEvent && rsvpEnabled) {
                             if (rsvpLink) {

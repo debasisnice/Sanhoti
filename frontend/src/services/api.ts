@@ -120,6 +120,9 @@ export const eventsAPI = {
     event_end_dt: string;
     year: number;
     event_description: string;
+    event_type?: 'Festival' | 'Charity' | 'Other';
+    rsvp_enabled?: boolean;
+    rsvp_link?: string;
     location?: string;
     photo_gallery_link?: string;
     is_priority?: boolean;
@@ -130,14 +133,17 @@ export const eventsAPI = {
 
   update: async (eventId: string, data: Partial<{
     event_name: string;
-    event_start_dt: string;
-    event_end_dt: string;
-    year: number;
-    event_description: string;
-    location?: string;
-    photo_gallery_link?: string;
-    is_active?: boolean;
-    is_priority?: boolean;
+      event_start_dt: string;
+      event_end_dt: string;
+      year: number;
+      event_description: string;
+      event_type?: 'Festival' | 'Charity' | 'Other';
+      rsvp_enabled?: boolean;
+      rsvp_link?: string;
+      location?: string;
+      photo_gallery_link?: string;
+      is_active?: boolean;
+      is_priority?: boolean;
   }>): Promise<Event> => {
     const response = await api.put(`/events/${eventId}`, data);
     return response.data;

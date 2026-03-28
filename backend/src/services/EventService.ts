@@ -49,13 +49,18 @@ export class EventService {
       throw new Error('End date cannot be prior to start date');
     }
     
+    const eventType: 'Festival' | 'Charity' | 'Other' =
+      data.event_type && ['Festival', 'Charity', 'Other'].includes(data.event_type)
+        ? data.event_type
+        : 'Festival';
+
     return this.eventDataHelper.create({
       event_name: data.event_name,
       event_start_dt: data.event_start_dt,
       event_end_dt: data.event_end_dt,
       year: data.year,
       event_description: data.event_description,
-      event_type: data.event_type,
+      event_type: eventType,
       rsvp_enabled: data.rsvp_enabled,
       location: data.location,
       photo_gallery_link: data.photo_gallery_link,
@@ -86,8 +91,15 @@ export class EventService {
         throw new Error('End date cannot be prior to start date');
       }
     }
-    
-    return this.eventDataHelper.update(eventId, updates);
+
+    const toWrite = { ...updates };
+    if (toWrite.event_type !== undefined) {
+      const et = toWrite.event_type;
+      toWrite.event_type =
+        et && ['Festival', 'Charity', 'Other'].includes(et) ? et : 'Festival';
+    }
+
+    return this.eventDataHelper.update(eventId, toWrite);
   }
 
   async deleteEvent(eventId: string): Promise<boolean> {

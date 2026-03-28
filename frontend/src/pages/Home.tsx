@@ -5,8 +5,34 @@ import { Calendar, Users, Image, BookOpen, ArrowRight, Eye, Star, MapPin, Share2
 import { eventsAPI, homepageAPI, settingsAPI, subEventsAPI } from '../services/api';
 import { Event, SubEvent } from '../types';
 import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime } from '../utils/dateUtils';
+import { getEffectiveEventType } from '../utils/eventType';
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
+
+/** Charity card: show priority image longer so it is on screen most of the time. */
+const CHARITY_PRIORITY_IMAGE_MS = 14_000;
+const CHARITY_OTHER_IMAGE_MS = 3_500;
+
+function buildCharitySlideSchedule(
+  imageCount: number,
+  priorityImageIndex: number | null
+): { index: number; dwellMs: number }[] {
+  if (imageCount <= 1) return [];
+  if (priorityImageIndex == null || priorityImageIndex < 0 || priorityImageIndex >= imageCount) {
+    return Array.from({ length: imageCount }, (_, i) => ({
+      index: i,
+      dwellMs: CHARITY_OTHER_IMAGE_MS,
+    }));
+  }
+  const others = Array.from({ length: imageCount }, (_, i) => i).filter((i) => i !== priorityImageIndex);
+  const steps: { index: number; dwellMs: number }[] = [
+    { index: priorityImageIndex, dwellMs: CHARITY_PRIORITY_IMAGE_MS },
+  ];
+  for (const o of others) {
+    steps.push({ index: o, dwellMs: CHARITY_OTHER_IMAGE_MS });
+  }
+  return steps;
+}
 
 export default function Home() {
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
@@ -20,6 +46,8 @@ export default function Home() {
   const [activeAboutTab, setActiveAboutTab] = useState<'about' | 'vision' | 'mission'>('about');
   const [priorityEventSubEvents, setPriorityEventSubEvents] = useState<SubEvent[]>([]);
   const [charityEventImages, setCharityEventImages] = useState<string[]>([]);
+  /** Index in charityEventImages for the priority charity event’s flyer, or null if none. */
+  const [priorityCharityImageIndex, setPriorityCharityImageIndex] = useState<number | null>(null);
   const [charityCardSlideIndex, setCharityCardSlideIndex] = useState(0);
 
   // Share functions
@@ -180,8 +208,10 @@ export default function Home() {
         // Fetch ALL active events to find priority event (regardless of past/future)
         const allActiveEvents = await eventsAPI.getActive();
         
-        // Find priority event from all active events
-        const priority = allActiveEvents.find(e => e.is_priority === true);
+        // Featured festival: one priority event of type Festival (charity has its own hero card)
+        const priority = allActiveEvents.find(
+          (e) => e.is_priority === true && getEffectiveEventType(e) === 'Festival'
+        );
         
         if (priority) {
           setPriorityEvent(priority);
@@ -221,23 +251,36 @@ export default function Home() {
             setPriorityEventSubEvents([]);
           }
         } else {
+          setPriorityEvent(null);
+          setPriorityEventImage(null);
+          setImageOrientation(null);
           setPriorityEventSubEvents([]);
         }
 
-        // Fetch charity event images for hero right card slideshow
-        const charityEvents = allActiveEvents.filter((e) => (e as any).event_type === 'Charity');
-        const charityImagePromises = charityEvents
-          .filter((e) => e.event_id && (e as any).event_image_path)
-          .map(async (e) => {
-            try {
-              const imageData = await eventsAPI.getImagePublic(e.event_id!);
-              return imageData ? eventsAPI.getImageUrl(e.event_id!, imageData.filename) : null;
-            } catch {
-              return null;
-            }
-          });
-        const charityImages = (await Promise.all(charityImagePromises)).filter((url): url is string => !!url);
+        // Charity hero images: preserve order + mark priority for weighted slideshow
+        const charityEvents = allActiveEvents.filter((e) => getEffectiveEventType(e) === 'Charity');
+        charityEvents.sort((a, b) => {
+          if (a.is_priority && !b.is_priority) return -1;
+          if (!a.is_priority && b.is_priority) return 1;
+          return 0;
+        });
+        const pairs: { url: string; isPriority: boolean }[] = [];
+        for (const e of charityEvents) {
+          if (!(e.event_id && (e as any).event_image_path)) continue;
+          try {
+            const imageData = await eventsAPI.getImagePublic(e.event_id!);
+            const url = imageData ? eventsAPI.getImageUrl(e.event_id!, imageData.filename) : null;
+            if (url) pairs.push({ url, isPriority: !!e.is_priority });
+          } catch {
+            // skip missing images
+          }
+        }
+        const charityImages = pairs.map((p) => p.url);
+        const pImgIdx = pairs.findIndex((p) => p.isPriority);
+        const priorityIdx = pImgIdx >= 0 ? pImgIdx : null;
         setCharityEventImages(charityImages);
+        setPriorityCharityImageIndex(priorityIdx);
+        setCharityCardSlideIndex(priorityIdx ?? 0);
       } catch (error) {
         console.error('Error fetching events:', error);
       }
@@ -343,16 +386,26 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [slideshowImages.length]);
 
-  // Charity card slideshow - fade between charity event images
+  // Charity card: stay on priority image ~14s; others ~3.5s each (priority dominates total time)
   useEffect(() => {
-    if (charityEventImages.length <= 1) return;
+    const n = charityEventImages.length;
+    if (n <= 1) return;
 
-    const interval = setInterval(() => {
-      setCharityCardSlideIndex((prev) => (prev + 1) % charityEventImages.length);
-    }, 4000); // Change every 4 seconds
+    const schedule = buildCharitySlideSchedule(n, priorityCharityImageIndex);
+    if (schedule.length === 0) return;
 
-    return () => clearInterval(interval);
-  }, [charityEventImages.length]);
+    let step = 0;
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const advance = () => {
+      step = (step + 1) % schedule.length;
+      const { index, dwellMs } = schedule[step];
+      setCharityCardSlideIndex(index);
+      timeoutId = setTimeout(advance, dwellMs);
+    };
+    timeoutId = setTimeout(advance, schedule[0].dwellMs);
+
+    return () => clearTimeout(timeoutId);
+  }, [charityEventImages, priorityCharityImageIndex]);
 
   const features = [
     {

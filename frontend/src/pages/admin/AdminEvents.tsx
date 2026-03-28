@@ -827,10 +827,10 @@ export default function AdminEvents() {
                     className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
                   />
                   <label htmlFor="is_priority" className="text-sm font-medium text-gray-700">
-                    Mark as Priority Event
+                    Mark as priority for this event type
                   </label>
                   <span className="text-xs text-gray-500">
-                    (Only one event can be priority at a time)
+                    (One priority each for Festival, Charity, and Other — featured on Events and home)
                   </span>
                 </div>
 

@@ -37,7 +37,7 @@ export interface Event {
   event_type?: 'Festival' | 'Charity' | 'Other';
   location?: string;
   is_active: boolean;
-  is_priority?: boolean; // Only one event can have is_priority: true at a time
+  is_priority?: boolean; // At most one per event_type (Festival / Charity / Other)
   created_at: string;
   updated_at: string;
   photo_gallery_link?: string;

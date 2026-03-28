@@ -33,6 +33,12 @@ export class EventDataHelper extends DatabaseHelper {
     }
   }
 
+  private effectiveEventType(e: Pick<Event, 'event_type'>): 'Festival' | 'Charity' | 'Other' {
+    const t = e.event_type;
+    if (t === 'Festival' || t === 'Charity' || t === 'Other') return t;
+    return 'Festival';
+  }
+
   private sanitizeFolderName(name: string): string {
     // Replace invalid characters with hyphens
     return name
@@ -86,21 +92,23 @@ export class EventDataHelper extends DatabaseHelper {
     );
   }
 
+  /** Events that have not ended yet (includes not started and in-progress multi-day). */
   async findUpcoming(): Promise<Event[]> {
     const now = new Date();
     const events = await this.findActive();
     return events.filter(e => {
-      const eventDate = new Date(e.event_start_dt || e.date || '');
-      return eventDate >= now;
+      const endDate = new Date(e.event_end_dt || e.event_start_dt || e.date || '');
+      return endDate >= now;
     });
   }
 
+  /** Events that have fully ended. Mutually exclusive with findUpcoming for well-formed ranges. */
   async findPast(): Promise<Event[]> {
     const now = new Date();
     const events = await this.findActive();
     return events.filter(e => {
-      const eventDate = new Date(e.event_end_dt || e.event_start_dt || e.date || '');
-      return eventDate < now;
+      const endDate = new Date(e.event_end_dt || e.event_start_dt || e.date || '');
+      return endDate < now;
     });
   }
 
@@ -125,10 +133,14 @@ export class EventDataHelper extends DatabaseHelper {
       is_priority: event.is_priority !== undefined ? event.is_priority : false, // Default to false
     };
     
-    // If setting this event as priority, unset priority from all other events
+    // One priority per event type (Festival / Charity / Other)
     if (newEvent.is_priority === true) {
+      const typeKey = this.effectiveEventType(newEvent);
       events.forEach((existingEvent) => {
-        if (existingEvent.is_priority === true) {
+        if (
+          existingEvent.is_priority === true &&
+          this.effectiveEventType(existingEvent) === typeKey
+        ) {
           existingEvent.is_priority = false;
         }
       });
@@ -159,23 +171,27 @@ export class EventDataHelper extends DatabaseHelper {
     const events = await this.findAll();
     const index = events.findIndex(e => e.event_id === eventId || e.id === eventId);
     if (index === -1) return null;
-    
-    // If setting this event as priority, unset priority from all other events
-    if (updates.is_priority === true) {
-      events.forEach((event, i) => {
-        if (i !== index && event.event_id !== eventId && event.is_priority === true) {
-          event.is_priority = false;
-        }
-      });
-    }
-    
-    events[index] = {
+
+    const merged: Event = {
       ...events[index],
       ...updates,
       updated_at: new Date().toISOString(),
     };
+
+    // One priority per event type; re-run when type or priority changes
+    if (merged.is_priority === true) {
+      const typeKey = this.effectiveEventType(merged);
+      events.forEach((ev) => {
+        if (ev.event_id === eventId || ev.id === eventId) return;
+        if (ev.is_priority === true && this.effectiveEventType(ev) === typeKey) {
+          ev.is_priority = false;
+        }
+      });
+    }
+
+    events[index] = merged;
     this.writeFile(this.filename, events);
-    return events[index];
+    return merged;
   }
 
   async delete(eventId: string): Promise<boolean> {
