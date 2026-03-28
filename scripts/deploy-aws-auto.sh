@@ -76,6 +76,18 @@ echo "🔨 Building frontend..."
 npm run build || { echo "❌ Build failed"; exit 1; }
 
 echo ""
+echo "🔨 Building backend..."
+cd ../backend
+# PM2 runs dist/server.js — must compile TS after every pull or API behavior stays stale (local uses tsx on src).
+if git diff HEAD@{1} HEAD --name-only 2>/dev/null | grep -qE '^backend/package\.json$|^backend/package-lock\.json$'; then
+    echo "   Backend dependencies changed, running npm ci..."
+    npm ci --prefer-offline || { echo "❌ Backend npm ci failed"; exit 1; }
+else
+    echo "   ✅ Backend dependencies unchanged, skipping npm ci"
+fi
+npm run build || { echo "❌ Backend build failed"; exit 1; }
+
+echo ""
 echo "🔄 Reloading services..."
 cd ..
 sudo systemctl reload nginx || { echo "⚠️  nginx reload warning (may be ok)"; }
