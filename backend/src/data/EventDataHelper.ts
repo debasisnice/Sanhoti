@@ -39,6 +39,17 @@ export class EventDataHelper extends DatabaseHelper {
     return 'Festival';
   }
 
+  /** JSON/clients may store priority as string or 1/0 — normalize so per-type priority logic always runs. */
+  private normalizePriorityFlag(value: unknown): boolean {
+    if (value === true || value === 1) return true;
+    if (value === false || value === 0 || value === null || value === undefined) return false;
+    if (typeof value === 'string') {
+      const s = value.trim().toLowerCase();
+      return s === 'true' || s === '1' || s === 'yes';
+    }
+    return false;
+  }
+
   private sanitizeFolderName(name: string): string {
     // Replace invalid characters with hyphens
     return name
@@ -130,15 +141,17 @@ export class EventDataHelper extends DatabaseHelper {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       gallery_is_public: event.gallery_is_public !== undefined ? event.gallery_is_public : false, // Default to private
-      is_priority: event.is_priority !== undefined ? event.is_priority : false, // Default to false
+      is_priority: this.normalizePriorityFlag(
+        event.is_priority !== undefined ? event.is_priority : false
+      ),
     };
-    
+
     // One priority per event type (Festival / Charity / Other)
-    if (newEvent.is_priority === true) {
+    if (newEvent.is_priority) {
       const typeKey = this.effectiveEventType(newEvent);
       events.forEach((existingEvent) => {
         if (
-          existingEvent.is_priority === true &&
+          this.normalizePriorityFlag(existingEvent.is_priority) &&
           this.effectiveEventType(existingEvent) === typeKey
         ) {
           existingEvent.is_priority = false;
@@ -177,13 +190,14 @@ export class EventDataHelper extends DatabaseHelper {
       ...updates,
       updated_at: new Date().toISOString(),
     };
+    merged.is_priority = this.normalizePriorityFlag(merged.is_priority);
 
-    // One priority per event type; re-run when type or priority changes
-    if (merged.is_priority === true) {
+    // One priority per event type; uses merged event_type + is_priority
+    if (merged.is_priority) {
       const typeKey = this.effectiveEventType(merged);
       events.forEach((ev) => {
         if (ev.event_id === eventId || ev.id === eventId) return;
-        if (ev.is_priority === true && this.effectiveEventType(ev) === typeKey) {
+        if (this.normalizePriorityFlag(ev.is_priority) && this.effectiveEventType(ev) === typeKey) {
           ev.is_priority = false;
         }
       });

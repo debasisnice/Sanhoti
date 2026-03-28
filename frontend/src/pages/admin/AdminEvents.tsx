@@ -225,13 +225,27 @@ export default function AdminEvents() {
         event_start_dt: startDateTime ? getPSTDateTime(startDateTime) : formData.event_start_dt,
         event_end_dt: endDateTime ? getPSTDateTime(endDateTime) : formData.event_end_dt,
       };
-      
+
+      // Explicit payload so event_type + is_priority are always real booleans/strings (per-type priority on server)
+      const eventPayload = {
+        event_name: formDataWithPST.event_name,
+        event_start_dt: formDataWithPST.event_start_dt,
+        event_end_dt: formDataWithPST.event_end_dt,
+        year: formDataWithPST.year,
+        event_description: formDataWithPST.event_description,
+        event_type: formDataWithPST.event_type,
+        location: formDataWithPST.location ?? '',
+        is_priority: Boolean(formDataWithPST.is_priority),
+        rsvp_enabled: Boolean(formDataWithPST.rsvp_enabled),
+        rsvp_link: (formDataWithPST.rsvp_link ?? '').trim(),
+      };
+
       let savedEvent: Event;
       if (editingEvent) {
-        savedEvent = await eventsAPI.update(editingEvent.event_id, formDataWithPST);
+        savedEvent = await eventsAPI.update(editingEvent.event_id, eventPayload);
         toast.success('Event updated successfully');
       } else {
-        savedEvent = await eventsAPI.create(formDataWithPST);
+        savedEvent = await eventsAPI.create(eventPayload);
         toast.success('Event created successfully');
       }
 
