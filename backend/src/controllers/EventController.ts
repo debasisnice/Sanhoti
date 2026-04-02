@@ -384,13 +384,12 @@ export class EventController {
       };
       const contentType = contentTypeMap[ext || ''] || 'image/jpeg';
 
-      // sendFile requires an absolute path
+      // sendFile requires an absolute path. Set type via res.type — Express may ignore nested `headers` in options,
+      // which breaks social crawlers that require a correct image/* Content-Type for og:image.
       const absolutePath = resolve(imagePath);
-      res.sendFile(absolutePath, {
-        headers: {
-          'Content-Type': contentType,
-        },
-      });
+      res.type(contentType);
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.sendFile(absolutePath);
     } catch (error: any) {
       console.error('Error in getEventImage:', error);
       res.status(500).json({ error: 'Failed to serve event image' });
@@ -497,7 +496,13 @@ export class EventController {
 
       let ogImageAbs = `${origin}/images/logo.png`;
 
-      const folderPath = await this.eventDataHelper.getEventImageFolderPath(eventId);
+      const externalImage = (event.imageUrl || '').trim();
+      if (/^https?:\/\//i.test(externalImage)) {
+        ogImageAbs = externalImage;
+      }
+
+      const folderPath =
+        /^https?:\/\//i.test(externalImage) ? null : await this.eventDataHelper.getEventImageFolderPath(eventId);
       if (folderPath && existsSync(folderPath)) {
         const files = readdirSync(folderPath);
         const imageFiles = files

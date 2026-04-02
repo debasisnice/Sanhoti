@@ -1,6 +1,6 @@
 import { DatabaseHelper } from './DatabaseHelper.js';
 import { Event } from '../models/types.js';
-import { existsSync, mkdirSync, readdirSync, rmSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -233,12 +233,54 @@ export class EventDataHelper extends DatabaseHelper {
     return true;
   }
 
+  /**
+   * Absolute path to the Events_Flyers folder that contains this event's flyer image(s).
+   * Uses `event_image_path` when valid; otherwise finds a directory whose name ends with `-{eventId}` (upload folder convention).
+   */
   async getEventImageFolderPath(eventId: string): Promise<string | null> {
     const events = await this.findAll();
-    const event = events.find(e => e.event_id === eventId || e.id === eventId);
-    if (event && event.event_image_path) {
-      return join(this.eventsFlyersDir, event.event_image_path);
+    const event = events.find((e) => e.event_id === eventId || e.id === eventId);
+    if (!event) return null;
+
+    const tryFolderWithImages = (absolutePath: string | null): string | null => {
+      if (!absolutePath || !existsSync(absolutePath)) return null;
+      try {
+        const files = readdirSync(absolutePath);
+        const hasImage = files.some((file) => {
+          try {
+            const fp = join(absolutePath, file);
+            const stats = statSync(fp);
+            return stats.isFile() && /\.(jpg|jpeg|png|gif|webp)$/i.test(file);
+          } catch {
+            return false;
+          }
+        });
+        return hasImage ? absolutePath : null;
+      } catch {
+        return null;
+      }
+    };
+
+    if (event.event_image_path) {
+      const p = join(this.eventsFlyersDir, event.event_image_path);
+      const hit = tryFolderWithImages(p);
+      if (hit) return hit;
     }
+
+    if (!existsSync(this.eventsFlyersDir)) return null;
+
+    const candidateIds = [event.event_id, event.id].filter(Boolean) as string[];
+    for (const id of candidateIds) {
+      const suffix = `-${id}`;
+      for (const ent of readdirSync(this.eventsFlyersDir, { withFileTypes: true })) {
+        if (!ent.isDirectory()) continue;
+        if (!ent.name.endsWith(suffix)) continue;
+        const p = join(this.eventsFlyersDir, ent.name);
+        const hit = tryFolderWithImages(p);
+        if (hit) return hit;
+      }
+    }
+
     return null;
   }
 
