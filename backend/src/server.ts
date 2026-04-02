@@ -6,6 +6,9 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import routes from './routes/index.js';
 import { SitemapController } from './controllers/SitemapController.js';
+import { EventController } from './controllers/EventController.js';
+import { GalleryController } from './controllers/GalleryController.js';
+import type { AuthRequest } from './middleware/auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -29,6 +32,10 @@ const allowedOrigins = process.env.CORS_ORIGIN
 
 // Security Headers Middleware - Improve trust signals and security
 app.use((req, res, next) => {
+  // Plain image bytes for social previews — avoid CSP/HSTS noise that some crawlers mishandle
+  if (req.path.startsWith('/og/')) {
+    return next();
+  }
   // Skip restrictive headers for user manual (to allow iframe embedding)
   if (req.path.startsWith('/api/user-manual')) {
     // Allow embedding from sanhoti.org and localhost
@@ -117,6 +124,16 @@ const sitemapController = new SitemapController();
 app.get('/sitemap.xml', (req, res) => {
   return sitemapController.generateSitemap(req, res);
 });
+
+// Crawler-friendly image URLs (not under /api). WhatsApp/Meta often omit previews when og:image is /api/...
+const eventController = new EventController();
+const galleryController = new GalleryController();
+app.get('/og/events/:eventId/image/:filename', (req, res) =>
+  eventController.getEventImage(req as AuthRequest, res)
+);
+app.get('/og/galleries/:eventId/photos/:filename', (req, res) =>
+  galleryController.servePhoto(req as AuthRequest, res)
+);
 
 // API routes
 app.use('/api', routes);

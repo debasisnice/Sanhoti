@@ -602,7 +602,7 @@ export class EventController {
           if (imageFiles.length > 0) {
             const fn = imageFiles[0];
             localImagePath = join(folderPath, fn);
-            ogImageAbs = `${origin}/api/events/${encodeURIComponent(eventId)}/image/${encodeURIComponent(fn)}`;
+            ogImageAbs = `${origin}/og/events/${encodeURIComponent(eventId)}/image/${encodeURIComponent(fn)}`;
           }
         }
 
@@ -612,7 +612,7 @@ export class EventController {
           if (gal) {
             localImagePath = gal.absPath;
             const gid = event.event_id || event.id || eventId;
-            ogImageAbs = `${origin}/api/galleries/${encodeURIComponent(gid)}/photos/${encodeURIComponent(gal.filename)}`;
+            ogImageAbs = `${origin}/og/galleries/${encodeURIComponent(gid)}/photos/${encodeURIComponent(gal.filename)}`;
           }
         }
       }
@@ -628,6 +628,10 @@ export class EventController {
       const safeTitle = escapeHtmlAttr(title);
       const safeDesc = escapeHtmlAttr(description);
       const safeOgImage = escapeHtmlAttr(ogImageAbs);
+      const ogSecureMeta =
+        ogImageAbs.startsWith('https://')
+          ? `\n  <meta property="og:image:secure_url" content="${safeOgImage}" />`
+          : '';
       const safeCanonical = escapeHtmlAttr(canonicalUrl);
       const safeSharePage = escapeHtmlAttr(sharePageUrl);
 
@@ -653,7 +657,7 @@ export class EventController {
   <meta property="og:url" content="${safeSharePage}" />
   <meta property="og:title" content="${safeTitle}" />
   <meta property="og:description" content="${safeDesc}" />
-  <meta property="og:image" content="${safeOgImage}" />
+  <meta property="og:image" content="${safeOgImage}" />${ogSecureMeta}
   <meta property="og:image:alt" content="${safeTitle}" />${ogImageSizeMeta}
   <meta property="og:site_name" content="Sanhoti Bengali Association of Orange County" />
   <meta name="twitter:card" content="summary_large_image" />

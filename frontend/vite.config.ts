@@ -133,6 +133,10 @@ export default defineConfig({
         target: 'http://localhost:5001',
         changeOrigin: true,
       },
+      '/og': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+      },
     },
   },
 })

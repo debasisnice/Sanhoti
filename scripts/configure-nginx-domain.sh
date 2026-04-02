@@ -97,6 +97,19 @@ server {
     root /var/www/sanhoti/frontend/dist;
     index index.html;
 
+    # Open Graph / link-preview images (not under /api — better WhatsApp/Facebook acceptance)
+    location /og/ {
+        proxy_pass http://localhost:5001;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
     # API proxy to backend
     location /api {
         proxy_pass http://localhost:5001;
