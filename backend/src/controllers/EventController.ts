@@ -583,6 +583,13 @@ export class EventController {
         return;
       }
 
+      // Real browsers (incl. WhatsApp / FB in-app WebViews): HTTP redirect only. Meta refresh + inline
+      // script is often blocked or mishandled there, which shows a blank page before the SPA loads.
+      if (!crawler) {
+        res.redirect(302, canonicalUrl);
+        return;
+      }
+
       const title = event.event_name || event.title || 'Sanhoti Event';
       const descSource = (event.event_description || event.description || '').replace(/\s+/g, ' ').trim();
       const description = descSource.slice(0, 280) || 'Join us for a Sanhoti community event.';
@@ -674,16 +681,7 @@ export class EventController {
       const safeCanonical = escapeHtmlAttr(canonicalUrl);
       const safeSharePage = escapeHtmlAttr(sharePageUrl);
 
-      // og:url must be this share URL: the SPA route has no per-event OG tags; scrapers that re-fetch og:url would lose the image.
-      const headRedirect = crawler
-        ? ''
-        : `  <meta http-equiv="refresh" content="0;url=${safeCanonical}" />
-`;
-      const bodyScript = crawler
-        ? ''
-        : `  <script>window.location.replace(${JSON.stringify(canonicalUrl)});</script>
-`;
-
+      // Crawlers only (humans get 302 above). og:url stays the share URL so re-scrapers keep per-event tags.
       const html = `<!DOCTYPE html>
 <html lang="en" prefix="og: https://ogp.me/ns#">
 <head>
@@ -703,10 +701,10 @@ export class EventController {
   <meta name="twitter:title" content="${safeTitle}" />
   <meta name="twitter:description" content="${safeDesc}" />
   <meta name="twitter:image" content="${safeOgImage}" />
-${headRedirect}</head>
+</head>
 <body>
   <p><a href="${safeCanonical}">Continue to event details</a></p>
-${bodyScript}</body>
+</body>
 </html>`;
 
       res.status(200).type('html').send(html);
