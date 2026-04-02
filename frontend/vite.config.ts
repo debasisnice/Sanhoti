@@ -8,6 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: false,
       includeAssets: ['favicon.ico', 'images/logo.png'],
       manifest: {
         name: 'Sanhoti - Bengali Association of Orange County',
@@ -59,6 +60,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
         // Don't handle navigation for user-manual (loaded in iframe)

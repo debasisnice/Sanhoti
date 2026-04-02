@@ -555,6 +555,7 @@ export default function Home() {
             {/* Priority Event Card */}
             {priorityEvent && priorityEventImage && (() => {
               const eventId = priorityEvent.event_id || priorityEvent.id || '';
+              const eventName = priorityEvent.event_name || priorityEvent.title || 'Untitled Event';
               return (
                 <div className="w-fit">
                   <Link to={`/events/${eventId}`} className="w-fit block">
@@ -571,7 +572,14 @@ export default function Home() {
                     >
                     </motion.div>
                   </Link>
-                  
+
+                  <EventShareButtons
+                    eventId={eventId}
+                    eventName={eventName}
+                    showCaption={false}
+                    className="mt-3 max-w-[100vw] md:max-w-none"
+                  />
+
                   {/* Sub-Events below Priority Event Card */}
                   {priorityEventSubEvents.length > 0 && (
                     <div className="mt-4 space-y-3 w-32 md:w-80 lg:w-96">
