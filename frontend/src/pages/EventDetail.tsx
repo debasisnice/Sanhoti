@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime } from '../utils/dateUtils';
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
+import EventShareButtons from '../components/EventShareButtons';
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
@@ -302,6 +303,8 @@ export default function EventDetail() {
                       {eventDescription}
                     </p>
                   </div>
+
+                  <EventShareButtons eventId={eventId} eventName={eventName} className="mb-8" />
 
                   {/* Only show RSVP option for upcoming events when RSVP is enabled */}
                   {(() => {

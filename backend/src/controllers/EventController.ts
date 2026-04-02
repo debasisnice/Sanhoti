@@ -12,6 +12,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const eventsFlyersDir = join(__dirname, '../../data/Events_Flyers');
 
+/** Escape for use inside double-quoted HTML attribute values. */
+function escapeHtmlAttr(raw: string): string {
+  return raw
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\r?\n/g, ' ');
+}
+
 // Configure multer for file uploads
 const tempDir = join(eventsFlyersDir, '.temp');
 if (!existsSync(tempDir)) {
@@ -458,6 +468,91 @@ export class EventController {
     } catch (error: any) {
       console.error('Error in getEventImagePublic:', error);
       res.json(null);
+    }
+  }
+
+  /**
+   * Minimal HTML with Open Graph / Twitter tags for link previews (WhatsApp, Facebook).
+   * Crawlers do not run the SPA; og:image must point at the public flyer URL.
+   */
+  async getEventSharePage(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { eventId } = req.params;
+      const origin = (process.env.PUBLIC_SITE_URL || 'https://www.sanhoti.org').replace(/\/$/, '');
+      const canonicalPath = `/events/${encodeURIComponent(eventId)}`;
+      const canonicalUrl = `${origin}${canonicalPath}`;
+
+      const event = await this.eventService.getEventById(eventId);
+      if (!event || !event.is_active) {
+        res
+          .status(404)
+          .type('html')
+          .send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Event not found</title></head><body>Event not found</body></html>');
+        return;
+      }
+
+      const title = event.event_name || event.title || 'Sanhoti Event';
+      const descSource = (event.event_description || event.description || '').replace(/\s+/g, ' ').trim();
+      const description = descSource.slice(0, 280) || 'Join us for a Sanhoti community event.';
+
+      let ogImageAbs = `${origin}/images/logo.png`;
+
+      const folderPath = await this.eventDataHelper.getEventImageFolderPath(eventId);
+      if (folderPath && existsSync(folderPath)) {
+        const files = readdirSync(folderPath);
+        const imageFiles = files
+          .filter((file) => {
+            const filePath = join(folderPath, file);
+            try {
+              const stats = statSync(filePath);
+              const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(file);
+              return stats.isFile() && isImage;
+            } catch {
+              return false;
+            }
+          })
+          .sort();
+        if (imageFiles.length > 0) {
+          const fn = imageFiles[0];
+          ogImageAbs = `${origin}/api/events/${encodeURIComponent(eventId)}/image/${encodeURIComponent(fn)}`;
+        }
+      }
+
+      const safeTitle = escapeHtmlAttr(title);
+      const safeDesc = escapeHtmlAttr(description);
+      const safeOgImage = escapeHtmlAttr(ogImageAbs);
+      const safeCanonical = escapeHtmlAttr(canonicalUrl);
+
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${safeTitle}</title>
+  <link rel="canonical" href="${safeCanonical}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="${safeCanonical}" />
+  <meta property="og:title" content="${safeTitle}" />
+  <meta property="og:description" content="${safeDesc}" />
+  <meta property="og:image" content="${safeOgImage}" />
+  <meta property="og:image:alt" content="${safeTitle}" />
+  <meta property="og:site_name" content="Sanhoti Bengali Association of Orange County" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${safeTitle}" />
+  <meta name="twitter:description" content="${safeDesc}" />
+  <meta name="twitter:image" content="${safeOgImage}" />
+  <meta http-equiv="refresh" content="0;url=${safeCanonical}" />
+</head>
+<body>
+  <p><a href="${safeCanonical}">Continue to event details</a></p>
+  <script>window.location.replace(${JSON.stringify(canonicalUrl)});</script>
+</body>
+</html>`;
+
+      res.status(200).type('html').send(html);
+    } catch (error: any) {
+      console.error('Error in getEventSharePage:', error);
+      res.status(500).type('html').send('<!DOCTYPE html><html><body>Error</body></html>');
     }
   }
 }

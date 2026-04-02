@@ -80,6 +80,7 @@ router.get('/events/:eventId/image/:filename',
 router.get('/events/:eventId/image-public',
   bindController(eventController, 'getEventImagePublic')
 );
+router.get('/events/:eventId/share', bindController(eventController, 'getEventSharePage'));
 
 // Notices - Public routes
 router.get('/notices/public', bindController(noticeController, 'getPublishedNotices'));
