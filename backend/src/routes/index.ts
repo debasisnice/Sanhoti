@@ -656,6 +656,11 @@ router.put('/settings/committee-year',
   auditLog('UPDATE', 'committee_year'),
   bindController(settingsController, 'updateCommitteeYear')
 );
+router.put('/settings/home-statements',
+  requireAdmin,
+  auditLog('UPDATE', 'home_statements'),
+  bindController(settingsController, 'updateHomeStatements')
+);
 
 export default router;
 

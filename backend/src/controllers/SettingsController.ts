@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
+import { HomePageStatements, HomeStatementTabsVisibility } from '../models/types.js';
 import { SettingsService } from '../services/SettingsService.js';
 
 export class SettingsController {
@@ -123,6 +124,67 @@ export class SettingsController {
     } catch (error: any) {
       console.error('Error updating committee year:', error);
       res.status(500).json({ error: 'Failed to update committee year', details: error.message });
+    }
+  }
+
+  async updateHomeStatements(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const body = req.body ?? {};
+      const keys = ['about', 'vision', 'mission', 'purpose'] as const;
+      const textUpdates: Partial<HomePageStatements> = {};
+      for (const k of keys) {
+        if (body[k] !== undefined) {
+          if (typeof body[k] !== 'string') {
+            res.status(400).json({ error: `Invalid ${k}: must be a string` });
+            return;
+          }
+          textUpdates[k] = body[k];
+        }
+      }
+
+      let tabVisibilityPatch: Partial<HomeStatementTabsVisibility> | undefined;
+      if (body.tabVisibility !== undefined) {
+        if (typeof body.tabVisibility !== 'object' || body.tabVisibility === null) {
+          res.status(400).json({ error: 'Invalid tabVisibility' });
+          return;
+        }
+        const patch: Partial<HomeStatementTabsVisibility> = {};
+        for (const k of keys) {
+          if (body.tabVisibility[k] !== undefined) {
+            if (typeof body.tabVisibility[k] !== 'boolean') {
+              res.status(400).json({ error: `Invalid tabVisibility.${k}: must be a boolean` });
+              return;
+            }
+            patch[k] = body.tabVisibility[k];
+          }
+        }
+        if (Object.keys(patch).length > 0) {
+          tabVisibilityPatch = patch;
+        }
+      }
+
+      if (Object.keys(textUpdates).length === 0 && tabVisibilityPatch === undefined) {
+        res.status(400).json({
+          error: 'Provide statement text (about, vision, mission, purpose) and/or tabVisibility updates',
+        });
+        return;
+      }
+
+      const existing = await this.settingsService.getSettings();
+      const prevVis = existing.statementTabsVisibility ?? {};
+      const mergedVis =
+        tabVisibilityPatch !== undefined ? { ...prevVis, ...tabVisibilityPatch } : prevVis;
+      const anyVisible = keys.some((k) => mergedVis[k] !== false);
+      if (!anyVisible) {
+        res.status(400).json({ error: 'At least one statement tab must remain visible on the home page' });
+        return;
+      }
+
+      const settings = await this.settingsService.updateHomeStatements(textUpdates, tabVisibilityPatch);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error updating home statements:', error);
+      res.status(500).json({ error: 'Failed to update home statements', details: error.message });
     }
   }
 }

@@ -814,6 +814,16 @@ export const settingsAPI = {
     const response = await api.put('/settings/committee-year', { committeeYear });
     return response.data;
   },
+  updateHomeStatements: async (payload: {
+    about?: string;
+    vision?: string;
+    mission?: string;
+    purpose?: string;
+    tabVisibility?: Partial<Record<'about' | 'vision' | 'mission' | 'purpose', boolean>>;
+  }): Promise<any> => {
+    const response = await api.put('/settings/home-statements', payload);
+    return response.data;
+  },
   getEmailSettings: async (): Promise<any> => {
     const response = await api.get('/settings/email');
     return response.data;

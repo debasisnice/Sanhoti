@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Users, Award, Home, Upload, Trash2, X, UserCircle, QrCode } from 'lucide-react';
+import { Settings, Users, Award, Home, Upload, Trash2, X, UserCircle, QrCode, BookOpen } from 'lucide-react';
 import { settingsAPI, usersAPI, sponsorsAPI, homepageAPI, boardMembersAPI, paymentQRAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { convertPSTToLocal } from '../../utils/dateUtils';
+import { DEFAULT_HOME_STATEMENTS } from '../../constants/homePageStatements';
+import { mergeStatement } from '../../utils/renderHomeStatements';
 
 interface NavbarSettings {
   home: boolean;
@@ -60,7 +62,7 @@ const menuItemLabels: Record<keyof NavbarSettings, string> = {
   joinUs: 'Join Us',
 };
 
-type TabType = 'navbar' | 'users' | 'sponsors' | 'homepage' | 'boardmembers' | 'paymentqr';
+type TabType = 'navbar' | 'users' | 'sponsors' | 'homepage' | 'statements' | 'boardmembers' | 'paymentqr';
 
 interface SponsorImage {
   filename: string;
@@ -96,6 +98,16 @@ export default function AdminSettings() {
   const [whatsappLink, setWhatsappLink] = useState<string>('');
   const [instagramLink, setInstagramLink] = useState<string>('');
   const [committeeYear, setCommitteeYear] = useState<string>('2025');
+  const [stmtAbout, setStmtAbout] = useState('');
+  const [stmtVision, setStmtVision] = useState('');
+  const [stmtMission, setStmtMission] = useState('');
+  const [stmtPurpose, setStmtPurpose] = useState('');
+  const [stmtTabVisible, setStmtTabVisible] = useState({
+    about: true,
+    vision: true,
+    mission: true,
+    purpose: true,
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -118,6 +130,8 @@ export default function AdminSettings() {
     } else if (activeTab === 'homepage') {
       fetchHomePageImages();
       fetchSettings(); // Fetch settings to load social links
+    } else if (activeTab === 'statements') {
+      fetchSettings();
     } else if (activeTab === 'boardmembers') {
       fetchBoardMemberImages();
       fetchPostNames();
@@ -137,6 +151,18 @@ export default function AdminSettings() {
       if (data.whatsappLink) setWhatsappLink(data.whatsappLink);
       if (data.instagramLink) setInstagramLink(data.instagramLink);
       if (data.committeeYear) setCommitteeYear(data.committeeYear);
+      const st = data.statements as Record<string, string | undefined> | undefined;
+      setStmtAbout(mergeStatement(st?.about, DEFAULT_HOME_STATEMENTS.about));
+      setStmtVision(mergeStatement(st?.vision, DEFAULT_HOME_STATEMENTS.vision));
+      setStmtMission(mergeStatement(st?.mission, DEFAULT_HOME_STATEMENTS.mission));
+      setStmtPurpose(mergeStatement(st?.purpose, DEFAULT_HOME_STATEMENTS.purpose));
+      const tv = data.statementTabsVisibility as Record<string, boolean | undefined> | undefined;
+      setStmtTabVisible({
+        about: tv?.about !== false,
+        vision: tv?.vision !== false,
+        mission: tv?.mission !== false,
+        purpose: tv?.purpose !== false,
+      });
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to fetch settings');
     } finally {
@@ -410,6 +436,32 @@ export default function AdminSettings() {
     }
   };
 
+  type StatementTabKey = 'about' | 'vision' | 'mission' | 'purpose';
+
+  const toggleStatementTabOnHomePage = async (key: StatementTabKey) => {
+    const nextVisible = !stmtTabVisible[key];
+    if (!nextVisible) {
+      const othersOn = (['about', 'vision', 'mission', 'purpose'] as StatementTabKey[])
+        .filter((k) => k !== key)
+        .some((k) => stmtTabVisible[k]);
+      if (!othersOn) {
+        toast.error('At least one tab must stay visible on the home page');
+        return;
+      }
+    }
+    try {
+      setSaving(true);
+      await settingsAPI.updateHomeStatements({ tabVisibility: { [key]: nextVisible } });
+      setStmtTabVisible((prev) => ({ ...prev, [key]: nextVisible }));
+      toast.success('Home page tab visibility updated');
+      await fetchSettings();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to update tab visibility');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleEditUser = (user: User) => {
     setEditingUserId(user.id);
     setEditFormData({
@@ -613,6 +665,19 @@ export default function AdminSettings() {
               <div className="flex items-center gap-2">
                 <Home className="w-5 h-5" />
                 <span>Home Page</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('statements')}
+              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'statements'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5" />
+                <span>Statements</span>
               </div>
             </button>
             <button
@@ -1275,6 +1340,83 @@ export default function AdminSettings() {
                     ))}
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'statements' && (
+            <div>
+              <div className="mb-6">
+                <p className="text-gray-600 mb-2">
+                  Edit the About Us, Vision, Mission, and Purpose content shown in the home page section. Use a blank line between paragraphs. For bullet lists (e.g. Purpose), start each bullet line with <code className="text-sm bg-gray-100 px-1 rounded">- </code>. Use the toggle on each block to show or hide that tab on the public home page (at least one tab must stay visible).
+                </p>
+              </div>
+              <div className="space-y-6">
+                {(
+                  [
+                    { key: 'about' as const, label: 'About Us', value: stmtAbout, set: setStmtAbout },
+                    { key: 'vision' as const, label: 'Vision', value: stmtVision, set: setStmtVision },
+                    { key: 'mission' as const, label: 'Mission', value: stmtMission, set: setStmtMission },
+                    { key: 'purpose' as const, label: 'Purpose', value: stmtPurpose, set: setStmtPurpose },
+                  ] as const
+                ).map(({ key, label, value, set }) => (
+                  <div key={key}>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
+                      <label className="block text-sm font-medium text-gray-700">{label}</label>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-500">
+                          {stmtTabVisible[key] ? 'Shown on home page' : 'Hidden on home page'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => toggleStatementTabOnHomePage(key)}
+                          disabled={saving}
+                          className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                            stmtTabVisible[key] ? 'bg-primary-600' : 'bg-gray-300'
+                          } ${saving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                          aria-label={`Toggle ${label} on home page`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              stmtTabVisible[key] ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                    <textarea
+                      value={value}
+                      onChange={(e) => set(e.target.value)}
+                      rows={key === 'about' || key === 'purpose' ? 14 : 8}
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 font-mono text-sm"
+                    />
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      setSaving(true);
+                      await settingsAPI.updateHomeStatements({
+                        about: stmtAbout,
+                        vision: stmtVision,
+                        mission: stmtMission,
+                        purpose: stmtPurpose,
+                        tabVisibility: { ...stmtTabVisible },
+                      });
+                      toast.success('Statements saved');
+                      await fetchSettings();
+                    } catch (error: any) {
+                      toast.error(error.response?.data?.error || 'Failed to save statements');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
+                  disabled={saving}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? 'Saving...' : 'Save statements'}
+                </button>
               </div>
             </div>
           )}

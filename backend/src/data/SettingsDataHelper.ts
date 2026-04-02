@@ -1,5 +1,5 @@
 import { DatabaseHelper } from './DatabaseHelper.js';
-import { Settings } from '../models/types.js';
+import { HomePageStatements, HomeStatementTabsVisibility, Settings } from '../models/types.js';
 
 export class SettingsDataHelper extends DatabaseHelper {
   private readonly filename = 'settings.json';
@@ -110,6 +110,36 @@ export class SettingsDataHelper extends DatabaseHelper {
     const updated: Settings = {
       ...current,
       committeeYear: committeeYear,
+      updated_at: new Date().toISOString(),
+    };
+
+    this.writeFile(this.filename, [updated]);
+    return updated;
+  }
+
+  async updateHomeStatements(
+    textUpdates: Partial<HomePageStatements>,
+    tabVisibilityPatch?: Partial<HomeStatementTabsVisibility>
+  ): Promise<Settings> {
+    let current = await this.get();
+    if (!current) {
+      current = this.getDefaultSettings();
+    }
+
+    const prevSt = current.statements ?? {};
+    const nextSt =
+      Object.keys(textUpdates).length > 0 ? { ...prevSt, ...textUpdates } : prevSt;
+
+    const prevVis = current.statementTabsVisibility ?? {};
+    const nextVis =
+      tabVisibilityPatch !== undefined
+        ? { ...prevVis, ...tabVisibilityPatch }
+        : prevVis;
+
+    const updated: Settings = {
+      ...current,
+      statements: nextSt,
+      statementTabsVisibility: nextVis,
       updated_at: new Date().toISOString(),
     };
 

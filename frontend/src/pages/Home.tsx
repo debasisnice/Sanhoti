@@ -1,13 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Users, Image, BookOpen, ArrowRight, Eye, Star, MapPin, Share2 } from 'lucide-react';
+import { Calendar, Users, Image, BookOpen, ArrowRight, Eye, Star, MapPin, Share2, Target } from 'lucide-react';
 import { eventsAPI, homepageAPI, settingsAPI, subEventsAPI } from '../services/api';
 import { Event, SubEvent } from '../types';
 import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime } from '../utils/dateUtils';
 import { getEffectiveEventType } from '../utils/eventType';
+import { DEFAULT_HOME_STATEMENTS } from '../constants/homePageStatements';
+import { mergeStatement, renderHomeStatementBlocks } from '../utils/renderHomeStatements';
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
+
+type AboutStatementTabKey = 'about' | 'vision' | 'mission' | 'purpose';
+
+const ABOUT_STATEMENT_TAB_ORDER: AboutStatementTabKey[] = ['about', 'vision', 'mission', 'purpose'];
+
+const ABOUT_TAB_BUTTON_LABEL: Record<AboutStatementTabKey, string> = {
+  about: 'About Us',
+  vision: 'Vision',
+  mission: 'Mission',
+  purpose: 'Purpose',
+};
 
 /** Charity card: show priority image longer so it is on screen most of the time. */
 const CHARITY_PRIORITY_IMAGE_MS = 14_000;
@@ -43,12 +56,34 @@ export default function Home() {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [facebookLink, setFacebookLink] = useState<string>('https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr');
   const [whatsappLink, setWhatsappLink] = useState<string>('https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH');
-  const [activeAboutTab, setActiveAboutTab] = useState<'about' | 'vision' | 'mission'>('about');
+  const [activeAboutTab, setActiveAboutTab] = useState<AboutStatementTabKey>('about');
   const [priorityEventSubEvents, setPriorityEventSubEvents] = useState<SubEvent[]>([]);
   const [charityEventImages, setCharityEventImages] = useState<string[]>([]);
   /** Index in charityEventImages for the priority charity event’s flyer, or null if none. */
   const [priorityCharityImageIndex, setPriorityCharityImageIndex] = useState<number | null>(null);
   const [charityCardSlideIndex, setCharityCardSlideIndex] = useState(0);
+  const [homeStatements, setHomeStatements] = useState<{
+    about: string;
+    vision: string;
+    mission: string;
+    purpose: string;
+  }>({
+    about: DEFAULT_HOME_STATEMENTS.about,
+    vision: DEFAULT_HOME_STATEMENTS.vision,
+    mission: DEFAULT_HOME_STATEMENTS.mission,
+    purpose: DEFAULT_HOME_STATEMENTS.purpose,
+  });
+  const [statementTabsVisible, setStatementTabsVisible] = useState({
+    about: true,
+    vision: true,
+    mission: true,
+    purpose: true,
+  });
+
+  const visibleAboutTabKeys = useMemo(
+    () => ABOUT_STATEMENT_TAB_ORDER.filter((k) => statementTabsVisible[k]),
+    [statementTabsVisible]
+  );
 
   // Share functions
   const shareToFacebook = (eventId: string, _eventName: string) => {
@@ -290,18 +325,39 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const fetchSocialLinks = async () => {
+    const fetchSocialLinksAndStatements = async () => {
       try {
         const settings = await settingsAPI.getSettings();
         if (settings.facebookLink) setFacebookLink(settings.facebookLink);
         if (settings.whatsappLink) setWhatsappLink(settings.whatsappLink);
-      } catch (error) {
-        // Use default links if fetch fails
+        const s = settings.statements as Record<string, string | undefined> | undefined;
+        setHomeStatements({
+          about: mergeStatement(s?.about, DEFAULT_HOME_STATEMENTS.about),
+          vision: mergeStatement(s?.vision, DEFAULT_HOME_STATEMENTS.vision),
+          mission: mergeStatement(s?.mission, DEFAULT_HOME_STATEMENTS.mission),
+          purpose: mergeStatement(s?.purpose, DEFAULT_HOME_STATEMENTS.purpose),
+        });
+        const tv = settings.statementTabsVisibility as Record<string, boolean | undefined> | undefined;
+        setStatementTabsVisible({
+          about: tv?.about !== false,
+          vision: tv?.vision !== false,
+          mission: tv?.mission !== false,
+          purpose: tv?.purpose !== false,
+        });
+      } catch {
+        // Use defaults if fetch fails
       }
     };
-    
-    fetchSocialLinks();
+
+    fetchSocialLinksAndStatements();
   }, []);
+
+  useEffect(() => {
+    if (visibleAboutTabKeys.length === 0) return;
+    if (!visibleAboutTabKeys.includes(activeAboutTab)) {
+      setActiveAboutTab(visibleAboutTabKeys[0]);
+    }
+  }, [visibleAboutTabKeys, activeAboutTab]);
 
   // Add Events structured data (Schema.org) for SEO
   useEffect(() => {
@@ -710,6 +766,7 @@ export default function Home() {
       </section>
 
       {/* About Us Section - Moved from About page */}
+      {visibleAboutTabKeys.length > 0 && (
       <section className="py-20 bg-amber-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -723,45 +780,31 @@ export default function Home() {
             <p className="text-xl text-gray-600">Learn more about our community</p>
           </motion.div>
 
-          {/* Tabs */}
-          <div className="flex justify-center mb-8">
-            <div className="bg-white rounded-lg p-1 shadow-md inline-flex">
-              <button
-                onClick={() => setActiveAboutTab('about')}
-                className={`px-6 py-3 rounded-md font-medium transition-all duration-200 ${
-                  activeAboutTab === 'about'
-                    ? 'bg-primary-600 text-white shadow-md'
-                    : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
-                }`}
-              >
-                About Us
-              </button>
-              <button
-                onClick={() => setActiveAboutTab('vision')}
-                className={`px-6 py-3 rounded-md font-medium transition-all duration-200 ${
-                  activeAboutTab === 'vision'
-                    ? 'bg-primary-600 text-white shadow-md'
-                    : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
-                }`}
-              >
-                Vision
-              </button>
-              <button
-                onClick={() => setActiveAboutTab('mission')}
-                className={`px-6 py-3 rounded-md font-medium transition-all duration-200 ${
-                  activeAboutTab === 'mission'
-                    ? 'bg-primary-600 text-white shadow-md'
-                    : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
-                }`}
-              >
-                Mission
-              </button>
+          {/* Tabs — only when more than one statement is shown */}
+          {visibleAboutTabKeys.length > 1 && (
+          <div className="flex justify-center mb-8 px-2">
+            <div className="bg-white rounded-lg p-1 shadow-md inline-flex flex-wrap justify-center gap-1 max-w-full">
+              {visibleAboutTabKeys.map((tabKey) => (
+                <button
+                  key={tabKey}
+                  type="button"
+                  onClick={() => setActiveAboutTab(tabKey)}
+                  className={`px-4 sm:px-6 py-3 rounded-md font-medium transition-all duration-200 ${
+                    activeAboutTab === tabKey
+                      ? 'bg-primary-600 text-white shadow-md'
+                      : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {ABOUT_TAB_BUTTON_LABEL[tabKey]}
+                </button>
+              ))}
             </div>
           </div>
+          )}
 
           {/* Tab Content */}
           <AnimatePresence mode="wait">
-            {activeAboutTab === 'about' && (
+            {activeAboutTab === 'about' && statementTabsVisible.about && (
             <motion.div
                 key="about"
               initial={{ opacity: 0, y: 20 }}
@@ -770,19 +813,11 @@ export default function Home() {
                 transition={{ duration: 0.3 }}
               className="bg-gray-50 rounded-xl shadow-lg p-8 max-w-6xl mx-auto"
             >
-              <p className="text-lg text-gray-700 leading-relaxed mb-4">
-                Sanhoti is a non-profit 501(c)(3) cultural and charitable organization dedicated to preserving and celebrating the rich heritage of Bengali culture in Orange County, California. As the premier Bengali Association in Orange County, we serve the Bengali community in Orange County, and surrounding areas.
-              </p>
-              <p className="text-lg text-gray-700 leading-relaxed mb-4">
-                Established in 2025, Sanhoti strives to build an inclusive and vibrant community where Bengali traditions flourish through festivals, arts, and meaningful community connections. From the grandeur of Durga Puja and Saraswati Puja to the joyous spirit of Poila Boishakh, we proudly bring people together to honor our roots and celebrate togetherness.
-              </p>
-              <p className="text-lg text-gray-700 leading-relaxed">
-                While our foundation is deeply rooted in Bengali customs, Sanhoti embraces diversity and warmly welcomes individuals from all backgrounds to join in and experience the richness of our culture. Our doors are open to everyone—regardless of race, religion, or ethnicity.
-              </p>
+              {renderHomeStatementBlocks(homeStatements.about, 'about')}
             </motion.div>
             )}
 
-            {activeAboutTab === 'vision' && (
+            {activeAboutTab === 'vision' && statementTabsVisible.vision && (
               <motion.div
                 key="vision"
                 initial={{ opacity: 0, y: 20 }}
@@ -795,15 +830,13 @@ export default function Home() {
                   <div className="bg-primary-100 rounded-lg p-3 mr-4">
                     <Eye className="w-6 h-6 text-primary-600" />
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900">Vision</h3>
+                  <h3 className="text-3xl font-bold text-gray-900">Vision Statement</h3>
                 </div>
-                <p className="text-lg text-gray-700 leading-relaxed">
-                  Sanhoti also serves as a nurturing platform for the next generation to stay connected to their cultural roots. Through a variety of cultural, literary, and social events held year-round, we create meaningful opportunities for children to explore and engage with the Bengali language, literature, music, and traditions.
-                </p>
+                {renderHomeStatementBlocks(homeStatements.vision, 'vision')}
               </motion.div>
             )}
 
-            {activeAboutTab === 'mission' && (
+            {activeAboutTab === 'mission' && statementTabsVisible.mission && (
               <motion.div
                 key="mission"
                 initial={{ opacity: 0, y: 20 }}
@@ -818,14 +851,32 @@ export default function Home() {
                   </div>
                   <h3 className="text-3xl font-bold text-gray-900">Mission Statement</h3>
                 </div>
-                <p className="text-lg text-gray-700 leading-relaxed">
-                  Sanhoti is committed to fostering an inclusive, diverse, and harmonious community in the Greater Orange County, CA region, while enriching the broader cultural landscape with the distinctive values and contributions of Indian heritage.
-                </p>
+                {renderHomeStatementBlocks(homeStatements.mission, 'mission')}
+              </motion.div>
+            )}
+
+            {activeAboutTab === 'purpose' && statementTabsVisible.purpose && (
+              <motion.div
+                key="purpose"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="bg-gray-50 rounded-xl shadow-lg p-8 max-w-6xl mx-auto"
+              >
+                <div className="flex items-center mb-6">
+                  <div className="bg-primary-100 rounded-lg p-3 mr-4">
+                    <Target className="w-6 h-6 text-primary-600" />
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900">Purpose Statement</h3>
+                </div>
+                {renderHomeStatementBlocks(homeStatements.purpose, 'purpose')}
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </section>
+      )}
 
       {/* Upcoming Events Section */}
       {upcomingEvents.length > 0 && (

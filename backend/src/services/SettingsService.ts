@@ -1,5 +1,5 @@
 import { SettingsDataHelper } from '../data/SettingsDataHelper.js';
-import { Settings } from '../models/types.js';
+import { HomePageStatements, HomeStatementTabsVisibility, Settings } from '../models/types.js';
 
 export class SettingsService {
   private settingsDataHelper: SettingsDataHelper;
@@ -43,6 +43,13 @@ export class SettingsService {
 
   async updateCommitteeYear(committeeYear: string): Promise<Settings> {
     return this.settingsDataHelper.updateCommitteeYear(committeeYear);
+  }
+
+  async updateHomeStatements(
+    textUpdates: Partial<HomePageStatements>,
+    tabVisibilityPatch?: Partial<HomeStatementTabsVisibility>
+  ): Promise<Settings> {
+    return this.settingsDataHelper.updateHomeStatements(textUpdates, tabVisibilityPatch);
   }
 }
 

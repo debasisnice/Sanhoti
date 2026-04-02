@@ -240,6 +240,22 @@ export interface SubEvent {
   show_in_home_page?: boolean; // If true, show this sub-event on home page below priority event
 }
 
+/** Home page About / Vision / Mission / Purpose tab bodies (plain text; see site docs for formatting). */
+export interface HomePageStatements {
+  about?: string;
+  vision?: string;
+  mission?: string;
+  purpose?: string;
+}
+
+/** Per-tab visibility on the home page; omitted or true = show, false = hide. */
+export interface HomeStatementTabsVisibility {
+  about?: boolean;
+  vision?: boolean;
+  mission?: boolean;
+  purpose?: boolean;
+}
+
 export interface Settings {
   navbar: {
     home: boolean;
@@ -262,5 +278,7 @@ export interface Settings {
   emailAddress?: string;
   emailPassword?: string;
   committeeYear?: string;
+  statements?: HomePageStatements;
+  statementTabsVisibility?: HomeStatementTabsVisibility;
   updated_at: string;
 }
