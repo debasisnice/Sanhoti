@@ -56,9 +56,20 @@ jobs:
           # Navigate to app directory
           cd "$APP_DIR"
           
-          # Pull latest changes
-          echo "📥 Pulling latest changes from Git..."
-          git pull origin main || git pull origin master || true
+          # Sync to remote (fail deploy if this fails — do not build stale tree)
+          echo "📥 Fetching and syncing to origin..."
+          git fetch origin
+          if git rev-parse --verify origin/main >/dev/null 2>&1; then
+            git checkout -f main
+            git reset --hard origin/main
+          elif git rev-parse --verify origin/master >/dev/null 2>&1; then
+            git checkout -f master
+            git reset --hard origin/master
+          else
+            echo "❌ Neither origin/main nor origin/master exists. Fix git remote on the server."
+            exit 1
+          fi
+          echo "📌 Deployed commit: $(git log -1 --oneline)"
           
           # Build backend
           echo "🔨 Building backend..."
@@ -71,6 +82,12 @@ jobs:
           cd "$FRONTEND_DIR"
           npm ci --production=false
           npm run build
+          
+          # Sanity-check: share UI must be present in bundle (catches stale/cached deploys)
+          if ! grep -rq "Share this event" "$FRONTEND_DIR/dist/assets" --include='*.js' 2>/dev/null; then
+            echo "❌ Frontend bundle missing share UI — dist may be stale. Aborting."
+            exit 1
+          fi
           
           # Restart backend with PM2
           echo "🔄 Restarting backend..."

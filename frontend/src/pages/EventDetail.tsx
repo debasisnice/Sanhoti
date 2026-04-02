@@ -221,7 +221,9 @@ export default function EventDetail() {
                     </span>
                   </div>
 
-                  <h1 className="text-4xl font-bold text-gray-900 mb-6">{eventName}</h1>
+                  <h1 className="text-4xl font-bold text-gray-900 mb-4">{eventName}</h1>
+
+                  <EventShareButtons eventId={eventId} eventName={eventName} className="mb-6" />
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                     <div className="flex items-center text-gray-700">
@@ -303,8 +305,6 @@ export default function EventDetail() {
                       {eventDescription}
                     </p>
                   </div>
-
-                  <EventShareButtons eventId={eventId} eventName={eventName} className="mb-8" />
 
                   {/* Only show RSVP option for upcoming events when RSVP is enabled */}
                   {(() => {
