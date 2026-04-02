@@ -556,7 +556,6 @@ export default function Home() {
             {/* Priority Event Card */}
             {priorityEvent && priorityEventImage && (() => {
               const eventId = getCanonicalEventIdForShare(priorityEvent);
-              const eventName = priorityEvent.event_name || priorityEvent.title || 'Untitled Event';
               return (
                 <div className="w-fit">
                   <Link to={`/events/${eventId}`} className="w-fit block">
@@ -573,13 +572,6 @@ export default function Home() {
                     >
                     </motion.div>
                   </Link>
-
-                  <EventShareButtons
-                    eventId={eventId}
-                    eventName={eventName}
-                    showCaption={false}
-                    className="mt-3 max-w-[100vw] md:max-w-none"
-                  />
 
                   {/* Sub-Events below Priority Event Card */}
                   {priorityEventSubEvents.length > 0 && (
