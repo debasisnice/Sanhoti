@@ -28,25 +28,15 @@ function getPublicOriginForShareLinks(): string {
 }
 
 /**
- * URL shared to social apps. Production uses `/og/events/:id` (server HTML + previews);
- * on localhost dev, use `/events/:id` so the link matches the page you are on and opens the SPA
- * (crawlers cannot reach your machine anyway).
+ * Public URL we put in share dialogs (Facebook, WhatsApp, copy, etc.).
+ * Always `/events/:id` so opening the link loads the SPA directly. Rich previews use the site
+ * shell in `index.html` (logo, site title); `/og/events/:id` stays available for bots and old links.
  */
 export function getEventSharePageUrl(eventId: string): string {
   const id = (eventId ?? '').trim();
   const origin = getPublicOriginForShareLinks();
   if (!id) return `${origin}/events`;
-
-  if (
-    import.meta.env.DEV &&
-    typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ) {
-    const local = window.location.origin.replace(/\/$/, '');
-    return `${local}/events/${encodeURIComponent(id)}`;
-  }
-
-  return `${origin}/og/events/${encodeURIComponent(id)}`;
+  return `${origin}/events/${encodeURIComponent(id)}`;
 }
 
 /** Stable id for share URLs when API fields or route param differ (legacy rows, redirects). */

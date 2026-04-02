@@ -82,7 +82,7 @@ router.get('/events/:eventId/image-public',
 );
 router.get('/events/:eventId/share', (req, res) => {
   const base = (process.env.PUBLIC_SITE_URL || 'https://www.sanhoti.org').replace(/\/$/, '');
-  res.redirect(301, `${base}/og/events/${encodeURIComponent(req.params.eventId)}`);
+  res.redirect(301, `${base}/events/${encodeURIComponent(req.params.eventId)}`);
 });
 
 // Notices - Public routes

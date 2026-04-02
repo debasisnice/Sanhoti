@@ -31,7 +31,6 @@ export function shareEventOnFacebook(eventId: string): void {
 
 export function shareEventOnWhatsApp(eventId: string, eventName: string): void {
   const url = getEventSharePageUrl(eventId);
-  // Put the preview URL first so clients consistently attach og:image to this link.
   const text = `${url}\n\nCheck out this event: ${eventName}`;
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 }
@@ -43,7 +42,7 @@ export async function shareEventOnInstagram(eventId: string, eventName: string):
   if (navigator.share) {
     try {
       // Do not pass `url` or `title`: on iOS, sharing to WhatsApp can attach the *current page*
-      // (SPA) as the preview link instead of the og URL in `text`.
+      // as the preview link instead of the event URL in `text`.
       await navigator.share({
         text,
       });

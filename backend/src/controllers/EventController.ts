@@ -588,12 +588,14 @@ export class EventController {
         return;
       }
 
-      // Humans: return 200 with redirect helpers. Some in-app browsers do not follow 302 reliably
-      // (blank page). Bots still get full OG HTML below.
+      // Humans: 302 so clients that honor Location go straight to the SPA. HTML body + Refresh is a
+      // fallback for clients that do not auto-follow (they can tap the link). Bots get full OG HTML below.
       if (!crawler) {
         const safeDest = escapeHtmlAttr(canonicalUrl);
+        res.status(302);
+        res.setHeader('Location', canonicalUrl);
         res.setHeader('Refresh', `0; url=${canonicalUrl}`);
-        res.status(200).type('html').send(`<!DOCTYPE html>
+        res.type('html').send(`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -701,7 +703,7 @@ export class EventController {
       const safeCanonical = escapeHtmlAttr(canonicalUrl);
       const safeSharePage = escapeHtmlAttr(sharePageUrl);
 
-      // Crawlers only (humans get 302 above). og:url stays the share URL so re-scrapers keep per-event tags.
+      // Crawlers only (humans get 302 above). og:url stays the OG page URL so re-scrapers keep per-event tags.
       const html = `<!DOCTYPE html>
 <html lang="en" prefix="og: https://ogp.me/ns#">
 <head>
