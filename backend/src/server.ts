@@ -134,6 +134,10 @@ app.get('/og/events/:eventId/image/:filename', (req, res) =>
 app.get('/og/galleries/:eventId/photos/:filename', (req, res) =>
   galleryController.servePhoto(req as AuthRequest, res)
 );
+// Share landing HTML (must be after /og/events/:id/image/:file so "image" is not captured as eventId)
+app.get('/og/events/:eventId', (req, res) =>
+  eventController.getEventSharePage(req as AuthRequest, res)
+);
 
 // API routes
 app.use('/api', routes);

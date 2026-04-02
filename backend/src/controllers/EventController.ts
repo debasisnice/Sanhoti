@@ -555,7 +555,7 @@ export class EventController {
       const origin = (process.env.PUBLIC_SITE_URL || 'https://www.sanhoti.org').replace(/\/$/, '');
       const canonicalPath = `/events/${encodeURIComponent(eventId)}`;
       const canonicalUrl = `${origin}${canonicalPath}`;
-      const sharePagePath = `/api/events/${encodeURIComponent(eventId)}/share`;
+      const sharePagePath = `/og/events/${encodeURIComponent(eventId)}`;
       const sharePageUrl = `${origin}${sharePagePath}`;
       const crawler = isLinkPreviewCrawler(req.get('user-agent'));
 

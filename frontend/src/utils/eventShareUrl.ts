@@ -16,10 +16,9 @@ function getPublicOriginForShareLinks(): string {
 }
 
 /**
- * URL for social crawlers (WhatsApp, Facebook) that read server-rendered Open Graph tags.
- * Serves `/api/events/:id/share` HTML with og:image (flyer) then redirects to the SPA event page.
+ * URL for social crawlers (WhatsApp, Facebook). HTML is served at `/og/events/:id` so og:url is not under `/api/`.
  */
 export function getEventSharePageUrl(eventId: string): string {
   const origin = getPublicOriginForShareLinks();
-  return `${origin}/api/events/${encodeURIComponent(eventId)}/share`;
+  return `${origin}/og/events/${encodeURIComponent(eventId)}`;
 }

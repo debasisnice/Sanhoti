@@ -80,7 +80,10 @@ router.get('/events/:eventId/image/:filename',
 router.get('/events/:eventId/image-public',
   bindController(eventController, 'getEventImagePublic')
 );
-router.get('/events/:eventId/share', bindController(eventController, 'getEventSharePage'));
+router.get('/events/:eventId/share', (req, res) => {
+  const base = (process.env.PUBLIC_SITE_URL || 'https://www.sanhoti.org').replace(/\/$/, '');
+  res.redirect(301, `${base}/og/events/${encodeURIComponent(req.params.eventId)}`);
+});
 
 // Notices - Public routes
 router.get('/notices/public', bindController(noticeController, 'getPublishedNotices'));
