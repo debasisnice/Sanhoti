@@ -617,6 +617,20 @@ export class EventController {
         ogImageAbs = externalImage;
       }
 
+      // Bust WhatsApp/Meta thumbnail cache when the flyer file changes (same HTML path, new image URL).
+      if (
+        localImagePath &&
+        (ogImageAbs.includes('/og/events/') || ogImageAbs.includes('/og/galleries/'))
+      ) {
+        try {
+          const v = Math.floor(statSync(localImagePath).mtimeMs);
+          const sep = ogImageAbs.includes('?') ? '&' : '?';
+          ogImageAbs = `${ogImageAbs}${sep}v=${v}`;
+        } catch {
+          // keep URL without query
+        }
+      }
+
       const imgMeta = localImagePath ? readLocalImageMeta(localImagePath) : null;
       const ogImageSizeMeta = imgMeta
         ? `

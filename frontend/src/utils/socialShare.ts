@@ -42,10 +42,10 @@ export async function shareEventOnInstagram(eventId: string, eventName: string):
 
   if (navigator.share) {
     try {
+      // Do not pass `url` or `title`: on iOS, sharing to WhatsApp can attach the *current page*
+      // (SPA) as the preview link instead of the og URL in `text`.
       await navigator.share({
-        title: eventName,
         text,
-        url,
       });
     } catch (error: unknown) {
       const err = error as { name?: string };
