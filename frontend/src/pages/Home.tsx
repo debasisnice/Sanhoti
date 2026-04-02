@@ -10,6 +10,7 @@ import { DEFAULT_HOME_STATEMENTS } from '../constants/homePageStatements';
 import { mergeStatement, renderHomeStatementBlocks } from '../utils/renderHomeStatements';
 import { copyTextToClipboard } from '../utils/socialShare';
 import EventShareButtons from '../components/EventShareButtons';
+import { getCanonicalEventIdForShare } from '../utils/eventShareUrl';
 import { QRCodeSVG } from 'qrcode.react';
 
 type AboutStatementTabKey = 'about' | 'vision' | 'mission' | 'purpose';
@@ -554,7 +555,7 @@ export default function Home() {
 
             {/* Priority Event Card */}
             {priorityEvent && priorityEventImage && (() => {
-              const eventId = priorityEvent.event_id || priorityEvent.id || '';
+              const eventId = getCanonicalEventIdForShare(priorityEvent);
               const eventName = priorityEvent.event_name || priorityEvent.title || 'Untitled Event';
               return (
                 <div className="w-fit">
@@ -585,7 +586,7 @@ export default function Home() {
                     <div className="mt-4 space-y-3 w-32 md:w-80 lg:w-96">
                       {priorityEventSubEvents.map((subEvent) => {
                         const subEventId = subEvent.sub_event_id;
-                        const parentEventId = priorityEvent.event_id || priorityEvent.id || '';
+                        const parentEventId = getCanonicalEventIdForShare(priorityEvent);
                         return (
                           <motion.div
                             key={subEventId}
@@ -848,7 +849,7 @@ export default function Home() {
               const priorityEvent = priorityCharityEvent;
               const priorityEventImage = priorityCharityEventImage;
               const imageOrientation = priorityCharityImageOrientation;
-              const eventId = priorityEvent.event_id || priorityEvent.id || '';
+              const eventId = getCanonicalEventIdForShare(priorityEvent);
               const eventName = priorityEvent.event_name || priorityEvent.title || 'Untitled Event';
               const eventDescription = priorityEvent.event_description || priorityEvent.description || '';
               const eventDate = priorityEvent.event_start_dt || priorityEvent.date || '';
@@ -1163,7 +1164,7 @@ export default function Home() {
               return (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {otherUpcomingCharityEvents.map((event, index) => {
-                const eventId = event.event_id || event.id || '';
+                const eventId = getCanonicalEventIdForShare(event);
                 const eventName = event.event_name || event.title || 'Untitled Event';
                 const eventDescription = event.event_description || event.description || '';
                 const eventDate = event.event_start_dt || event.date || '';

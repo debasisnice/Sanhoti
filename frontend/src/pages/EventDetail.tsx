@@ -9,6 +9,7 @@ import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime } from '../u
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
 import EventShareButtons from '../components/EventShareButtons';
+import { getCanonicalEventIdForShare } from '../utils/eventShareUrl';
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
@@ -189,7 +190,7 @@ export default function EventDetail() {
             className={`bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl shadow-2xl overflow-hidden border-4 border-yellow-400 ${subEvents.length > 0 ? 'md:col-span-2' : ''}`}
           >
           {(() => {
-            const eventId = event.event_id || event.id || '';
+            const eventId = getCanonicalEventIdForShare(event, id);
             const eventName = event.event_name || event.title || 'Untitled Event';
             const eventDescription = event.event_description || event.description || '';
             const eventDate = event.event_start_dt || event.date || '';

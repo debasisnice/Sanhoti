@@ -25,52 +25,20 @@ export async function copyTextToClipboard(text: string, successMessage: string):
 export function shareEventOnFacebook(eventId: string): void {
   const url = getEventSharePageUrl(eventId);
   const encodedUrl = encodeURIComponent(url);
-
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-  if (isMobile) {
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    const isAndroid = /Android/i.test(navigator.userAgent);
-
-    if (isIOS) {
-      const appUrl = `fb://share?u=${encodedUrl}`;
-      const link = document.createElement('a');
-      link.href = appUrl;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => {
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, '_blank');
-      }, 1000);
-    } else if (isAndroid) {
-      const intentUrl = `intent://share#Intent;scheme=fb;package=com.facebook.katana;S.url=${encodedUrl};end`;
-      const link = document.createElement('a');
-      link.href = intentUrl;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => {
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, '_blank');
-      }, 1000);
-    } else {
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, '_blank');
-    }
-  } else {
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, '_blank', 'width=600,height=400');
-  }
+  const sharer = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+  window.open(sharer, '_blank', 'noopener,noreferrer,width=600,height=400');
 }
 
 export function shareEventOnWhatsApp(eventId: string, eventName: string): void {
   const url = getEventSharePageUrl(eventId);
-  const text = `Check out this event: ${eventName}\n${url}`;
+  // Put the preview URL first so clients consistently attach og:image to this link.
+  const text = `${url}\n\nCheck out this event: ${eventName}`;
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 }
 
 export async function shareEventOnInstagram(eventId: string, eventName: string): Promise<void> {
   const url = getEventSharePageUrl(eventId);
-  const text = `Check out this event: ${eventName}\n${url}`;
+  const text = `${url}\n\nCheck out this event: ${eventName}`;
 
   if (navigator.share) {
     try {

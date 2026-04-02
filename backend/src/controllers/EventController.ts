@@ -31,6 +31,7 @@ function isLinkPreviewCrawler(userAgent: string | undefined): boolean {
     ua.includes('whatsapp') ||
     ua.includes('facebookexternalhit') ||
     ua.includes('facebot') ||
+    ua.includes('meta-externalagent') ||
     ua.includes('twitterbot') ||
     ua.includes('linkedinbot') ||
     ua.includes('slackbot') ||
@@ -577,44 +578,43 @@ export class EventController {
       let localImagePath: string | null = null;
 
       const externalImage = (event.imageUrl || '').trim();
-      if (/^https?:\/\//i.test(externalImage)) {
-        ogImageAbs = externalImage;
+      const externalOk = /^https?:\/\//i.test(externalImage);
+
+      // Always prefer on-disk flyer or gallery for og:image. Legacy `imageUrl` often points at CDNs
+      // that block or throttle Meta/WhatsApp fetchers, which yields title/text but no thumbnail.
+      const folderPath = await this.eventDataHelper.getEventImageFolderPath(eventId);
+      if (folderPath && existsSync(folderPath)) {
+        const files = readdirSync(folderPath);
+        const imageFiles = files
+          .filter((file) => {
+            const filePath = join(folderPath, file);
+            try {
+              const stats = statSync(filePath);
+              const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(file);
+              return stats.isFile() && isImage;
+            } catch {
+              return false;
+            }
+          })
+          .sort();
+        if (imageFiles.length > 0) {
+          const fn = imageFiles[0];
+          localImagePath = join(folderPath, fn);
+          ogImageAbs = `${origin}/og/events/${encodeURIComponent(eventId)}/image/${encodeURIComponent(fn)}`;
+        }
       }
 
-      const skipFlyerAndGallery = /^https?:\/\//i.test(externalImage);
-
-      if (!skipFlyerAndGallery) {
-        const folderPath = await this.eventDataHelper.getEventImageFolderPath(eventId);
-        if (folderPath && existsSync(folderPath)) {
-          const files = readdirSync(folderPath);
-          const imageFiles = files
-            .filter((file) => {
-              const filePath = join(folderPath, file);
-              try {
-                const stats = statSync(filePath);
-                const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(file);
-                return stats.isFile() && isImage;
-              } catch {
-                return false;
-              }
-            })
-            .sort();
-          if (imageFiles.length > 0) {
-            const fn = imageFiles[0];
-            localImagePath = join(folderPath, fn);
-            ogImageAbs = `${origin}/og/events/${encodeURIComponent(eventId)}/image/${encodeURIComponent(fn)}`;
-          }
+      if (localImagePath === null) {
+        const gal = this.eventDataHelper.getFirstGalleryImageForPreview(event);
+        if (gal) {
+          localImagePath = gal.absPath;
+          const gid = event.event_id || event.id || eventId;
+          ogImageAbs = `${origin}/og/galleries/${encodeURIComponent(gid)}/photos/${encodeURIComponent(gal.filename)}`;
         }
+      }
 
-        // No flyer: use first gallery photo (event often has images here even when Events_Flyers is empty).
-        if (localImagePath === null) {
-          const gal = this.eventDataHelper.getFirstGalleryImageForPreview(event);
-          if (gal) {
-            localImagePath = gal.absPath;
-            const gid = event.event_id || event.id || eventId;
-            ogImageAbs = `${origin}/og/galleries/${encodeURIComponent(gid)}/photos/${encodeURIComponent(gal.filename)}`;
-          }
-        }
+      if (localImagePath === null && externalOk) {
+        ogImageAbs = externalImage;
       }
 
       const imgMeta = localImagePath ? readLocalImageMeta(localImagePath) : null;

@@ -22,3 +22,14 @@ export function getEventSharePageUrl(eventId: string): string {
   const origin = getPublicOriginForShareLinks();
   return `${origin}/og/events/${encodeURIComponent(eventId)}`;
 }
+
+/** Stable id for share URLs when API fields or route param differ (legacy rows, redirects). */
+export function getCanonicalEventIdForShare(
+  event: { event_id?: string; id?: string },
+  routeParamId?: string
+): string {
+  const a = (event.event_id ?? '').trim();
+  const b = (event.id ?? '').trim();
+  const c = (routeParamId ?? '').trim();
+  return a || b || c;
+}
