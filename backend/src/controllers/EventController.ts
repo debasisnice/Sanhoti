@@ -534,6 +534,7 @@ export class EventController {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${safeTitle}</title>
+  <link rel="image_src" href="${safeOgImage}" />
   <link rel="canonical" href="${safeCanonical}" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="${safeCanonical}" />
