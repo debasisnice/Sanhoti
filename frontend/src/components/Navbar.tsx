@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, User, LogOut, Mail, Phone, ChevronDown, Shield, MapPin } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { authAPI, settingsAPI } from '../services/api';
+import { getEventTypePublicLabel } from '../utils/eventType';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -132,7 +133,7 @@ export default function Navbar() {
     { path: '/notices', label: 'Notice Board', key: 'noticeBoard' as const },
     { path: '/galleries', label: 'Galleries', key: 'galleries' as const },
     { path: '/magazines', label: 'Magazines', key: 'magazines' as const },
-    { path: '/news', label: 'News', key: 'news' as const },
+    { path: '/news', label: 'Media', key: 'news' as const },
     { path: '/contact', label: 'Contact Us', key: 'contactUs' as const },
     { path: '/committee', label: 'Committee', key: 'committee' as const },
     { path: '/documents', label: 'Documents', key: 'documents' as const },
@@ -211,7 +212,7 @@ export default function Navbar() {
                 ? location.pathname === '/' 
                 : location.pathname === link.path || location.pathname.startsWith(link.path + '/');
               
-              // Events has a hover dropdown: Festivals, Charity Events, All
+              // Events has a hover dropdown: Fund Raising Events, Charity Events, All
               if (link.key === 'events') {
                 return (
                   <div key={link.path} className="flex items-center">
@@ -269,7 +270,7 @@ export default function Navbar() {
                             onClick={() => setEventsDropdownOpen(false)}
                             className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors text-sm font-medium"
                           >
-                            Festivals
+                            {getEventTypePublicLabel('Festival')}
                           </Link>
                           <Link
                             to="/events?type=Charity"
@@ -434,7 +435,7 @@ export default function Navbar() {
                     ? location.pathname === link.path || location.pathname.startsWith(link.path + '/')
                     : location.pathname === link.path || location.pathname.startsWith(link.path + '/');
                 
-                // Events has sub-items: Festivals, Charity Events, All
+                // Events has sub-items: Fund Raising Events, Charity Events, All
                 if (link.key === 'events') {
                   return (
                     <div key={link.path}>
@@ -447,7 +448,7 @@ export default function Navbar() {
                             location.pathname === '/events' && new URLSearchParams(location.search).get('type') === 'Festival' ? 'border-b-2 border-white' : ''
                           }`}
                         >
-                          Festivals
+                          {getEventTypePublicLabel('Festival')}
                         </Link>
                         <Link
                           to="/events?type=Charity"

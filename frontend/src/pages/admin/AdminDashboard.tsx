@@ -27,7 +27,7 @@ export default function AdminDashboard() {
     { icon: Bell, label: 'Notices', path: '/admin/notices' },
     { icon: Image, label: 'Galleries', path: '/admin/galleries' },
     { icon: BookOpen, label: 'Magazines', path: '/admin/magazines' },
-    { icon: Newspaper, label: 'News', path: '/admin/news' },
+    { icon: Newspaper, label: 'Media', path: '/admin/news' },
     { icon: FileText, label: 'Documents', path: '/admin/documents' },
     { icon: MessageSquare, label: 'Messages', path: '/admin/messages' },
     { icon: ClipboardList, label: 'RSVP', path: '/admin/rsvps' },

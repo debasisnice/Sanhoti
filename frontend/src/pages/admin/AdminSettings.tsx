@@ -54,7 +54,7 @@ const menuItemLabels: Record<keyof NavbarSettings, string> = {
   noticeBoard: 'Notice Board',
   galleries: 'Galleries',
   magazines: 'Magazines',
-  news: 'News',
+  news: 'Media',
   contactUs: 'Contact Us',
   committee: 'Committee',
   documents: 'Documents',

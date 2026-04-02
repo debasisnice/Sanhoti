@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime } from '../utils/dateUtils';
 import {
   getEffectiveEventType,
+  getEventTypePublicLabel,
   getScopedPriorityEvent,
   parseEventsTypeQueryParam,
 } from '../utils/eventType';
@@ -247,13 +248,11 @@ export default function Events() {
           <div className="flex items-center justify-center gap-3 mb-4">
             <Calendar className="w-8 h-8 text-primary-600" />
             <h1 className="text-2xl font-bold text-gray-900">
-              {eventTypeScope === 'Festival'
-                ? 'Festivals'
-                : eventTypeScope === 'Charity'
-                  ? 'Charity Events'
-                  : eventTypeScope === 'Other'
-                    ? 'Other Events'
-                    : 'Community Events'}
+              {eventTypeScope === 'Festival' ||
+              eventTypeScope === 'Charity' ||
+              eventTypeScope === 'Other'
+                ? getEventTypePublicLabel(eventTypeScope)
+                : 'Community Events'}
             </h1>
           </div>
           <p className="text-2xl text-gray-600">

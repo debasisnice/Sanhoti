@@ -51,7 +51,6 @@ export default function Home() {
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [priorityEvent, setPriorityEvent] = useState<Event | null>(null);
   const [priorityEventImage, setPriorityEventImage] = useState<string | null>(null);
-  const [imageOrientation, setImageOrientation] = useState<'portrait' | 'landscape' | null>(null);
   const [slideshowImages, setSlideshowImages] = useState<string[]>([]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [facebookLink, setFacebookLink] = useState<string>('https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr');
@@ -62,6 +61,10 @@ export default function Home() {
   /** Index in charityEventImages for the priority charity event’s flyer, or null if none. */
   const [priorityCharityImageIndex, setPriorityCharityImageIndex] = useState<number | null>(null);
   const [charityCardSlideIndex, setCharityCardSlideIndex] = useState(0);
+  /** Featured charity event in the section below About Us (not the hero Festival card). */
+  const [priorityCharityEvent, setPriorityCharityEvent] = useState<Event | null>(null);
+  const [priorityCharityEventImage, setPriorityCharityEventImage] = useState<string | null>(null);
+  const [priorityCharityImageOrientation, setPriorityCharityImageOrientation] = useState<'portrait' | 'landscape' | null>(null);
   const [homeStatements, setHomeStatements] = useState<{
     about: string;
     vision: string;
@@ -84,6 +87,25 @@ export default function Home() {
     () => ABOUT_STATEMENT_TAB_ORDER.filter((k) => statementTabsVisible[k]),
     [statementTabsVisible]
   );
+
+  const upcomingCharityEvents = useMemo(() => {
+    return [...upcomingEvents]
+      .filter((e) => getEffectiveEventType(e) === 'Charity')
+      .sort((a, b) => {
+        const ta = new Date(a.event_start_dt || (a as any).date || 0).getTime();
+        const tb = new Date(b.event_start_dt || (b as any).date || 0).getTime();
+        return ta - tb;
+      });
+  }, [upcomingEvents]);
+
+  const otherUpcomingCharityEvents = useMemo(() => {
+    const pid = priorityCharityEvent?.event_id || priorityCharityEvent?.id || '';
+    if (!pid) return upcomingCharityEvents.slice(0, 3);
+    return upcomingCharityEvents.filter((e) => (e.event_id || e.id || '') !== pid).slice(0, 3);
+  }, [upcomingCharityEvents, priorityCharityEvent]);
+
+  const showCharityEventsSection =
+    priorityCharityEvent !== null || upcomingCharityEvents.length > 0;
 
   // Share functions
   const shareToFacebook = (eventId: string, _eventName: string) => {
@@ -243,7 +265,7 @@ export default function Home() {
         // Fetch ALL active events to find priority event (regardless of past/future)
         const allActiveEvents = await eventsAPI.getActive();
         
-        // Featured festival: one priority event of type Festival (charity has its own hero card)
+        // Featured fund-raising (Festival type): priority event; charity has its own hero card
         const priority = allActiveEvents.find(
           (e) => e.is_priority === true && getEffectiveEventType(e) === 'Festival'
         );
@@ -259,17 +281,10 @@ export default function Home() {
                 // Construct full URL using getImageUrl method
                 const imageUrl = eventsAPI.getImageUrl(priority.event_id, imageData.filename);
                 setPriorityEventImage(imageUrl);
-                
-                // Detect image orientation
-                const orientation = await detectImageOrientation(imageUrl);
-                setImageOrientation(orientation);
               }
             } catch (error) {
               // Silently fail if no images are found - image is optional
             }
-          } else {
-            // Reset image orientation if no image
-            setImageOrientation(null);
           }
           
           // Fetch sub-events for priority event that should be shown on home page
@@ -278,7 +293,6 @@ export default function Home() {
             const homePageSubEvents = subEvents.filter(
               (se: SubEvent) => se.show_in_home_page === true && se.is_active === true
             );
-            console.log('Sub-events fetched:', subEvents.length, 'Home page sub-events:', homePageSubEvents.length);
             setPriorityEventSubEvents(homePageSubEvents);
           } catch (error) {
             console.error('Error fetching sub-events:', error);
@@ -288,8 +302,39 @@ export default function Home() {
         } else {
           setPriorityEvent(null);
           setPriorityEventImage(null);
-          setImageOrientation(null);
           setPriorityEventSubEvents([]);
+        }
+
+        // Priority charity: large card in "Charity Events" section below About Us
+        const priorityCharity = allActiveEvents.find(
+          (e) => e.is_priority === true && getEffectiveEventType(e) === 'Charity'
+        );
+        if (priorityCharity) {
+          setPriorityCharityEvent(priorityCharity);
+          if (priorityCharity.event_id && priorityCharity.event_image_path) {
+            try {
+              const imageData = await eventsAPI.getImagePublic(priorityCharity.event_id);
+              if (imageData) {
+                const imageUrl = eventsAPI.getImageUrl(priorityCharity.event_id, imageData.filename);
+                setPriorityCharityEventImage(imageUrl);
+                const orientation = await detectImageOrientation(imageUrl);
+                setPriorityCharityImageOrientation(orientation);
+              } else {
+                setPriorityCharityEventImage(null);
+                setPriorityCharityImageOrientation(null);
+              }
+            } catch {
+              setPriorityCharityEventImage(null);
+              setPriorityCharityImageOrientation(null);
+            }
+          } else {
+            setPriorityCharityEventImage(null);
+            setPriorityCharityImageOrientation(null);
+          }
+        } else {
+          setPriorityCharityEvent(null);
+          setPriorityCharityEventImage(null);
+          setPriorityCharityImageOrientation(null);
         }
 
         // Charity hero images: preserve order + mark priority for weighted slideshow
@@ -359,9 +404,10 @@ export default function Home() {
     }
   }, [visibleAboutTabKeys, activeAboutTab]);
 
-  // Add Events structured data (Schema.org) for SEO
+  // Add Events structured data (Schema.org) for SEO — home charity section events
   useEffect(() => {
-    if (upcomingEvents.length === 0) return;
+    const charityList = upcomingEvents.filter((e) => getEffectiveEventType(e) === 'Charity');
+    if (charityList.length === 0) return;
 
     // Remove existing events structured data
     const existingScript = document.getElementById('events-structured-data');
@@ -370,7 +416,7 @@ export default function Home() {
     }
 
     // Create structured data for events
-    const eventsData = upcomingEvents.slice(0, 10).map((event) => {
+    const eventsData = charityList.slice(0, 10).map((event) => {
       const startDate = event.event_start_dt ? convertPSTToLocal(event.event_start_dt) : null;
       const endDate = event.event_end_dt ? convertPSTToLocal(event.event_end_dt) : null;
       
@@ -878,8 +924,8 @@ export default function Home() {
       </section>
       )}
 
-      {/* Upcoming Events Section */}
-      {upcomingEvents.length > 0 && (
+      {/* Charity Events section (below About Us): priority charity + upcoming charity */}
+      {showCharityEventsSection && (
         <section className="py-20 bg-amber-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
@@ -889,12 +935,15 @@ export default function Home() {
               transition={{ duration: 0.6 }}
               className="text-center mb-12"
             >
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">Upcoming Events</h2>
-              <p className="text-xl text-gray-600">Don't miss out on our next celebration</p>
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">Charity Events</h2>
+              <p className="text-xl text-gray-600">Coming together to give back and strengthen humanity</p>
             </motion.div>
 
-            {/* Priority Event Card */}
-            {priorityEvent && (() => {
+            {/* Priority charity featured card */}
+            {priorityCharityEvent && (() => {
+              const priorityEvent = priorityCharityEvent;
+              const priorityEventImage = priorityCharityEventImage;
+              const imageOrientation = priorityCharityImageOrientation;
               const eventId = priorityEvent.event_id || priorityEvent.id || '';
               const eventName = priorityEvent.event_name || priorityEvent.title || 'Untitled Event';
               const eventDescription = priorityEvent.event_description || priorityEvent.description || '';
@@ -1267,16 +1316,13 @@ export default function Home() {
               );
             })()}
 
-            {/* Other Upcoming Events Grid */}
+            {/* Other upcoming charity events */}
             {(() => {
-              // Filter out priority event from the list
-              const otherEvents = upcomingEvents.filter(e => !e.is_priority).slice(0, 3);
-              
-              if (otherEvents.length === 0) return null;
+              if (otherUpcomingCharityEvents.length === 0) return null;
               
               return (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {otherEvents.map((event, index) => {
+                  {otherUpcomingCharityEvents.map((event, index) => {
                 const eventId = event.event_id || event.id || '';
                 const eventName = event.event_name || event.title || 'Untitled Event';
                 const eventDescription = event.event_description || event.description || '';
@@ -1348,10 +1394,10 @@ export default function Home() {
               className="text-center mt-8"
             >
               <Link
-                to="/events"
+                to="/events?type=Charity"
                 className="inline-block bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
               >
-                View All Events
+                View All Charity Events
               </Link>
             </motion.div>
           </div>

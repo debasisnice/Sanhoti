@@ -20,6 +20,30 @@ export function getEffectiveEventType(event: Pick<Event, 'event_type'>): EventTy
   return 'Festival';
 }
 
+/** Public nav and Events page titles (API/storage still uses `Festival`). */
+export function getEventTypePublicLabel(type: EventTypeBucket): string {
+  switch (type) {
+    case 'Festival':
+      return 'Fund Raising Events';
+    case 'Charity':
+      return 'Charity Events';
+    case 'Other':
+      return 'Other Events';
+  }
+}
+
+/** Admin event-type dropdown labels (shorter Charity/Other). */
+export function getEventTypeAdminOptionLabel(type: EventTypeBucket): string {
+  switch (type) {
+    case 'Festival':
+      return 'Fund Raising Events';
+    case 'Charity':
+      return 'Charity';
+    case 'Other':
+      return 'Other';
+  }
+}
+
 /**
  * Which single priority event to feature at the top / front of the carousel.
  * - Filtered page (`?type=Festival|Charity|Other`): that type's priority only.

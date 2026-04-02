@@ -141,11 +141,11 @@ export default function NewsPage() {
           <div className="flex items-center justify-center gap-3 mb-4">
             <Newspaper className="w-8 h-8 text-primary-600" />
             <h1 className="text-2xl font-bold text-gray-900">
-              News & Media Coverage
+              Media
             </h1>
           </div>
           <p className="text-2xl text-gray-600">
-            Stay updated with the latest news and media coverage
+            Stay updated with the latest coverage and stories
           </p>
         </motion.div>
 
@@ -157,7 +157,7 @@ export default function NewsPage() {
           <>
             {news.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">No news at this time.</p>
+                <p className="text-gray-500 text-lg">No media at this time.</p>
               </div>
             ) : (
               <div className="space-y-6">
@@ -190,7 +190,7 @@ export default function NewsPage() {
               </div>
             )}
 
-            {/* Archived News Section */}
+            {/* Archived media section */}
             {archivedNews.length > 0 && (
               <div className="mt-12">
                 <button
@@ -199,7 +199,7 @@ export default function NewsPage() {
                 >
                   <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                     <Archive className="w-6 h-6 text-gray-600" />
-                    Archived News
+                    Archived Media
                   </h2>
                   {archivedExpanded ? (
                     <ChevronUp className="w-6 h-6 text-gray-600" />

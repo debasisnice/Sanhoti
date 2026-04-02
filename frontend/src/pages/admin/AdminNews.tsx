@@ -46,7 +46,7 @@ export default function AdminNews() {
       );
       setNews(data);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to fetch news');
+      toast.error(error.response?.data?.error || 'Failed to fetch media');
     } finally {
       setLoading(false);
     }
@@ -102,7 +102,7 @@ export default function AdminNews() {
       setUploading(true);
       
       if (editingNews) {
-        // Update existing news
+        // Update existing item
         await newsAPI.update(editingNews.news_id, {
           title: formData.title,
           content: formData.content,
@@ -111,9 +111,9 @@ export default function AdminNews() {
           is_active: formData.is_active,
           is_published: formData.is_published,
         });
-        toast.success('News updated successfully');
+        toast.success('Media updated successfully');
       } else {
-        // Create new news
+        // Create new item
         await newsAPI.create({
           title: formData.title,
           content: formData.content,
@@ -123,30 +123,30 @@ export default function AdminNews() {
           is_active: formData.is_active,
           is_published: formData.is_published,
         });
-        toast.success('News created successfully');
+        toast.success('Media created successfully');
       }
       
       setShowForm(false);
       resetForm();
       fetchNews();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to save news');
+      toast.error(error.response?.data?.error || 'Failed to save media');
     } finally {
       setUploading(false);
     }
   };
 
   const handleDelete = async (newsId: string) => {
-    if (!window.confirm('Are you sure you want to delete this news item?')) {
+    if (!window.confirm('Are you sure you want to delete this media item?')) {
       return;
     }
 
     try {
       await newsAPI.delete(newsId);
-      toast.success('News deleted successfully');
+      toast.success('Media deleted successfully');
       fetchNews();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to delete news');
+      toast.error(error.response?.data?.error || 'Failed to delete media');
     }
   };
 
@@ -154,36 +154,36 @@ export default function AdminNews() {
     const newStatus = !newsItem.is_published;
     
     if (newStatus && !newsItem.is_active) {
-      toast.error('Cannot publish inactive news. Please activate the news first.');
+      toast.error('Cannot publish inactive media. Please activate the item first.');
       return;
     }
 
     try {
       await newsAPI.update(newsItem.news_id, { is_published: newStatus });
-      toast.success(`News ${newStatus ? 'published' : 'unpublished'} successfully`);
+      toast.success(`Media ${newStatus ? 'published' : 'unpublished'} successfully`);
       fetchNews();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to update news status');
+      toast.error(error.response?.data?.error || 'Failed to update publish status');
     }
   };
 
   const handleArchive = async (newsItem: News) => {
     try {
       await newsAPI.archive(newsItem.news_id);
-      toast.success('News archived successfully');
+      toast.success('Media archived successfully');
       fetchNews();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to archive news');
+      toast.error(error.response?.data?.error || 'Failed to archive media');
     }
   };
 
   const handleUnarchive = async (newsItem: News) => {
     try {
       await newsAPI.unarchive(newsItem.news_id);
-      toast.success('News unarchived successfully');
+      toast.success('Media unarchived successfully');
       fetchNews();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to unarchive news');
+      toast.error(error.response?.data?.error || 'Failed to unarchive media');
     }
   };
 
@@ -224,8 +224,8 @@ export default function AdminNews() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">News Management</h1>
-          <p className="text-gray-600 mt-1">Manage news, media coverage, and articles</p>
+          <h1 className="text-3xl font-bold text-gray-900">Media Management</h1>
+          <p className="text-gray-600 mt-1">Manage media coverage, articles, and stories</p>
         </div>
         <button
           onClick={() => {
@@ -235,11 +235,11 @@ export default function AdminNews() {
           className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
         >
           <Plus className="w-5 h-5" />
-          <span>Add News</span>
+          <span>Add Media</span>
         </button>
       </div>
 
-      {/* News Form Modal */}
+      {/* Media form modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <motion.div
@@ -250,7 +250,7 @@ export default function AdminNews() {
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">
-                  {editingNews ? 'Edit News' : 'Add New News'}
+                  {editingNews ? 'Edit Media' : 'Add New Media'}
                 </h2>
                 <button
                   onClick={() => {
@@ -274,7 +274,7 @@ export default function AdminNews() {
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="Enter news title"
+                    placeholder="Enter title"
                   />
                 </div>
 
@@ -288,7 +288,7 @@ export default function AdminNews() {
                     value={formData.content}
                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="Enter news content/article text"
+                    placeholder="Enter content or article text"
                   />
                 </div>
 
@@ -404,7 +404,7 @@ export default function AdminNews() {
                     className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
                     disabled={uploading}
                   >
-                    {uploading ? 'Saving...' : editingNews ? 'Update News' : 'Create News'}
+                    {uploading ? 'Saving...' : editingNews ? 'Update Media' : 'Create Media'}
                   </button>
                 </div>
               </form>
@@ -413,7 +413,7 @@ export default function AdminNews() {
         </div>
       )}
 
-      {/* News List */}
+      {/* Media list */}
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
         <div className="overflow-x-auto -mx-4 md:mx-0">
           <div className="inline-block min-w-full align-middle px-4 md:px-0">
@@ -449,7 +449,7 @@ export default function AdminNews() {
                   <tr>
                     <td colSpan={7} className="px-3 py-12 text-center text-gray-500">
                       <Newspaper className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                      <p>No news items yet. Create your first news item!</p>
+                      <p>No media items yet. Create your first item!</p>
                     </td>
                   </tr>
                 ) : (
@@ -518,10 +518,10 @@ export default function AdminNews() {
                                 : 'text-gray-400 cursor-not-allowed'
                             }`}
                             title={!newsItem.is_active && !newsItem.is_published 
-                              ? 'News must be active before publishing'
+                              ? 'Media must be active before publishing'
                               : newsItem.is_published 
-                              ? 'Unpublish news'
-                              : 'Publish news'
+                              ? 'Unpublish'
+                              : 'Publish'
                             }
                           >
                             {newsItem.is_published ? (
@@ -534,7 +534,7 @@ export default function AdminNews() {
                             <button
                               onClick={() => handleArchive(newsItem)}
                               className="text-yellow-600 hover:text-yellow-900"
-                              title="Archive news"
+                              title="Archive"
                             >
                               <Archive className="w-4 h-4" />
                             </button>
@@ -542,7 +542,7 @@ export default function AdminNews() {
                             <button
                               onClick={() => handleUnarchive(newsItem)}
                               className="text-green-600 hover:text-green-900"
-                              title="Unarchive news"
+                              title="Unarchive"
                             >
                               <ArchiveRestore className="w-4 h-4" />
                             </button>

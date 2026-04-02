@@ -5,6 +5,7 @@ import { Plus, Edit, Trash2, Eye, EyeOff, X, Image as ImageIcon, Star } from 'lu
 import { eventsAPI, subEventsAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { convertPSTToLocal, convertLocalToPST } from '../../utils/dateUtils';
+import { getEventTypeAdminOptionLabel } from '../../utils/eventType';
 import { SubEvent } from '../../types';
 
 const EVENT_TYPE_OPTIONS = ['Festival', 'Charity', 'Other'] as const;
@@ -691,7 +692,9 @@ export default function AdminEvents() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
                     {EVENT_TYPE_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
+                      <option key={opt} value={opt}>
+                        {getEventTypeAdminOptionLabel(opt)}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -844,7 +847,7 @@ export default function AdminEvents() {
                     Mark as priority for this event type
                   </label>
                   <span className="text-xs text-gray-500">
-                    (One priority each for Festival, Charity, and Other — featured on Events and home)
+                    (One priority each for Fund Raising Events, Charity, and Other — featured on Events and home)
                   </span>
                 </div>
 
