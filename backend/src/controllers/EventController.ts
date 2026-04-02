@@ -5,7 +5,7 @@ import multer from 'multer';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { existsSync, mkdirSync, renameSync, unlinkSync, readdirSync, statSync } from 'fs';
+import { existsSync, mkdirSync, renameSync, unlinkSync, readdirSync, readFileSync, statSync } from 'fs';
 import { EventDataHelper } from '../data/EventDataHelper.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -20,6 +20,81 @@ function escapeHtmlAttr(raw: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/\r?\n/g, ' ');
+}
+
+/** WhatsApp / Meta / others — avoid auto-redirect HTML so they can read the full head. */
+function isLinkPreviewCrawler(userAgent: string | undefined): boolean {
+  if (!userAgent) return false;
+  const ua = userAgent.toLowerCase();
+  return (
+    ua.includes('_whatsapp') ||
+    ua.includes('whatsapp') ||
+    ua.includes('facebookexternalhit') ||
+    ua.includes('facebot') ||
+    ua.includes('twitterbot') ||
+    ua.includes('linkedinbot') ||
+    ua.includes('slackbot') ||
+    ua.includes('telegrambot') ||
+    ua.includes('discordbot') ||
+    ua.includes('pinterest') ||
+    ua.includes('vkshare') ||
+    ua.includes('redditbot')
+  );
+}
+
+function jpegDimensions(buf: Buffer): { width: number; height: number } | null {
+  let i = 0;
+  while (i < buf.length - 9) {
+    if (buf[i] !== 0xff) {
+      i++;
+      continue;
+    }
+    const marker = buf[i + 1];
+    if (marker === 0xd8) {
+      i += 2;
+      continue;
+    }
+    if (marker === 0xd9) break;
+    if (i + 3 >= buf.length) break;
+    const segLen = buf.readUInt16BE(i + 2);
+    if (segLen < 2 || i + 2 + segLen > buf.length) break;
+    if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
+      return {
+        height: buf.readUInt16BE(i + 5),
+        width: buf.readUInt16BE(i + 7),
+      };
+    }
+    i += 2 + segLen;
+  }
+  return null;
+}
+
+function pngDimensions(buf: Buffer): { width: number; height: number } | null {
+  if (buf.length < 24) return null;
+  if (buf[0] !== 0x89 || buf[1] !== 0x50 || buf[2] !== 0x4e || buf[3] !== 0x47) return null;
+  if (buf.toString('ascii', 12, 16) !== 'IHDR') return null;
+  return {
+    width: buf.readUInt32BE(16),
+    height: buf.readUInt32BE(20),
+  };
+}
+
+function readLocalImageMeta(filePath: string): { width: number; height: number; mime: string } | null {
+  try {
+    const buf = readFileSync(filePath);
+    const lower = filePath.toLowerCase();
+    if (/\.jpe?g$/i.test(lower)) {
+      const d = jpegDimensions(buf);
+      return d ? { ...d, mime: 'image/jpeg' } : null;
+    }
+    if (/\.png$/i.test(lower)) {
+      const d = pngDimensions(buf);
+      return d ? { ...d, mime: 'image/png' } : null;
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
 }
 
 // Configure multer for file uploads
@@ -480,6 +555,9 @@ export class EventController {
       const origin = (process.env.PUBLIC_SITE_URL || 'https://www.sanhoti.org').replace(/\/$/, '');
       const canonicalPath = `/events/${encodeURIComponent(eventId)}`;
       const canonicalUrl = `${origin}${canonicalPath}`;
+      const sharePagePath = `/api/events/${encodeURIComponent(eventId)}/share`;
+      const sharePageUrl = `${origin}${sharePagePath}`;
+      const crawler = isLinkPreviewCrawler(req.get('user-agent'));
 
       const event = await this.eventService.getEventById(eventId);
       if (!event || !event.is_active) {
@@ -495,6 +573,7 @@ export class EventController {
       const description = descSource.slice(0, 280) || 'Join us for a Sanhoti community event.';
 
       let ogImageAbs = `${origin}/images/logo.png`;
+      let localImagePath: string | null = null;
 
       const externalImage = (event.imageUrl || '').trim();
       if (/^https?:\/\//i.test(externalImage)) {
@@ -519,17 +598,37 @@ export class EventController {
           .sort();
         if (imageFiles.length > 0) {
           const fn = imageFiles[0];
+          localImagePath = join(folderPath, fn);
           ogImageAbs = `${origin}/api/events/${encodeURIComponent(eventId)}/image/${encodeURIComponent(fn)}`;
         }
       }
+
+      const imgMeta = localImagePath ? readLocalImageMeta(localImagePath) : null;
+      const ogImageSizeMeta = imgMeta
+        ? `
+  <meta property="og:image:width" content="${imgMeta.width}" />
+  <meta property="og:image:height" content="${imgMeta.height}" />
+  <meta property="og:image:type" content="${escapeHtmlAttr(imgMeta.mime)}" />`
+        : '';
 
       const safeTitle = escapeHtmlAttr(title);
       const safeDesc = escapeHtmlAttr(description);
       const safeOgImage = escapeHtmlAttr(ogImageAbs);
       const safeCanonical = escapeHtmlAttr(canonicalUrl);
+      const safeSharePage = escapeHtmlAttr(sharePageUrl);
+
+      // og:url must be this share URL: the SPA route has no per-event OG tags; scrapers that re-fetch og:url would lose the image.
+      const headRedirect = crawler
+        ? ''
+        : `  <meta http-equiv="refresh" content="0;url=${safeCanonical}" />
+`;
+      const bodyScript = crawler
+        ? ''
+        : `  <script>window.location.replace(${JSON.stringify(canonicalUrl)});</script>
+`;
 
       const html = `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" prefix="og: https://ogp.me/ns#">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -537,22 +636,20 @@ export class EventController {
   <link rel="image_src" href="${safeOgImage}" />
   <link rel="canonical" href="${safeCanonical}" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="${safeCanonical}" />
+  <meta property="og:url" content="${safeSharePage}" />
   <meta property="og:title" content="${safeTitle}" />
   <meta property="og:description" content="${safeDesc}" />
   <meta property="og:image" content="${safeOgImage}" />
-  <meta property="og:image:alt" content="${safeTitle}" />
+  <meta property="og:image:alt" content="${safeTitle}" />${ogImageSizeMeta}
   <meta property="og:site_name" content="Sanhoti Bengali Association of Orange County" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${safeTitle}" />
   <meta name="twitter:description" content="${safeDesc}" />
   <meta name="twitter:image" content="${safeOgImage}" />
-  <meta http-equiv="refresh" content="0;url=${safeCanonical}" />
-</head>
+${headRedirect}</head>
 <body>
   <p><a href="${safeCanonical}">Continue to event details</a></p>
-  <script>window.location.replace(${JSON.stringify(canonicalUrl)});</script>
-</body>
+${bodyScript}</body>
 </html>`;
 
       res.status(200).type('html').send(html);
