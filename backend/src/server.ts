@@ -8,6 +8,7 @@ import routes from './routes/index.js';
 import { SitemapController } from './controllers/SitemapController.js';
 import { EventController } from './controllers/EventController.js';
 import { GalleryController } from './controllers/GalleryController.js';
+import { SubEventController } from './controllers/SubEventController.js';
 import type { AuthRequest } from './middleware/auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -128,8 +129,12 @@ app.get('/sitemap.xml', (req, res) => {
 // Crawler-friendly image URLs (not under /api). WhatsApp/Meta often omit previews when og:image is /api/...
 const eventController = new EventController();
 const galleryController = new GalleryController();
+const subEventController = new SubEventController();
 app.get('/og/events/:eventId/image/:filename', (req, res) =>
   eventController.getEventImage(req as AuthRequest, res)
+);
+app.get('/og/sub-events/:id/image/:filename', (req, res) =>
+  subEventController.getSubEventImage(req, res)
 );
 app.get('/og/galleries/:eventId/photos/:filename', (req, res) =>
   galleryController.servePhoto(req as AuthRequest, res)

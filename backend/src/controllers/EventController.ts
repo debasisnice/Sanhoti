@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { existsSync, mkdirSync, renameSync, unlinkSync, readdirSync, readFileSync, statSync } from 'fs';
 import { EventDataHelper } from '../data/EventDataHelper.js';
+import { SubEventDataHelper } from '../data/SubEventDataHelper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -132,10 +133,12 @@ const upload = multer({
 export class EventController {
   private eventService: EventService;
   private eventDataHelper: EventDataHelper;
+  private subEventDataHelper: SubEventDataHelper;
 
   constructor() {
     this.eventService = new EventService();
     this.eventDataHelper = new EventDataHelper();
+    this.subEventDataHelper = new SubEventDataHelper();
   }
 
   async getAllEvents(req: AuthRequest, res: Response): Promise<void> {
@@ -604,6 +607,15 @@ export class EventController {
         }
       }
 
+      // Festival/fundraising flyers often live only under sub-event subfolders, not the parent root.
+      if (localImagePath === null) {
+        const subFlyer = await this.subEventDataHelper.getFirstSubEventFlyerForSharePreview(eventId);
+        if (subFlyer) {
+          localImagePath = subFlyer.absPath;
+          ogImageAbs = `${origin}/og/sub-events/${encodeURIComponent(subFlyer.subEventId)}/image/${encodeURIComponent(subFlyer.filename)}`;
+        }
+      }
+
       if (localImagePath === null) {
         const gal = this.eventDataHelper.getFirstGalleryImageForPreview(event);
         if (gal) {
@@ -620,7 +632,9 @@ export class EventController {
       // Bust WhatsApp/Meta thumbnail cache when the flyer file changes (same HTML path, new image URL).
       if (
         localImagePath &&
-        (ogImageAbs.includes('/og/events/') || ogImageAbs.includes('/og/galleries/'))
+        (ogImageAbs.includes('/og/events/') ||
+          ogImageAbs.includes('/og/galleries/') ||
+          ogImageAbs.includes('/og/sub-events/'))
       ) {
         try {
           const v = Math.floor(statSync(localImagePath).mtimeMs);

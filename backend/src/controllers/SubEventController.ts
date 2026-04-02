@@ -3,7 +3,7 @@ import { AuthRequest } from '../middleware/auth.js';
 import { SubEventService } from '../services/SubEventService.js';
 import multer from 'multer';
 import { existsSync, mkdirSync, unlinkSync, readdirSync } from 'fs';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -280,6 +280,7 @@ export class SubEventController {
   async getSubEventImage(req: Request, res: Response): Promise<void> {
     try {
       const { id, filename } = req.params;
+      const decodedFilename = decodeURIComponent(filename);
       const subEvent = await this.subEventService.getSubEventById(id);
       
       if (!subEvent || !subEvent.event_image_path) {
@@ -300,14 +301,24 @@ export class SubEventController {
       const parentEventFolderName = parentEvent.event_image_path || `${parentEvent.event_name.replace(/[<>:"/\\|?*]/g, '-').replace(/\s+/g, '-')}-${parentEvent.event_id}`;
       const parentEventFolder = join(eventsFlyersDir, parentEventFolderName);
       const subEventFolderPath = join(parentEventFolder, subEvent.event_image_path);
-      const imagePath = join(subEventFolderPath, filename);
+      const imagePath = join(subEventFolderPath, decodedFilename);
 
       if (!existsSync(imagePath)) {
         res.status(404).json({ error: 'Image not found' });
         return;
       }
 
-      res.sendFile(imagePath);
+      const ext = decodedFilename.toLowerCase().split('.').pop();
+      const contentTypeMap: Record<string, string> = {
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        png: 'image/png',
+        gif: 'image/gif',
+        webp: 'image/webp',
+      };
+      res.type(contentTypeMap[ext || ''] || 'image/jpeg');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.sendFile(resolve(imagePath));
     } catch (error) {
       res.status(500).json({ error: 'Failed to serve image' });
     }

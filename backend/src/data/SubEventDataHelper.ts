@@ -1,7 +1,7 @@
 import { DatabaseHelper } from './DatabaseHelper.js';
-import { SubEvent } from '../models/types.js';
+import { SubEvent, Event } from '../models/types.js';
 import { EventDataHelper } from './EventDataHelper.js';
-import { existsSync, mkdirSync, readdirSync, unlinkSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, unlinkSync, statSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -47,6 +47,62 @@ export class SubEventDataHelper extends DatabaseHelper {
   async findByEventId(eventId: string): Promise<SubEvent[]> {
     const subEvents = await this.findAll();
     return subEvents.filter(se => se.event_id === eventId);
+  }
+
+  /** Same folder basename as SubEventController.getSubEventImage (parent Events_Flyers directory). */
+  private getParentEventFlyerFolderName(parent: Event): string {
+    return (
+      parent.event_image_path ||
+      `${parent.event_name.replace(/[<>:"/\\|?*]/g, '-').replace(/\s+/g, '-')}-${parent.event_id}`
+    );
+  }
+
+  /**
+   * First image in an active sub-event folder (under the parent event flyer directory).
+   * Fundraising/Festival events often have no image at the parent root but do under sub-events.
+   */
+  async getFirstSubEventFlyerForSharePreview(parentEventId: string): Promise<{
+    subEventId: string;
+    filename: string;
+    absPath: string;
+  } | null> {
+    const parent: Event | null = await this.eventDataHelper.findById(parentEventId);
+    if (!parent) return null;
+
+    const subEvents = (await this.findByEventId(parentEventId)).filter((se) => se.is_active !== false);
+    if (subEvents.length === 0) return null;
+
+    subEvents.sort((a, b) => {
+      const aHome = a.show_in_home_page === true ? 1 : 0;
+      const bHome = b.show_in_home_page === true ? 1 : 0;
+      if (bHome !== aHome) return bHome - aHome;
+      const da = new Date(a.sub_event_start_dt || 0).getTime();
+      const db = new Date(b.sub_event_start_dt || 0).getTime();
+      return db - da;
+    });
+
+    const parentFolder = join(this.eventsFlyersDir, this.getParentEventFlyerFolderName(parent));
+    if (!existsSync(parentFolder)) return null;
+
+    for (const se of subEvents) {
+      if (!se.event_image_path) continue;
+      const subFolder = join(parentFolder, se.event_image_path);
+      if (!existsSync(subFolder)) continue;
+      const files = readdirSync(subFolder)
+        .filter((file) => {
+          try {
+            const fp = join(subFolder, file);
+            return statSync(fp).isFile() && /\.(jpe?g|jpeg|png|gif|webp)$/i.test(file);
+          } catch {
+            return false;
+          }
+        })
+        .sort();
+      if (files.length === 0) continue;
+      const fn = files[0];
+      return { subEventId: se.sub_event_id, filename: fn, absPath: join(subFolder, fn) };
+    }
+    return null;
   }
 
   async create(subEvent: Omit<SubEvent, 'sub_event_id' | 'created_at' | 'updated_at'>): Promise<SubEvent> {
