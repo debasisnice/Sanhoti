@@ -8,19 +8,45 @@ function getPublicOriginForShareLinks(): string {
   const fromEnv = (import.meta.env.VITE_PUBLIC_SITE_ORIGIN as string | undefined)
     ?.trim()
     .replace(/\/$/, '');
+  if (fromEnv && /^https:\/\//i.test(fromEnv)) return fromEnv;
+
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname.toLowerCase();
+    if (host === 'www.sanhoti.org' || host === 'sanhoti.org') {
+      return DEFAULT_PRODUCTION_ORIGIN;
+    }
+    if (import.meta.env.DEV || host === 'localhost' || host === '127.0.0.1') {
+      return window.location.origin.replace(/\/$/, '');
+    }
+  }
+
   if (import.meta.env.PROD) {
-    if (fromEnv && /^https:\/\//i.test(fromEnv)) return fromEnv;
     return DEFAULT_PRODUCTION_ORIGIN;
   }
-  return typeof window !== 'undefined' ? window.location.origin : '';
+
+  return typeof window !== 'undefined' ? window.location.origin.replace(/\/$/, '') : '';
 }
 
 /**
- * URL for social crawlers (WhatsApp, Facebook). HTML is served at `/og/events/:id` so og:url is not under `/api/`.
+ * URL shared to social apps. Production uses `/og/events/:id` (server HTML + previews);
+ * on localhost dev, use `/events/:id` so the link matches the page you are on and opens the SPA
+ * (crawlers cannot reach your machine anyway).
  */
 export function getEventSharePageUrl(eventId: string): string {
+  const id = (eventId ?? '').trim();
   const origin = getPublicOriginForShareLinks();
-  return `${origin}/og/events/${encodeURIComponent(eventId)}`;
+  if (!id) return `${origin}/events`;
+
+  if (
+    import.meta.env.DEV &&
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ) {
+    const local = window.location.origin.replace(/\/$/, '');
+    return `${local}/events/${encodeURIComponent(id)}`;
+  }
+
+  return `${origin}/og/events/${encodeURIComponent(id)}`;
 }
 
 /** Stable id for share URLs when API fields or route param differ (legacy rows, redirects). */

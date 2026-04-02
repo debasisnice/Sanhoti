@@ -566,7 +566,12 @@ export class EventController {
    */
   async getEventSharePage(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const { eventId } = req.params;
+      const eventId = (req.params.eventId ?? '').trim();
+      if (!eventId) {
+        res.status(400).type('html').send('<!DOCTYPE html><html><body>Invalid event link</body></html>');
+        return;
+      }
+
       const origin = (process.env.PUBLIC_SITE_URL || 'https://www.sanhoti.org').replace(/\/$/, '');
       const canonicalPath = `/events/${encodeURIComponent(eventId)}`;
       const canonicalUrl = `${origin}${canonicalPath}`;
@@ -583,10 +588,25 @@ export class EventController {
         return;
       }
 
-      // Real browsers (incl. WhatsApp / FB in-app WebViews): HTTP redirect only. Meta refresh + inline
-      // script is often blocked or mishandled there, which shows a blank page before the SPA loads.
+      // Humans: return 200 with redirect helpers. Some in-app browsers do not follow 302 reliably
+      // (blank page). Bots still get full OG HTML below.
       if (!crawler) {
-        res.redirect(302, canonicalUrl);
+        const safeDest = escapeHtmlAttr(canonicalUrl);
+        res.setHeader('Refresh', `0; url=${canonicalUrl}`);
+        res.status(200).type('html').send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="refresh" content="0; url=${safeDest}" />
+  <title>Opening event…</title>
+  <script>window.location.replace(${JSON.stringify(canonicalUrl)});</script>
+</head>
+<body style="font-family:system-ui,sans-serif;padding:1.5rem;text-align:center">
+  <p><a href="${safeDest}" style="color:#2563eb;font-weight:600">Open event page</a></p>
+  <p style="color:#64748b;font-size:0.9rem">If you are not redirected automatically, use the link above.</p>
+</body>
+</html>`);
         return;
       }
 

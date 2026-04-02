@@ -17,6 +17,10 @@ export default function EventShareButtons({
   className = '',
   showCaption = true,
 }: EventShareButtonsProps) {
+  if (!eventId?.trim()) {
+    return null;
+  }
+
   return (
     <div className={`flex flex-col gap-2 ${className}`}>
       {showCaption ? <p className="text-sm font-medium text-gray-700">Share this event</p> : null}
