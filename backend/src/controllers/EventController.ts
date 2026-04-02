@@ -23,13 +23,24 @@ function escapeHtmlAttr(raw: string): string {
     .replace(/\r?\n/g, ' ');
 }
 
-/** WhatsApp / Meta / others — avoid auto-redirect HTML so they can read the full head. */
+/**
+ * True for bots that fetch the page to read Open Graph tags only.
+ * Must NOT match WhatsApp/Facebook in-app WebViews — those need meta refresh + redirect to the SPA.
+ */
 function isLinkPreviewCrawler(userAgent: string | undefined): boolean {
   if (!userAgent) return false;
   const ua = userAgent.toLowerCase();
+
+  // "whatsapp" appears in both the link-preview fetcher and the in-app browser. In-app UAs include
+  // a real engine (WebKit / Chrome); server-side fetchers usually do not.
+  if (ua.includes('whatsapp')) {
+    if (ua.includes('applewebkit') || ua.includes('chrome/') || ua.includes('firefox/')) {
+      return false;
+    }
+    return true;
+  }
+
   return (
-    ua.includes('_whatsapp') ||
-    ua.includes('whatsapp') ||
     ua.includes('facebookexternalhit') ||
     ua.includes('facebot') ||
     ua.includes('meta-externalagent') ||
@@ -38,7 +49,7 @@ function isLinkPreviewCrawler(userAgent: string | undefined): boolean {
     ua.includes('slackbot') ||
     ua.includes('telegrambot') ||
     ua.includes('discordbot') ||
-    ua.includes('pinterest') ||
+    ua.includes('pinterestbot') ||
     ua.includes('vkshare') ||
     ua.includes('redditbot')
   );
