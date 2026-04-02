@@ -572,7 +572,8 @@ export class EventController {
       const descSource = (event.event_description || event.description || '').replace(/\s+/g, ' ').trim();
       const description = descSource.slice(0, 280) || 'Join us for a Sanhoti community event.';
 
-      let ogImageAbs = `${origin}/images/logo.png`;
+      const logoFallback = `${origin}/images/logo.png`;
+      let ogImageAbs = logoFallback;
       let localImagePath: string | null = null;
 
       const externalImage = (event.imageUrl || '').trim();
@@ -580,26 +581,39 @@ export class EventController {
         ogImageAbs = externalImage;
       }
 
-      const folderPath =
-        /^https?:\/\//i.test(externalImage) ? null : await this.eventDataHelper.getEventImageFolderPath(eventId);
-      if (folderPath && existsSync(folderPath)) {
-        const files = readdirSync(folderPath);
-        const imageFiles = files
-          .filter((file) => {
-            const filePath = join(folderPath, file);
-            try {
-              const stats = statSync(filePath);
-              const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(file);
-              return stats.isFile() && isImage;
-            } catch {
-              return false;
-            }
-          })
-          .sort();
-        if (imageFiles.length > 0) {
-          const fn = imageFiles[0];
-          localImagePath = join(folderPath, fn);
-          ogImageAbs = `${origin}/api/events/${encodeURIComponent(eventId)}/image/${encodeURIComponent(fn)}`;
+      const skipFlyerAndGallery = /^https?:\/\//i.test(externalImage);
+
+      if (!skipFlyerAndGallery) {
+        const folderPath = await this.eventDataHelper.getEventImageFolderPath(eventId);
+        if (folderPath && existsSync(folderPath)) {
+          const files = readdirSync(folderPath);
+          const imageFiles = files
+            .filter((file) => {
+              const filePath = join(folderPath, file);
+              try {
+                const stats = statSync(filePath);
+                const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(file);
+                return stats.isFile() && isImage;
+              } catch {
+                return false;
+              }
+            })
+            .sort();
+          if (imageFiles.length > 0) {
+            const fn = imageFiles[0];
+            localImagePath = join(folderPath, fn);
+            ogImageAbs = `${origin}/api/events/${encodeURIComponent(eventId)}/image/${encodeURIComponent(fn)}`;
+          }
+        }
+
+        // No flyer: use first gallery photo (event often has images here even when Events_Flyers is empty).
+        if (localImagePath === null) {
+          const gal = this.eventDataHelper.getFirstGalleryImageForPreview(event);
+          if (gal) {
+            localImagePath = gal.absPath;
+            const gid = event.event_id || event.id || eventId;
+            ogImageAbs = `${origin}/api/galleries/${encodeURIComponent(gid)}/photos/${encodeURIComponent(gal.filename)}`;
+          }
         }
       }
 

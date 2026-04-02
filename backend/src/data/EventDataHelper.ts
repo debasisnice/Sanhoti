@@ -284,6 +284,29 @@ export class EventDataHelper extends DatabaseHelper {
     return null;
   }
 
+  /**
+   * First image in the event's gallery folder for social previews when no flyer exists.
+   * Uses only `photo_gallery_link` so `/api/galleries/:eventId/photos/:filename` can serve the same file.
+   */
+  getFirstGalleryImageForPreview(event: Event): { absPath: string; filename: string } | null {
+    if (!event.photo_gallery_link) return null;
+    const folderPath = join(this.galleriesDir, event.photo_gallery_link);
+    if (!existsSync(folderPath)) return null;
+    const files = readdirSync(folderPath)
+      .filter((file) => {
+        try {
+          const fp = join(folderPath, file);
+          return statSync(fp).isFile() && /\.(jpe?g|jpeg|png|gif|webp)$/i.test(file);
+        } catch {
+          return false;
+        }
+      })
+      .sort();
+    if (files.length === 0) return null;
+    const fn = files[0];
+    return { absPath: join(folderPath, fn), filename: fn };
+  }
+
   async deactivate(eventId: string): Promise<Event | null> {
     // When deactivating an event, also unpublish the gallery automatically
     return this.update(eventId, { 
