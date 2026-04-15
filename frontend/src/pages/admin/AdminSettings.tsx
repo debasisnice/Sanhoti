@@ -1432,13 +1432,16 @@ export default function AdminSettings() {
                 </p>
               </div>
 
-              <div className="mb-8 p-6 bg-white rounded-lg border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Hero banner message</h3>
-                <p className="text-sm text-gray-600 mb-4">
+              <div className="mb-4 sm:mb-8 p-3 sm:p-6 bg-white rounded-lg border border-gray-200">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">Hero banner message</h3>
+                <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4 leading-snug">
                   Text shown in the center of the home page hero (red border, Bengali-friendly font). Clear the
                   field and save to hide the banner.
                 </p>
-                <label htmlFor="home-hero-banner" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="home-hero-banner"
+                  className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2"
+                >
                   Message
                 </label>
                 <textarea
@@ -1447,7 +1450,7 @@ export default function AdminSettings() {
                   onChange={(e) => setHomeHeroBannerMessage(e.target.value)}
                   rows={2}
                   placeholder={DEFAULT_HOME_HERO_BANNER_MESSAGE}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 font-bengali text-lg"
+                  className="block w-full px-2.5 py-1.5 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 font-bengali text-base sm:text-lg"
                 />
                 <button
                   type="button"
@@ -1464,7 +1467,7 @@ export default function AdminSettings() {
                     }
                   }}
                   disabled={saving}
-                  className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="mt-2 sm:mt-4 px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Saving...' : 'Save hero banner'}
                 </button>
