@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Award, X } from 'lucide-react';
+import { Award, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { sponsorsAPI } from '../services/api';
 
 interface SponsorImage {
@@ -15,6 +15,21 @@ export default function Sponsors() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedImage, setSelectedImage] = useState<SponsorImage | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const sponsorCount = sponsorImages.length;
+
+  const restartAutoRotate = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (sponsorCount <= 2) return;
+    intervalRef.current = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % sponsorCount);
+    }, 3000);
+  }, [sponsorCount]);
 
   useEffect(() => {
     const fetchSponsors = async () => {
@@ -31,20 +46,48 @@ export default function Sponsors() {
     fetchSponsors();
   }, []);
 
-  // Auto-rotate carousel every 3 seconds
+  // Auto-rotate carousel every 3 seconds (more than 2 images only)
   useEffect(() => {
-    if (sponsorImages.length <= 2) return;
-
-    intervalRef.current = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % sponsorImages.length);
-    }, 3000);
-
+    restartAutoRotate();
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
-  }, [sponsorImages.length]);
+  }, [restartAutoRotate]);
+
+  const goNext = useCallback(() => {
+    if (sponsorCount < 1) return;
+    setCurrentIndex((prev) => (prev + 1) % sponsorCount);
+    restartAutoRotate();
+  }, [sponsorCount, restartAutoRotate]);
+
+  const goPrev = useCallback(() => {
+    if (sponsorCount < 1) return;
+    setCurrentIndex((prev) => (prev - 1 + sponsorCount) % sponsorCount);
+    restartAutoRotate();
+  }, [sponsorCount, restartAutoRotate]);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current == null || touchStartY.current == null || sponsorCount <= 1) return;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const dx = endX - touchStartX.current;
+    const dy = endY - touchStartY.current;
+    touchStartX.current = null;
+    touchStartY.current = null;
+    // Prefer vertical scrolling when gesture is mostly vertical
+    if (Math.abs(dy) > Math.abs(dx)) return;
+    const threshold = 48;
+    if (dx > threshold) goPrev();
+    else if (dx < -threshold) goNext();
+  };
 
   // Get visible cards - show one card in front, with side cards for smooth scrolling effect
   const getVisibleCards = () => {
@@ -96,12 +139,37 @@ export default function Sponsors() {
           </div>
         ) : (
           <div className="relative h-[600px] flex items-center justify-center overflow-hidden py-12">
+            {sponsorCount > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={goPrev}
+                  className="absolute left-1 sm:left-4 top-1/2 z-30 -translate-y-1/2 rounded-full bg-white/95 p-2.5 sm:p-3 shadow-lg ring-1 ring-gray-200 hover:bg-primary-50 hover:ring-primary-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                  aria-label="Previous sponsor"
+                >
+                  <ChevronLeft className="h-7 w-7 sm:h-8 sm:w-8 text-gray-800" />
+                </button>
+                <button
+                  type="button"
+                  onClick={goNext}
+                  className="absolute right-1 sm:right-4 top-1/2 z-30 -translate-y-1/2 rounded-full bg-white/95 p-2.5 sm:p-3 shadow-lg ring-1 ring-gray-200 hover:bg-primary-50 hover:ring-primary-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                  aria-label="Next sponsor"
+                >
+                  <ChevronRight className="h-7 w-7 sm:h-8 sm:w-8 text-gray-800" />
+                </button>
+              </>
+            )}
             <div
-              className="relative w-full h-full flex items-center justify-center"
+              className="relative w-full h-full flex items-center justify-center touch-pan-y select-none"
               style={{
                 perspective: '1200px',
                 perspectiveOrigin: 'center center',
               }}
+              onTouchStart={onTouchStart}
+              onTouchEnd={onTouchEnd}
+              role="region"
+              aria-roledescription="carousel"
+              aria-label="Sponsor logos"
             >
               {visibleCards.map((card) => {
                 const isMiddle = card.position === 0;

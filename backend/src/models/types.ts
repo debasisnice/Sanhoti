@@ -280,5 +280,7 @@ export interface Settings {
   committeeYear?: string;
   statements?: HomePageStatements;
   statementTabsVisibility?: HomeStatementTabsVisibility;
+  /** Center hero banner text (Bengali/any script). Omitted or empty = no banner on home. */
+  homeHeroBannerMessage?: string;
   updated_at: string;
 }

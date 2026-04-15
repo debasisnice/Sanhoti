@@ -665,6 +665,11 @@ router.put('/settings/home-statements',
   auditLog('UPDATE', 'home_statements'),
   bindController(settingsController, 'updateHomeStatements')
 );
+router.put('/settings/home-hero-banner',
+  requireAdmin,
+  auditLog('UPDATE', 'home_hero_banner'),
+  bindController(settingsController, 'updateHomeHeroBanner')
+);
 
 export default router;
 

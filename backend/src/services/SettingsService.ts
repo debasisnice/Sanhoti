@@ -51,6 +51,10 @@ export class SettingsService {
   ): Promise<Settings> {
     return this.settingsDataHelper.updateHomeStatements(textUpdates, tabVisibilityPatch);
   }
+
+  async updateHomeHeroBanner(message: string): Promise<Settings> {
+    return this.settingsDataHelper.updateHomeHeroBanner(message);
+  }
 }
 
 

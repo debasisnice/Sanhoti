@@ -187,6 +187,22 @@ export class SettingsController {
       res.status(500).json({ error: 'Failed to update home statements', details: error.message });
     }
   }
+
+  async updateHomeHeroBanner(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { message } = req.body ?? {};
+      if (typeof message !== 'string') {
+        res.status(400).json({ error: 'message must be a string (use empty string to hide the banner)' });
+        return;
+      }
+
+      const settings = await this.settingsService.updateHomeHeroBanner(message);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error updating home hero banner:', error);
+      res.status(500).json({ error: 'Failed to update home hero banner', details: error.message });
+    }
+  }
 }
 
 

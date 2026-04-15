@@ -4,7 +4,7 @@ import { Settings, Users, Award, Home, Upload, Trash2, X, UserCircle, QrCode, Bo
 import { settingsAPI, usersAPI, sponsorsAPI, homepageAPI, boardMembersAPI, paymentQRAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { convertPSTToLocal } from '../../utils/dateUtils';
-import { DEFAULT_HOME_STATEMENTS } from '../../constants/homePageStatements';
+import { DEFAULT_HOME_STATEMENTS, DEFAULT_HOME_HERO_BANNER_MESSAGE } from '../../constants/homePageStatements';
 import { mergeStatement } from '../../utils/renderHomeStatements';
 
 interface NavbarSettings {
@@ -108,6 +108,7 @@ export default function AdminSettings() {
     mission: true,
     purpose: true,
   });
+  const [homeHeroBannerMessage, setHomeHeroBannerMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -163,6 +164,8 @@ export default function AdminSettings() {
         mission: tv?.mission !== false,
         purpose: tv?.purpose !== false,
       });
+      const heroRaw = (data as { homeHeroBannerMessage?: string }).homeHeroBannerMessage;
+      setHomeHeroBannerMessage(heroRaw ?? '');
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to fetch settings');
     } finally {
@@ -1427,6 +1430,44 @@ export default function AdminSettings() {
                 <p className="text-gray-600">
                   Upload and manage homepage images. These images will be stored in the HomePage_Images directory.
                 </p>
+              </div>
+
+              <div className="mb-8 p-6 bg-white rounded-lg border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Hero banner message</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Text shown in the center of the home page hero (red border, Bengali-friendly font). Clear the
+                  field and save to hide the banner.
+                </p>
+                <label htmlFor="home-hero-banner" className="block text-sm font-medium text-gray-700 mb-2">
+                  Message
+                </label>
+                <textarea
+                  id="home-hero-banner"
+                  value={homeHeroBannerMessage}
+                  onChange={(e) => setHomeHeroBannerMessage(e.target.value)}
+                  rows={2}
+                  placeholder={DEFAULT_HOME_HERO_BANNER_MESSAGE}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 font-bengali text-lg"
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      setSaving(true);
+                      await settingsAPI.updateHomeHeroBanner(homeHeroBannerMessage.trim());
+                      toast.success('Hero banner saved');
+                      await fetchSettings();
+                    } catch (error: any) {
+                      toast.error(error.response?.data?.error || 'Failed to save hero banner');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
+                  disabled={saving}
+                  className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? 'Saving...' : 'Save hero banner'}
+                </button>
               </div>
 
               {/* Social Links Section */}

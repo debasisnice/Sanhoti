@@ -1,3 +1,13 @@
+/** Suggested example for the admin hero-banner field (placeholder only). */
+export const DEFAULT_HOME_HERO_BANNER_MESSAGE = 'শুভ নববর্ষ';
+
+/** Show the hero card only when settings contain non-empty text after trim. */
+export function resolveHomeHeroBannerMessage(raw: string | undefined | null): string | null {
+  if (raw === undefined || raw === null) return null;
+  const t = raw.trim();
+  return t.length > 0 ? t : null;
+}
+
 /** Fallback copy when settings have no saved text (or empty string). */
 export const DEFAULT_HOME_STATEMENTS = {
   about: `Sanhoti is a registered 501(c)(3) nonprofit organization committed to serving the community through cultural enrichment, education, and charitable initiatives. Based in Orange County, California, Sanhoti works to promote cultural awareness, community engagement, and social well-being for individuals and families across diverse backgrounds.
