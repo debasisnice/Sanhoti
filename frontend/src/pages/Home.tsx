@@ -495,7 +495,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35, duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
-              className="w-full max-w-sm md:max-w-md lg:max-w-lg border-[3px] sm:border-4 border-red-600 rounded-2xl bg-black/50 px-4 py-3 sm:px-8 sm:py-5 md:px-12 md:py-7 shadow-[0_8px_32px_rgba(0,0,0,0.25)]"
+              className="w-full max-w-sm md:max-w-md lg:max-w-lg border-[3px] sm:border-4 border-red-600 rounded-2xl bg-amber-400/40 px-4 py-3 sm:px-8 sm:py-5 md:px-12 md:py-7 shadow-[0_8px_32px_rgba(0,0,0,0.25)]"
             >
               <span
                 className="block w-full max-w-full text-center font-semibold sm:font-bold text-2xl sm:text-4xl md:text-5xl lg:text-6xl tracking-wide text-white [text-shadow:0_2px_12px_rgba(0,0,0,0.85),0_0_2px_rgba(0,0,0,0.6)] break-words [overflow-wrap:anywhere] whitespace-normal leading-snug sm:leading-tight hyphens-auto"
@@ -581,21 +581,23 @@ export default function Home() {
                 </Link>
               </motion.div>
               {heroBannerText ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.45, duration: 0.6 }}
-                  className="sm:hidden flex flex-1 min-w-0 max-w-[13rem] min-h-0 flex-col justify-center self-stretch border-[3px] border-red-600 rounded-xl bg-black/50 px-3 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.25)] pointer-events-none"
-                >
-                  <span
-                    className="block w-full text-center font-semibold text-3xl leading-tight text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.85)] break-words [overflow-wrap:anywhere]"
-                    style={{ fontFamily: "'Noto Serif Bengali', 'Noto Sans Bengali', serif" }}
-                    lang="bn"
-                    dir="auto"
+                <div className="sm:hidden flex flex-1 min-w-0 justify-center items-stretch">
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.45, duration: 0.6 }}
+                    className="flex w-[min(100%,18rem)] max-w-[18rem] min-h-0 flex-col justify-center self-stretch border-[3px] border-red-600 rounded-xl bg-amber-400/40 px-3 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.25)] pointer-events-none"
                   >
-                    {heroBannerText}
-                  </span>
-                </motion.div>
+                    <span
+                      className="block w-full text-center font-semibold text-3xl leading-tight text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.85)] break-words [overflow-wrap:anywhere]"
+                      style={{ fontFamily: "'Noto Serif Bengali', 'Noto Sans Bengali', serif" }}
+                      lang="bn"
+                      dir="auto"
+                    >
+                      {heroBannerText}
+                    </span>
+                  </motion.div>
+                </div>
               ) : null}
             </div>
 
