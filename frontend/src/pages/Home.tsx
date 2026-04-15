@@ -490,15 +490,15 @@ export default function Home() {
 
         {/* Center hero greeting — controlled in Admin → Settings → Home Page */}
         {heroBannerText ? (
-          <div className="absolute inset-0 z-[25] flex items-center justify-center pointer-events-none px-3 sm:px-6">
+          <div className="absolute inset-0 z-[25] flex items-center justify-center pointer-events-none px-2 sm:px-6 max-sm:-translate-y-7 sm:translate-y-0">
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35, duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
-              className="w-full max-w-[min(92vw,15rem)] sm:max-w-sm md:max-w-md lg:max-w-lg border-[3px] sm:border-4 border-red-600 rounded-2xl bg-transparent px-4 py-3 sm:px-8 sm:py-5 md:px-12 md:py-7 shadow-[0_8px_32px_rgba(0,0,0,0.25)]"
+              className="w-full max-w-[min(88vw,12.5rem)] sm:max-w-sm md:max-w-md lg:max-w-lg border-[3px] sm:border-4 border-red-600 rounded-2xl bg-transparent px-3 py-2.5 sm:px-8 sm:py-5 md:px-12 md:py-7 shadow-[0_8px_32px_rgba(0,0,0,0.25)]"
             >
               <span
-                className="block w-full max-w-full text-center font-semibold sm:font-bold text-2xl sm:text-4xl md:text-5xl lg:text-6xl tracking-wide text-white [text-shadow:0_2px_12px_rgba(0,0,0,0.85),0_0_2px_rgba(0,0,0,0.6)] break-words [overflow-wrap:anywhere] whitespace-normal leading-snug sm:leading-tight hyphens-auto"
+                className="block w-full max-w-full text-center font-semibold sm:font-bold text-xl sm:text-4xl md:text-5xl lg:text-6xl tracking-wide text-white [text-shadow:0_2px_12px_rgba(0,0,0,0.85),0_0_2px_rgba(0,0,0,0.6)] break-words [overflow-wrap:anywhere] whitespace-normal leading-snug sm:leading-tight hyphens-auto"
                 style={{ fontFamily: "'Noto Serif Bengali', 'Noto Sans Bengali', serif" }}
                 lang="bn"
                 dir="auto"
