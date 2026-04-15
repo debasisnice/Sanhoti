@@ -550,7 +550,7 @@ export default function Home() {
             </div>
             
             {/* Mobile: buttons (left) + hero message (right); sm+: buttons row only; hero is centered overlay */}
-            <div className="flex flex-row max-sm:items-end gap-2 w-full max-w-full sm:contents">
+            <div className="flex flex-row max-sm:items-stretch gap-2 w-full max-w-full sm:contents">
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -585,10 +585,10 @@ export default function Home() {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.45, duration: 0.6 }}
-                  className="sm:hidden flex flex-1 min-w-0 max-w-[13rem] flex-col justify-end border-[3px] border-red-600 rounded-xl bg-black/50 px-3 py-2 shadow-[0_8px_24px_rgba(0,0,0,0.25)] pointer-events-none"
+                  className="sm:hidden flex flex-1 min-w-0 max-w-[13rem] min-h-0 flex-col justify-center self-stretch border-[3px] border-red-600 rounded-xl bg-black/50 px-3 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.25)] pointer-events-none"
                 >
                   <span
-                    className="block w-full text-center font-semibold text-2xl leading-snug text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.85)] break-words [overflow-wrap:anywhere]"
+                    className="block w-full text-center font-semibold text-3xl leading-tight text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.85)] break-words [overflow-wrap:anywhere]"
                     style={{ fontFamily: "'Noto Serif Bengali', 'Noto Sans Bengali', serif" }}
                     lang="bn"
                     dir="auto"
