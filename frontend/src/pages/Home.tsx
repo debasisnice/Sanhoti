@@ -488,17 +488,17 @@ export default function Home() {
           }}
         ></div>
 
-        {/* Center hero greeting — controlled in Admin → Settings → Home Page */}
+        {/* Center hero greeting — tablet/desktop only; mobile sits beside buttons below */}
         {heroBannerText ? (
-          <div className="absolute inset-0 z-[25] flex items-center justify-center pointer-events-none px-2 sm:px-6 max-sm:-translate-y-16 max-sm:translate-x-4 sm:translate-x-0 sm:translate-y-0">
+          <div className="absolute inset-0 z-[25] hidden sm:flex items-center justify-center pointer-events-none px-2 sm:px-6">
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35, duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
-              className="w-full max-w-[min(88vw,12.5rem)] sm:max-w-sm md:max-w-md lg:max-w-lg border-[3px] sm:border-4 border-red-600 rounded-2xl bg-transparent px-3 py-2.5 sm:px-8 sm:py-5 md:px-12 md:py-7 shadow-[0_8px_32px_rgba(0,0,0,0.25)]"
+              className="w-full max-w-sm md:max-w-md lg:max-w-lg border-[3px] sm:border-4 border-red-600 rounded-2xl bg-transparent px-4 py-3 sm:px-8 sm:py-5 md:px-12 md:py-7 shadow-[0_8px_32px_rgba(0,0,0,0.25)]"
             >
               <span
-                className="block w-full max-w-full text-center font-semibold sm:font-bold text-xl sm:text-4xl md:text-5xl lg:text-6xl tracking-wide text-white [text-shadow:0_2px_12px_rgba(0,0,0,0.85),0_0_2px_rgba(0,0,0,0.6)] break-words [overflow-wrap:anywhere] whitespace-normal leading-snug sm:leading-tight hyphens-auto"
+                className="block w-full max-w-full text-center font-semibold sm:font-bold text-2xl sm:text-4xl md:text-5xl lg:text-6xl tracking-wide text-white [text-shadow:0_2px_12px_rgba(0,0,0,0.85),0_0_2px_rgba(0,0,0,0.6)] break-words [overflow-wrap:anywhere] whitespace-normal leading-snug sm:leading-tight hyphens-auto"
                 style={{ fontFamily: "'Noto Serif Bengali', 'Noto Sans Bengali', serif" }}
                 lang="bn"
                 dir="auto"
@@ -549,36 +549,55 @@ export default function Home() {
               </div>
             </div>
             
-            {/* Buttons - Vertically Stacked on Mobile, Side by Side on Desktop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-              className="flex flex-col md:flex-row gap-1.5 md:gap-2 w-fit"
-            >
-              <a
-                href={facebookLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-blue-400 text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-blue-500 transition-all transform hover:scale-105 shadow-lg text-center whitespace-nowrap"
+            {/* Mobile: buttons (left) + hero message (right); sm+: buttons row only; hero is centered overlay */}
+            <div className="flex flex-row items-start gap-2 w-full max-w-full sm:contents">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="flex flex-col md:flex-row gap-1.5 md:gap-2 w-fit flex-shrink-0"
               >
-                Join our Facebook Page
-              </a>
-              <a
-                href={whatsappLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-green-400 text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-green-500 transition-all transform hover:scale-105 shadow-lg text-center whitespace-nowrap"
-              >
-                Join us in WhatsApp
-              </a>
-            <Link
-              to="/events"
-                className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap w-[11rem] md:w-auto"
-            >
-              View Events
-            </Link>
-          </motion.div>
+                <a
+                  href={facebookLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-blue-400 text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-blue-500 transition-all transform hover:scale-105 shadow-lg text-center whitespace-nowrap"
+                >
+                  Join our Facebook Page
+                </a>
+                <a
+                  href={whatsappLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-green-400 text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-green-500 transition-all transform hover:scale-105 shadow-lg text-center whitespace-nowrap"
+                >
+                  Join us in WhatsApp
+                </a>
+                <Link
+                  to="/events"
+                  className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap w-[11rem] md:w-auto"
+                >
+                  View Events
+                </Link>
+              </motion.div>
+              {heroBannerText ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.45, duration: 0.6 }}
+                  className="sm:hidden flex-1 min-w-0 max-w-[11rem] border-[3px] border-red-600 rounded-xl bg-transparent px-2 py-2 shadow-[0_8px_24px_rgba(0,0,0,0.25)] pointer-events-none"
+                >
+                  <span
+                    className="block w-full text-left font-semibold text-sm leading-snug text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.85)] break-words [overflow-wrap:anywhere]"
+                    style={{ fontFamily: "'Noto Serif Bengali', 'Noto Sans Bengali', serif" }}
+                    lang="bn"
+                    dir="auto"
+                  >
+                    {heroBannerText}
+                  </span>
+                </motion.div>
+              ) : null}
+            </div>
 
             {/* Priority Event Card */}
             {priorityEvent && priorityEventImage && (() => {
