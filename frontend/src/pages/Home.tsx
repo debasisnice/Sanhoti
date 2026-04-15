@@ -490,7 +490,7 @@ export default function Home() {
 
         {/* Center hero greeting — controlled in Admin → Settings → Home Page */}
         {heroBannerText ? (
-          <div className="absolute inset-0 z-[25] flex items-center justify-center pointer-events-none px-2 sm:px-6 max-sm:-translate-y-11 max-sm:translate-x-2 sm:translate-x-0 sm:translate-y-0">
+          <div className="absolute inset-0 z-[25] flex items-center justify-center pointer-events-none px-2 sm:px-6 max-sm:-translate-y-16 max-sm:translate-x-4 sm:translate-x-0 sm:translate-y-0">
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
