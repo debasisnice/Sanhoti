@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { contactAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import { useState, useEffect } from 'react';
+import Seo from '../components/Seo';
 
 interface ContactForm {
   firstName: string;
@@ -82,6 +83,11 @@ export default function Contact() {
 
   return (
     <div className="min-h-screen py-12 pb-32 px-4 sm:px-6 lg:px-8">
+      <Seo
+        title="Contact us | Sanhoti"
+        description="Contact Sanhoti Bengali Association of Orange County — questions about events, membership, volunteering, or partnerships."
+        path="/contact"
+      />
       <div className="max-w-3xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

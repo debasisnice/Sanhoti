@@ -4,6 +4,11 @@
  */
 const DEFAULT_PRODUCTION_ORIGIN = 'https://www.sanhoti.org';
 
+/** Public site origin for SEO canonical URLs and Open Graph (same rules as share links). */
+export function getSiteOrigin(): string {
+  return getPublicOriginForShareLinks();
+}
+
 function getPublicOriginForShareLinks(): string {
   const fromEnv = (import.meta.env.VITE_PUBLIC_SITE_ORIGIN as string | undefined)
     ?.trim()

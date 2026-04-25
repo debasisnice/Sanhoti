@@ -12,6 +12,7 @@ import { copyTextToClipboard } from '../utils/socialShare';
 import EventShareButtons from '../components/EventShareButtons';
 import { getCanonicalEventIdForShare } from '../utils/eventShareUrl';
 import { QRCodeSVG } from 'qrcode.react';
+import Seo from '../components/Seo';
 
 type AboutStatementTabKey = 'about' | 'vision' | 'mission' | 'purpose';
 
@@ -446,6 +447,11 @@ export default function Home() {
 
   return (
     <div className="overflow-hidden">
+      <Seo
+        title="Sanhoti Bengali Association of Orange County, CA"
+        description="Sanhoti is the Bengali association for Orange County, CA — cultural events, Durga Puja, Poila Boishakh, charity programs, and community for Bengali families in Rancho Santa Margarita and beyond."
+        path="/"
+      />
       {/* Hero Section */}
       <section className="relative min-h-screen md:min-h-[120vh] flex items-center justify-center text-white overflow-hidden">
         {/* Background Slideshow */}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, CreditCard, Mail } from 'lucide-react';
 import { paymentQRAPI, settingsAPI } from '../services/api';
+import Seo from '../components/Seo';
 
 export default function Donate() {
   const [paymentQRImage, setPaymentQRImage] = useState<string | null>(null);
@@ -39,6 +40,11 @@ export default function Donate() {
   }, []);
   return (
     <div className="py-12 pb-32">
+      <Seo
+        title="Donate | Sanhoti"
+        description="Support Sanhoti Bengali Association of Orange County — donations help fund cultural events, charity programs, and community services."
+        path="/donate"
+      />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

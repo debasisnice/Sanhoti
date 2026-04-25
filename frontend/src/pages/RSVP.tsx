@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { convertPSTToLocal } from '../utils/dateUtils';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
+import Seo from '../components/Seo';
 
 interface RSVPForm {
   name: string;
@@ -189,37 +190,61 @@ export default function RSVP() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
+      <>
+        <Seo
+          title="RSVP | Sanhoti"
+          description="RSVP form — Sanhoti Bengali Association of Orange County."
+          path={location.pathname}
+          noindex
+        />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+      </>
     );
   }
 
   if (!event && !subEvent) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Event/Sub-Event not found</h2>
+      <>
+        <Seo
+          title="RSVP not found | Sanhoti"
+          description="Event RSVP could not be found."
+          path={location.pathname}
+          noindex
+        />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Event/Sub-Event not found</h2>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   // For events, RSVP is only available when rsvp_enabled is true
   if (event && !(event as any).rsvp_enabled) {
     return (
-      <div className="min-h-screen flex items-center justify-center py-12">
-        <div className="text-center max-w-md mx-auto px-4">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">RSVP Not Available</h2>
-          <p className="text-gray-600 mb-6">RSVP is not enabled for this event.</p>
-          <Link
-            to={`/events/${event.event_id}`}
-            className="inline-block bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
-          >
-            View Event Details
-          </Link>
+      <>
+        <Seo
+          title="RSVP not available | Sanhoti"
+          description="RSVP is not enabled for this event."
+          path={location.pathname}
+          noindex
+        />
+        <div className="min-h-screen flex items-center justify-center py-12">
+          <div className="text-center max-w-md mx-auto px-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">RSVP Not Available</h2>
+            <p className="text-gray-600 mb-6">RSVP is not enabled for this event.</p>
+            <Link
+              to={`/events/${event.event_id}`}
+              className="inline-block bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+            >
+              View Event Details
+            </Link>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -232,6 +257,12 @@ export default function RSVP() {
 
   return (
     <div className="py-12 pb-32">
+      <Seo
+        title={`RSVP: ${displayName} | Sanhoti`}
+        description={`Submit your RSVP for ${displayName} with Sanhoti Bengali Association of Orange County.`}
+        path={location.pathname}
+        noindex
+      />
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

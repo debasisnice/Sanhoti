@@ -6,6 +6,7 @@ import { Magazine } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal } from '../utils/dateUtils';
 import PDFThumbnail from '../components/PDFThumbnail';
+import Seo from '../components/Seo';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -153,6 +154,11 @@ export default function Magazines() {
 
   return (
     <div className="py-12 pb-32">
+      <Seo
+        title="Community magazines | Sanhoti"
+        description="Read Sanhoti community magazines and publications — stories, updates, and highlights from the Bengali Association of Orange County."
+        path="/magazines"
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

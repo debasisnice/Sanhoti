@@ -6,6 +6,9 @@ import { galleriesAPI } from '../services/api';
 import { PhotoGallery } from '../types';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
+import Seo from '../components/Seo';
+import { getSiteOrigin } from '../utils/eventShareUrl';
+import { seoPlainText } from '../seo/seoUtils';
 
 export default function GalleryDetail() {
   const { id } = useParams<{ id: string }>();
@@ -115,24 +118,55 @@ export default function GalleryDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
+      <>
+        <Seo
+          title="Gallery | Sanhoti"
+          description="Loading photo gallery — Sanhoti Bengali Association of Orange County."
+          path={id ? `/galleries/${id}` : '/galleries'}
+        />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+      </>
     );
   }
 
   if (!gallery) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Gallery not found</h2>
+      <>
+        <Seo
+          title="Gallery not found | Sanhoti"
+          description="This gallery could not be found."
+          path="/galleries"
+          noindex
+        />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Gallery not found</h2>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
+  const firstPhotoUrl =
+    gallery.photos?.[0]?.url &&
+    (/^https?:\/\//i.test(gallery.photos[0].url)
+      ? gallery.photos[0].url
+      : `${getSiteOrigin()}${gallery.photos[0].url.startsWith('/') ? gallery.photos[0].url : `/${gallery.photos[0].url}`}`);
+
   return (
     <div className="py-12 pb-32">
+      <Seo
+        title={`${gallery.title} | Sanhoti`}
+        description={
+          seoPlainText(gallery.description || '') ||
+          `Photo gallery: ${gallery.title} — Sanhoti Bengali Association of Orange County, CA.`
+        }
+        path={`/galleries/${gallery.id}`}
+        ogImage={firstPhotoUrl || undefined}
+        ogType="article"
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

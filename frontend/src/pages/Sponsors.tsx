@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Award, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { sponsorsAPI } from '../services/api';
+import Seo from '../components/Seo';
 
 interface SponsorImage {
   filename: string;
@@ -112,6 +113,11 @@ export default function Sponsors() {
 
   return (
     <div className="py-12 pb-32">
+      <Seo
+        title="Sponsors | Sanhoti"
+        description="Thank you to sponsors who support Sanhoti Bengali Association of Orange County and our cultural and charity programs."
+        path="/sponsors"
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

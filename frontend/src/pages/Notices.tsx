@@ -5,6 +5,7 @@ import { noticesAPI } from '../services/api';
 import { Notice } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal } from '../utils/dateUtils';
+import Seo from '../components/Seo';
 
 interface NoticeImage {
   filename: string;
@@ -44,6 +45,11 @@ export default function Notices() {
 
   return (
     <div className="py-12 pb-32">
+      <Seo
+        title="Notices | Sanhoti"
+        description="Official notices and announcements from Sanhoti Bengali Association of Orange County."
+        path="/notices"
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

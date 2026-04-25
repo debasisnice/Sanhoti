@@ -13,6 +13,7 @@ import {
   parseEventsTypeQueryParam,
 } from '../utils/eventType';
 import { QRCodeSVG } from 'qrcode.react';
+import Seo from '../components/Seo';
 
 export default function Events() {
   const [searchParams] = useSearchParams();
@@ -237,8 +238,22 @@ export default function Events() {
     setCurrentIndex((prev) => (prev + 1) % eventsForCarousel.length);
   };
 
+  const eventsSeoTitle =
+    eventTypeScope === 'Festival'
+      ? 'Festival events | Sanhoti'
+      : eventTypeScope === 'Charity'
+        ? 'Charity events | Sanhoti'
+        : eventTypeScope === 'Other'
+          ? 'Community events | Sanhoti'
+          : 'Community events | Sanhoti';
+  const eventsSeoDescription =
+    eventTypeScope === 'Festival' || eventTypeScope === 'Charity' || eventTypeScope === 'Other'
+      ? `Browse ${getEventTypePublicLabel(eventTypeScope).toLowerCase()} from Sanhoti Bengali Association in Orange County, CA — dates, locations, and how to join.`
+      : 'Browse upcoming and past cultural events from Sanhoti Bengali Association of Orange County — festivals, charity programs, and gatherings for the Bengali community.';
+
   return (
     <div className="py-12 pb-32">
+      <Seo title={eventsSeoTitle} description={eventsSeoDescription} path="/events" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

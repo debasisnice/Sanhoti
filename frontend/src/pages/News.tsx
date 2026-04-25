@@ -5,6 +5,7 @@ import { newsAPI } from '../services/api';
 import { News } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal } from '../utils/dateUtils';
+import Seo from '../components/Seo';
 
 export default function NewsPage() {
   const [news, setNews] = useState<News[]>([]);
@@ -132,6 +133,11 @@ export default function NewsPage() {
 
   return (
     <div className="py-12 pb-32">
+      <Seo
+        title="Media & news | Sanhoti"
+        description="Media coverage, stories, and news about Sanhoti Bengali Association of Orange County and Bengali community programs."
+        path="/news"
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

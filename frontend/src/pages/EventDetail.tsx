@@ -9,7 +9,10 @@ import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime } from '../u
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
 import EventShareButtons from '../components/EventShareButtons';
-import { getCanonicalEventIdForShare } from '../utils/eventShareUrl';
+import { getCanonicalEventIdForShare, getEventSharePageUrl, getSiteOrigin } from '../utils/eventShareUrl';
+import Seo from '../components/Seo';
+import { seoPlainText } from '../seo/seoUtils';
+import { buildEventJsonLd } from '../seo/eventJsonLd';
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
@@ -151,27 +154,64 @@ export default function EventDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
+      <>
+        <Seo
+          title="Event | Sanhoti"
+          description="Loading event details — Sanhoti Bengali Association of Orange County, CA."
+          path={id ? `/events/${id}` : '/events'}
+          ogType="article"
+        />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+      </>
     );
   }
 
   if (!event) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Event not found</h2>
-          <Link to="/events" className="text-primary-600 hover:text-primary-700">
-            Back to Events
-          </Link>
+      <>
+        <Seo
+          title="Event not found | Sanhoti"
+          description="This event could not be found. Browse current events at Sanhoti in Orange County, CA."
+          path="/events"
+          noindex
+        />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Event not found</h2>
+            <Link to="/events" className="text-primary-600 hover:text-primary-700">
+              Back to Events
+            </Link>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
+  const detailEventId = getCanonicalEventIdForShare(event, id);
+  const detailEventName = event.event_name || event.title || 'Event';
+  const detailPageUrl = getEventSharePageUrl(detailEventId);
+  const detailDescription =
+    seoPlainText(event.event_description || event.description || '') ||
+    `${detailEventName} — Bengali community event with Sanhoti in Orange County, CA.`;
+  const detailAbsImage = eventImage
+    ? /^https?:\/\//i.test(eventImage)
+      ? eventImage
+      : `${getSiteOrigin()}${eventImage.startsWith('/') ? eventImage : `/${eventImage}`}`
+    : null;
+  const detailJsonLd = buildEventJsonLd(event, { pageUrl: detailPageUrl, imageUrl: detailAbsImage });
+
   return (
     <div className="py-12 pb-32">
+      <Seo
+        title={`${detailEventName} | Sanhoti`}
+        description={detailDescription}
+        path={`/events/${detailEventId}`}
+        ogType="article"
+        ogImage={detailAbsImage}
+        jsonLd={detailJsonLd}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Link
           to="/events"

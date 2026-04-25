@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Phone, Mail, Users } from 'lucide-react';
 import { committeeAPI, boardMembersAPI, settingsAPI } from '../services/api';
+import Seo from '../components/Seo';
 
 interface CommitteeMember {
   role: string;
@@ -99,6 +100,11 @@ export default function Committee() {
   }, []);
   return (
     <div className="py-12 pb-32">
+      <Seo
+        title="Committee & leadership | Sanhoti"
+        description="Meet the committee and board of Sanhoti Bengali Association of Orange County, CA — volunteers serving the Bengali community."
+        path="/committee"
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div

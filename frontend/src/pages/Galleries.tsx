@@ -6,6 +6,7 @@ import { galleriesAPI } from '../services/api';
 import { PhotoGallery } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal } from '../utils/dateUtils';
+import Seo from '../components/Seo';
 
 // Use relative API base in production to avoid mixed-content; absolute in dev
 const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5001/api');
@@ -138,6 +139,11 @@ export default function Galleries() {
 
   return (
     <div className="py-12 pb-32">
+      <Seo
+        title="Photo galleries | Sanhoti"
+        description="Photo galleries from Sanhoti Bengali Association events — Durga Puja, cultural programs, and community celebrations in Orange County, CA."
+        path="/galleries"
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

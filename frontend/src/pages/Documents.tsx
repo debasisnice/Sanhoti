@@ -9,6 +9,7 @@ import PDFThumbnail from '../components/PDFThumbnail';
 import { Document as PDFDocument, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
+import Seo from '../components/Seo';
 
 // Set up the PDF.js worker - use local worker file for better reliability
 if (typeof window !== 'undefined') {
@@ -30,6 +31,11 @@ export default function Documents() {
 
   return (
     <div className="py-12 pb-32">
+      <Seo
+        title="Documents | Sanhoti"
+        description="Public documents and files from Sanhoti Bengali Association of Orange County — forms, policies, and community resources."
+        path="/documents"
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
