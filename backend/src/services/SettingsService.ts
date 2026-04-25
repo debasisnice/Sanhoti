@@ -29,6 +29,10 @@ export class SettingsService {
     return this.settingsDataHelper.updateSocialLinks(facebookLink, whatsappLink, instagramLink);
   }
 
+  async updateYoutubeChannelUrl(youtubeChannelUrl: string): Promise<Settings> {
+    return this.settingsDataHelper.updateYoutubeChannelUrl(youtubeChannelUrl);
+  }
+
   async updateEmailSettings(emailAddress?: string, emailPassword?: string): Promise<Settings> {
     return this.settingsDataHelper.updateEmailSettings(emailAddress, emailPassword);
   }

@@ -275,6 +275,8 @@ export interface Settings {
   facebookLink?: string;
   whatsappLink?: string;
   instagramLink?: string;
+  /** Full URL to Sanhoti YouTube channel; shown on public /galleries (admin: Galleries management). */
+  youtubeChannelUrl?: string;
   emailAddress?: string;
   emailPassword?: string;
   committeeYear?: string;

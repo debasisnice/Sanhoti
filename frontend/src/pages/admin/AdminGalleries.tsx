@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Folder, Calendar, Eye, EyeOff, Upload, Trash2, X, Image as ImageIcon, ChevronLeft, ChevronRight, Video } from 'lucide-react';
-import { eventsAPI, galleriesAPI } from '../../services/api';
+import { Folder, Calendar, Eye, EyeOff, Upload, Trash2, X, Image as ImageIcon, ChevronLeft, ChevronRight, Video, Youtube } from 'lucide-react';
+import { eventsAPI, galleriesAPI, settingsAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 interface GalleryFolder {
@@ -327,6 +327,15 @@ export default function AdminGalleries() {
   const [viewingPhotos, setViewingPhotos] = useState<Photo[]>([]);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [viewingEventId, setViewingEventId] = useState<string | null>(null);
+  const [youtubeChannelUrl, setYoutubeChannelUrl] = useState('');
+  const [youtubeSaving, setYoutubeSaving] = useState(false);
+
+  useEffect(() => {
+    settingsAPI
+      .getSettings()
+      .then((s) => setYoutubeChannelUrl((s.youtubeChannelUrl as string | undefined) ?? ''))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     // Check for eventId in URL query params first, before fetching folders
@@ -700,13 +709,23 @@ export default function AdminGalleries() {
     return folder.folderName;
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
+  const handleSaveYoutubeUrl = async () => {
+    const t = youtubeChannelUrl.trim();
+    if (t && !/^https?:\/\//i.test(t)) {
+      toast.error('URL must start with http:// or https://');
+      return;
+    }
+    try {
+      setYoutubeSaving(true);
+      await settingsAPI.updateYoutubeChannelUrl(t);
+      toast.success('YouTube channel link saved');
+    } catch (error: any) {
+      const msg = error.response?.data?.error || error.response?.data?.details || error.message || 'Failed to save';
+      toast.error(msg);
+    } finally {
+      setYoutubeSaving(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -717,6 +736,53 @@ export default function AdminGalleries() {
         </div>
       </div>
 
+      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+        <div className="flex items-start gap-3">
+          <div className="p-2 rounded-lg bg-red-50 flex-shrink-0">
+            <Youtube className="w-6 h-6 text-red-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-semibold text-gray-900">Public Galleries page — YouTube</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Visitors see a YouTube icon on{' '}
+              <span className="font-medium text-gray-800">/galleries</span> when this URL is set. Use the full channel
+              link (for example{' '}
+              <code className="text-xs bg-gray-100 px-1 rounded break-all">https://www.youtube.com/@YourChannel</code>
+              ). Leave empty to hide the icon.
+            </p>
+            <div className="mt-4 flex flex-col sm:flex-row gap-3 sm:items-end">
+              <div className="flex-1 min-w-0">
+                <label htmlFor="youtube-channel-url" className="block text-sm font-medium text-gray-700 mb-1">
+                  YouTube channel URL
+                </label>
+                <input
+                  id="youtube-channel-url"
+                  type="url"
+                  value={youtubeChannelUrl}
+                  onChange={(e) => setYoutubeChannelUrl(e.target.value)}
+                  placeholder="https://www.youtube.com/@SanhotiOrg"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleSaveYoutubeUrl}
+                disabled={youtubeSaving}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 font-medium"
+              >
+                {youtubeSaving ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+      ) : (
+        <>
       {/* Year Pagination */}
       {availableYears.length > 0 && (
         <div className="mb-6 bg-white rounded-xl shadow-lg p-4">
@@ -1157,6 +1223,8 @@ export default function AdminGalleries() {
 
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

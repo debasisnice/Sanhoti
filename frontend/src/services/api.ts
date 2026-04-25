@@ -806,6 +806,10 @@ export const settingsAPI = {
     const response = await api.put('/settings/social-links', { facebookLink, whatsappLink, instagramLink });
     return response.data;
   },
+  updateYoutubeChannelUrl: async (youtubeChannelUrl: string): Promise<any> => {
+    const response = await api.put('/settings/youtube-channel', { youtubeChannelUrl });
+    return response.data;
+  },
   updateEmailSettings: async (emailAddress: string, emailPassword: string): Promise<any> => {
     const response = await api.put('/settings/email', { emailAddress, emailPassword });
     return response.data;

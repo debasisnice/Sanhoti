@@ -84,6 +84,22 @@ export class SettingsDataHelper extends DatabaseHelper {
     return updated;
   }
 
+  async updateYoutubeChannelUrl(youtubeChannelUrl: string): Promise<Settings> {
+    let current = await this.get();
+    if (!current) {
+      current = this.getDefaultSettings();
+    }
+
+    const updated: Settings = {
+      ...current,
+      youtubeChannelUrl: youtubeChannelUrl.trim() === '' ? undefined : youtubeChannelUrl.trim(),
+      updated_at: new Date().toISOString(),
+    };
+
+    this.writeFile(this.filename, [updated]);
+    return updated;
+  }
+
   async updateEmailSettings(emailAddress?: string, emailPassword?: string): Promise<Settings> {
     let current = await this.get();
     if (!current) {

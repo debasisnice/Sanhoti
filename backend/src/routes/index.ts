@@ -646,6 +646,11 @@ router.put('/settings/social-links',
   auditLog('UPDATE', 'social_links'),
   bindController(settingsController, 'updateSocialLinks')
 );
+router.put('/settings/youtube-channel',
+  requireAdmin,
+  auditLog('UPDATE', 'youtube_channel'),
+  bindController(settingsController, 'updateYoutubeChannelUrl')
+);
 router.put('/settings/email',
   requireAdmin,
   auditLog('UPDATE', 'email_settings'),

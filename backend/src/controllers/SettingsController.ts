@@ -79,6 +79,27 @@ export class SettingsController {
     }
   }
 
+  async updateYoutubeChannelUrl(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { youtubeChannelUrl } = req.body ?? {};
+      if (youtubeChannelUrl !== undefined && typeof youtubeChannelUrl !== 'string') {
+        res.status(400).json({ error: 'youtubeChannelUrl must be a string' });
+        return;
+      }
+      const trimmed = (youtubeChannelUrl ?? '').trim();
+      if (trimmed && !/^https?:\/\//i.test(trimmed)) {
+        res.status(400).json({ error: 'URL must start with http:// or https://' });
+        return;
+      }
+
+      const settings = await this.settingsService.updateYoutubeChannelUrl(trimmed);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error updating YouTube channel URL:', error);
+      res.status(500).json({ error: 'Failed to update YouTube channel URL', details: error.message });
+    }
+  }
+
   async updateEmailSettings(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { emailAddress, emailPassword } = req.body;

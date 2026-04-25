@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image, Lock, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
-import { galleriesAPI } from '../services/api';
+import { Image, Lock, ArrowRight, ChevronDown, ChevronUp, Youtube } from 'lucide-react';
+import { galleriesAPI, settingsAPI } from '../services/api';
 import { PhotoGallery } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal } from '../utils/dateUtils';
@@ -16,6 +16,17 @@ export default function Galleries() {
   const [loading, setLoading] = useState(true);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const [expandedYears, setExpandedYears] = useState<Set<number>>(new Set());
+  const [youtubeChannelUrl, setYoutubeChannelUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    settingsAPI
+      .getSettings()
+      .then((s) => {
+        const u = (s.youtubeChannelUrl as string | undefined)?.trim();
+        setYoutubeChannelUrl(u && u.length > 0 ? u : null);
+      })
+      .catch(() => setYoutubeChannelUrl(null));
+  }, []);
 
   useEffect(() => {
     galleriesAPI
@@ -150,7 +161,7 @@ export default function Galleries() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
         >
-          <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="flex items-center justify-center gap-3 mb-4 flex-wrap">
             <Image className="w-8 h-8 text-primary-600" />
             <h1 className="text-2xl font-bold text-gray-900">
               Photo Galleries
@@ -174,6 +185,33 @@ export default function Galleries() {
             {/* Latest 3 Galleries - Always on Top */}
             {latestGalleries.length > 0 && (
               <div>
+                {youtubeChannelUrl && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35 }}
+                    className="mb-8 rounded-2xl border border-red-100 bg-gradient-to-br from-red-50/90 to-orange-50/60 px-5 py-5 sm:px-6 sm:py-6 shadow-sm"
+                  >
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-left text-base text-gray-800 sm:max-w-2xl sm:text-lg leading-relaxed">
+                        <span className="font-semibold text-gray-900">Watch the celebration come alive.</span>{' '}
+                        Catch performances, charity, and community highlights on our YouTube channel—perfect
+                        companions to the photo galleries below.
+                      </p>
+                      <a
+                        href={youtubeChannelUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:self-center"
+                        title="Sanhoti on YouTube"
+                        aria-label="Open Sanhoti YouTube channel in a new tab"
+                      >
+                        <Youtube className="h-6 w-6" aria-hidden />
+                        YouTube
+                      </a>
+                    </div>
+                  </motion.div>
+                )}
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Latest Galleries</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                   {latestGalleries.map((gallery, index) => (
