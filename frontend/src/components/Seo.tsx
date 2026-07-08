@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 
 const DEFAULT_DESCRIPTION =
-  'Sanhoti Bengali Association of Orange County, CA — cultural events, festivals, and community for Bengali families in Orange County.';
+  'Sanhoti Bengali Association of Orange County, CA — cultural events, festivals, and community for Bengali and Indian families across Orange County and Southern California.';
 const DEFAULT_OG_IMAGE_PATH = '/images/logo.png';
 
 export type SeoProps = {

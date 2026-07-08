@@ -1,9 +1,15 @@
 import { motion } from 'framer-motion';
 import { Heart, Users, Target, Eye, Info } from 'lucide-react';
+import Seo from '../components/Seo';
 
 export default function About() {
   return (
     <div className="py-12 pb-32">
+      <Seo
+        title="About Sanhoti | Bengali Association of Orange County & Southern California"
+        description="Sanhoti is a 501(c)(3) Bengali cultural association serving Orange County and Southern California — Durga Puja, Saraswati Puja, Poila Boishakh, and community events for Bengali & Indian families across SoCal."
+        path="/about"
+      />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -30,13 +36,13 @@ export default function About() {
             className="bg-white rounded-xl shadow-lg p-8"
           >
             <p className="text-lg text-gray-700 leading-relaxed mb-4">
-              Sanhoti is a non-profit 501(c)(3) cultural and charitable organization dedicated to preserving and celebrating the rich heritage of Bengali culture in Orange County, California. As the premier Bengali Association near me in Orange County, we serve Bengali families in Rancho Santa Margarita (RSM), Irvine, Tustin, Mission Viejo, and throughout Orange County, CA.
+              Sanhoti is a non-profit 501(c)(3) cultural and charitable organization dedicated to preserving and celebrating the rich heritage of Bengali culture in Orange County and Southern California. As a leading Bengali Association serving Orange County and the greater SoCal region, we welcome Bengali families in Rancho Santa Margarita (RSM), Irvine, Tustin, Mission Viejo, and throughout Orange County and Southern California, CA.
             </p>
             <p className="text-lg text-gray-700 leading-relaxed mb-4">
-              Established in 2025, Sanhoti strives to build an inclusive and vibrant Bengali community where traditions flourish through festivals, arts, and meaningful community connections. From the grandeur of Durga Puja and Saraswati Puja to the joyous spirit of Poila Boishakh, we proudly bring Bengali families together to honor our roots and celebrate togetherness in Orange County.
+              Established in 2025, Sanhoti strives to build an inclusive and vibrant Bengali community where traditions flourish through festivals, arts, and meaningful community connections. From the grandeur of Durga Puja and Saraswati Puja to the joyous spirit of Poila Boishakh, we proudly bring Bengali families together to honor our roots and celebrate togetherness across Orange County and Southern California.
             </p>
             <p className="text-lg text-gray-700 leading-relaxed">
-              While our foundation is deeply rooted in Bengali customs, Sanhoti embraces diversity and warmly welcomes individuals from all backgrounds to join in and experience the richness of Bengali culture. Our doors are open to everyone—regardless of race, religion, or ethnicity. If you're searching for a Bengali association near me in Orange County, look no further than Sanhoti.
+              While our foundation is deeply rooted in Bengali customs, Sanhoti embraces diversity and warmly welcomes individuals from all backgrounds to join in and experience the richness of Bengali culture. Our doors are open to everyone—regardless of race, religion, or ethnicity. If you're searching for a Bengali or Indian association in Orange County or Southern California (SoCal), look no further than Sanhoti.
             </p>
           </motion.div>
 
@@ -72,7 +78,7 @@ export default function About() {
               <h2 className="text-3xl font-bold text-gray-900">Mission Statement</h2>
             </div>
             <p className="text-lg text-gray-700 leading-relaxed">
-              Sanhoti is committed to fostering an inclusive, diverse, and harmonious community in the Greater Orange County, CA region, while enriching the broader cultural landscape with the distinctive values and contributions of Indian heritage.
+              Sanhoti is committed to fostering an inclusive, diverse, and harmonious community across Orange County and the greater Southern California region, while enriching the broader cultural landscape with the distinctive values and contributions of Indian heritage.
             </p>
           </motion.div>
 

@@ -85,7 +85,7 @@ export default function Contact() {
     <div className="min-h-screen py-12 pb-32 px-4 sm:px-6 lg:px-8">
       <Seo
         title="Contact us | Sanhoti"
-        description="Contact Sanhoti Bengali Association of Orange County — questions about events, membership, volunteering, or partnerships."
+        description="Contact Sanhoti Bengali Association of Orange County & Southern California — questions about events, membership, volunteering, or partnerships."
         path="/contact"
       />
       <div className="max-w-3xl mx-auto">

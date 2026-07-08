@@ -41,6 +41,13 @@ export class SitemapController {
   
   <!-- Main Pages -->
   <url>
+    <loc>${baseUrl}/about</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
     <loc>${baseUrl}/events</loc>
     <lastmod>${currentDate}</lastmod>
     <changefreq>weekly</changefreq>

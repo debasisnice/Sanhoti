@@ -248,8 +248,8 @@ export default function Events() {
           : 'Community events | Sanhoti';
   const eventsSeoDescription =
     eventTypeScope === 'Festival' || eventTypeScope === 'Charity' || eventTypeScope === 'Other'
-      ? `Browse ${getEventTypePublicLabel(eventTypeScope).toLowerCase()} from Sanhoti Bengali Association in Orange County, CA — dates, locations, and how to join.`
-      : 'Browse upcoming and past cultural events from Sanhoti Bengali Association of Orange County — festivals, charity programs, and gatherings for the Bengali community.';
+      ? `Browse ${getEventTypePublicLabel(eventTypeScope).toLowerCase()} from Sanhoti Bengali Association in Orange County & Southern California, CA — dates, locations, and how to join.`
+      : 'Browse upcoming and past cultural events from Sanhoti Bengali Association of Orange County & Southern California — festivals, charity programs, and gatherings for the Bengali community.';
 
   return (
     <div className="py-12 pb-32">

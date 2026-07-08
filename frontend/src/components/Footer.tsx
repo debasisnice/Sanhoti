@@ -41,7 +41,7 @@ export default function Footer() {
               </h3>
             </div>
             <p className="text-gray-400 mb-4">
-              Celebrating Bengali culture and fostering community connections across the USA.
+              Celebrating Bengali culture and fostering community connections across Orange County, Southern California, and the USA.
               Join us for events, festivals, and cultural celebrations throughout the year.
             </p>
             <div className="space-y-2">
@@ -67,6 +67,11 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
+              <li>
+                <Link to="/about" className="hover:text-white transition-colors">
+                  About Us
+                </Link>
+              </li>
               <li>
                 <Link to="/events" className="hover:text-white transition-colors">
                   Events

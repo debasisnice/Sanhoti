@@ -448,8 +448,8 @@ export default function Home() {
   return (
     <div className="overflow-hidden">
       <Seo
-        title="Sanhoti Bengali Association of Orange County, CA"
-        description="Sanhoti is the Bengali association for Orange County, CA — cultural events, Durga Puja, Poila Boishakh, charity programs, and community for Bengali families in Rancho Santa Margarita and beyond."
+        title="Sanhoti Bengali Association of Orange County & Southern California, CA"
+        description="Sanhoti is a Bengali association serving Orange County and Southern California, CA — cultural events, Durga Puja, Poila Boishakh, charity programs, and community for Bengali & Indian families in Rancho Santa Margarita, Orange County, and throughout SoCal."
         path="/"
       />
       {/* Hero Section */}
