@@ -67,6 +67,10 @@ docs/AWS_ACCOUNT_INFO.md
 *.tar.gz
 *.zip
 
+# Uploaded media (managed independently per environment)
+backend/data/Events_Flyers/
+backend/data/HomePage_Images/
+
 # Data files with sensitive information
 backend/data/settings.json
 backend/data/auditLogs.json
