@@ -56,6 +56,14 @@ jobs:
           # Navigate to app directory
           cd "$APP_DIR"
           
+          # Preserve uploaded media that is intentionally not tracked in git
+          echo "💾 Backing up uploaded media..."
+          MEDIA_BACKUP="/tmp/sanhoti-media-backup-$$"
+          mkdir -p "$MEDIA_BACKUP"
+          [ -d "$APP_DIR/backend/data/Events_Flyers" ]  && cp -r "$APP_DIR/backend/data/Events_Flyers"  "$MEDIA_BACKUP/" || true
+          [ -d "$APP_DIR/backend/data/HomePage_Images" ] && cp -r "$APP_DIR/backend/data/HomePage_Images" "$MEDIA_BACKUP/" || true
+          echo "✅ Media backed up to $MEDIA_BACKUP"
+
           # Sync to remote (fail deploy if this fails — do not build stale tree)
           echo "📥 Fetching and syncing to origin..."
           git fetch origin
@@ -70,6 +78,14 @@ jobs:
             exit 1
           fi
           echo "📌 Deployed commit: $(git log -1 --oneline)"
+
+          # Restore uploaded media after hard reset
+          echo "♻️  Restoring uploaded media..."
+          mkdir -p "$APP_DIR/backend/data/Events_Flyers" "$APP_DIR/backend/data/HomePage_Images"
+          [ -d "$MEDIA_BACKUP/Events_Flyers" ]  && cp -r "$MEDIA_BACKUP/Events_Flyers/."  "$APP_DIR/backend/data/Events_Flyers/"  || true
+          [ -d "$MEDIA_BACKUP/HomePage_Images" ] && cp -r "$MEDIA_BACKUP/HomePage_Images/." "$APP_DIR/backend/data/HomePage_Images/" || true
+          rm -rf "$MEDIA_BACKUP"
+          echo "✅ Uploaded media restored"
           
           # Build backend
           echo "🔨 Building backend..."
