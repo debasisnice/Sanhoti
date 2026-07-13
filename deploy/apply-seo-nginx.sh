@@ -78,7 +78,11 @@ orig = src
 SNIPPET = f"""
     # --- BEGIN SEO (managed by deploy/apply-seo-nginx.sh) ---
     location = /index.html {{
-        return 301 https://www.sanhoti.org/;
+        # Only redirect explicit /index.html requests; internal try_files
+        # fallbacks (SPA routes) must still serve the file or every page loops.
+        if ($request_uri = "/index.html") {{
+            return 301 https://www.sanhoti.org/;
+        }}
     }}
     location = /sitemap.xml {{
         proxy_pass {backend}/sitemap.xml;
