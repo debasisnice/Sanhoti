@@ -1,9 +1,11 @@
 import { Request, Response } from 'express';
 import { EventService } from '../services/EventService.js';
 import { DurgaPujaPageService } from '../services/DurgaPujaPageService.js';
+import { SubEventService } from '../services/SubEventService.js';
 import { durgaPujaPageImageExists } from './DurgaPujaPageController.js';
-import { Event } from '../models/types.js';
+import { Event, SubEvent } from '../models/types.js';
 import { getEventPath } from '../utils/slug.js';
+import { basename } from 'path';
 
 const ORIGIN = process.env.BASE_URL || 'https://www.sanhoti.org';
 const ORG_NAME = 'Sanhoti Bengali Association of Orange County';
@@ -45,10 +47,12 @@ function fmtDate(iso: string | undefined): string {
 export class SeoPageController {
   private eventService: EventService;
   private durgaPujaPageService: DurgaPujaPageService;
+  private subEventService: SubEventService;
 
   constructor() {
     this.eventService = new EventService();
     this.durgaPujaPageService = new DurgaPujaPageService();
+    this.subEventService = new SubEventService();
   }
 
   async renderPage(req: Request, res: Response): Promise<void> {
@@ -207,6 +211,46 @@ Costa Mesa, Irvine, Tustin, Rancho Santa Margarita, Mission Viejo, and across So
     });
   }
 
+  /** "Programs & Events" section for the Durga Puja page: sub-events the admin toggled on, with banners. */
+  private async durgaPujaSubEventsHtml(linkedEventId: string | undefined): Promise<string> {
+    if (!linkedEventId) return '';
+    let subEvents: SubEvent[] = [];
+    try {
+      subEvents = await this.subEventService.getSubEventsByEventId(linkedEventId);
+    } catch {
+      return '';
+    }
+    const visible = subEvents
+      .filter(se => se.show_in_durga_puja_page === true && se.is_active !== false)
+      .sort((a, b) => {
+        const ta = a.sub_event_start_dt ? new Date(a.sub_event_start_dt).getTime() : 0;
+        const tb = b.sub_event_start_dt ? new Date(b.sub_event_start_dt).getTime() : 0;
+        return ta - tb;
+      });
+    if (visible.length === 0) return '';
+
+    const items = await Promise.all(
+      visible.map(async se => {
+        let banner = '';
+        try {
+          const paths = await this.subEventService.getSubEventImages(se.sub_event_id);
+          if (paths.length > 0) {
+            const filename = basename(paths[0]);
+            const url = `${ORIGIN}/api/sub-events/${se.sub_event_id}/image/${encodeURIComponent(filename)}`;
+            banner = `<img src="${esc(url)}" alt="${esc(se.sub_event_name)}">`;
+          }
+        } catch {
+          // banner optional
+        }
+        const date = fmtDate(se.sub_event_start_dt);
+        return `<li>${banner}<h3>${esc(se.sub_event_name)}</h3>${
+          date ? `<p>${esc(date)}${se.location ? ` — ${esc(se.location)}` : ''}</p>` : ''
+        }${se.event_description ? `<p>${esc(stripHtml(se.event_description, 300))}</p>` : ''}</li>`;
+      })
+    );
+    return `<h2>Durga Puja ${new Date().getFullYear()} — Programs &amp; Events</h2>\n<ul>${items.join('\n')}</ul>`;
+  }
+
   private async durgaPujaPage(): Promise<string> {
     const year = new Date().getFullYear();
     const c = await this.durgaPujaPageService.getContent();
@@ -214,6 +258,7 @@ Costa Mesa, Irvine, Tustin, Rancho Santa Margarita, Mission Viejo, and across So
     const faqsHtml = c.faqs
       .map(f => `<h3>${esc(f.question)}</h3>\n<p>${esc(f.answer)}</p>`)
       .join('\n');
+    const subEventsHtml = await this.durgaPujaSubEventsHtml(c.linkedEventId);
     const body = `
 <h1>Durga Puja in Orange County ${year} — Sanhoti</h1>
 <p>${esc(c.intro)}</p>
@@ -222,6 +267,7 @@ Costa Mesa, Irvine, Tustin, Rancho Santa Margarita, Mission Viejo, and across So
 <p>Venue: ${esc(c.venueName)}${c.venueNote ? ` — ${esc(c.venueNote)}` : ''}
 Check our <a href="/events">Events page</a> or join our community for updates.</p>
 ${imageUrl ? `<img src="${esc(imageUrl)}" alt="Sanhoti Durga Puja ${year} in Orange County — flyer">` : ''}
+${subEventsHtml}
 <h2>What to expect</h2>
 <p>Traditional puja and pushpanjali (anjali), sindoor khela, dhunuchi dance, kids' performances,
 Bengali concerts with visiting artists, and home-style Bengali bhog and food stalls.</p>

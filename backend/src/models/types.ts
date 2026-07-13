@@ -238,6 +238,7 @@ export interface SubEvent {
   rsvp_link?: string; // Optional external RSVP link
   rsvp_enabled?: boolean; // If true, allow RSVP (either external link or internal form)
   show_in_home_page?: boolean; // If true, show this sub-event on home page below priority event
+  show_in_durga_puja_page?: boolean; // If true, show this sub-event (with banner) on the /durga-puja page
 }
 
 /** Home page About / Vision / Mission / Purpose tab bodies (plain text; see site docs for formatting). */

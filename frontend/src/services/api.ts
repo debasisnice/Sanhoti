@@ -256,6 +256,12 @@ export const subEventsAPI = {
     await api.delete(`/sub-events/${id}`);
   },
 
+  // Toggle whether this sub-event (with its banner) shows on the /durga-puja page
+  setDurgaPujaVisibility: async (id: string, show: boolean): Promise<SubEvent> => {
+    const response = await api.put(`/sub-events/${id}`, { show_in_durga_puja_page: show });
+    return response.data;
+  },
+
   uploadImage: async (subEventId: string, imageFile: File): Promise<any> => {
     const formData = new FormData();
     formData.append('image', imageFile);

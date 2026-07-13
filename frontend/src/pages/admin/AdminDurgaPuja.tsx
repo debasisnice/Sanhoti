@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import { Plus, Trash2, ExternalLink, Upload, ImageIcon } from 'lucide-react';
-import { durgaPujaPageAPI, DurgaPujaPageContent, DurgaPujaFaq } from '../../services/api';
+import { Plus, Trash2, ExternalLink, Upload, ImageIcon, Calendar } from 'lucide-react';
+import { durgaPujaPageAPI, DurgaPujaPageContent, DurgaPujaFaq, subEventsAPI } from '../../services/api';
+import { SubEvent } from '../../types';
+import { formatDateWithTime } from '../../utils/dateUtils';
 
 /**
  * Admin editor for the public /durga-puja landing page.
@@ -15,11 +17,15 @@ export default function AdminDurgaPuja() {
   const [imageVersion, setImageVersion] = useState(0); // cache-buster after upload
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [subEvents, setSubEvents] = useState<SubEvent[]>([]);
+  const [subEventImages, setSubEventImages] = useState<Record<string, string>>({});
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
+      let data: DurgaPujaPageContent | null = null;
       try {
-        const data = await durgaPujaPageAPI.getContent();
+        data = await durgaPujaPageAPI.getContent();
         setContent(data);
       } catch {
         toast.error('Failed to load Durga Puja page content');
@@ -30,9 +36,58 @@ export default function AdminDurgaPuja() {
       } catch {
         // ignore
       }
+      if (data?.linkedEventId) {
+        try {
+          const all = await subEventsAPI.getByEventId(data.linkedEventId);
+          const active = all
+            .filter(se => se.is_active !== false)
+            .sort((a, b) => {
+              const ta = a.sub_event_start_dt ? new Date(a.sub_event_start_dt).getTime() : 0;
+              const tb = b.sub_event_start_dt ? new Date(b.sub_event_start_dt).getTime() : 0;
+              return ta - tb;
+            });
+          setSubEvents(active);
+
+          const imagesMap: Record<string, string> = {};
+          await Promise.all(
+            active.map(async se => {
+              if (!se.event_image_path) return;
+              try {
+                const filenames = await subEventsAPI.getImages(se.sub_event_id);
+                if (filenames && filenames.length > 0) {
+                  imagesMap[se.sub_event_id] = subEventsAPI.getImageUrl(se.sub_event_id, filenames[0]);
+                }
+              } catch {
+                // banner optional
+              }
+            })
+          );
+          setSubEventImages(imagesMap);
+        } catch {
+          // no sub-events available
+        }
+      }
     };
     load();
   }, []);
+
+  const toggleSubEventVisibility = async (subEvent: SubEvent) => {
+    const next = !subEvent.show_in_durga_puja_page;
+    setTogglingId(subEvent.sub_event_id);
+    try {
+      await subEventsAPI.setDurgaPujaVisibility(subEvent.sub_event_id, next);
+      setSubEvents(prev =>
+        prev.map(se =>
+          se.sub_event_id === subEvent.sub_event_id ? { ...se, show_in_durga_puja_page: next } : se
+        )
+      );
+      toast.success(next ? 'Sub-event shown on Durga Puja page' : 'Sub-event hidden');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || 'Failed to update visibility');
+    } finally {
+      setTogglingId(null);
+    }
+  };
 
   const handleImageSelected = async (file: File | undefined) => {
     if (!file) return;
@@ -329,6 +384,87 @@ export default function AdminDurgaPuja() {
             </span>
           )}
         </div>
+      </div>
+
+      {/* Sub-events with banners shown on the public Durga Puja page */}
+      <div className="mt-8 bg-white rounded-xl shadow p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">Sub-events on the Durga Puja page</h2>
+        <p className="text-gray-600 text-sm mb-4">
+          Turn a sub-event on to show it (with its banner) on the public <code>/durga-puja</code>{' '}
+          page, below Dates &amp; Venue. Sub-events come from the linked Durga Puja event.
+        </p>
+
+        {!content.linkedEventId ? (
+          <p className="text-sm text-gray-500">
+            No Durga Puja event is linked yet. Create or update a "Durga Puja" event with sub-events,
+            and they will appear here.
+          </p>
+        ) : subEvents.length === 0 ? (
+          <p className="text-sm text-gray-500">
+            The linked event{' '}
+            <a
+              href={`/events/${content.linkedEventId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-600 hover:text-primary-700 underline"
+            >
+              {content.linkedEventId}
+            </a>{' '}
+            has no active sub-events yet. Add sub-events to it from the Events admin.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {subEvents.map(se => {
+              const banner = subEventImages[se.sub_event_id];
+              const on = se.show_in_durga_puja_page === true;
+              return (
+                <div
+                  key={se.sub_event_id}
+                  className="flex items-center gap-4 border border-gray-200 rounded-lg p-3"
+                >
+                  <div className="w-20 h-20 flex-shrink-0 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden">
+                    {banner ? (
+                      <img src={banner} alt={se.sub_event_name} className="w-full h-full object-cover" />
+                    ) : (
+                      <ImageIcon className="w-6 h-6 text-gray-300" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 truncate">{se.sub_event_name}</p>
+                    {se.sub_event_start_dt && (
+                      <p className="text-sm text-gray-500 flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {formatDateWithTime(se.sub_event_start_dt)}
+                      </p>
+                    )}
+                    {!banner && (
+                      <p className="text-xs text-amber-600 mt-0.5">
+                        No banner uploaded — upload one from the Events admin for the best look.
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={on}
+                    disabled={togglingId === se.sub_event_id}
+                    onClick={() => toggleSubEventVisibility(se)}
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
+                      on ? 'bg-primary-600' : 'bg-gray-300'
+                    }`}
+                    title={on ? 'Shown on Durga Puja page' : 'Hidden'}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                        on ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
