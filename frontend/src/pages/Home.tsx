@@ -521,11 +521,14 @@ export default function Home() {
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
-          className="absolute top-4 left-2 right-2 md:top-8 md:left-12 md:right-12 lg:left-16 lg:right-16 z-20 flex flex-col md:flex-row md:items-end md:justify-between gap-6 md:gap-8"
+          className="absolute top-4 left-2 right-2 md:top-8 md:left-12 md:right-12 lg:left-16 lg:right-16 z-20 flex flex-col gap-6 md:grid md:grid-cols-[auto_auto] md:grid-rows-[auto_auto_auto] md:items-start md:justify-between md:gap-x-8 md:gap-y-4"
         >
-          <div className="flex flex-col gap-2 md:gap-4 max-w-[calc(100vw-1rem)] md:max-w-none">
+          {/* md+: dissolves into the grid so header/buttons/card each occupy their own row,
+              keeping the right charity column aligned to the buttons/card rows regardless
+              of how many sub-event cards extend below the flyer. */}
+          <div className="flex flex-col gap-2 max-w-[calc(100vw-1rem)] md:contents">
             {/* Logo and Welcome Text */}
-            <div className="flex items-center gap-2 md:gap-4">
+            <div className="flex items-center gap-2 md:gap-4 md:col-start-1 md:row-start-1">
               <div className="rounded-lg bg-white bg-opacity-70 p-1.5 md:p-2 md:p-3 shadow-lg flex-shrink-0">
             <img 
               src="/images/logo.png" 
@@ -562,7 +565,7 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
-                className="flex flex-col md:flex-row gap-1.5 md:gap-2 w-fit flex-shrink-0"
+                className="flex flex-col md:flex-row gap-1.5 md:gap-2 w-fit flex-shrink-0 md:col-start-1 md:row-start-2"
               >
                 <a
                   href={facebookLink}
@@ -618,7 +621,7 @@ export default function Home() {
             {priorityEvent && priorityEventImage && (() => {
               const eventId = getCanonicalEventIdForShare(priorityEvent);
               return (
-                <div className="w-fit">
+                <div className="w-fit md:col-start-1 md:row-start-3">
                   <Link to={getEventPath(priorityEvent, eventId)} className="w-fit block">
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -713,7 +716,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
-            className="w-full md:w-fit flex-shrink-0 flex flex-col items-start md:items-end gap-3"
+            className="w-full md:w-fit flex-shrink-0 flex flex-col items-start md:items-end gap-3 md:gap-4 md:col-start-2 md:row-start-2 md:row-span-2 md:self-start"
           >
             <Link
               to="/events?type=Charity"
