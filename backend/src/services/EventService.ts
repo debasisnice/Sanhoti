@@ -25,7 +25,17 @@ export class EventService {
   }
 
   async getEventById(id: string): Promise<Event | null> {
-    return this.eventDataHelper.findById(id);
+    const exact = await this.eventDataHelper.findById(id);
+    if (exact) return exact;
+
+    // SEO slug support: /events/<slug>-<eventId> — the raw id is the segment
+    // after the last "-". Only tried when the exact lookup fails, so legacy
+    // ids containing "-" (e.g. UUIDs) are unaffected.
+    const lastSegment = id.split('-').pop();
+    if (lastSegment && lastSegment !== id) {
+      return this.eventDataHelper.findById(lastSegment);
+    }
+    return null;
   }
 
   async createEvent(data: {

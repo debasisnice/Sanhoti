@@ -78,6 +78,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/durga-puja" className="hover:text-white transition-colors">
+                  Durga Puja in Orange County
+                </Link>
+              </li>
+              <li>
                 <Link to="/notices" className="hover:text-white transition-colors">
                   Notices
                 </Link>

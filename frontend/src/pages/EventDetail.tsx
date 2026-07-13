@@ -13,6 +13,7 @@ import { getCanonicalEventIdForShare, getEventSharePageUrl, getSiteOrigin } from
 import Seo from '../components/Seo';
 import { seoPlainText } from '../seo/seoUtils';
 import { buildEventJsonLd } from '../seo/eventJsonLd';
+import { getEventPath } from '../utils/eventSlug';
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
@@ -207,7 +208,7 @@ export default function EventDetail() {
       <Seo
         title={`${detailEventName} | Sanhoti`}
         description={detailDescription}
-        path={`/events/${detailEventId}`}
+        path={getEventPath(event, detailEventId)}
         ogType="article"
         ogImage={detailAbsImage}
         jsonLd={detailJsonLd}

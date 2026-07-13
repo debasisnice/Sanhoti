@@ -5,6 +5,7 @@ import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
 import AuthActivityMonitor from './components/AuthActivityMonitor';
 import Home from './pages/Home';
+import DurgaPuja from './pages/DurgaPuja';
 import About from './pages/About';
 import Sponsors from './pages/Sponsors';
 import Donate from './pages/Donate';
@@ -41,6 +42,7 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/durga-puja" element={<DurgaPuja />} />
           <Route path="/about" element={<About />} />
           <Route path="/sponsors" element={<Sponsors />} />
           <Route path="/donate" element={<Donate />} />

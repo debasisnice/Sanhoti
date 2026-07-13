@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { EventService } from '../services/EventService.js';
 import { GalleryService } from '../services/GalleryService.js';
+import { getEventPath } from '../utils/slug.js';
 
 export class SitemapController {
   private eventService: EventService;
@@ -49,6 +50,13 @@ export class SitemapController {
 
   <url>
     <loc>${baseUrl}/events</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>${baseUrl}/durga-puja</loc>
     <lastmod>${currentDate}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -121,7 +129,7 @@ export class SitemapController {
             : currentDate;
           
           sitemap += `  <url>
-    <loc>${baseUrl}/events/${event.event_id}</loc>
+    <loc>${baseUrl}${getEventPath(event, event.event_id)}</loc>
     <lastmod>${eventLastMod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>

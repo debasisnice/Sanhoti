@@ -13,6 +13,7 @@ import EventShareButtons from '../components/EventShareButtons';
 import { getCanonicalEventIdForShare } from '../utils/eventShareUrl';
 import { QRCodeSVG } from 'qrcode.react';
 import Seo from '../components/Seo';
+import { getEventPath } from '../utils/eventSlug';
 
 type AboutStatementTabKey = 'about' | 'vision' | 'mission' | 'purpose';
 
@@ -358,7 +359,7 @@ export default function Home() {
           "email": "info@sanhoti.org",
           "telephone": "+1-949-378-6425"
         },
-        "url": `https://www.sanhoti.org/events/${event.event_id}`,
+        "url": `https://www.sanhoti.org${getEventPath(event, event.event_id || '')}`,
         "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
         "eventStatus": "https://schema.org/EventScheduled"
       };
@@ -448,7 +449,7 @@ export default function Home() {
   return (
     <div className="overflow-hidden">
       <Seo
-        title="Sanhoti Bengali Association of Orange County & Southern California, CA"
+        title="Sanhoti — Bengali Association of Orange County, CA | Durga Puja & Cultural Events"
         description="Sanhoti is a Bengali association serving Orange County and Southern California, CA — cultural events, Durga Puja, Poila Boishakh, charity programs, and community for Bengali & Indian families in Rancho Santa Margarita, Orange County, and throughout SoCal."
         path="/"
       />
@@ -585,6 +586,12 @@ export default function Home() {
                 >
                   View Events
                 </Link>
+                <Link
+                  to="/durga-puja"
+                  className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap w-[11rem] md:w-auto"
+                >
+                  Durga Puja
+                </Link>
               </motion.div>
               {heroBannerText ? (
                 <div className="sm:hidden flex flex-1 min-w-0 justify-center items-stretch">
@@ -612,7 +619,7 @@ export default function Home() {
               const eventId = getCanonicalEventIdForShare(priorityEvent);
               return (
                 <div className="w-fit">
-                  <Link to={`/events/${eventId}`} className="w-fit block">
+                  <Link to={getEventPath(priorityEvent, eventId)} className="w-fit block">
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -644,7 +651,7 @@ export default function Home() {
                             <div className="flex flex-col gap-1.5">
                               <div className="flex items-center justify-between gap-2 flex-wrap">
                                 <Link
-                                  to={`/events/${parentEventId}`}
+                                  to={getEventPath(priorityEvent, parentEventId)}
                                   className="flex-1 font-semibold text-gray-900 text-xs md:text-sm hover:text-primary-600 transition-colors"
                                 >
                                   {subEvent.sub_event_name}
@@ -1007,7 +1014,7 @@ export default function Home() {
 
                           <div className="flex flex-col gap-3">
                             <Link
-                              to={`/events/${eventId}`}
+                              to={getEventPath(priorityEvent, eventId)}
                               className="inline-flex items-center justify-center bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors text-lg"
                             >
                               View Details <ArrowRight className="w-5 h-5 ml-2" />
@@ -1153,7 +1160,7 @@ export default function Home() {
 
                           <div className="flex flex-col gap-3">
                             <Link
-                              to={`/events/${eventId}`}
+                              to={getEventPath(priorityEvent, eventId)}
                               className="inline-flex items-center justify-center bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors text-lg"
                             >
                               View Details <ArrowRight className="w-5 h-5 ml-2" />
@@ -1261,7 +1268,7 @@ export default function Home() {
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">{eventName}</h3>
                     <p className="text-gray-600 mb-4 line-clamp-2">{eventDescription}</p>
                     <Link
-                      to={`/events/${eventId}`}
+                      to={getEventPath(event, eventId)}
                       className="text-primary-600 font-medium flex items-center hover:text-primary-700"
                     >
                       View Details <ArrowRight className="w-4 h-4 ml-1" />

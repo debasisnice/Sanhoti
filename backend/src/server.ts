@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import routes from './routes/index.js';
 import { SitemapController } from './controllers/SitemapController.js';
+import { SeoPageController } from './controllers/SeoPageController.js';
 import { EventController } from './controllers/EventController.js';
 import { GalleryController } from './controllers/GalleryController.js';
 import { SubEventController } from './controllers/SubEventController.js';
@@ -125,6 +126,12 @@ const sitemapController = new SitemapController();
 app.get('/sitemap.xml', (req, res) => {
   return sitemapController.generateSitemap(req, res);
 });
+
+// Dynamic rendering for search engines: Nginx rewrites bot requests for SPA
+// routes to /seo/<path> (see docs/SEO_DEPLOYMENT.md). Serves crawlable HTML
+// with canonical/meta/JSON-LD and real content from the JSON data files.
+const seoPageController = new SeoPageController();
+app.get(['/seo', '/seo/*'], (req, res) => seoPageController.renderPage(req, res));
 
 // Crawler-friendly image URLs (not under /api). WhatsApp/Meta often omit previews when og:image is /api/...
 const eventController = new EventController();
