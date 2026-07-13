@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import { Plus, Trash2, ExternalLink } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, Upload, ImageIcon } from 'lucide-react';
 import { durgaPujaPageAPI, DurgaPujaPageContent, DurgaPujaFaq } from '../../services/api';
 
 /**
@@ -11,6 +11,10 @@ import { durgaPujaPageAPI, DurgaPujaPageContent, DurgaPujaFaq } from '../../serv
 export default function AdminDurgaPuja() {
   const [content, setContent] = useState<DurgaPujaPageContent | null>(null);
   const [saving, setSaving] = useState(false);
+  const [hasImage, setHasImage] = useState(false);
+  const [imageVersion, setImageVersion] = useState(0); // cache-buster after upload
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -20,9 +24,41 @@ export default function AdminDurgaPuja() {
       } catch {
         toast.error('Failed to load Durga Puja page content');
       }
+      try {
+        const { hasImage } = await durgaPujaPageAPI.hasImage();
+        setHasImage(hasImage);
+      } catch {
+        // ignore
+      }
     };
     load();
   }, []);
+
+  const handleImageSelected = async (file: File | undefined) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      await durgaPujaPageAPI.uploadImage(file);
+      setHasImage(true);
+      setImageVersion(v => v + 1);
+      toast.success('Image uploaded');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || 'Failed to upload image');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleImageDelete = async () => {
+    try {
+      await durgaPujaPageAPI.deleteImage();
+      setHasImage(false);
+      toast.success('Image removed');
+    } catch {
+      toast.error('Failed to remove image');
+    }
+  };
 
   const set = <K extends keyof DurgaPujaPageContent>(key: K, value: DurgaPujaPageContent[K]) =>
     setContent(c => (c ? { ...c, [key]: value } : c));
@@ -181,6 +217,55 @@ export default function AdminDurgaPuja() {
               placeholder="Schedule will be announced on our Events page."
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Page image (shown below Dates &amp; Venue on the public page — e.g. the flyer)
+          </label>
+          {hasImage ? (
+            <div className="mb-3">
+              <img
+                src={`${durgaPujaPageAPI.getImageUrl()}?v=${imageVersion}`}
+                alt="Durga Puja page"
+                className="max-h-64 rounded-lg border border-gray-200 object-contain bg-gray-50"
+              />
+            </div>
+          ) : (
+            <div className="mb-3 flex items-center gap-2 text-gray-400 text-sm">
+              <ImageIcon className="w-5 h-5" /> No image uploaded yet
+            </div>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            className="hidden"
+            onChange={e => handleImageSelected(e.target.files?.[0])}
+          />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="inline-flex items-center gap-2 bg-white border-2 border-primary-600 text-primary-600 px-4 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors disabled:opacity-50"
+            >
+              <Upload className="w-4 h-4" />
+              {uploading ? 'Uploading…' : hasImage ? 'Change Image' : 'Upload Image'}
+            </button>
+            {hasImage && (
+              <button
+                type="button"
+                onClick={handleImageDelete}
+                className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 px-3 py-2 font-medium"
+              >
+                <Trash2 className="w-4 h-4" /> Remove
+              </button>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            JPEG/PNG/WebP/GIF, max 20MB. Uploading a new image replaces the current one.
+          </p>
         </div>
 
         <div>

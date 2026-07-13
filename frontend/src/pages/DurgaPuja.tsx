@@ -69,6 +69,7 @@ const HIGHLIGHTS = [
 export default function DurgaPuja() {
   const origin = getSiteOrigin();
   const [content, setContent] = useState<DurgaPujaPageContent>(DEFAULT_CONTENT);
+  const [hasImage, setHasImage] = useState(false);
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -79,7 +80,16 @@ export default function DurgaPuja() {
         // Keep defaults if the API is unavailable
       }
     };
+    const checkImage = async () => {
+      try {
+        const { hasImage } = await durgaPujaPageAPI.hasImage();
+        setHasImage(hasImage);
+      } catch {
+        // No image — section simply doesn't render
+      }
+    };
     fetchContent();
+    checkImage();
   }, []);
 
   const jsonLd = [
@@ -128,6 +138,7 @@ export default function DurgaPuja() {
         title={`Durga Puja in Orange County ${YEAR} | Sanhoti — ${content.venueCity}, CA`}
         description={`Celebrate Durga Puja ${YEAR} in Orange County with Sanhoti — puja, pushpanjali, dhunuchi naach, Bengali food, and concerts. Near Irvine and ${content.venueCity}, open to all of Southern California.`}
         path="/durga-puja"
+        ogImage={hasImage ? durgaPujaPageAPI.getImageUrl() : undefined}
         jsonLd={jsonLd}
       />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -161,6 +172,17 @@ export default function DurgaPuja() {
               </div>
             </div>
           </div>
+
+          {hasImage && (
+            <div className="mb-10">
+              <img
+                src={durgaPujaPageAPI.getImageUrl()}
+                alt={`Sanhoti Durga Puja ${YEAR} in Orange County — flyer`}
+                className="w-full max-h-[36rem] object-contain rounded-2xl shadow-lg bg-white"
+                onError={() => setHasImage(false)}
+              />
+            </div>
+          )}
 
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">What to expect</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">

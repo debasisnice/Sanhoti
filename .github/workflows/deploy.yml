@@ -62,6 +62,7 @@ jobs:
           mkdir -p "$MEDIA_BACKUP"
           [ -d "$APP_DIR/backend/data/Events_Flyers" ]  && cp -r "$APP_DIR/backend/data/Events_Flyers"  "$MEDIA_BACKUP/" || true
           [ -d "$APP_DIR/backend/data/HomePage_Images" ] && cp -r "$APP_DIR/backend/data/HomePage_Images" "$MEDIA_BACKUP/" || true
+          [ -d "$APP_DIR/backend/data/DurgaPuja_Page" ] && cp -r "$APP_DIR/backend/data/DurgaPuja_Page" "$MEDIA_BACKUP/" || true
           echo "✅ Media backed up to $MEDIA_BACKUP"
 
           # Sync to remote (fail deploy if this fails — do not build stale tree)
@@ -81,9 +82,10 @@ jobs:
 
           # Restore uploaded media after hard reset
           echo "♻️  Restoring uploaded media..."
-          mkdir -p "$APP_DIR/backend/data/Events_Flyers" "$APP_DIR/backend/data/HomePage_Images"
+          mkdir -p "$APP_DIR/backend/data/Events_Flyers" "$APP_DIR/backend/data/HomePage_Images" "$APP_DIR/backend/data/DurgaPuja_Page"
           [ -d "$MEDIA_BACKUP/Events_Flyers" ]  && cp -r "$MEDIA_BACKUP/Events_Flyers/."  "$APP_DIR/backend/data/Events_Flyers/"  || true
           [ -d "$MEDIA_BACKUP/HomePage_Images" ] && cp -r "$MEDIA_BACKUP/HomePage_Images/." "$APP_DIR/backend/data/HomePage_Images/" || true
+          [ -d "$MEDIA_BACKUP/DurgaPuja_Page" ] && cp -r "$MEDIA_BACKUP/DurgaPuja_Page/." "$APP_DIR/backend/data/DurgaPuja_Page/" || true
           rm -rf "$MEDIA_BACKUP"
           echo "✅ Uploaded media restored"
           

@@ -817,6 +817,24 @@ export const durgaPujaPageAPI = {
     const response = await api.put('/durga-puja-page', patch);
     return response.data;
   },
+  getImageUrl: (): string => {
+    return '/api/durga-puja-page/image';
+  },
+  hasImage: async (): Promise<{ hasImage: boolean }> => {
+    const response = await api.get('/durga-puja-page/has-image');
+    return response.data;
+  },
+  uploadImage: async (file: File): Promise<any> => {
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await api.post('/durga-puja-page/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+  deleteImage: async (): Promise<void> => {
+    await api.delete('/durga-puja-page/image');
+  },
 };
 
 // Settings API

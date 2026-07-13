@@ -70,6 +70,10 @@ docs/AWS_ACCOUNT_INFO.md
 # Uploaded media (managed independently per environment)
 backend/data/Events_Flyers/
 backend/data/HomePage_Images/
+backend/data/DurgaPuja_Page/
+
+# Local data backups
+backend/data-local-backup-*/
 
 # Data files with sensitive information
 backend/data/settings.json

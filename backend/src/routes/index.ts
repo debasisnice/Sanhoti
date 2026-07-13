@@ -137,6 +137,8 @@ router.get('/settings', bindController(settingsController, 'getSettings'));
 
 // Durga Puja page content - Public (rendered on /durga-puja)
 router.get('/durga-puja-page', bindController(durgaPujaPageController, 'getContent'));
+router.get('/durga-puja-page/image', bindController(durgaPujaPageController, 'getImage'));
+router.get('/durga-puja-page/has-image', bindController(durgaPujaPageController, 'hasImage'));
 
 // Sponsors - Public routes
 router.get('/sponsors/images', bindController(sponsorController, 'getImages'));
@@ -566,6 +568,17 @@ router.put('/durga-puja-page',
   requireAdmin,
   auditLog('UPDATE', 'durga-puja-page'),
   bindController(durgaPujaPageController, 'updateContent')
+);
+router.post('/durga-puja-page/image',
+  requireAdmin,
+  auditLog('UPLOAD', 'durga-puja-page_image'),
+  durgaPujaPageController.uploadImage(),
+  bindController(durgaPujaPageController, 'handleImageUpload')
+);
+router.delete('/durga-puja-page/image',
+  requireAdmin,
+  auditLog('DELETE', 'durga-puja-page_image'),
+  bindController(durgaPujaPageController, 'deleteImage')
 );
 
 // Settings - Admin routes (GET is public, defined above)

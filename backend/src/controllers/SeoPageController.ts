@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { EventService } from '../services/EventService.js';
 import { DurgaPujaPageService } from '../services/DurgaPujaPageService.js';
+import { durgaPujaPageImageExists } from './DurgaPujaPageController.js';
 import { Event } from '../models/types.js';
 import { getEventPath } from '../utils/slug.js';
 
@@ -209,6 +210,7 @@ Costa Mesa, Irvine, Tustin, Rancho Santa Margarita, Mission Viejo, and across So
   private async durgaPujaPage(): Promise<string> {
     const year = new Date().getFullYear();
     const c = await this.durgaPujaPageService.getContent();
+    const imageUrl = durgaPujaPageImageExists() ? `${ORIGIN}/api/durga-puja-page/image` : undefined;
     const faqsHtml = c.faqs
       .map(f => `<h3>${esc(f.question)}</h3>\n<p>${esc(f.answer)}</p>`)
       .join('\n');
@@ -219,6 +221,7 @@ Costa Mesa, Irvine, Tustin, Rancho Santa Margarita, Mission Viejo, and across So
 <p>Dates: ${esc(c.datesText)}</p>
 <p>Venue: ${esc(c.venueName)}${c.venueNote ? ` — ${esc(c.venueNote)}` : ''}
 Check our <a href="/events">Events page</a> or join our community for updates.</p>
+${imageUrl ? `<img src="${esc(imageUrl)}" alt="Sanhoti Durga Puja ${year} in Orange County — flyer">` : ''}
 <h2>What to expect</h2>
 <p>Traditional puja and pushpanjali (anjali), sindoor khela, dhunuchi dance, kids' performances,
 Bengali concerts with visiting artists, and home-style Bengali bhog and food stalls.</p>
@@ -231,6 +234,7 @@ ${faqsHtml}
       description: `Celebrate Durga Puja ${year} in Orange County with Sanhoti — puja, pushpanjali, dhunuchi naach, Bengali food, and concerts. Near Irvine and ${c.venueCity}, open to all of Southern California.`,
       path: '/durga-puja',
       body,
+      ogImage: imageUrl,
       jsonLd: [
         this.orgJsonLd(),
         {
@@ -238,6 +242,7 @@ ${faqsHtml}
           '@type': 'Event',
           name: `Sanhoti Durga Puja ${year} (Durgotsav)`,
           url: `${ORIGIN}/durga-puja`,
+          ...(imageUrl ? { image: [imageUrl] } : {}),
           startDate: c.startDate,
           endDate: c.endDate,
           eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
