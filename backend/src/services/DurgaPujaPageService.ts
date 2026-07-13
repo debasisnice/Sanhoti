@@ -1,4 +1,5 @@
 import { DurgaPujaPageDataHelper } from '../data/DurgaPujaPageDataHelper.js';
+import { EventDataHelper } from '../data/EventDataHelper.js';
 import { DurgaPujaFaq, DurgaPujaPageContent, Event } from '../models/types.js';
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -7,13 +8,43 @@ const MAX_FAQS = 12;
 
 export class DurgaPujaPageService {
   private dataHelper: DurgaPujaPageDataHelper;
+  private eventDataHelper: EventDataHelper;
 
   constructor() {
     this.dataHelper = new DurgaPujaPageDataHelper();
+    this.eventDataHelper = new EventDataHelper();
   }
 
   async getContent(): Promise<DurgaPujaPageContent> {
-    return this.dataHelper.get();
+    let content = await this.dataHelper.get();
+    // One-time backfill: if no event has ever been linked (e.g. the Durga Puja
+    // event predates the sync feature), sync from the next upcoming Durga event.
+    if (!content.linkedEventId) {
+      const event = await this.findUpcomingDurgaEvent();
+      if (event) {
+        await this.syncFromEvent(event);
+        content = await this.dataHelper.get();
+      }
+    }
+    return content;
+  }
+
+  private async findUpcomingDurgaEvent(): Promise<Event | null> {
+    try {
+      const events = await this.eventDataHelper.findAll();
+      const now = Date.now();
+      const upcoming = events.filter(e => {
+        if (!/durga|durgotsav/.test((e.event_name || '').toLowerCase())) return false;
+        const end = new Date(e.event_end_dt || e.event_start_dt);
+        return !isNaN(end.getTime()) && end.getTime() >= now;
+      });
+      upcoming.sort(
+        (a, b) => new Date(a.event_start_dt).getTime() - new Date(b.event_start_dt).getTime()
+      );
+      return upcoming[0] ?? null;
+    } catch {
+      return null;
+    }
   }
 
   async updateContent(patch: Partial<DurgaPujaPageContent>): Promise<DurgaPujaPageContent> {
