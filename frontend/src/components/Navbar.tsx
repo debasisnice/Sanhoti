@@ -208,8 +208,9 @@ export default function Navbar() {
             clipPath: 'polygon(2rem 0, 100% 0, 100% 100%, 0 100%)'
           }}
         >
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center justify-end relative">
+          {/* Desktop Navigation — flex-wrap lets links flow to a second row
+              inside the red section instead of overflowing onto the beige/diagonal */}
+          <div className="hidden md:flex flex-wrap items-center justify-end gap-y-1 py-2 relative">
             {navLinks.map((link, index) => {
               // Check if current path matches the link path
               const isActive = link.path === '/' 
@@ -221,7 +222,7 @@ export default function Navbar() {
                 return (
                   <div key={link.path} className="flex items-center">
                     {index > 0 && (
-                      <span className="mx-1 lg:mx-1.5 font-bold" style={{ color: '#8B0000' }}>|</span>
+                      <span className="mx-0.5 xl:mx-1 2xl:mx-1.5 font-bold" style={{ color: '#8B0000' }}>|</span>
                     )}
                     <div
                       ref={eventsTriggerRef}
@@ -241,7 +242,7 @@ export default function Navbar() {
                       }}
                     >
                       <span
-                        className={`inline-block hover:text-primary-200 transition-colors font-medium whitespace-nowrap text-[15px] relative pb-1 cursor-pointer ${
+                        className={`inline-block hover:text-primary-200 transition-colors font-medium whitespace-nowrap text-[12px] lg:text-[13px] xl:text-[14px] 2xl:text-[15px] relative pb-1 cursor-pointer ${
                           isActive ? 'border-b-2 border-white' : ''
                         }`}
                       >
@@ -308,11 +309,11 @@ export default function Navbar() {
               return (
                 <div key={link.path} className="flex items-center">
                   {index > 0 && (
-                    <span className="mx-1 lg:mx-1.5 font-bold" style={{ color: '#8B0000' }}>|</span>
+                    <span className="mx-0.5 xl:mx-1 2xl:mx-1.5 font-bold" style={{ color: '#8B0000' }}>|</span>
                   )}
                   <Link
                     to={link.path}
-                    className={`hover:text-primary-200 transition-colors font-medium whitespace-nowrap text-[15px] relative pb-1 ${
+                    className={`hover:text-primary-200 transition-colors font-medium whitespace-nowrap text-[12px] lg:text-[13px] xl:text-[14px] 2xl:text-[15px] relative pb-1 ${
                       isActive ? 'border-b-2 border-white' : ''
                     }`}
                   >
@@ -326,7 +327,7 @@ export default function Navbar() {
             {navbarSettings.donate && (
               <Link
                 to="/donate"
-                className="bg-white text-primary-600 px-3 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors whitespace-nowrap text-[15px] ml-3 lg:ml-4"
+                className="bg-white text-primary-600 px-2 2xl:px-3 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors whitespace-nowrap text-[12px] lg:text-[13px] xl:text-[14px] 2xl:text-[15px] ml-2 2xl:ml-4"
               >
                 Donate
               </Link>
@@ -334,7 +335,7 @@ export default function Navbar() {
             {!isAuthenticated && navbarSettings.joinUs && (
               <Link
                 to="/register"
-                className="bg-white text-primary-600 px-3 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors whitespace-nowrap text-[15px] ml-1"
+                className="bg-white text-primary-600 px-2 2xl:px-3 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors whitespace-nowrap text-[12px] lg:text-[13px] xl:text-[14px] 2xl:text-[15px] ml-1"
               >
                 Join Us
               </Link>
@@ -346,7 +347,7 @@ export default function Navbar() {
                 <button
                   ref={buttonRef}
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-1.5 hover:text-primary-200 transition-colors font-medium whitespace-nowrap px-2.5 py-2 rounded-lg hover:bg-primary-800 text-[15px]"
+                  className="flex items-center space-x-1.5 hover:text-primary-200 transition-colors font-medium whitespace-nowrap px-1.5 2xl:px-2.5 py-2 rounded-lg hover:bg-primary-800 text-[12px] lg:text-[13px] xl:text-[14px] 2xl:text-[15px]"
                 >
                   <User className="w-4 h-4" />
                   <span>{user.firstName || 'User'}</span>
@@ -403,7 +404,7 @@ export default function Navbar() {
               ) : (
                 <Link
                   to="/login"
-                  className="hover:text-primary-200 transition-colors font-medium whitespace-nowrap text-[15px] ml-3 lg:ml-4"
+                  className="hover:text-primary-200 transition-colors font-medium whitespace-nowrap text-[12px] lg:text-[13px] xl:text-[14px] 2xl:text-[15px] ml-2 2xl:ml-4"
                 >
                   Admin
                 </Link>
