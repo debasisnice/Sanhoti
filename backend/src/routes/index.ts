@@ -24,6 +24,7 @@ import { BoardMembersController } from '../controllers/BoardMembersController.js
 import { PaymentQRController } from '../controllers/PaymentQRController.js';
 import { SubEventController } from '../controllers/SubEventController.js';
 import { SitemapController } from '../controllers/SitemapController.js';
+import { DurgaPujaPageController } from '../controllers/DurgaPujaPageController.js';
 
 const router = Router();
 
@@ -42,6 +43,7 @@ const auditController = new AuditController();
 const specialAccessController = new SpecialAccessController();
 const messageController = new MessageController();
 const settingsController = new SettingsController();
+const durgaPujaPageController = new DurgaPujaPageController();
 const sponsorController = new SponsorController();
 const homePageController = new HomePageController();
 const boardMembersController = new BoardMembersController();
@@ -132,6 +134,9 @@ router.get('/committee', bindController(authController, 'getCommitteeMembers'));
 
 // Settings - Public (for navbar visibility, accessible to all users)
 router.get('/settings', bindController(settingsController, 'getSettings'));
+
+// Durga Puja page content - Public (rendered on /durga-puja)
+router.get('/durga-puja-page', bindController(durgaPujaPageController, 'getContent'));
 
 // Sponsors - Public routes
 router.get('/sponsors/images', bindController(sponsorController, 'getImages'));
@@ -554,6 +559,13 @@ router.delete('/special-access/:id',
   requireAdmin,
   auditLog('DELETE', 'special-access-code'),
   bindController(specialAccessController, 'deleteCode')
+);
+
+// Durga Puja page content - Admin (GET is public, defined above)
+router.put('/durga-puja-page',
+  requireAdmin,
+  auditLog('UPDATE', 'durga-puja-page'),
+  bindController(durgaPujaPageController, 'updateContent')
 );
 
 // Settings - Admin routes (GET is public, defined above)

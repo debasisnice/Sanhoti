@@ -256,9 +256,34 @@ export interface HomeStatementTabsVisibility {
   purpose?: boolean;
 }
 
+export interface DurgaPujaFaq {
+  question: string;
+  answer: string;
+}
+
+/** Admin-editable content for the public /durga-puja landing page. */
+export interface DurgaPujaPageContent {
+  /** Intro paragraph under the H1. */
+  intro: string;
+  /** Human-readable dates line, e.g. "October 16–21, 2026 (Shashthi through Vijayadashami)". */
+  datesText: string;
+  /** ISO dates (yyyy-mm-dd) for Event structured data. */
+  startDate: string;
+  endDate: string;
+  /** e.g. "Estancia High School" or "Venue to be announced — Orange County, CA". */
+  venueName: string;
+  /** City for structured data + copy, e.g. "Costa Mesa". */
+  venueCity: string;
+  /** Note shown next to the venue (schedule/announcement). */
+  venueNote: string;
+  faqs: DurgaPujaFaq[];
+  updated_at: string;
+}
+
 export interface Settings {
   navbar: {
     home: boolean;
+    durgaPuja: boolean;
     sponsors: boolean;
     events: boolean;
     noticeBoard: boolean;

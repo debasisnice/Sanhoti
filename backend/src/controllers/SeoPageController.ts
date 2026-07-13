@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { EventService } from '../services/EventService.js';
+import { DurgaPujaPageService } from '../services/DurgaPujaPageService.js';
 import { Event } from '../models/types.js';
 import { getEventPath } from '../utils/slug.js';
 
@@ -42,9 +43,11 @@ function fmtDate(iso: string | undefined): string {
  */
 export class SeoPageController {
   private eventService: EventService;
+  private durgaPujaPageService: DurgaPujaPageService;
 
   constructor() {
     this.eventService = new EventService();
+    this.durgaPujaPageService = new DurgaPujaPageService();
   }
 
   async renderPage(req: Request, res: Response): Promise<void> {
@@ -205,32 +208,27 @@ Costa Mesa, Irvine, Tustin, Rancho Santa Margarita, Mission Viejo, and across So
 
   private async durgaPujaPage(): Promise<string> {
     const year = new Date().getFullYear();
+    const c = await this.durgaPujaPageService.getContent();
+    const faqsHtml = c.faqs
+      .map(f => `<h3>${esc(f.question)}</h3>\n<p>${esc(f.answer)}</p>`)
+      .join('\n');
     const body = `
 <h1>Durga Puja in Orange County ${year} — Sanhoti</h1>
-<p>Sanhoti Bengali Association hosts one of Orange County's most vibrant Durga Puja celebrations —
-three days of puja, pushpanjali, dhunuchi naach, Bengali food, and evening cultural concerts.
-Our Durgotsav 2025 was celebrated in Costa Mesa, CA, minutes from Irvine, Newport Beach, and
-Huntington Beach, and welcomed Bengali and Indian families from across Southern California.</p>
+<p>${esc(c.intro)}</p>
 <h2>Durga Puja ${year} — dates and venue</h2>
-<p>Durga Puja ${year} falls in mid-October (Shashthi through Vijayadashami). Venue and schedule will
-be announced — check our <a href="/events">Events page</a> or join our community for updates.</p>
+<p>Dates: ${esc(c.datesText)}</p>
+<p>Venue: ${esc(c.venueName)}${c.venueNote ? ` — ${esc(c.venueNote)}` : ''}
+Check our <a href="/events">Events page</a> or join our community for updates.</p>
 <h2>What to expect</h2>
 <p>Traditional puja and pushpanjali (anjali), sindoor khela, dhunuchi dance, kids' performances,
 Bengali concerts with visiting artists, and home-style Bengali bhog and food stalls.</p>
 <h2>Frequently asked questions</h2>
-<h3>Where is Durga Puja celebrated in Orange County?</h3>
-<p>Sanhoti's Durga Puja is held in central Orange County (2025: Costa Mesa, CA), an easy drive from
-Irvine, Tustin, Santa Ana, Anaheim, and Mission Viejo. Everyone is welcome.</p>
-<h3>Is there a Durga Puja near Irvine?</h3>
-<p>Yes — Sanhoti's celebration is minutes from Irvine. Join our WhatsApp or Facebook community for
-this year's venue and schedule.</p>
-<h3>Is the event open to non-members?</h3>
-<p>Yes. Durga Puja is open to the whole community — families, students, and visitors.</p>
+${faqsHtml}
 <p><a href="/events">All Sanhoti events</a> · <a href="/galleries">Photos from past celebrations</a> ·
 <a href="/contact">Contact us</a></p>`;
     return this.layout({
-      title: `Durga Puja in Orange County ${year} | Sanhoti — Costa Mesa, CA`,
-      description: `Celebrate Durga Puja ${year} in Orange County with Sanhoti — puja, pushpanjali, dhunuchi naach, Bengali food, and concerts. Near Irvine and Costa Mesa, open to all of Southern California.`,
+      title: `Durga Puja in Orange County ${year} | Sanhoti — ${c.venueCity}, CA`,
+      description: `Celebrate Durga Puja ${year} in Orange County with Sanhoti — puja, pushpanjali, dhunuchi naach, Bengali food, and concerts. Near Irvine and ${c.venueCity}, open to all of Southern California.`,
       path: '/durga-puja',
       body,
       jsonLd: [
@@ -240,15 +238,15 @@ this year's venue and schedule.</p>
           '@type': 'Event',
           name: `Sanhoti Durga Puja ${year} (Durgotsav)`,
           url: `${ORIGIN}/durga-puja`,
-          startDate: `${year}-10-16`,
-          endDate: `${year}-10-21`,
+          startDate: c.startDate,
+          endDate: c.endDate,
           eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
           eventStatus: 'https://schema.org/EventScheduled',
           organizer: { '@type': 'Organization', name: ORG_NAME, url: ORIGIN },
           location: {
             '@type': 'Place',
-            name: 'Venue to be announced — Orange County, CA',
-            address: { '@type': 'PostalAddress', addressLocality: 'Costa Mesa', addressRegion: 'CA', addressCountry: 'US' },
+            name: c.venueName,
+            address: { '@type': 'PostalAddress', addressLocality: c.venueCity, addressRegion: 'CA', addressCountry: 'US' },
           },
           description: `Three-day Durga Puja celebration in Orange County, California: puja and pushpanjali, dhunuchi naach, sindoor khela, Bengali food, and evening cultural concerts.`,
           isAccessibleForFree: true,
@@ -256,32 +254,11 @@ this year's venue and schedule.</p>
         {
           '@context': 'https://schema.org',
           '@type': 'FAQPage',
-          mainEntity: [
-            {
-              '@type': 'Question',
-              name: 'Where is Durga Puja celebrated in Orange County?',
-              acceptedAnswer: {
-                '@type': 'Answer',
-                text: "Sanhoti Bengali Association hosts Durga Puja in central Orange County (2025: Costa Mesa, CA), an easy drive from Irvine, Tustin, Santa Ana, Anaheim, and Mission Viejo.",
-              },
-            },
-            {
-              '@type': 'Question',
-              name: 'Is there a Durga Puja near Irvine?',
-              acceptedAnswer: {
-                '@type': 'Answer',
-                text: "Yes — Sanhoti's Durga Puja is held minutes from Irvine, CA. The celebration includes puja, pushpanjali, dhunuchi naach, Bengali food, and cultural concerts.",
-              },
-            },
-            {
-              '@type': 'Question',
-              name: 'Is Durga Puja open to non-members?',
-              acceptedAnswer: {
-                '@type': 'Answer',
-                text: 'Yes. Sanhoti Durga Puja is open to the entire community — families, students, and visitors from across Southern California are welcome.',
-              },
-            },
-          ],
+          mainEntity: c.faqs.map(f => ({
+            '@type': 'Question',
+            name: f.question,
+            acceptedAnswer: { '@type': 'Answer', text: f.answer },
+          })),
         },
       ],
     });

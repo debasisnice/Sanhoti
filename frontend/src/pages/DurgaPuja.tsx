@@ -1,47 +1,86 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, Music, Utensils, Users, Sparkles } from 'lucide-react';
 import Seo from '../components/Seo';
 import { getSiteOrigin } from '../utils/eventShareUrl';
+import { durgaPujaPageAPI, DurgaPujaPageContent } from '../services/api';
 
 /**
- * Evergreen Durga Puja landing page.
- * Targets: "Durga Puja Orange County", "Durga Puja Orange County <year>",
- * "Durga Puja Costa Mesa", "Durga Puja near Irvine", "Bengali festival Orange County".
- * Update the year facts (dates, venue) each summer — keep the URL /durga-puja stable.
- * Keep content aligned with backend/src/controllers/SeoPageController.ts (durgaPujaPage).
+ * Evergreen Durga Puja landing page (URL stays /durga-puja every year).
+ * Content (dates, venue, intro, FAQs) is admin-editable: Admin → Durga Puja Page.
+ * The crawler-rendered version (backend SeoPageController) reads the same data.
  */
 
 const YEAR = new Date().getFullYear();
 
-// Update these when the year's details are confirmed.
-const PUJA_DATES_TEXT = `October 16–21, ${YEAR} (Shashthi through Vijayadashami)`;
-const PUJA_START_ISO = `${YEAR}-10-16`;
-const PUJA_END_ISO = `${YEAR}-10-21`;
-const VENUE_TEXT = 'Venue to be announced — Orange County, CA';
-const VENUE_CITY = 'Costa Mesa';
+const DEFAULT_CONTENT: DurgaPujaPageContent = {
+  intro:
+    "Sanhoti Bengali Association hosts one of Orange County's most vibrant Durga Puja (Durgotsav) celebrations — three days of puja, pushpanjali, dhunuchi naach, Bengali food, and evening cultural concerts. Our Durgotsav 2025 was celebrated in Costa Mesa, CA, minutes from Irvine, Newport Beach, and Huntington Beach, welcoming Bengali and Indian families from across Southern California.",
+  datesText: `October 16–21, ${YEAR} (Shashthi through Vijayadashami)`,
+  startDate: `${YEAR}-10-16`,
+  endDate: `${YEAR}-10-21`,
+  venueName: 'Venue to be announced — Orange County, CA',
+  venueCity: 'Costa Mesa',
+  venueNote: 'Schedule and venue will be announced on our Events page.',
+  faqs: [
+    {
+      question: 'Where is Durga Puja celebrated in Orange County?',
+      answer:
+        "Sanhoti Bengali Association hosts Durga Puja in central Orange County (2025: Costa Mesa, CA), an easy drive from Irvine, Tustin, Santa Ana, Anaheim, and Mission Viejo.",
+    },
+    {
+      question: 'Is there a Durga Puja near Irvine?',
+      answer:
+        "Yes — Sanhoti's Durga Puja is held minutes from Irvine, CA. The celebration includes puja, pushpanjali, dhunuchi naach, Bengali food, and cultural concerts.",
+    },
+    {
+      question: 'Is Durga Puja open to non-members?',
+      answer:
+        'Yes. Sanhoti Durga Puja is open to the entire community — families, students, and visitors from across Southern California are welcome.',
+    },
+  ],
+  updated_at: '',
+};
 
-const FAQS = [
+const HIGHLIGHTS = [
   {
-    q: 'Where is Durga Puja celebrated in Orange County?',
-    a: "Sanhoti Bengali Association hosts Durga Puja in central Orange County (2025: Costa Mesa, CA), an easy drive from Irvine, Tustin, Santa Ana, Anaheim, and Mission Viejo.",
+    icon: Sparkles,
+    title: 'Puja & Pushpanjali',
+    text: 'Traditional puja, anjali, sindoor khela, and dhunuchi naach across three days.',
   },
   {
-    q: 'Is there a Durga Puja near Irvine?',
-    a: "Yes — Sanhoti's Durga Puja is held minutes from Irvine, CA. The celebration includes puja, pushpanjali, dhunuchi naach, Bengali food, and cultural concerts.",
+    icon: Music,
+    title: 'Concerts & Cultural Nights',
+    text: 'Evening Bengali concerts and performances by visiting artists and community talent.',
   },
   {
-    q: 'Is Durga Puja open to non-members?',
-    a: 'Yes. Sanhoti Durga Puja is open to the entire community — families, students, and visitors from across Southern California are welcome.',
+    icon: Utensils,
+    title: 'Bengali Food & Bhog',
+    text: 'Home-style bhog and Bengali food stalls throughout the celebration.',
   },
   {
-    q: `When is Durga Puja in ${YEAR}?`,
-    a: `Durga Puja ${YEAR} runs ${PUJA_DATES_TEXT}. Sanhoti's celebration schedule will be announced on our Events page.`,
+    icon: Users,
+    title: 'Open to Everyone',
+    text: 'Families, students, and visitors from across Southern California are welcome.',
   },
 ];
 
 export default function DurgaPuja() {
   const origin = getSiteOrigin();
+  const [content, setContent] = useState<DurgaPujaPageContent>(DEFAULT_CONTENT);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const data = await durgaPujaPageAPI.getContent();
+        if (data && data.intro) setContent(data);
+      } catch {
+        // Keep defaults if the API is unavailable
+      }
+    };
+    fetchContent();
+  }, []);
 
   const jsonLd = [
     {
@@ -49,8 +88,8 @@ export default function DurgaPuja() {
       '@type': 'Event',
       name: `Sanhoti Durga Puja ${YEAR} (Durgotsav)`,
       url: `${origin}/durga-puja`,
-      startDate: PUJA_START_ISO,
-      endDate: PUJA_END_ISO,
+      startDate: content.startDate,
+      endDate: content.endDate,
       eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
       eventStatus: 'https://schema.org/EventScheduled',
       organizer: {
@@ -60,10 +99,10 @@ export default function DurgaPuja() {
       },
       location: {
         '@type': 'Place',
-        name: VENUE_TEXT,
+        name: content.venueName,
         address: {
           '@type': 'PostalAddress',
-          addressLocality: VENUE_CITY,
+          addressLocality: content.venueCity,
           addressRegion: 'CA',
           addressCountry: 'US',
         },
@@ -75,42 +114,19 @@ export default function DurgaPuja() {
     {
       '@context': 'https://schema.org',
       '@type': 'FAQPage',
-      mainEntity: FAQS.map(f => ({
+      mainEntity: content.faqs.map(f => ({
         '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
+        name: f.question,
+        acceptedAnswer: { '@type': 'Answer', text: f.answer },
       })),
-    },
-  ];
-
-  const highlights = [
-    {
-      icon: Sparkles,
-      title: 'Puja & Pushpanjali',
-      text: 'Traditional puja, anjali, sindoor khela, and dhunuchi naach across three days.',
-    },
-    {
-      icon: Music,
-      title: 'Concerts & Cultural Nights',
-      text: 'Evening Bengali concerts and performances by visiting artists and community talent.',
-    },
-    {
-      icon: Utensils,
-      title: 'Bengali Food & Bhog',
-      text: 'Home-style bhog and Bengali food stalls throughout the celebration.',
-    },
-    {
-      icon: Users,
-      title: 'Open to Everyone',
-      text: 'Families, students, and visitors from across Southern California are welcome.',
     },
   ];
 
   return (
     <div className="py-12 pb-24">
       <Seo
-        title={`Durga Puja in Orange County ${YEAR} | Sanhoti — Costa Mesa, CA`}
-        description={`Celebrate Durga Puja ${YEAR} in Orange County with Sanhoti — puja, pushpanjali, dhunuchi naach, Bengali food, and concerts. Near Irvine and Costa Mesa, open to all of Southern California.`}
+        title={`Durga Puja in Orange County ${YEAR} | Sanhoti — ${content.venueCity}, CA`}
+        description={`Celebrate Durga Puja ${YEAR} in Orange County with Sanhoti — puja, pushpanjali, dhunuchi naach, Bengali food, and concerts. Near Irvine and ${content.venueCity}, open to all of Southern California.`}
         path="/durga-puja"
         jsonLd={jsonLd}
       />
@@ -119,20 +135,14 @@ export default function DurgaPuja() {
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             Durga Puja in Orange County {YEAR}
           </h1>
-          <p className="text-lg text-gray-700 mb-6">
-            Sanhoti Bengali Association hosts one of Orange County's most vibrant Durga Puja
-            (Durgotsav) celebrations — three days of puja, pushpanjali, dhunuchi naach, Bengali food,
-            and evening cultural concerts. Our Durgotsav 2025 was celebrated in Costa Mesa, CA,
-            minutes from Irvine, Newport Beach, and Huntington Beach, welcoming Bengali and Indian
-            families from across Southern California.
-          </p>
+          <p className="text-lg text-gray-700 mb-6">{content.intro}</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
             <div className="flex items-start gap-3 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
               <Calendar className="w-6 h-6 text-primary-600 mt-1 flex-shrink-0" />
               <div>
                 <h2 className="font-semibold text-gray-900">Dates</h2>
-                <p className="text-gray-700">{PUJA_DATES_TEXT}</p>
+                <p className="text-gray-700">{content.datesText}</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
@@ -140,7 +150,9 @@ export default function DurgaPuja() {
               <div>
                 <h2 className="font-semibold text-gray-900">Venue</h2>
                 <p className="text-gray-700">
-                  {VENUE_TEXT} — schedule and venue will be announced on our{' '}
+                  {content.venueName}
+                  {content.venueNote ? <> — {content.venueNote} </> : ' '}
+                  See the{' '}
                   <Link to="/events" className="text-primary-600 hover:text-primary-700 underline">
                     Events page
                   </Link>
@@ -152,7 +164,7 @@ export default function DurgaPuja() {
 
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">What to expect</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
-            {highlights.map(h => (
+            {HIGHLIGHTS.map(h => (
               <div key={h.title} className="bg-white rounded-xl shadow p-5 border border-gray-100">
                 <h.icon className="w-7 h-7 text-primary-600 mb-2" />
                 <h3 className="font-semibold text-gray-900 mb-1">{h.title}</h3>
@@ -161,17 +173,21 @@ export default function DurgaPuja() {
             ))}
           </div>
 
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
-            Frequently asked questions
-          </h2>
-          <div className="space-y-5 mb-12">
-            {FAQS.map(f => (
-              <div key={f.q}>
-                <h3 className="font-semibold text-gray-900 mb-1">{f.q}</h3>
-                <p className="text-gray-700">{f.a}</p>
+          {content.faqs.length > 0 && (
+            <>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+                Frequently asked questions
+              </h2>
+              <div className="space-y-5 mb-12">
+                {content.faqs.map(f => (
+                  <div key={f.question}>
+                    <h3 className="font-semibold text-gray-900 mb-1">{f.question}</h3>
+                    <p className="text-gray-700">{f.answer}</p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          )}
 
           <div className="flex flex-wrap gap-3">
             <Link

@@ -27,7 +27,23 @@ export class SettingsDataHelper extends DatabaseHelper {
       // Save migrated settings
       this.writeFile(this.filename, [currentSettings]);
     }
-    
+
+    // Backfill navbar keys added after this settings file was created
+    // (e.g. "durgaPuja") so new menu items default to visible.
+    if (currentSettings.navbar) {
+      const defaultNavbar = this.getDefaultSettings().navbar;
+      const hasMissingKey = Object.keys(defaultNavbar).some(
+        key => !(key in currentSettings.navbar)
+      );
+      if (hasMissingKey) {
+        currentSettings = {
+          ...currentSettings,
+          navbar: { ...defaultNavbar, ...currentSettings.navbar },
+        };
+        this.writeFile(this.filename, [currentSettings]);
+      }
+    }
+
     return currentSettings as Settings;
   }
 
@@ -183,6 +199,7 @@ export class SettingsDataHelper extends DatabaseHelper {
     return {
       navbar: {
         home: true,
+        durgaPuja: true,
         sponsors: true,
         events: true,
         noticeBoard: true,

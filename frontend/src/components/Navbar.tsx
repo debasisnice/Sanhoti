@@ -98,6 +98,7 @@ export default function Navbar() {
 
   const [navbarSettings, setNavbarSettings] = useState({
     home: true,
+    durgaPuja: true,
     sponsors: true,
     events: true,
     noticeBoard: true,
@@ -116,7 +117,9 @@ export default function Navbar() {
       try {
         const settings = await settingsAPI.getSettings();
         if (settings && settings.navbar) {
-          setNavbarSettings(settings.navbar);
+          // Merge over defaults so navbar keys added after the settings file
+          // was saved (e.g. durgaPuja) default to visible instead of hidden.
+          setNavbarSettings(prev => ({ ...prev, ...settings.navbar }));
         }
       } catch (error) {
         console.error('Failed to fetch navbar settings:', error);
@@ -128,6 +131,7 @@ export default function Navbar() {
 
   const allNavLinks = [
     { path: '/', label: 'Home', key: 'home' as const },
+    { path: '/durga-puja', label: 'Durga Puja', key: 'durgaPuja' as const },
     { path: '/sponsors', label: 'Sponsors', key: 'sponsors' as const },
     { path: '/events', label: 'Events', key: 'events' as const },
     { path: '/notices', label: 'Notice Board', key: 'noticeBoard' as const },

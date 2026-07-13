@@ -9,6 +9,7 @@ import { mergeStatement } from '../../utils/renderHomeStatements';
 
 interface NavbarSettings {
   home: boolean;
+  durgaPuja: boolean;
   sponsors: boolean;
   events: boolean;
   noticeBoard: boolean;
@@ -49,6 +50,7 @@ interface User {
 
 const menuItemLabels: Record<keyof NavbarSettings, string> = {
   home: 'Home',
+  durgaPuja: 'Durga Puja',
   sponsors: 'Sponsors',
   events: 'Events',
   noticeBoard: 'Notice Board',

@@ -788,6 +788,35 @@ export const committeeAPI = {
   },
 };
 
+// Durga Puja page content API
+export interface DurgaPujaFaq {
+  question: string;
+  answer: string;
+}
+export interface DurgaPujaPageContent {
+  intro: string;
+  datesText: string;
+  startDate: string;
+  endDate: string;
+  venueName: string;
+  venueCity: string;
+  venueNote: string;
+  faqs: DurgaPujaFaq[];
+  updated_at: string;
+}
+export const durgaPujaPageAPI = {
+  getContent: async (): Promise<DurgaPujaPageContent> => {
+    const response = await api.get('/durga-puja-page');
+    return response.data;
+  },
+  updateContent: async (
+    patch: Partial<Omit<DurgaPujaPageContent, 'updated_at'>>
+  ): Promise<DurgaPujaPageContent> => {
+    const response = await api.put('/durga-puja-page', patch);
+    return response.data;
+  },
+};
+
 // Settings API
 export const settingsAPI = {
   getSettings: async (): Promise<any> => {
