@@ -1,11 +1,14 @@
 import { EventDataHelper } from '../data/EventDataHelper.js';
+import { DurgaPujaPageService } from './DurgaPujaPageService.js';
 import { Event } from '../models/types.js';
 
 export class EventService {
   private eventDataHelper: EventDataHelper;
+  private durgaPujaPageService: DurgaPujaPageService;
 
   constructor() {
     this.eventDataHelper = new EventDataHelper();
+    this.durgaPujaPageService = new DurgaPujaPageService();
   }
 
   async getAllEvents(): Promise<Event[]> {
@@ -64,7 +67,7 @@ export class EventService {
         ? data.event_type
         : 'Festival';
 
-    return this.eventDataHelper.create({
+    const created = await this.eventDataHelper.create({
       event_name: data.event_name,
       event_start_dt: data.event_start_dt,
       event_end_dt: data.event_end_dt,
@@ -78,6 +81,11 @@ export class EventService {
       is_active: true,
       is_priority: data.is_priority !== undefined ? data.is_priority : false,
     });
+
+    // If this is a Durga Puja event, sync its dates/venue to /durga-puja
+    await this.durgaPujaPageService.syncFromEvent(created);
+
+    return created;
   }
 
   async updateEvent(eventId: string, updates: Partial<Omit<Event, 'event_id' | 'created_at'>>): Promise<Event | null> {
@@ -109,7 +117,14 @@ export class EventService {
         et && ['Festival', 'Charity', 'Other'].includes(et) ? et : 'Festival';
     }
 
-    return this.eventDataHelper.update(eventId, toWrite);
+    const updated = await this.eventDataHelper.update(eventId, toWrite);
+
+    // If this is a Durga Puja event, keep /durga-puja dates/venue in sync
+    if (updated) {
+      await this.durgaPujaPageService.syncFromEvent(updated);
+    }
+
+    return updated;
   }
 
   async deleteEvent(eventId: string): Promise<boolean> {

@@ -85,8 +85,24 @@ export default function AdminDurgaPuja() {
       </div>
       <p className="text-gray-600 mb-6">
         This content appears on the public <code>/durga-puja</code> page (and in what Google reads).
-        Update the dates and venue each year — ideally by June/July.
+        When you create or update a future event whose name contains "Durga", its dates and venue
+        are synced here automatically — you can still override them below. Update each year by
+        June/July.
       </p>
+      {content.linkedEventId && (
+        <p className="text-sm text-gray-500 mb-4">
+          Dates/venue last synced from event{' '}
+          <a
+            href={`/events/${content.linkedEventId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary-600 hover:text-primary-700 underline"
+          >
+            {content.linkedEventId}
+          </a>
+          .
+        </p>
+      )}
 
       <div className="space-y-5 bg-white rounded-xl shadow p-6">
         <div>

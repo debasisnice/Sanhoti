@@ -190,9 +190,21 @@ export default function DurgaPuja() {
           )}
 
           <div className="flex flex-wrap gap-3">
+            {content.linkedEventId && (
+              <Link
+                to={`/events/${content.linkedEventId}`}
+                className="bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+              >
+                View Event & RSVP
+              </Link>
+            )}
             <Link
               to="/events"
-              className="bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+              className={
+                content.linkedEventId
+                  ? 'bg-white border-2 border-primary-600 text-primary-600 px-6 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors'
+                  : 'bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors'
+              }
             >
               See All Events
             </Link>

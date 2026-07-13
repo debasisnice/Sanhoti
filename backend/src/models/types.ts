@@ -277,6 +277,8 @@ export interface DurgaPujaPageContent {
   /** Note shown next to the venue (schedule/announcement). */
   venueNote: string;
   faqs: DurgaPujaFaq[];
+  /** Event this page's dates/venue were last auto-synced from (name contains "Durga"). */
+  linkedEventId?: string;
   updated_at: string;
 }
 

@@ -802,6 +802,8 @@ export interface DurgaPujaPageContent {
   venueCity: string;
   venueNote: string;
   faqs: DurgaPujaFaq[];
+  /** Set automatically when a "Durga Puja" event is created/updated. */
+  linkedEventId?: string;
   updated_at: string;
 }
 export const durgaPujaPageAPI = {

@@ -224,7 +224,7 @@ Check our <a href="/events">Events page</a> or join our community for updates.</
 Bengali concerts with visiting artists, and home-style Bengali bhog and food stalls.</p>
 <h2>Frequently asked questions</h2>
 ${faqsHtml}
-<p><a href="/events">All Sanhoti events</a> · <a href="/galleries">Photos from past celebrations</a> ·
+<p>${c.linkedEventId ? `<a href="/events/${esc(c.linkedEventId)}">View the event &amp; RSVP</a> · ` : ''}<a href="/events">All Sanhoti events</a> · <a href="/galleries">Photos from past celebrations</a> ·
 <a href="/contact">Contact us</a></p>`;
     return this.layout({
       title: `Durga Puja in Orange County ${year} | Sanhoti — ${c.venueCity}, CA`,
