@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
@@ -17,14 +18,26 @@ import RSVP from './pages/RSVP';
 import Notices from './pages/Notices';
 import Galleries from './pages/Galleries';
 import GalleryDetail from './pages/GalleryDetail';
-import Magazines from './pages/Magazines';
 import NewsPage from './pages/News';
-import Documents from './pages/Documents';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import AdminDashboard from './pages/admin/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+
+// Code-split heavy chunks out of the public bundle:
+// - Magazines/Documents pull in pdfjs-dist (~1MB)
+// - AdminDashboard pulls in all 14 admin pages
+const Magazines = lazy(() => import('./pages/Magazines'));
+const Documents = lazy(() => import('./pages/Documents'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+
+function RouteFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+    </div>
+  );
+}
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -40,6 +53,7 @@ function App() {
       <AuthActivityMonitor />
       <Toaster position="top-right" />
       <Layout>
+        <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/durga-puja" element={<DurgaPuja />} />
@@ -77,6 +91,7 @@ function App() {
             }
           />
         </Routes>
+        </Suspense>
       </Layout>
     </Router>
   );
