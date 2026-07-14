@@ -126,6 +126,7 @@ export const eventsAPI = {
     location?: string;
     photo_gallery_link?: string;
     is_priority?: boolean;
+    is_active_durga_puja_event?: boolean;
   }): Promise<Event> => {
     const response = await api.post('/events', data);
     return response.data;
@@ -144,6 +145,7 @@ export const eventsAPI = {
       photo_gallery_link?: string;
       is_active?: boolean;
       is_priority?: boolean;
+      is_active_durga_puja_event?: boolean;
   }>): Promise<Event> => {
     const response = await api.put(`/events/${eventId}`, data);
     return response.data;
@@ -799,6 +801,10 @@ export interface DurgaPujaFaq {
   question: string;
   answer: string;
 }
+export interface TicketLink {
+  label: string;
+  url: string;
+}
 export interface DurgaPujaPageContent {
   intro: string;
   datesText: string;
@@ -808,6 +814,10 @@ export interface DurgaPujaPageContent {
   venueCity: string;
   venueNote: string;
   faqs: DurgaPujaFaq[];
+  /** External ticket-booking links; empty = the public page shows a "booking opens soon" placeholder. */
+  ticketLinks?: TicketLink[];
+  /** Optional note shown with the ticket links, e.g. "Early-bird pricing until Sep 1". */
+  ticketsNote?: string;
   /** Set automatically when a "Durga Puja" event is created/updated. */
   linkedEventId?: string;
   updated_at: string;

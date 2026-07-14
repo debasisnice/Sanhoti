@@ -209,7 +209,7 @@ export class EventController {
         return;
       }
 
-      const { event_name, event_start_dt, event_end_dt, year, event_description, event_type, rsvp_enabled, location, photo_gallery_link, is_priority, rsvp_link } = req.body;
+      const { event_name, event_start_dt, event_end_dt, year, event_description, event_type, rsvp_enabled, location, photo_gallery_link, is_priority, rsvp_link, is_active_durga_puja_event } = req.body;
 
       if (!event_name || !event_start_dt || !event_end_dt || !year || !event_description) {
         res.status(400).json({ error: 'Missing required fields: event_name, event_start_dt, event_end_dt, year, and event_description are required' });
@@ -228,11 +228,15 @@ export class EventController {
         photo_gallery_link,
         is_priority,
         rsvp_link,
+        is_active_durga_puja_event,
       });
 
       res.status(201).json(event);
     } catch (error: any) {
-      if (error.message && error.message.includes('cannot be prior')) {
+      if (
+        error.message &&
+        (error.message.includes('cannot be prior') || error.message.includes('Durga'))
+      ) {
         res.status(400).json({ error: error.message });
         return;
       }
@@ -253,7 +257,10 @@ export class EventController {
 
       res.json(event);
     } catch (error: any) {
-      if (error.message && error.message.includes('cannot be prior')) {
+      if (
+        error.message &&
+        (error.message.includes('cannot be prior') || error.message.includes('Durga'))
+      ) {
         res.status(400).json({ error: error.message });
         return;
       }

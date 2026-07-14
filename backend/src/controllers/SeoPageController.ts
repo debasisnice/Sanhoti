@@ -212,7 +212,7 @@ Costa Mesa, Irvine, Tustin, Rancho Santa Margarita, Mission Viejo, and across So
   }
 
   /** "Programs & Events" section for the Durga Puja page: sub-events the admin toggled on, with banners. */
-  private async durgaPujaSubEventsHtml(linkedEventId: string | undefined): Promise<string> {
+  private async durgaPujaSubEventsHtml(linkedEventId: string | undefined, year: number): Promise<string> {
     if (!linkedEventId) return '';
     let subEvents: SubEvent[] = [];
     try {
@@ -248,17 +248,31 @@ Costa Mesa, Irvine, Tustin, Rancho Santa Margarita, Mission Viejo, and across So
         }${se.event_description ? `<p>${esc(stripHtml(se.event_description, 300))}</p>` : ''}</li>`;
       })
     );
-    return `<h2>Durga Puja ${new Date().getFullYear()} — Programs &amp; Events</h2>\n<ul>${items.join('\n')}</ul>`;
+    return `<h2>Durga Puja ${year} — Programs &amp; Events</h2>\n<ul>${items.join('\n')}</ul>`;
   }
 
   private async durgaPujaPage(): Promise<string> {
-    const year = new Date().getFullYear();
     const c = await this.durgaPujaPageService.getContent();
+    // Year comes from the linked (active) Durga Puja event's start date,
+    // falling back to the calendar year — same rule as the SPA page.
+    const parsedYear = parseInt((c.startDate || '').slice(0, 4), 10);
+    const year =
+      Number.isFinite(parsedYear) && parsedYear > 2000 ? parsedYear : new Date().getFullYear();
     const imageUrl = durgaPujaPageImageExists() ? `${ORIGIN}/api/durga-puja-page/image` : undefined;
     const faqsHtml = c.faqs
       .map(f => `<h3>${esc(f.question)}</h3>\n<p>${esc(f.answer)}</p>`)
       .join('\n');
-    const subEventsHtml = await this.durgaPujaSubEventsHtml(c.linkedEventId);
+    const subEventsHtml = await this.durgaPujaSubEventsHtml(c.linkedEventId, year);
+    const ticketLinks = (c.ticketLinks ?? []).filter(t => t.label && t.url);
+    const ticketsHtml =
+      ticketLinks.length > 0
+        ? `<h2>Tickets</h2>
+${c.ticketsNote ? `<p>${esc(c.ticketsNote)}</p>` : ''}
+<ul>${ticketLinks
+            .map(t => `<li><a href="${esc(t.url)}" rel="noopener noreferrer">${esc(t.label)}</a></li>`)
+            .join('\n')}</ul>`
+        : `<h2>Tickets</h2>
+<p>${c.ticketsNote ? esc(c.ticketsNote) : 'Ticket booking opens soon — check back here or see our <a href="/events">Events page</a> for updates.'}</p>`;
     const body = `
 <h1>Durga Puja in Orange County ${year} — Sanhoti</h1>
 <p>${esc(c.intro)}</p>
@@ -267,6 +281,7 @@ Costa Mesa, Irvine, Tustin, Rancho Santa Margarita, Mission Viejo, and across So
 <p>Venue: ${esc(c.venueName)}${c.venueNote ? ` — ${esc(c.venueNote)}` : ''}
 Check our <a href="/events">Events page</a> or join our community for updates.</p>
 ${imageUrl ? `<img src="${esc(imageUrl)}" alt="Sanhoti Durga Puja ${year} in Orange County — flyer">` : ''}
+${ticketsHtml}
 ${subEventsHtml}
 <h2>What to expect</h2>
 <p>Traditional puja and pushpanjali (anjali), sindoor khela, dhunuchi dance, kids' performances,
@@ -298,21 +313,30 @@ ${faqsHtml}
             '@type': 'PerformingGroup',
             name: 'Visiting Bengali artists and Sanhoti community performers',
           },
-          offers: {
-            '@type': 'Offer',
-            url: `${ORIGIN}/durga-puja`,
-            price: '0',
-            priceCurrency: 'USD',
-            availability: 'https://schema.org/InStock',
-            ...(c.startDate ? { validFrom: c.startDate } : {}),
-          },
+          offers:
+            ticketLinks.length > 0
+              ? ticketLinks.map(t => ({
+                  '@type': 'Offer',
+                  name: t.label,
+                  url: t.url,
+                  availability: 'https://schema.org/InStock',
+                  ...(c.startDate ? { validFrom: c.startDate } : {}),
+                }))
+              : {
+                  '@type': 'Offer',
+                  url: `${ORIGIN}/durga-puja`,
+                  price: '0',
+                  priceCurrency: 'USD',
+                  availability: 'https://schema.org/InStock',
+                  ...(c.startDate ? { validFrom: c.startDate } : {}),
+                },
           location: {
             '@type': 'Place',
             name: c.venueName,
             address: { '@type': 'PostalAddress', addressLocality: c.venueCity, addressRegion: 'CA', addressCountry: 'US' },
           },
           description: `Three-day Durga Puja celebration in Orange County, California: puja and pushpanjali, dhunuchi naach, sindoor khela, Bengali food, and evening cultural concerts.`,
-          isAccessibleForFree: true,
+          ...(ticketLinks.length > 0 ? {} : { isAccessibleForFree: true }),
         },
         {
           '@context': 'https://schema.org',

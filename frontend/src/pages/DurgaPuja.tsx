@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, Music, Utensils, Users, Sparkles } from 'lucide-react';
+import { Calendar, MapPin, Music, Utensils, Users, Sparkles, Ticket } from 'lucide-react';
 import Seo from '../components/Seo';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import { durgaPujaPageAPI, DurgaPujaPageContent, subEventsAPI } from '../services/api';
@@ -42,6 +42,8 @@ const DEFAULT_CONTENT: DurgaPujaPageContent = {
         'Yes. Sanhoti Durga Puja is open to the entire community — families, students, and visitors from across Southern California are welcome.',
     },
   ],
+  ticketLinks: [],
+  ticketsNote: '',
   updated_at: '',
 };
 
@@ -130,11 +132,19 @@ export default function DurgaPuja() {
     fetchContentAndSubEvents();
   }, []);
 
+  const ticketLinks = (content.ticketLinks ?? []).filter(t => t.label && t.url);
+
+  // Year of the celebration comes from the linked (active) Durga Puja event's
+  // start date, not the calendar year — so the page is correct across new-year
+  // boundaries and when next year's event is announced early.
+  const parsedYear = parseInt((content.startDate || '').slice(0, 4), 10);
+  const eventYear = Number.isFinite(parsedYear) && parsedYear > 2000 ? parsedYear : YEAR;
+
   const jsonLd = [
     {
       '@context': 'https://schema.org',
       '@type': 'Event',
-      name: `Sanhoti Durga Puja ${YEAR} (Durgotsav)`,
+      name: `Sanhoti Durga Puja ${eventYear} (Durgotsav)`,
       url: `${origin}/durga-puja`,
       startDate: content.startDate,
       endDate: content.endDate,
@@ -157,7 +167,17 @@ export default function DurgaPuja() {
       },
       description:
         'Three-day Durga Puja celebration in Orange County, California: puja and pushpanjali, dhunuchi naach, sindoor khela, Bengali food, and evening cultural concerts.',
-      isAccessibleForFree: true,
+      ...(ticketLinks.length > 0
+        ? {
+            offers: ticketLinks.map(t => ({
+              '@type': 'Offer',
+              name: t.label,
+              url: t.url,
+              availability: 'https://schema.org/InStock',
+              ...(content.startDate ? { validFrom: content.startDate } : {}),
+            })),
+          }
+        : { isAccessibleForFree: true }),
     },
     {
       '@context': 'https://schema.org',
@@ -173,17 +193,22 @@ export default function DurgaPuja() {
   return (
     <div className="py-12 pb-24">
       <Seo
-        title={`Durga Puja in Orange County ${YEAR} | Sanhoti — ${content.venueCity}, CA`}
-        description={`Celebrate Durga Puja ${YEAR} in Orange County with Sanhoti — puja, pushpanjali, dhunuchi naach, Bengali food, and concerts. Near Irvine and ${content.venueCity}, open to all of Southern California.`}
+        title={`Durga Puja in Orange County ${eventYear} | Sanhoti — ${content.venueCity}, CA`}
+        description={`Celebrate Durga Puja ${eventYear} in Orange County with Sanhoti — puja, pushpanjali, dhunuchi naach, Bengali food, and concerts. Near Irvine and ${content.venueCity}, open to all of Southern California.`}
         path="/durga-puja"
         ogImage={hasImage ? durgaPujaPageAPI.getImageUrl() : undefined}
         jsonLd={jsonLd}
       />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Durga Puja in Orange County {YEAR}
-          </h1>
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-3 mb-4 flex-wrap">
+              <Sparkles className="w-8 h-8 text-primary-600" />
+              <h1 className="text-2xl font-bold text-gray-900">
+                Durga Puja in Orange County {eventYear}
+              </h1>
+            </div>
+          </div>
           <p className="text-lg text-gray-700 mb-6">{content.intro}</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
@@ -215,12 +240,61 @@ export default function DurgaPuja() {
             <div className="mb-10">
               <img
                 src={durgaPujaPageAPI.getImageUrl()}
-                alt={`Sanhoti Durga Puja ${YEAR} in Orange County — flyer`}
+                alt={`Sanhoti Durga Puja ${eventYear} in Orange County — flyer`}
                 className="w-full max-h-[36rem] object-contain rounded-2xl shadow-lg bg-white"
                 onError={() => setHasImage(false)}
               />
             </div>
           )}
+
+          <div className="mb-12">
+            <div className="bg-white rounded-2xl shadow-lg border border-yellow-200 p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Ticket className="w-7 h-7 text-primary-600" />
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Tickets</h2>
+              </div>
+              {ticketLinks.length > 0 ? (
+                <>
+                  {content.ticketsNote && (
+                    <p className="text-gray-700 mb-4">{content.ticketsNote}</p>
+                  )}
+                  <div className="flex flex-wrap gap-3">
+                    {ticketLinks.map(t => (
+                      <a
+                        key={t.url}
+                        href={t.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+                      >
+                        <Ticket className="w-5 h-5" />
+                        {t.label}
+                      </a>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3">
+                    Ticket booking is handled on our ticketing partner's website.
+                  </p>
+                </>
+              ) : (
+                <p className="text-gray-700">
+                  {content.ticketsNote ||
+                    'Ticket booking opens soon — check back here, or see our '}
+                  {!content.ticketsNote && (
+                    <>
+                      <Link
+                        to="/events"
+                        className="text-primary-600 hover:text-primary-700 underline"
+                      >
+                        Events page
+                      </Link>{' '}
+                      for updates.
+                    </>
+                  )}
+                </p>
+              )}
+            </div>
+          </div>
 
           {subEvents.length > 0 && (
             <div className="mb-12">

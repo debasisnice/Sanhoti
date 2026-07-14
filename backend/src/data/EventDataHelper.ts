@@ -158,7 +158,16 @@ export class EventDataHelper extends DatabaseHelper {
         }
       });
     }
-    
+
+    // Only one event can be the active Durga Puja event
+    if (newEvent.is_active_durga_puja_event === true) {
+      events.forEach((existingEvent) => {
+        if (existingEvent.is_active_durga_puja_event) {
+          existingEvent.is_active_durga_puja_event = false;
+        }
+      });
+    }
+
     // Create gallery folder for the new event and set photo_gallery_link
     const folderName = `${this.sanitizeFolderName(newEvent.event_name)}-${newEvent.year}-${newEvent.event_id}`;
     this.createEventGalleryFolder(newEvent);
@@ -199,6 +208,16 @@ export class EventDataHelper extends DatabaseHelper {
         if (ev.event_id === eventId || ev.id === eventId) return;
         if (this.normalizePriorityFlag(ev.is_priority) && this.effectiveEventType(ev) === typeKey) {
           ev.is_priority = false;
+        }
+      });
+    }
+
+    // Only one event can be the active Durga Puja event
+    if (merged.is_active_durga_puja_event === true) {
+      events.forEach((ev) => {
+        if (ev.event_id === eventId || ev.id === eventId) return;
+        if (ev.is_active_durga_puja_event) {
+          ev.is_active_durga_puja_event = false;
         }
       });
     }

@@ -50,6 +50,12 @@ export interface Event {
   rsvp_enabled?: boolean; // If true, show RSVP option for this event
   is_active: boolean;
   is_priority?: boolean;
+  /**
+   * Exactly one Durga-named event should carry this flag. It marks the event
+   * that feeds the public /durga-puja landing page (dates, venue, sub-events)
+   * and shows the "Edit Durga Puja Page" shortcut in the admin events table.
+   */
+  is_active_durga_puja_event?: boolean;
   created_at: string;
   updated_at: string;
   // Legacy fields for backward compatibility (optional)
@@ -262,6 +268,14 @@ export interface DurgaPujaFaq {
   answer: string;
 }
 
+/** External ticket-booking link shown on the /durga-puja page. */
+export interface TicketLink {
+  /** Button label, e.g. "Full Event Pass" or "Cultural Night Only". */
+  label: string;
+  /** External ticketing URL (http/https), e.g. Eventbrite/Sulekha page. */
+  url: string;
+}
+
 /** Admin-editable content for the public /durga-puja landing page. */
 export interface DurgaPujaPageContent {
   /** Intro paragraph under the H1. */
@@ -278,6 +292,10 @@ export interface DurgaPujaPageContent {
   /** Note shown next to the venue (schedule/announcement). */
   venueNote: string;
   faqs: DurgaPujaFaq[];
+  /** External ticket-booking links; empty/absent = show "booking opens soon" placeholder. */
+  ticketLinks?: TicketLink[];
+  /** Optional note shown with the ticket links, e.g. "Early-bird pricing until Sep 1". */
+  ticketsNote?: string;
   /** Event this page's dates/venue were last auto-synced from (name contains "Durga"). */
   linkedEventId?: string;
   updated_at: string;

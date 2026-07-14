@@ -4,9 +4,9 @@
     "datesText": "October 9–11, 2026",
     "startDate": "2026-10-09",
     "endDate": "2026-10-11",
-    "venueName": "Venue to be announced — Orange County, CA",
+    "venueName": "Estancia High School, 2323 Placentia Ave, Costa Mesa, CA 92627",
     "venueCity": "Costa Mesa",
-    "venueNote": "Schedule and venue will be announced on our Events page.",
+    "venueNote": "See the event page for the full schedule and RSVP.",
     "faqs": [
       {
         "question": "Where is Durga Puja celebrated in Orange County?",
@@ -25,7 +25,9 @@
         "answer": "Durga Puja 2026 runs October 9–11. Sanhoti's celebration schedule will be announced on our Events page."
       }
     ],
-    "updated_at": "2026-07-13T17:58:46.837Z",
+    "ticketLinks": [],
+    "ticketsNote": "",
+    "updated_at": "2026-07-14T00:30:09.045Z",
     "linkedEventId": "0NVRAOYZYUI1"
   }
 ]

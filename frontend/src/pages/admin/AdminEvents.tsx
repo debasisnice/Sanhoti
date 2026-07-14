@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Edit, Trash2, Eye, EyeOff, X, Image as ImageIcon, Star } from 'lucide-react';
 import { eventsAPI, subEventsAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { convertPSTToLocal, convertLocalToPST } from '../../utils/dateUtils';
 import { getEventTypeAdminOptionLabel } from '../../utils/eventType';
 import { SubEvent } from '../../types';
+
+/** Only events whose name contains "Durga"/"Durgotsav" can be the Active Durga Puja Event. */
+const DURGA_NAME = /durga|durgotsav/i;
 
 const EVENT_TYPE_OPTIONS = ['Festival', 'Charity', 'Other'] as const;
 type EventTypeValue = typeof EVENT_TYPE_OPTIONS[number];
@@ -21,6 +24,7 @@ interface Event {
   event_type?: EventTypeValue;
   is_active: boolean;
   is_priority?: boolean;
+  is_active_durga_puja_event?: boolean;
   created_at: string;
   updated_at: string;
   photo_gallery_link?: string;
@@ -35,6 +39,7 @@ interface EventForm {
   event_type: EventTypeValue;
   location: string;
   is_priority?: boolean;
+  is_active_durga_puja_event?: boolean;
   rsvp_enabled: boolean;
   rsvp_link?: string;
 }
@@ -84,6 +89,7 @@ export default function AdminEvents() {
     event_type: 'Festival',
     location: '',
     is_priority: false,
+    is_active_durga_puja_event: false,
     rsvp_enabled: false,
     rsvp_link: '',
   });
@@ -149,7 +155,7 @@ export default function AdminEvents() {
   const availableYears = [...new Set(events.map(e => e.year))].sort((a, b) => b - a);
 
   // Filter events by selected year and sort by start date descending (newest first)
-  const filteredEvents = (selectedYear 
+  const filteredEvents = (selectedYear
     ? events.filter(e => e.year === selectedYear)
     : events
   ).sort((a, b) => {
@@ -237,6 +243,7 @@ export default function AdminEvents() {
         event_type: formDataWithPST.event_type,
         location: formDataWithPST.location ?? '',
         is_priority: Boolean(formDataWithPST.is_priority),
+        is_active_durga_puja_event: Boolean(formDataWithPST.is_active_durga_puja_event),
         rsvp_enabled: Boolean(formDataWithPST.rsvp_enabled),
         rsvp_link: (formDataWithPST.rsvp_link ?? '').trim(),
       };
@@ -288,6 +295,7 @@ export default function AdminEvents() {
       event_type: event.event_type && EVENT_TYPE_OPTIONS.includes(event.event_type as EventTypeValue) ? (event.event_type as EventTypeValue) : 'Festival',
       location: (event as any).location || '',
       is_priority: event.is_priority || false,
+      is_active_durga_puja_event: event.is_active_durga_puja_event || false,
       rsvp_enabled: (event as any).rsvp_enabled ?? false,
       rsvp_link: (event as any).rsvp_link || '',
     });
@@ -541,6 +549,7 @@ export default function AdminEvents() {
       event_type: 'Festival',
       location: '',
       is_priority: false,
+      is_active_durga_puja_event: false,
       rsvp_enabled: false,
       rsvp_link: '',
     });
@@ -852,6 +861,32 @@ export default function AdminEvents() {
                 </div>
 
                 <div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="is_active_durga_puja_event"
+                      checked={formData.is_active_durga_puja_event || false}
+                      disabled={!DURGA_NAME.test(formData.event_name)}
+                      onChange={(e) =>
+                        setFormData({ ...formData, is_active_durga_puja_event: e.target.checked })
+                      }
+                      className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500 disabled:opacity-40"
+                    />
+                    <label
+                      htmlFor="is_active_durga_puja_event"
+                      className={`text-sm font-medium ${DURGA_NAME.test(formData.event_name) ? 'text-gray-700' : 'text-gray-400'}`}
+                    >
+                      Active Durga Puja Event
+                    </label>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {DURGA_NAME.test(formData.event_name)
+                      ? 'This event feeds the public /durga-puja page (dates, venue, sub-events). Only one event can be active — checking it here moves the flag off any other event. To move it away from this event, check it on another Durga event.'
+                      : 'Editable only when the event name contains "Durga".'}
+                  </p>
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Event Image (Optional)
                   </label>
@@ -981,6 +1016,16 @@ export default function AdminEvents() {
                         <div className="text-xs text-gray-400 mt-1">
                           Year: {event.year}
                         </div>
+                        {event.is_active_durga_puja_event === true && (
+                          <Link
+                            to="/admin/durga-puja"
+                            className="inline-flex items-center gap-1 mt-2 px-3 py-1.5 bg-primary-600 text-white text-xs font-semibold rounded-lg hover:bg-primary-700 transition-colors"
+                            title="Edit the public /durga-puja landing page (dates, venue, tickets, FAQs)"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                            Edit Durga Puja Page
+                          </Link>
+                        )}
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-500 align-top">
                         {formatDate(event.event_start_dt)}

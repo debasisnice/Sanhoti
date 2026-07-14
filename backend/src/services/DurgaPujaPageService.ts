@@ -1,10 +1,13 @@
 import { DurgaPujaPageDataHelper } from '../data/DurgaPujaPageDataHelper.js';
 import { EventDataHelper } from '../data/EventDataHelper.js';
-import { DurgaPujaFaq, DurgaPujaPageContent, Event } from '../models/types.js';
+import { DurgaPujaFaq, DurgaPujaPageContent, Event, TicketLink } from '../models/types.js';
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const MAX_TEXT = 2000;
 const MAX_FAQS = 12;
+const MAX_TICKET_LINKS = 6;
+const MAX_TICKET_LABEL = 100;
+const MAX_TICKET_URL = 2000;
 
 export class DurgaPujaPageService {
   private dataHelper: DurgaPujaPageDataHelper;
@@ -17,16 +20,40 @@ export class DurgaPujaPageService {
 
   async getContent(): Promise<DurgaPujaPageContent> {
     let content = await this.dataHelper.get();
-    // One-time backfill: if no event has ever been linked (e.g. the Durga Puja
-    // event predates the sync feature), sync from the next upcoming Durga event.
-    if (!content.linkedEventId) {
-      const event = await this.findUpcomingDurgaEvent();
-      if (event) {
-        await this.syncFromEvent(event);
-        content = await this.dataHelper.get();
+    // One-time migration/backfill: ensure some Durga event carries the
+    // "Active Durga Puja Event" flag (events created before the flag existed
+    // won't have it). Prefer the already-linked event, then the next upcoming
+    // Durga event. The flagged event is what feeds this page from then on.
+    try {
+      const flagged = await this.findActiveDurgaEvent();
+      if (!flagged) {
+        const candidate =
+          (await this.findLinkedDurgaEvent(content.linkedEventId)) ??
+          (await this.findUpcomingDurgaEvent());
+        if (candidate) {
+          const updated = await this.eventDataHelper.update(candidate.event_id, {
+            is_active_durga_puja_event: true,
+          });
+          if (updated) await this.syncFromEvent(updated);
+          content = await this.dataHelper.get();
+        }
       }
+    } catch {
+      // Backfill must never break the public page
     }
     return content;
+  }
+
+  private async findActiveDurgaEvent(): Promise<Event | null> {
+    const events = await this.eventDataHelper.findAll();
+    return events.find(e => e.is_active_durga_puja_event === true) ?? null;
+  }
+
+  private async findLinkedDurgaEvent(linkedEventId?: string): Promise<Event | null> {
+    if (!linkedEventId) return null;
+    const event = await this.eventDataHelper.findById(linkedEventId);
+    if (!event || !/durga|durgotsav/i.test(event.event_name || '')) return null;
+    return event;
   }
 
   private async findUpcomingDurgaEvent(): Promise<Event | null> {
@@ -98,26 +125,63 @@ export class DurgaPujaPageService {
       clean.faqs = faqs;
     }
 
+    if (patch.ticketsNote !== undefined) {
+      if (typeof patch.ticketsNote !== 'string' || patch.ticketsNote.length > MAX_TEXT) {
+        throw new Error('Invalid value for ticketsNote');
+      }
+      clean.ticketsNote = patch.ticketsNote.trim();
+    }
+
+    if (patch.ticketLinks !== undefined) {
+      if (!Array.isArray(patch.ticketLinks) || patch.ticketLinks.length > MAX_TICKET_LINKS) {
+        throw new Error(`ticketLinks must be an array of at most ${MAX_TICKET_LINKS} items`);
+      }
+      const ticketLinks: TicketLink[] = [];
+      for (const link of patch.ticketLinks) {
+        if (
+          !link ||
+          typeof link.label !== 'string' ||
+          typeof link.url !== 'string' ||
+          link.label.length > MAX_TICKET_LABEL ||
+          link.url.length > MAX_TICKET_URL
+        ) {
+          throw new Error('Each ticket link needs a label and a URL (strings)');
+        }
+        const label = link.label.trim();
+        const url = link.url.trim();
+        if (!label && !url) continue; // skip empty rows from the admin form
+        if (!label || !url) {
+          throw new Error('Each ticket link needs both a label and a URL');
+        }
+        if (!isHttpUrl(url)) {
+          throw new Error(`Ticket link URL must start with http:// or https:// — got "${url}"`);
+        }
+        ticketLinks.push({ label, url });
+      }
+      clean.ticketLinks = ticketLinks;
+    }
+
     return this.dataHelper.update(clean);
   }
 
   /**
-   * Auto-sync the landing page's dates/venue from a Durga Puja event.
+   * Auto-sync the landing page's dates/venue from the Active Durga Puja Event.
    * Called by EventService on event create/update. Guards:
-   * - event name must contain "durga" or "durgotsav"
-   * - event must not already be over (editing past years never regresses the page)
+   * - event must carry the is_active_durga_puja_event flag (the admin's
+   *   explicit choice of which event feeds this page)
+   * - event name must contain "durga" or "durgotsav" (safety net)
    * Only dates, venue name, and the linked event id are touched — intro,
-   * FAQs, and venue city stay as the admin wrote them.
+   * FAQs, venue city, and ticket links stay as the admin wrote them.
    */
   async syncFromEvent(event: Event): Promise<void> {
     try {
+      if (event.is_active_durga_puja_event !== true) return;
       const name = (event.event_name || '').toLowerCase();
       if (!/durga|durgotsav/.test(name)) return;
 
       const start = new Date(event.event_start_dt);
       const end = new Date(event.event_end_dt || event.event_start_dt);
       if (isNaN(start.getTime()) || isNaN(end.getTime())) return;
-      if (end.getTime() < Date.now()) return; // past event — leave the page alone
 
       const patch: Partial<DurgaPujaPageContent> = {
         startDate: toIsoDate(start),
@@ -135,6 +199,15 @@ export class DurgaPujaPageService {
       // Never let page sync break event creation
       console.error('Durga Puja page sync failed:', error);
     }
+  }
+}
+
+function isHttpUrl(value: string): boolean {
+  try {
+    const u = new URL(value);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch {
+    return false;
   }
 }
 

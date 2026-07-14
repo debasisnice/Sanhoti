@@ -35,6 +35,8 @@ export function getDefaultDurgaPujaPageContent(): DurgaPujaPageContent {
         answer: `Durga Puja ${year} runs October 16–21. Sanhoti's celebration schedule will be announced on our Events page.`,
       },
     ],
+    ticketLinks: [],
+    ticketsNote: '',
     updated_at: new Date().toISOString(),
   };
 }

@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import { Plus, Trash2, ExternalLink, Upload, ImageIcon, Calendar } from 'lucide-react';
-import { durgaPujaPageAPI, DurgaPujaPageContent, DurgaPujaFaq, subEventsAPI } from '../../services/api';
+import { Plus, Trash2, ExternalLink, Upload, ImageIcon, Calendar, Ticket } from 'lucide-react';
+import {
+  durgaPujaPageAPI,
+  DurgaPujaPageContent,
+  DurgaPujaFaq,
+  TicketLink,
+  subEventsAPI,
+} from '../../services/api';
 import { SubEvent } from '../../types';
 import { formatDateWithTime } from '../../utils/dateUtils';
 
@@ -131,11 +137,43 @@ export default function AdminDurgaPuja() {
   const removeFaq = (index: number) =>
     setContent(c => (c ? { ...c, faqs: c.faqs.filter((_, i) => i !== index) } : c));
 
+  const setTicketLink = (index: number, patch: Partial<TicketLink>) =>
+    setContent(c => {
+      if (!c) return c;
+      const ticketLinks = (c.ticketLinks ?? []).map((t, i) =>
+        i === index ? { ...t, ...patch } : t
+      );
+      return { ...c, ticketLinks };
+    });
+
+  const addTicketLink = () =>
+    setContent(c =>
+      c ? { ...c, ticketLinks: [...(c.ticketLinks ?? []), { label: '', url: '' }] } : c
+    );
+
+  const removeTicketLink = (index: number) =>
+    setContent(c =>
+      c ? { ...c, ticketLinks: (c.ticketLinks ?? []).filter((_, i) => i !== index) } : c
+    );
+
   const handleSave = async () => {
     if (!content) return;
     if (content.startDate && content.endDate && content.endDate < content.startDate) {
       toast.error('End date cannot be before start date');
       return;
+    }
+    for (const link of content.ticketLinks ?? []) {
+      const label = link.label.trim();
+      const url = link.url.trim();
+      if (!label && !url) continue; // empty rows are dropped by the backend
+      if (!label || !url) {
+        toast.error('Each ticket link needs both a label and a URL');
+        return;
+      }
+      if (!/^https?:\/\//i.test(url)) {
+        toast.error('Ticket link URLs must start with http:// or https://');
+        return;
+      }
     }
     setSaving(true);
     try {
@@ -321,6 +359,67 @@ export default function AdminDurgaPuja() {
           <p className="text-xs text-gray-500 mt-1">
             JPEG/PNG/WebP/GIF, max 20MB. Uploading a new image replaces the current one.
           </p>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700">
+              <span className="inline-flex items-center gap-1.5">
+                <Ticket className="w-4 h-4 text-primary-600" /> Ticket booking links
+              </span>
+            </label>
+            <button
+              type="button"
+              onClick={addTicketLink}
+              className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 text-sm font-medium"
+            >
+              <Plus className="w-4 h-4" /> Add Link
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mb-3">
+            Links to external ticketing sites (Eventbrite, Sulekha, etc.) shown as buttons in the
+            "Tickets" section of the public page. Leave empty to show a "Ticket booking opens soon"
+            placeholder instead.
+          </p>
+          {(content.ticketLinks ?? []).length > 0 && (
+            <div className="space-y-3 mb-3">
+              {(content.ticketLinks ?? []).map((link, i) => (
+                <div key={i} className="border border-gray-200 rounded-lg p-3">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <input
+                        className={inputCls}
+                        value={link.label}
+                        onChange={e => setTicketLink(i, { label: e.target.value })}
+                        placeholder="Label (e.g. Full Event Pass)"
+                      />
+                      <input
+                        className={inputCls}
+                        type="url"
+                        value={link.url}
+                        onChange={e => setTicketLink(i, { url: e.target.value })}
+                        placeholder="https://…"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeTicketLink(i)}
+                      className="text-red-500 hover:text-red-700 p-1"
+                      aria-label={`Remove ticket link ${i + 1}`}
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <input
+            className={inputCls}
+            value={content.ticketsNote ?? ''}
+            onChange={e => set('ticketsNote', e.target.value)}
+            placeholder="Optional note, e.g. Early-bird pricing until Sep 1"
+          />
         </div>
 
         <div>
