@@ -1,5 +1,10 @@
 import { DatabaseHelper } from './DatabaseHelper.js';
-import { HomePageStatements, HomeStatementTabsVisibility, Settings } from '../models/types.js';
+import {
+  HomeHeroButtonsVisibility,
+  HomePageStatements,
+  HomeStatementTabsVisibility,
+  Settings,
+} from '../models/types.js';
 
 export class SettingsDataHelper extends DatabaseHelper {
   private readonly filename = 'settings.json';
@@ -188,6 +193,22 @@ export class SettingsDataHelper extends DatabaseHelper {
     const updated: Settings = {
       ...current,
       homeHeroBannerMessage: message,
+      updated_at: new Date().toISOString(),
+    };
+
+    this.writeFile(this.filename, [updated]);
+    return updated;
+  }
+
+  async updateHomeHeroButtons(patch: Partial<HomeHeroButtonsVisibility>): Promise<Settings> {
+    let current = await this.get();
+    if (!current) {
+      current = this.getDefaultSettings();
+    }
+
+    const updated: Settings = {
+      ...current,
+      homeHeroButtons: { ...(current.homeHeroButtons ?? {}), ...patch },
       updated_at: new Date().toISOString(),
     };
 

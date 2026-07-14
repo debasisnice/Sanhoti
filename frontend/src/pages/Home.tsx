@@ -87,6 +87,13 @@ export default function Home() {
     purpose: true,
   });
   const [heroBannerText, setHeroBannerText] = useState<string | null>(null);
+  const [heroButtonsVisible, setHeroButtonsVisible] = useState({
+    facebook: true,
+    whatsapp: true,
+    viewEvents: true,
+    durgaPuja: true,
+    viewCharityEvents: true,
+  });
 
   const visibleAboutTabKeys = useMemo(
     () => ABOUT_STATEMENT_TAB_ORDER.filter((k) => statementTabsVisible[k]),
@@ -294,6 +301,16 @@ export default function Home() {
             (settings as { homeHeroBannerMessage?: string }).homeHeroBannerMessage
           )
         );
+        const hb = (settings as {
+          homeHeroButtons?: Record<string, boolean | undefined>;
+        }).homeHeroButtons;
+        setHeroButtonsVisible({
+          facebook: hb?.facebook !== false,
+          whatsapp: hb?.whatsapp !== false,
+          viewEvents: hb?.viewEvents !== false,
+          durgaPuja: hb?.durgaPuja !== false,
+          viewCharityEvents: hb?.viewCharityEvents !== false,
+        });
       } catch {
         // Use defaults if fetch fails
       }
@@ -567,34 +584,42 @@ export default function Home() {
                 transition={{ delay: 0.6 }}
                 className="flex flex-col md:flex-row gap-1.5 md:gap-2 w-fit flex-shrink-0 md:col-start-1 md:row-start-2"
               >
-                <a
-                  href={facebookLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-blue-400 text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-blue-500 transition-all transform hover:scale-105 shadow-lg text-center whitespace-nowrap"
-                >
-                  Join our Facebook Page
-                </a>
-                <a
-                  href={whatsappLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-green-400 text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-green-500 transition-all transform hover:scale-105 shadow-lg text-center whitespace-nowrap"
-                >
-                  Join us in WhatsApp
-                </a>
-                <Link
-                  to="/events"
-                  className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap w-[11rem] md:w-auto"
-                >
-                  View Events
-                </Link>
-                <Link
-                  to="/durga-puja"
-                  className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap w-[11rem] md:w-auto"
-                >
-                  Durga Puja
-                </Link>
+                {heroButtonsVisible.facebook && (
+                  <a
+                    href={facebookLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-blue-400 text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-blue-500 transition-all transform hover:scale-105 shadow-lg text-center whitespace-nowrap"
+                  >
+                    Join our Facebook Page
+                  </a>
+                )}
+                {heroButtonsVisible.whatsapp && (
+                  <a
+                    href={whatsappLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-green-400 text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-green-500 transition-all transform hover:scale-105 shadow-lg text-center whitespace-nowrap"
+                  >
+                    Join us in WhatsApp
+                  </a>
+                )}
+                {heroButtonsVisible.viewEvents && (
+                  <Link
+                    to="/events"
+                    className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap w-[11rem] md:w-auto"
+                  >
+                    View Events
+                  </Link>
+                )}
+                {heroButtonsVisible.durgaPuja && (
+                  <Link
+                    to="/durga-puja"
+                    className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap w-[11rem] md:w-auto"
+                  >
+                    Durga Puja
+                  </Link>
+                )}
               </motion.div>
               {heroBannerText ? (
                 <div className="sm:hidden flex flex-1 min-w-0 justify-center items-stretch">
@@ -718,12 +743,14 @@ export default function Home() {
             transition={{ delay: 0.8 }}
             className="w-full md:w-fit flex-shrink-0 flex flex-col items-start md:items-end gap-3 md:gap-4 md:col-start-2 md:row-start-2 md:row-span-2 md:self-start"
           >
-            <Link
-              to="/events?type=Charity"
-              className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap w-[11rem] md:w-auto"
-            >
-              View Charity Events
-            </Link>
+            {heroButtonsVisible.viewCharityEvents && (
+              <Link
+                to="/events?type=Charity"
+                className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap w-[11rem] md:w-auto"
+              >
+                View Charity Events
+              </Link>
+            )}
             <Link to="/events?type=Charity" className="block w-fit">
               <div className="relative rounded-lg shadow-xl w-32 md:w-80 lg:w-96 overflow-hidden aspect-[3/4] md:aspect-[3/3.5] border-2 md:border-4 border-yellow-400 cursor-pointer hover:shadow-2xl transition-shadow">
                 {charityEventImages.length > 0 ? (

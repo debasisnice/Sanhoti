@@ -897,6 +897,12 @@ export const settingsAPI = {
     const response = await api.put('/settings/home-hero-banner', { message });
     return response.data;
   },
+  updateHomeHeroButtons: async (
+    buttons: Partial<Record<'facebook' | 'whatsapp' | 'viewEvents' | 'durgaPuja' | 'viewCharityEvents', boolean>>
+  ): Promise<any> => {
+    const response = await api.put('/settings/home-hero-buttons', { buttons });
+    return response.data;
+  },
   getEmailSettings: async (): Promise<any> => {
     const response = await api.get('/settings/email');
     return response.data;

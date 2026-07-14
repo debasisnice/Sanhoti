@@ -263,6 +263,20 @@ export interface HomeStatementTabsVisibility {
   purpose?: boolean;
 }
 
+/** Visibility of the individual hero buttons on the home page; omitted or true = show, false = hide. */
+export interface HomeHeroButtonsVisibility {
+  /** "Join our Facebook Page" button. */
+  facebook?: boolean;
+  /** "Join us in WhatsApp" button. */
+  whatsapp?: boolean;
+  /** "View Events" button. */
+  viewEvents?: boolean;
+  /** "Durga Puja" button. */
+  durgaPuja?: boolean;
+  /** "View Charity Events" button (right-side charity column). */
+  viewCharityEvents?: boolean;
+}
+
 export interface DurgaPujaFaq {
   question: string;
   answer: string;
@@ -330,5 +344,7 @@ export interface Settings {
   statementTabsVisibility?: HomeStatementTabsVisibility;
   /** Center hero banner text (Bengali/any script). Omitted or empty = no banner on home. */
   homeHeroBannerMessage?: string;
+  /** Per-button visibility for the home page hero buttons; omitted or true = show. */
+  homeHeroButtons?: HomeHeroButtonsVisibility;
   updated_at: string;
 }

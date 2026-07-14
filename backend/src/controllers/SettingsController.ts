@@ -1,7 +1,19 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
-import { HomePageStatements, HomeStatementTabsVisibility } from '../models/types.js';
+import {
+  HomeHeroButtonsVisibility,
+  HomePageStatements,
+  HomeStatementTabsVisibility,
+} from '../models/types.js';
 import { SettingsService } from '../services/SettingsService.js';
+
+const HERO_BUTTON_KEYS: (keyof HomeHeroButtonsVisibility)[] = [
+  'facebook',
+  'whatsapp',
+  'viewEvents',
+  'durgaPuja',
+  'viewCharityEvents',
+];
 
 export class SettingsController {
   private settingsService: SettingsService;
@@ -222,6 +234,40 @@ export class SettingsController {
     } catch (error: any) {
       console.error('Error updating home hero banner:', error);
       res.status(500).json({ error: 'Failed to update home hero banner', details: error.message });
+    }
+  }
+
+  async updateHomeHeroButtons(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const body = req.body?.buttons ?? req.body ?? {};
+      if (typeof body !== 'object' || body === null) {
+        res.status(400).json({ error: 'Invalid hero buttons payload' });
+        return;
+      }
+
+      const patch: Partial<HomeHeroButtonsVisibility> = {};
+      for (const key of HERO_BUTTON_KEYS) {
+        if (body[key] !== undefined) {
+          if (typeof body[key] !== 'boolean') {
+            res.status(400).json({ error: `Invalid ${key}: must be a boolean` });
+            return;
+          }
+          patch[key] = body[key];
+        }
+      }
+
+      if (Object.keys(patch).length === 0) {
+        res.status(400).json({
+          error: `Provide at least one of: ${HERO_BUTTON_KEYS.join(', ')}`,
+        });
+        return;
+      }
+
+      const settings = await this.settingsService.updateHomeHeroButtons(patch);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error updating home hero buttons:', error);
+      res.status(500).json({ error: 'Failed to update home hero buttons', details: error.message });
     }
   }
 }

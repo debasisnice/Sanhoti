@@ -66,6 +66,25 @@ const menuItemLabels: Record<keyof NavbarSettings, string> = {
 
 type TabType = 'navbar' | 'users' | 'sponsors' | 'homepage' | 'statements' | 'boardmembers' | 'paymentqr';
 
+type HeroButtonKey = 'facebook' | 'whatsapp' | 'viewEvents' | 'durgaPuja' | 'viewCharityEvents';
+type HomeHeroButtonsState = Record<HeroButtonKey, boolean>;
+
+const HERO_BUTTON_ORDER: HeroButtonKey[] = [
+  'facebook',
+  'whatsapp',
+  'viewEvents',
+  'durgaPuja',
+  'viewCharityEvents',
+];
+
+const HERO_BUTTON_LABELS: Record<HeroButtonKey, string> = {
+  facebook: 'Join our Facebook Page',
+  whatsapp: 'Join us in WhatsApp',
+  viewEvents: 'View Events',
+  durgaPuja: 'Durga Puja',
+  viewCharityEvents: 'View Charity Events',
+};
+
 interface SponsorImage {
   filename: string;
   url: string;
@@ -111,6 +130,13 @@ export default function AdminSettings() {
     purpose: true,
   });
   const [homeHeroBannerMessage, setHomeHeroBannerMessage] = useState('');
+  const [heroButtonsVisible, setHeroButtonsVisible] = useState<HomeHeroButtonsState>({
+    facebook: true,
+    whatsapp: true,
+    viewEvents: true,
+    durgaPuja: true,
+    viewCharityEvents: true,
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -168,6 +194,14 @@ export default function AdminSettings() {
       });
       const heroRaw = (data as { homeHeroBannerMessage?: string }).homeHeroBannerMessage;
       setHomeHeroBannerMessage(heroRaw ?? '');
+      const hb = (data as { homeHeroButtons?: Record<string, boolean | undefined> }).homeHeroButtons;
+      setHeroButtonsVisible({
+        facebook: hb?.facebook !== false,
+        whatsapp: hb?.whatsapp !== false,
+        viewEvents: hb?.viewEvents !== false,
+        durgaPuja: hb?.durgaPuja !== false,
+        viewCharityEvents: hb?.viewCharityEvents !== false,
+      });
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to fetch settings');
     } finally {
@@ -462,6 +496,22 @@ export default function AdminSettings() {
       await fetchSettings();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to update tab visibility');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleHeroButton = async (key: HeroButtonKey) => {
+    const nextVisible = !heroButtonsVisible[key];
+    const previous = heroButtonsVisible;
+    setHeroButtonsVisible((prev) => ({ ...prev, [key]: nextVisible }));
+    try {
+      setSaving(true);
+      await settingsAPI.updateHomeHeroButtons({ [key]: nextVisible });
+      toast.success('Home page button visibility updated');
+    } catch (error: any) {
+      setHeroButtonsVisible(previous);
+      toast.error(error.response?.data?.error || 'Failed to update button visibility');
     } finally {
       setSaving(false);
     }
@@ -1473,6 +1523,44 @@ export default function AdminSettings() {
                 >
                   {saving ? 'Saving...' : 'Save hero banner'}
                 </button>
+              </div>
+
+              {/* Hero Buttons Visibility Section */}
+              <div className="mb-8 p-6 bg-white rounded-lg border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Hero Buttons</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Show or hide the individual action buttons shown over the home page hero image.
+                </p>
+                <div className="space-y-3">
+                  {HERO_BUTTON_ORDER.map((key) => (
+                    <div
+                      key={key}
+                      className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <div>
+                        <h4 className="font-medium text-gray-900">{HERO_BUTTON_LABELS[key]}</h4>
+                        <p className="text-sm text-gray-500">
+                          {heroButtonsVisible[key] ? 'Shown on home page' : 'Hidden from home page'}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => toggleHeroButton(key)}
+                        disabled={saving}
+                        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                          heroButtonsVisible[key] ? 'bg-primary-600' : 'bg-gray-300'
+                        } ${saving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        aria-label={`Toggle ${HERO_BUTTON_LABELS[key]}`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            heroButtonsVisible[key] ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Social Links Section */}

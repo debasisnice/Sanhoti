@@ -700,6 +700,11 @@ router.put('/settings/home-hero-banner',
   auditLog('UPDATE', 'home_hero_banner'),
   bindController(settingsController, 'updateHomeHeroBanner')
 );
+router.put('/settings/home-hero-buttons',
+  requireAdmin,
+  auditLog('UPDATE', 'home_hero_buttons'),
+  bindController(settingsController, 'updateHomeHeroButtons')
+);
 
 export default router;
 

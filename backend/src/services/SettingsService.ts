@@ -1,5 +1,10 @@
 import { SettingsDataHelper } from '../data/SettingsDataHelper.js';
-import { HomePageStatements, HomeStatementTabsVisibility, Settings } from '../models/types.js';
+import {
+  HomeHeroButtonsVisibility,
+  HomePageStatements,
+  HomeStatementTabsVisibility,
+  Settings,
+} from '../models/types.js';
 
 export class SettingsService {
   private settingsDataHelper: SettingsDataHelper;
@@ -58,6 +63,10 @@ export class SettingsService {
 
   async updateHomeHeroBanner(message: string): Promise<Settings> {
     return this.settingsDataHelper.updateHomeHeroBanner(message);
+  }
+
+  async updateHomeHeroButtons(patch: Partial<HomeHeroButtonsVisibility>): Promise<Settings> {
+    return this.settingsDataHelper.updateHomeHeroButtons(patch);
   }
 }
 
