@@ -8,7 +8,7 @@ describe('DurgaPujaPageService ticket link validation', () => {
 
   it('rejects a non-array ticketLinks value', async () => {
     await expect(
-      service.updateContent({ ticketLinks: 'not-an-array' as any })
+      service.updateContent(2026, { ticketLinks: 'not-an-array' as any })
     ).rejects.toThrow(/ticketLinks must be an array/);
   });
 
@@ -17,42 +17,40 @@ describe('DurgaPujaPageService ticket link validation', () => {
       label: `Link ${i}`,
       url: `https://example.com/${i}`,
     }));
-    await expect(service.updateContent({ ticketLinks: links })).rejects.toThrow(
-      /at most 6/
-    );
+    await expect(service.updateContent(2026, { ticketLinks: links })).rejects.toThrow(/at most 6/);
   });
 
   it('rejects a link with a label but no URL', async () => {
     await expect(
-      service.updateContent({ ticketLinks: [{ label: 'Full Pass', url: '' }] })
+      service.updateContent(2026, { ticketLinks: [{ label: 'Full Pass', url: '' }] })
     ).rejects.toThrow(/both a label and a URL/);
   });
 
   it('rejects a link with a URL but no label', async () => {
     await expect(
-      service.updateContent({ ticketLinks: [{ label: '', url: 'https://example.com' }] })
+      service.updateContent(2026, { ticketLinks: [{ label: '', url: 'https://example.com' }] })
     ).rejects.toThrow(/both a label and a URL/);
   });
 
   it('rejects non-http(s) URLs', async () => {
     await expect(
-      service.updateContent({
+      service.updateContent(2026, {
         ticketLinks: [{ label: 'Bad', url: 'javascript:alert(1)' }],
       })
     ).rejects.toThrow(/must start with http/);
     await expect(
-      service.updateContent({ ticketLinks: [{ label: 'Bad', url: 'example.com/tickets' }] })
+      service.updateContent(2026, { ticketLinks: [{ label: 'Bad', url: 'example.com/tickets' }] })
     ).rejects.toThrow(/must start with http/);
   });
 
   it('rejects non-string label/url', async () => {
     await expect(
-      service.updateContent({ ticketLinks: [{ label: 123, url: 'https://x.com' } as any] })
+      service.updateContent(2026, { ticketLinks: [{ label: 123, url: 'https://x.com' } as any] })
     ).rejects.toThrow(/label and a URL/);
   });
 
   it('rejects a non-string ticketsNote', async () => {
-    await expect(service.updateContent({ ticketsNote: 42 as any })).rejects.toThrow(
+    await expect(service.updateContent(2026, { ticketsNote: 42 as any })).rejects.toThrow(
       /Invalid value for ticketsNote/
     );
   });

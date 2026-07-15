@@ -1020,7 +1020,7 @@ export default function AdminEvents() {
                           <Link
                             to="/admin/durga-puja"
                             className="inline-flex items-center gap-1 mt-2 px-3 py-1.5 bg-primary-600 text-white text-xs font-semibold rounded-lg hover:bg-primary-700 transition-colors"
-                            title="Edit the public /durga-puja landing page (dates, venue, tickets, FAQs)"
+                            title="Edit the public Durga Puja landing page (dates, venue, tickets, FAQs)"
                           >
                             <Edit className="w-3.5 h-3.5" />
                             Edit Durga Puja Page

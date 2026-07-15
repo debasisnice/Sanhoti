@@ -1,7 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Calendar, Bell, Image, BookOpen, Mail, Settings, MessageSquare, Users, ClipboardList, Menu, X, FileText, FileCheck, Newspaper, HelpCircle, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Calendar, Bell, Image, BookOpen, Mail, Settings, MessageSquare, ClipboardList, Menu, X, FileText, FileCheck, Newspaper, HelpCircle, Sparkles, Ticket, BarChart3, QrCode, ListChecks, Users, type LucideIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { eventsAPI, rsvpAPI, noticesAPI, subEventsAPI } from '../../services/api';
 import { Event, RSVP, SubEvent } from '../../types';
@@ -18,25 +18,43 @@ import AdminEmail from './AdminEmail';
 import AdminAuditLogs from './AdminAuditLogs';
 import AdminUserManual from './AdminUserManual';
 import AdminDurgaPuja from './AdminDurgaPuja';
+import AdminBookYourSeat from './AdminBookYourSeat';
+import AdminTicketStats from './AdminTicketStats';
+import AdminTicketBookings from './AdminTicketBookings';
+import AdminScanQR from './AdminScanQR';
 
 export default function AdminDashboard() {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const menuItems = [
-    { icon: LayoutDashboard, label: 'Overview', path: '/admin' },
-    { icon: Calendar, label: 'Events', path: '/admin/events' },
-    { icon: Sparkles, label: 'Durga Puja Page', path: '/admin/durga-puja' },
-    { icon: Bell, label: 'Notices', path: '/admin/notices' },
-    { icon: Image, label: 'Galleries', path: '/admin/galleries' },
-    { icon: BookOpen, label: 'Magazines', path: '/admin/magazines' },
-    { icon: Newspaper, label: 'Media', path: '/admin/news' },
-    { icon: FileText, label: 'Documents', path: '/admin/documents' },
-    { icon: MessageSquare, label: 'Messages', path: '/admin/messages' },
-    { icon: ClipboardList, label: 'RSVP', path: '/admin/rsvps' },
-    { icon: Mail, label: 'Email', path: '/admin/email' },
-    { icon: Settings, label: 'Settings', path: '/admin/settings' },
-    { icon: FileCheck, label: 'Audit Logs', path: '/admin/audit-logs' },
-    { icon: HelpCircle, label: 'User Manual', path: '/admin/user-manual' },
+  const menuGroups: { icon: LucideIcon; label: string; path: string }[][] = [
+    [
+      { icon: LayoutDashboard, label: 'Overview', path: '/admin' },
+      { icon: Settings, label: 'Settings', path: '/admin/settings' },
+    ],
+    [
+      { icon: Calendar, label: 'Events', path: '/admin/events' },
+      { icon: Sparkles, label: 'Durga Puja Page', path: '/admin/durga-puja' },
+      { icon: Ticket, label: 'Ticket Settings', path: '/admin/book-your-seat' },
+      { icon: ListChecks, label: 'Ticket Bookings', path: '/admin/ticket-bookings' },
+      { icon: BarChart3, label: 'Ticket Stats', path: '/admin/ticket-stats' },
+      { icon: QrCode, label: 'Scan QR', path: '/admin/scan-qr' },
+    ],
+    [
+      { icon: Bell, label: 'Notices', path: '/admin/notices' },
+      { icon: Image, label: 'Galleries', path: '/admin/galleries' },
+      { icon: BookOpen, label: 'Magazines', path: '/admin/magazines' },
+      { icon: Newspaper, label: 'Media', path: '/admin/news' },
+      { icon: FileText, label: 'Documents', path: '/admin/documents' },
+    ],
+    [
+      { icon: MessageSquare, label: 'Messages', path: '/admin/messages' },
+      { icon: ClipboardList, label: 'RSVP', path: '/admin/rsvps' },
+      { icon: Mail, label: 'Email', path: '/admin/email' },
+    ],
+    [
+      { icon: FileCheck, label: 'Audit Logs', path: '/admin/audit-logs' },
+      { icon: HelpCircle, label: 'User Manual', path: '/admin/user-manual' },
+    ],
   ];
 
   return (
@@ -58,25 +76,31 @@ export default function AdminDashboard() {
           <div className="p-4">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Admin Panel</h2>
             <nav className="space-y-1">
-              {menuItems.map((item) => {
-                const isActive = location.pathname === item.path || 
-                  (item.path !== '/admin' && location.pathname.startsWith(item.path));
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
-                      isActive
-                        ? 'bg-primary-600 text-white'
-                        : 'hover:bg-primary-50 hover:text-primary-600 text-gray-700'
-                    }`}
-                  >
-                    <item.icon className="w-5 h-5" />
-                    <span className="font-medium">{item.label}</span>
-                  </Link>
-                );
-              })}
+              {menuGroups.map((group, groupIndex) => (
+                <div key={groupIndex}>
+                  {groupIndex > 0 && <hr className="my-3 border-gray-200" />}
+                  {group.map(item => {
+                    const isActive =
+                      location.pathname === item.path ||
+                      (item.path !== '/admin' && location.pathname.startsWith(item.path));
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
+                          isActive
+                            ? 'bg-primary-600 text-white'
+                            : 'hover:bg-primary-50 hover:text-primary-600 text-gray-700'
+                        }`}
+                      >
+                        <item.icon className="w-5 h-5" />
+                        <span className="font-medium">{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              ))}
             </nav>
           </div>
         </aside>
@@ -100,6 +124,10 @@ export default function AdminDashboard() {
             <Route path="/" element={<AdminOverview />} />
             <Route path="/events" element={<AdminEvents />} />
             <Route path="/durga-puja" element={<AdminDurgaPuja />} />
+            <Route path="/book-your-seat" element={<AdminBookYourSeat />} />
+            <Route path="/ticket-bookings" element={<AdminTicketBookings />} />
+            <Route path="/ticket-stats" element={<AdminTicketStats />} />
+            <Route path="/scan-qr" element={<AdminScanQR />} />
             <Route path="/notices" element={<AdminNotices />} />
             <Route path="/galleries" element={<AdminGalleries />} />
             <Route path="/magazines" element={<AdminMagazines />} />

@@ -290,8 +290,299 @@ export interface TicketLink {
   url: string;
 }
 
-/** Admin-editable content for the public /durga-puja landing page. */
+// ---------------------------------------------------------------------------
+// Seat booking ("Book Your Seat") — native ticketing for the active Durga Puja
+// event: seat map, categories/pricing, timed holds, discounts, bookings.
+// ---------------------------------------------------------------------------
+
+/** Price/color tier, e.g. VIP / Premium / General. */
+export interface SeatCategory {
+  category_id: string;
+  name: string;
+  color: string; // hex used on the seat map legend
+  /** Adult ticket price (USD). Legacy `price` is treated as adult_price when omitted. */
+  adult_price: number;
+  /** Child ticket price (USD), using child_age_range on the profile. */
+  child_price: number;
+  /** When true, this tier is offered on the entire-event pass. */
+  entire_event_enabled?: boolean;
+  /** @deprecated Use adult_price. Kept for backward compatibility with saved data. */
+  price?: number;
+}
+
+/** Defines who qualifies for child pricing on this event. */
+export interface ChildAgeRange {
+  min_age: number;
+  max_age: number;
+}
+
+/** Per-day lunch/dinner pricing for the main event (not tied to seat maps). */
+export interface MealDayPricing {
+  day_id: string;
+  label: string;
+  /** Optional calendar date (YYYY-MM-DD) for this Puja day. */
+  date?: string;
+  lunch_adult_price: number;
+  lunch_child_price: number;
+  dinner_adult_price: number;
+  dinner_child_price: number;
+}
+
+export type SubEventTicketingType = 'general' | 'concert';
+
+export interface FoodAddon {
+  addon_id: string;
+  name: string;
+  description?: string;
+  adult_price: number;
+  child_price: number;
+  meal_day_id?: string;
+  meal_type?: 'lunch' | 'dinner';
+}
+
+/** Per-category seat pricing for one sub-event concert map. */
+export interface SubEventCategoryPricing {
+  category_id: string;
+  adult_price: number;
+  child_price: number;
+}
+
+/** Ticketing options for one sub-event (concert maps + food add-ons). */
+export interface SubEventTicketingConfig {
+  sub_event_id: string;
+  /** Concert sub-events get a seat map on the Seat Maps tab. */
+  ticketing_type: SubEventTicketingType;
+  /** Master category IDs enabled for this sub-event's seat map. */
+  enabled_category_ids: string[];
+  /** Seat prices per enabled category on this sub-event. */
+  category_prices: SubEventCategoryPricing[];
+  food_addons: FoodAddon[];
+  /** @deprecated Migrated to enabled_category_ids — legacy sub-event category copies. */
+  categories?: SeatCategory[];
+}
+
+/**
+ * A block of seats sharing one category.
+ * Grid mode: a rectangle of rows × seats_per_row.
+ * Image mode: each physical row placed on the venue map is a section with
+ * rows === 1, and its seats get x/y positions in SeatingConfig.seat_positions.
+ */
+export interface SeatingSection {
+  section_id: string;
+  name: string; // grid: "Center"; image: row label like "Odd A"
+  rows: number;
+  seats_per_row: number;
+  category_id: string;
+  /** Display numbering (labels only): first seat's number, default 1. */
+  seat_number_start?: number;
+  /** Display numbering step — 2 gives odd/even theatre numbering. Default 1. */
+  seat_number_step?: number;
+}
+
+/** Percent coordinates (0-100) of a seat on the uploaded venue map image. */
+export interface SeatPosition {
+  x: number;
+  y: number;
+}
+
+/**
+ * Seat ids are `${section_id}:${row}:${seat}` with 1-based row/seat numbers,
+ * e.g. "SEC1:3:12". Row 1 is closest to the stage.
+ */
+export interface SeatingConfig {
+  /** Event this seating/booking belongs to — required before booking can open. */
+  event_id?: string;
+  /** Optional: narrow the association to one sub-event of that event (e.g. a paid concert night). */
+  sub_event_id?: string;
+  is_open: boolean; // whether public booking is open
+  hold_minutes: number; // how long a checkout hold lasts
+  categories: SeatCategory[];
+  sections: SeatingSection[];
+  /**
+   * 'matrix' (preferred): admin-painted grid of seats/passages with the stage
+   * on top. 'grid' renders sections as rectangles (legacy). 'image' is a
+   * legacy value kept only so old saved configs stay readable.
+   */
+  layout_mode?: 'grid' | 'image' | 'matrix';
+  /** Matrix mode: overall grid dimensions the seats live in. */
+  matrix?: { rows: number; cols: number };
+  /**
+   * Seat coordinates keyed by seat_id. Matrix mode: x = column, y = row
+   * (1-based cell indices). Legacy image mode: percent positions.
+   */
+  seat_positions?: Record<string, SeatPosition>;
+  /** Seats the admin blocked from sale (reserved/broken/aisle). */
+  blocked_seats: string[];
+  /** Optional note shown on the booking page, e.g. "Doors open 5pm". */
+  booking_note?: string;
+  updated_at: string;
+}
+
+/** One independently managed venue layout belonging to an event/sub-event. */
+export interface SeatMap {
+  map_id: string;
+  event_id: string;
+  sub_event_id?: string;
+  name: string;
+  is_open: boolean;
+  matrix: { rows: number; cols: number };
+  sections: SeatingSection[];
+  seat_positions: Record<string, SeatPosition>;
+  blocked_seats: string[];
+  updated_at: string;
+  /** Set only on the map produced by the one-time singleton-config migration. */
+  migrated_from_legacy?: boolean;
+}
+
+/** Reusable seat layout (max two slots) independent of any event. */
+export interface SeatMapTemplateSeat {
+  row: number;
+  col: number;
+  category_name: string;
+  blocked?: boolean;
+}
+
+export interface SeatMapTemplate {
+  template_id: string;
+  /** Fixed slot 1 or 2 — at most two saved layouts globally. */
+  slot: 1 | 2;
+  name: string;
+  matrix: { rows: number; cols: number };
+  seats: SeatMapTemplateSeat[];
+  updated_at: string;
+}
+
+/** Event-level ticketing settings shared by every map for that event. */
+export interface TicketingProfile {
+  event_id: string;
+  /** Seat categories for whole-event / main concert maps. */
+  categories: SeatCategory[];
+  child_age_range: ChildAgeRange;
+  /** Lunch/dinner pricing by Puja day (main event; not seat booking). */
+  meal_days: MealDayPricing[];
+  /** Per sub-event ticketing: concert seat tiers and checkout food add-ons. */
+  sub_event_configs: SubEventTicketingConfig[];
+  hold_minutes: number;
+  payment_window_hours: number;
+  booking_note?: string;
+  updated_at: string;
+}
+
+/** Temporary lock on seats while a buyer completes checkout. */
+export interface SeatHold {
+  hold_id: string;
+  seat_ids: string[];
+  expires_at: string;
+  created_at: string;
+}
+
+export interface BookedSeatDetail {
+  seat_id: string;
+  label: string; // human-readable, e.g. "Center — Row C, Seat 12"
+  category_name: string;
+  price: number;
+  audience_type?: 'adult' | 'child';
+  map_id?: string;
+  map_name?: string;
+  sub_event_id?: string;
+}
+
+export interface BookedFoodAddon {
+  addon_id: string;
+  sub_event_id: string;
+  name: string;
+  adult_qty: number;
+  child_qty: number;
+  adult_price: number;
+  child_price: number;
+  line_total: number;
+  meal_day_id?: string;
+  meal_type?: 'lunch' | 'dinner';
+}
+
+export interface BookedMealDetail {
+  day_id: string;
+  label: string;
+  meal_type: 'lunch' | 'dinner';
+  adult_qty: number;
+  child_qty: number;
+  adult_price: number;
+  child_price: number;
+  line_total: number;
+}
+
+export type BookingStatus = 'pending_payment' | 'confirmed' | 'cancelled' | 'expired';
+
+export interface GateCheckinEvent {
+  at: string;
+  admitted?: number;
+  set_to?: number;
+}
+
+export interface GateCheckin {
+  checked_in: number;
+  updated_at: string;
+  log?: GateCheckinEvent[];
+}
+
+export interface SeatBooking {
+  booking_id: string;
+  /** Event (and optionally sub-event) this booking belongs to — set from the config at checkout. */
+  event_id: string;
+  sub_event_id?: string;
+  sub_event_ids?: string[];
+  /** Human-readable snapshot, e.g. "Durga Puja 2026 — Cultural Night". */
+  event_context: string;
+  seat_ids: string[];
+  seats_detail: BookedSeatDetail[];
+  meals_detail?: BookedMealDetail[];
+  food_addons_detail?: BookedFoodAddon[];
+  name: string;
+  email: string;
+  phone: string;
+  subtotal: number;
+  discount_code?: string;
+  discount_amount: number;
+  total: number;
+  status: BookingStatus;
+  /** ISO deadline for pending_payment; stamped at checkout from profile payment_window_hours. */
+  payment_due_at?: string;
+  /** Admin-recorded Zelle confirmation or payment note (set on Mark Paid). */
+  payment_reference?: string;
+  /** Unique token for event-day admission QR scanning (issued on Mark Paid). */
+  admission_qr_token?: string;
+  /** ISO timestamp when admission_qr_token was first issued. */
+  admission_qr_generated_at?: string;
+  /**
+   * Event-day check-ins keyed by gate scope (sub:, meal:, addon:, or event).
+   * Each gate tracks how many people have been admitted (partial check-in supported).
+   */
+  admission_checkins?: Record<string, GateCheckin>;
+  /** ISO timestamp of the most recent check-in across gates (mirror/back-compat). */
+  admission_checked_in_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DiscountCode {
+  discount_id: string;
+  code: string; // stored uppercase
+  type: 'percent' | 'fixed';
+  value: number; // percent (0-100) or USD amount
+  min_seats?: number; // minimum seats in the order to qualify
+  max_uses?: number; // total redemption cap
+  used_count: number;
+  valid_from?: string; // ISO date
+  valid_until?: string; // ISO date (inclusive)
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Admin-editable content for a public /durga-puja-YYYY landing page. */
 export interface DurgaPujaPageContent {
+  /** Celebration year this page represents (e.g. 2026 → /durga-puja-2026). */
+  year: number;
   /** Intro paragraph under the H1. */
   intro: string;
   /** Human-readable dates line, e.g. "October 16–21, 2026 (Shashthi through Vijayadashami)". */
@@ -310,6 +601,17 @@ export interface DurgaPujaPageContent {
   ticketLinks?: TicketLink[];
   /** Optional note shown with the ticket links, e.g. "Early-bird pricing until Sep 1". */
   ticketsNote?: string;
+  /**
+   * Public-page ticketing visibility (admin-controlled from the Durga Puja page).
+   * All default to their historical behavior when absent:
+   *  - showInternalBooking (default true): show the in-website "Book Your Seat" CTA
+   *    (still also requires the seat system to be open).
+   *  - showExternalTickets (default true): show external ticket link buttons.
+   *  - ticketsOff (default false): master switch — hides ALL ticketing on the page.
+   */
+  showInternalBooking?: boolean;
+  showExternalTickets?: boolean;
+  ticketsOff?: boolean;
   /** Event this page's dates/venue were last auto-synced from (name contains "Durga"). */
   linkedEventId?: string;
   updated_at: string;

@@ -110,8 +110,10 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// 5mb: the seat-map layout (one section + position per painted seat) can
+// exceed the 100kb body-parser default once a few hundred seats exist.
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 // Serve User Manual static files
 app.use('/api/user-manual', express.static(join(__dirname, '../data/UserManual')));
@@ -157,6 +159,14 @@ app.use('/api', routes);
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Error:', err);
+  // Surface client errors from body-parser & co. (payload too large,
+  // malformed JSON) as 4xx with a real message instead of a generic 500.
+  const status =
+    (err as { status?: number }).status ?? (err as { statusCode?: number }).statusCode;
+  if (status && status >= 400 && status < 500) {
+    res.status(status).json({ error: err.message || 'Bad request' });
+    return;
+  }
   res.status(500).json({ error: 'Internal server error' });
 });
 

@@ -806,6 +806,7 @@ export interface TicketLink {
   url: string;
 }
 export interface DurgaPujaPageContent {
+  year: number;
   intro: string;
   datesText: string;
   startDate: string;
@@ -818,38 +819,680 @@ export interface DurgaPujaPageContent {
   ticketLinks?: TicketLink[];
   /** Optional note shown with the ticket links, e.g. "Early-bird pricing until Sep 1". */
   ticketsNote?: string;
+  /** Show the in-website "Book Your Seat" CTA (default true; also needs the seat system open). */
+  showInternalBooking?: boolean;
+  /** Show external ticket link buttons (default true). */
+  showExternalTickets?: boolean;
+  /** Master switch — hide ALL ticketing on the public page (default false). */
+  ticketsOff?: boolean;
   /** Set automatically when a "Durga Puja" event is created/updated. */
   linkedEventId?: string;
   updated_at: string;
 }
+// Seat booking ("Book Your Seat") API
+export interface SeatCategory {
+  category_id: string;
+  name: string;
+  color: string;
+  adult_price: number;
+  child_price: number;
+  entire_event_enabled?: boolean;
+  /** @deprecated Use adult_price */
+  price?: number;
+}
+export interface ChildAgeRange {
+  min_age: number;
+  max_age: number;
+}
+export interface MealDayPricing {
+  day_id: string;
+  label: string;
+  date?: string;
+  lunch_adult_price: number;
+  lunch_child_price: number;
+  dinner_adult_price: number;
+  dinner_child_price: number;
+}
+export type SubEventTicketingType = 'general' | 'concert';
+export interface FoodAddon {
+  addon_id: string;
+  name: string;
+  description?: string;
+  adult_price: number;
+  child_price: number;
+  meal_day_id?: string;
+  meal_type?: 'lunch' | 'dinner';
+}
+export interface SubEventCategoryPricing {
+  category_id: string;
+  adult_price: number;
+  child_price: number;
+}
+export interface SubEventTicketingConfig {
+  sub_event_id: string;
+  ticketing_type: SubEventTicketingType;
+  enabled_category_ids: string[];
+  category_prices: SubEventCategoryPricing[];
+  food_addons: FoodAddon[];
+  /** @deprecated Legacy per-sub-event category copies */
+  categories?: SeatCategory[];
+}
+export interface SeatingSection {
+  section_id: string;
+  name: string;
+  rows: number;
+  seats_per_row: number;
+  category_id: string;
+  /** Display numbering: first seat number (default 1). */
+  seat_number_start?: number;
+  /** Display numbering step — 2 gives odd/even theatre numbering (default 1). */
+  seat_number_step?: number;
+}
+export interface SeatPosition {
+  x: number;
+  y: number;
+}
+export interface SeatMap {
+  map_id: string;
+  event_id: string;
+  sub_event_id?: string;
+  name: string;
+  is_open: boolean;
+  sections: SeatingSection[];
+  layout_mode?: 'grid' | 'image' | 'matrix';
+  matrix: { rows: number; cols: number };
+  seat_positions: Record<string, SeatPosition>;
+  blocked_seats: string[];
+  updated_at?: string;
+}
+export interface SeatMapTemplate {
+  template_id: string;
+  slot: 1 | 2;
+  name: string;
+  matrix: { rows: number; cols: number };
+  seats: Array<{
+    row: number;
+    col: number;
+    category_name: string;
+    blocked?: boolean;
+  }>;
+  updated_at: string;
+}
+export interface TicketingProfile {
+  event_id: string;
+  categories: SeatCategory[];
+  child_age_range: ChildAgeRange;
+  meal_days: MealDayPricing[];
+  sub_event_configs: SubEventTicketingConfig[];
+  hold_minutes: number;
+  payment_window_hours?: number;
+  booking_note?: string;
+  updated_at?: string;
+}
+
+export const categoryAdultPrice = (c: SeatCategory) => Number(c.adult_price ?? c.price ?? 0);
+export const categoryChildPrice = (c: SeatCategory) => Number(c.child_price ?? categoryAdultPrice(c));
+
+export function categoriesForEntireEvent(profile: Pick<TicketingProfile, 'categories'>): SeatCategory[] {
+  return (profile.categories ?? []).filter(c => c.entire_event_enabled);
+}
+
+export function subEventCategoryPrice(
+  config: SubEventTicketingConfig | undefined,
+  categoryId: string
+): SubEventCategoryPricing | undefined {
+  return config?.category_prices?.find(row => row.category_id === categoryId);
+}
+
+export function categoriesForSubEvent(
+  profile: Pick<TicketingProfile, 'categories' | 'sub_event_configs'>,
+  subEventId: string
+): SeatCategory[] {
+  const config = profile.sub_event_configs?.find(item => item.sub_event_id === subEventId);
+  if (!config || config.ticketing_type !== 'concert') return [];
+  const enabled = new Set(config.enabled_category_ids ?? []);
+  return (profile.categories ?? [])
+    .filter(c => enabled.has(c.category_id))
+    .map(c => {
+      const pricing = subEventCategoryPrice(config, c.category_id);
+      return {
+        ...c,
+        adult_price: Number(pricing?.adult_price ?? 0),
+        child_price: Number(pricing?.child_price ?? 0),
+        price: Number(pricing?.adult_price ?? 0),
+      };
+    });
+}
+
+export interface PublicTicketingConfig extends TicketingProfile {
+  is_open?: boolean;
+  seat_booking_available?: boolean;
+  meals_booking_available?: boolean;
+  event: {
+    event_id: string;
+    event_name: string;
+    event_start_dt: string;
+    event_end_dt: string;
+    location?: string;
+  } | null;
+  sub_events: Array<{
+    sub_event_id: string;
+    sub_event_name: string;
+    sub_event_start_dt?: string;
+    sub_event_end_dt?: string;
+    location?: string;
+  }>;
+  maps: SeatMap[];
+}
+/** @deprecated Phase 1 compatibility; map/profile data is now split. */
+export type SeatingConfig = SeatMap & TicketingProfile & {
+  event?: PublicTicketingConfig['event'];
+  sub_event?: PublicTicketingConfig['sub_events'][number] | null;
+};
+export interface SeatHold {
+  hold_id: string;
+  seat_ids: string[];
+  expires_at: string;
+  created_at: string;
+}
+export interface BookedSeatDetail {
+  seat_id: string;
+  label: string;
+  category_name: string;
+  price: number;
+  audience_type?: 'adult' | 'child';
+  map_id?: string;
+  map_name?: string;
+  sub_event_id?: string;
+}
+export interface BookedFoodAddon {
+  addon_id: string;
+  sub_event_id: string;
+  name: string;
+  adult_qty: number;
+  child_qty: number;
+  adult_price: number;
+  child_price: number;
+  line_total: number;
+  meal_day_id?: string;
+  meal_type?: 'lunch' | 'dinner';
+}
+export interface BookedMealDetail {
+  day_id: string;
+  label: string;
+  meal_type: 'lunch' | 'dinner';
+  adult_qty: number;
+  child_qty: number;
+  adult_price: number;
+  child_price: number;
+  line_total: number;
+}
+export type BookingStatus = 'pending_payment' | 'confirmed' | 'cancelled' | 'expired';
+
+export interface GateCheckinEvent {
+  at: string;
+  admitted?: number;
+  set_to?: number;
+}
+
+export interface GateCheckin {
+  checked_in: number;
+  updated_at: string;
+  log?: GateCheckinEvent[];
+}
+
+export interface SeatBooking {
+  booking_id: string;
+  event_id: string;
+  sub_event_id?: string;
+  sub_event_ids?: string[];
+  /** Human-readable snapshot, e.g. "Durga Puja 2026 — Cultural Night". */
+  event_context: string;
+  seat_ids: string[];
+  seats_detail: BookedSeatDetail[];
+  meals_detail?: BookedMealDetail[];
+  food_addons_detail?: BookedFoodAddon[];
+  name: string;
+  email: string;
+  phone: string;
+  subtotal: number;
+  discount_code?: string;
+  discount_amount: number;
+  total: number;
+  status: BookingStatus;
+  payment_due_at?: string;
+  payment_reference?: string;
+  admission_qr_token?: string;
+  admission_qr_generated_at?: string;
+  admission_checkins?: Record<string, GateCheckin>;
+  admission_checked_in_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+export interface DiscountCode {
+  discount_id: string;
+  code: string;
+  type: 'percent' | 'fixed';
+  value: number;
+  min_seats?: number;
+  max_uses?: number;
+  used_count: number;
+  valid_from?: string;
+  valid_until?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+export interface DiscountPreview {
+  code: string;
+  type: 'percent' | 'fixed';
+  value: number;
+  discount_amount: number;
+  total: number;
+}
+export type UnavailableSeats = Record<string, 'booked' | 'held' | 'blocked'>;
+
+export type AdmissionResult =
+  | 'admitted'
+  | 'already_checked_in'
+  | 'over_capacity'
+  | 'payment_pending'
+  | 'wrong_gate'
+  | 'cancelled'
+  | 'expired'
+  | 'not_found'
+  | 'invalid_qr';
+
+export interface CheckinGate {
+  scope: string;
+  group: string;
+  label: string;
+}
+
+export interface CheckinGatesResponse {
+  event: { event_id: string; event_name: string } | null;
+  gates: CheckinGate[];
+}
+
+export interface CheckinSeat {
+  label: string;
+  category_name: string;
+  audience_type?: 'adult' | 'child';
+}
+
+export interface CheckinSeatGroup {
+  sub_event_name: string;
+  seats: CheckinSeat[];
+}
+
+export interface CheckinGateProgress {
+  scope: string;
+  label: string;
+  already: number;
+  capacity: number;
+  remaining: number;
+  current: boolean;
+}
+
+export interface CheckinBookingView {
+  booking_id: string;
+  name: string;
+  status: BookingStatus;
+  event_context: string;
+  seat_count: number;
+  seat_groups: CheckinSeatGroup[];
+  meals_detail: Array<{ label: string; meal_type: 'lunch' | 'dinner'; adult_qty: number; child_qty: number }>;
+  meal_headcount: number;
+  sub_event_names: string[];
+  admission_checked_in_at?: string;
+  capacity?: number;
+  already?: number;
+  remaining?: number;
+  checked_in?: number;
+}
+
+export interface AdmissionScanResult {
+  result: AdmissionResult;
+  booking: CheckinBookingView | null;
+  capacity?: number;
+  already?: number;
+  remaining?: number;
+  checked_in?: number;
+  admitted_now?: number;
+  gate_label?: string;
+  gate_progress?: CheckinGateProgress[];
+}
+
+export interface CheckinStats {
+  scope: string;
+  checked_in: number;
+  total: number;
+  bookings_total: number;
+  bookings_done: number;
+}
+
+export interface TicketStatCard {
+  scope: string;
+  label: string;
+  group: string;
+  total: number;
+  pending_payment: number;
+  confirmed: number;
+  expired: number;
+  cancelled: number;
+  entered: number;
+}
+
+export interface TicketStatGuest {
+  booking_id: string;
+  name: string;
+  email: string;
+  phone: string;
+  adult_count: number;
+  child_count: number;
+  capacity: number;
+  checked_in: number;
+}
+
+export interface TicketStatDetail {
+  scope: string;
+  label: string;
+  pending_payment: TicketStatGuest[];
+  confirmed: TicketStatGuest[];
+  expired: TicketStatGuest[];
+  cancelled: TicketStatGuest[];
+  entered: TicketStatGuest[];
+}
+
+export interface TicketStatsResponse {
+  event: { event_id: string; event_name: string } | null;
+  cards: TicketStatCard[];
+  detail?: TicketStatDetail;
+}
+
+export const ticketingAPI = {
+  // Public
+  getConfig: async (): Promise<PublicTicketingConfig> => {
+    const response = await api.get('/booking/config');
+    return response.data;
+  },
+  getAvailability: async (): Promise<{ unavailable: UnavailableSeats }> => {
+    const response = await api.get('/booking/availability');
+    return response.data;
+  },
+  holdSeats: async (
+    seatKeys: string[],
+    categoryId: string,
+    scopeSubEventId?: string,
+    adultCount?: number,
+    childCount?: number
+  ): Promise<SeatHold> => {
+    const response = await api.post('/booking/hold', {
+      seat_keys: seatKeys,
+      category_id: categoryId,
+      scope_sub_event_id: scopeSubEventId,
+      adult_count: adultCount,
+      child_count: childCount,
+    });
+    return response.data;
+  },
+  releaseHold: async (holdId: string): Promise<void> => {
+    await api.delete(`/booking/hold/${holdId}`);
+  },
+  previewDiscount: async (
+    code: string,
+    seatKeys: string[],
+    seatAudiences?: Record<string, 'adult' | 'child'>,
+    context?: {
+      category_id: string;
+      scope_sub_event_id?: string;
+      adult_count: number;
+      child_count: number;
+    }
+  ): Promise<DiscountPreview> => {
+    const response = await api.post('/booking/discount/preview', {
+      code,
+      seat_keys: seatKeys,
+      seat_audiences: seatAudiences,
+      ...(context?.category_id ? { category_id: context.category_id } : {}),
+      ...(context?.scope_sub_event_id ? { scope_sub_event_id: context.scope_sub_event_id } : {}),
+      ...(context
+        ? { adult_count: context.adult_count, child_count: context.child_count }
+        : {}),
+    });
+    return response.data;
+  },
+  checkout: async (data: {
+    hold_id: string;
+    name: string;
+    email: string;
+    phone: string;
+    discount_code?: string;
+    seat_keys: string[];
+    category_id: string;
+    scope_sub_event_id?: string;
+    adult_count: number;
+    child_count: number;
+    seat_audiences: Record<string, 'adult' | 'child'>;
+    food_addons?: Array<{
+      addon_id: string;
+      sub_event_id: string;
+      adult_qty: number;
+      child_qty: number;
+    }>;
+  }): Promise<{ booking: SeatBooking; payment: { zelle_phone?: string } }> => {
+    const response = await api.post('/booking/checkout', data);
+    return response.data;
+  },
+  previewMealsDiscount: async (
+    code: string,
+    mealSelections: Array<{
+      day_id: string;
+      meal_type: 'lunch' | 'dinner';
+      adult_qty: number;
+      child_qty: number;
+    }>,
+    adultCount: number,
+    childCount: number
+  ): Promise<DiscountPreview> => {
+    const response = await api.post('/booking/discount/preview-meals', {
+      code,
+      meal_selections: mealSelections,
+      adult_count: adultCount,
+      child_count: childCount,
+    });
+    return response.data;
+  },
+  checkoutMeals: async (data: {
+    name: string;
+    email: string;
+    phone: string;
+    discount_code?: string;
+    adult_count: number;
+    child_count: number;
+    meal_selections: Array<{
+      day_id: string;
+      meal_type: 'lunch' | 'dinner';
+      adult_qty: number;
+      child_qty: number;
+    }>;
+  }): Promise<{ booking: SeatBooking; payment: { zelle_phone?: string } }> => {
+    const response = await api.post('/booking/checkout-meals', data);
+    return response.data;
+  },
+  getBooking: async (bookingId: string): Promise<SeatBooking> => {
+    const response = await api.get(`/booking/bookings/${bookingId}`);
+    return response.data;
+  },
+  // Admin
+  getAdminProfile: async (eventId?: string): Promise<TicketingProfile> => {
+    const response = await api.get('/booking/admin/profile', {
+      ...(eventId ? { params: { event_id: eventId } } : {}),
+    });
+    return response.data;
+  },
+  updateProfile: async (patch: Partial<TicketingProfile>): Promise<TicketingProfile> => {
+    const response = await api.put('/booking/admin/profile', patch);
+    return response.data;
+  },
+  listMaps: async (): Promise<SeatMap[]> => {
+    const response = await api.get('/booking/admin/maps');
+    return response.data;
+  },
+  createMap: async (data: Partial<SeatMap> & { template_slot?: 1 | 2 }): Promise<SeatMap> => {
+    const response = await api.post('/booking/admin/maps', data);
+    return response.data;
+  },
+  updateMap: async (
+    mapId: string,
+    patch: Partial<SeatMap> & { apply_template_slot?: 1 | 2; template_slot?: 1 | 2 }
+  ): Promise<SeatMap> => {
+    const response = await api.put(`/booking/admin/maps/${mapId}`, patch);
+    return response.data;
+  },
+  deleteMap: async (mapId: string): Promise<void> => {
+    await api.delete(`/booking/admin/maps/${mapId}`);
+  },
+  listMapTemplates: async (): Promise<SeatMapTemplate[]> => {
+    const response = await api.get('/booking/admin/map-templates');
+    return response.data;
+  },
+  saveMapTemplate: async (slot: 1 | 2, data: { name?: string; map_id: string }): Promise<SeatMapTemplate> => {
+    const response = await api.put(`/booking/admin/map-templates/${slot}`, data);
+    return response.data;
+  },
+  deleteMapTemplate: async (slot: 1 | 2): Promise<void> => {
+    await api.delete(`/booking/admin/map-templates/${slot}`);
+  },
+  listHolds: async (): Promise<SeatHold[]> => {
+    const response = await api.get('/booking/admin/holds');
+    return response.data;
+  },
+  listBookings: async (): Promise<SeatBooking[]> => {
+    const response = await api.get('/booking/admin/bookings');
+    return response.data;
+  },
+  setBookingStatus: async (
+    bookingId: string,
+    status: BookingStatus,
+    paymentReference?: string
+  ): Promise<SeatBooking> => {
+    const response = await api.put(`/booking/admin/bookings/${bookingId}/status`, {
+      status,
+      ...(paymentReference ? { payment_reference: paymentReference } : {}),
+    });
+    return response.data;
+  },
+  deleteBooking: async (bookingId: string): Promise<{ deleted: boolean; booking_id: string }> => {
+    const response = await api.delete(`/booking/admin/bookings/${bookingId}`);
+    return response.data;
+  },
+  extendBookingPayment: async (bookingId: string, hours = 24): Promise<SeatBooking> => {
+    const response = await api.put(`/booking/admin/bookings/${bookingId}/extend`, { hours });
+    return response.data;
+  },
+  resendTicket: async (bookingId: string): Promise<{ resent: boolean; booking_id: string; email: string }> => {
+    const response = await api.post(`/booking/admin/bookings/${bookingId}/resend-ticket`);
+    return response.data;
+  },
+  // Admission QR check-in (event-day scanning)
+  scanAdmission: async (
+    payload: string,
+    scope: string,
+    opts?: { manual?: boolean; dryRun?: boolean; admitQty?: number; eventId?: string }
+  ): Promise<AdmissionScanResult> => {
+    const response = await api.post('/booking/admin/checkin/scan', {
+      payload,
+      scope,
+      ...(opts?.manual ? { manual: true } : {}),
+      ...(opts?.dryRun ? { dry_run: true } : {}),
+      ...(opts?.admitQty !== undefined ? { admit_qty: opts.admitQty } : {}),
+      ...(opts?.eventId ? { event_id: opts.eventId } : {}),
+    });
+    return response.data;
+  },
+  correctCheckin: async (
+    bookingId: string,
+    scope: string,
+    count: number
+  ): Promise<AdmissionScanResult> => {
+    const response = await api.post('/booking/admin/checkin/correct', {
+      booking_id: bookingId,
+      scope,
+      count,
+    });
+    return response.data;
+  },
+  checkinGates: async (eventId: string): Promise<CheckinGatesResponse> => {
+    const response = await api.get('/booking/admin/checkin/gates', { params: { event_id: eventId } });
+    return response.data;
+  },
+  checkinStats: async (scope: string, eventId?: string): Promise<CheckinStats> => {
+    const response = await api.get('/booking/admin/checkin/stats', {
+      params: { scope, ...(eventId ? { event_id: eventId } : {}) },
+    });
+    return response.data;
+  },
+  getTicketStats: async (eventId: string, scope?: string): Promise<TicketStatsResponse> => {
+    const response = await api.get('/booking/admin/ticket-stats', {
+      params: { event_id: eventId, ...(scope ? { scope } : {}) },
+    });
+    return response.data;
+  },
+  listDiscounts: async (): Promise<DiscountCode[]> => {
+    const response = await api.get('/booking/admin/discounts');
+    return response.data;
+  },
+  createDiscount: async (data: Partial<DiscountCode>): Promise<DiscountCode> => {
+    const response = await api.post('/booking/admin/discounts', data);
+    return response.data;
+  },
+  updateDiscount: async (discountId: string, data: Partial<DiscountCode>): Promise<DiscountCode> => {
+    const response = await api.put(`/booking/admin/discounts/${discountId}`, data);
+    return response.data;
+  },
+  deleteDiscount: async (discountId: string): Promise<void> => {
+    await api.delete(`/booking/admin/discounts/${discountId}`);
+  },
+};
+
 export const durgaPujaPageAPI = {
-  getContent: async (): Promise<DurgaPujaPageContent> => {
-    const response = await api.get('/durga-puja-page');
+  listYears: async (): Promise<{ years: number[]; activeYear: number }> => {
+    const response = await api.get('/durga-puja-page/years');
+    return response.data;
+  },
+  getActive: async (): Promise<{ year: number; content: DurgaPujaPageContent }> => {
+    const response = await api.get('/durga-puja-page/active');
+    return response.data;
+  },
+  getContent: async (year?: number): Promise<DurgaPujaPageContent> => {
+    const response = await api.get(year ? `/durga-puja-page/${year}` : '/durga-puja-page');
     return response.data;
   },
   updateContent: async (
-    patch: Partial<Omit<DurgaPujaPageContent, 'updated_at'>>
+    year: number,
+    patch: Partial<Omit<DurgaPujaPageContent, 'updated_at' | 'year'>>
   ): Promise<DurgaPujaPageContent> => {
-    const response = await api.put('/durga-puja-page', patch);
+    const response = await api.put(`/durga-puja-page/${year}`, patch);
     return response.data;
   },
-  getImageUrl: (): string => {
-    return '/api/durga-puja-page/image';
+  getImageUrl: (year: number): string => {
+    return `/api/durga-puja-page/${year}/image`;
   },
-  hasImage: async (): Promise<{ hasImage: boolean }> => {
-    const response = await api.get('/durga-puja-page/has-image');
+  hasImage: async (year: number): Promise<{ hasImage: boolean }> => {
+    const response = await api.get(`/durga-puja-page/${year}/has-image`);
     return response.data;
   },
-  uploadImage: async (file: File): Promise<any> => {
+  uploadImage: async (year: number, file: File): Promise<any> => {
     const formData = new FormData();
     formData.append('image', file);
-    const response = await api.post('/durga-puja-page/image', formData, {
+    const response = await api.post(`/durga-puja-page/${year}/image`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
   },
-  deleteImage: async (): Promise<void> => {
-    await api.delete('/durga-puja-page/image');
+  deleteImage: async (year: number): Promise<void> => {
+    await api.delete(`/durga-puja-page/${year}/image`);
   },
 };
 

@@ -2,9 +2,10 @@ import { Request, Response } from 'express';
 import { EventService } from '../services/EventService.js';
 import { DurgaPujaPageService } from '../services/DurgaPujaPageService.js';
 import { SubEventService } from '../services/SubEventService.js';
-import { durgaPujaPageImageExists } from './DurgaPujaPageController.js';
+import { getEventPath, getEventDetailPath } from '../utils/slug.js';
+import { durgaPujaPagePath, parseDurgaPujaPageYear, isDurgaPujaEventName, durgaPujaEventYear } from '../utils/durgaPuja.js';
+import { durgaPujaPageImageExists } from '../data/DurgaPujaPageDataHelper.js';
 import { Event, SubEvent } from '../models/types.js';
-import { getEventPath } from '../utils/slug.js';
 import { basename } from 'path';
 
 const ORIGIN = process.env.BASE_URL || 'https://www.sanhoti.org';
@@ -61,9 +62,11 @@ export class SeoPageController {
       const path = (req.path.replace(/^\/seo/, '') || '/').replace(/\/+$/, '') || '/';
 
       const eventMatch = path.match(/^\/events\/([^/]+)$/);
+      const durgaYear = parseDurgaPujaPageYear(path);
       let html: string;
       if (path === '/') html = await this.homePage();
-      else if (path === '/durga-puja') html = await this.durgaPujaPage();
+      else if (path === '/durga-puja') html = await this.durgaPujaRedirectPage();
+      else if (durgaYear) html = await this.durgaPujaPage(durgaYear);
       else if (path === '/events') html = await this.eventsPage();
       else if (eventMatch) html = (await this.eventPage(decodeURIComponent(eventMatch[1]))) ?? this.notFound(res);
       else html = this.staticPage(path);
@@ -180,7 +183,7 @@ ${opts.body}
     return events
       .map(e => {
         const id = e.event_id || e.id || '';
-        const href = getEventPath(e, id);
+        const href = getEventDetailPath(e, id);
         const date = fmtDate(e.event_start_dt || e.date);
         return `<li><a href="${esc(href)}">${esc(e.event_name || e.title || 'Event')}</a>${
           date ? ` — ${esc(date)}` : ''
@@ -251,14 +254,29 @@ Costa Mesa, Irvine, Tustin, Rancho Santa Margarita, Mission Viejo, and across So
     return `<h2>Durga Puja ${year} — Programs &amp; Events</h2>\n<ul>${items.join('\n')}</ul>`;
   }
 
-  private async durgaPujaPage(): Promise<string> {
-    const c = await this.durgaPujaPageService.getContent();
-    // Year comes from the linked (active) Durga Puja event's start date,
-    // falling back to the calendar year — same rule as the SPA page.
-    const parsedYear = parseInt((c.startDate || '').slice(0, 4), 10);
-    const year =
-      Number.isFinite(parsedYear) && parsedYear > 2000 ? parsedYear : new Date().getFullYear();
-    const imageUrl = durgaPujaPageImageExists() ? `${ORIGIN}/api/durga-puja-page/image` : undefined;
+  private async durgaPujaRedirectPage(): Promise<string> {
+    const year = await this.durgaPujaPageService.getActiveYear();
+    const target = durgaPujaPagePath(year);
+    const body = `<p>Redirecting to <a href="${esc(target)}">Durga Puja ${year}</a>…</p>`;
+    return this.layout({
+      title: `Durga Puja in Orange County ${year} | Sanhoti`,
+      description: `Durga Puja ${year} in Orange County with Sanhoti Bengali Association.`,
+      path: target,
+      body,
+      jsonLd: [this.orgJsonLd()],
+    });
+  }
+
+  private async durgaPujaPage(year: number): Promise<string> {
+    const c =
+      (await this.durgaPujaPageService.getContentByYear(year)) ??
+      (await this.durgaPujaPageService.getContent());
+    const pagePath = durgaPujaPagePath(year);
+    const imageUrl = durgaPujaPageImageExists(year)
+      ? `${ORIGIN}/api/durga-puja-page/${year}/image`
+      : undefined;
+    const years = await this.durgaPujaPageService.listYears();
+    const previousYear = years.find(y => y < year);
     const faqsHtml = c.faqs
       .map(f => `<h3>${esc(f.question)}</h3>\n<p>${esc(f.answer)}</p>`)
       .join('\n');
@@ -289,11 +307,11 @@ Bengali concerts with visiting artists, and home-style Bengali bhog and food sta
 <h2>Frequently asked questions</h2>
 ${faqsHtml}
 <p>${c.linkedEventId ? `<a href="/events/${esc(c.linkedEventId)}">View the event &amp; RSVP</a> · ` : ''}<a href="/events">All Sanhoti events</a> · <a href="/galleries">Photos from past celebrations</a> ·
-<a href="/contact">Contact us</a></p>`;
+<a href="/contact">Contact us</a>${previousYear ? ` · <a href="${esc(durgaPujaPagePath(previousYear))}">Durga Puja ${previousYear}</a>` : ''}</p>`;
     return this.layout({
       title: `Durga Puja in Orange County ${year} | Sanhoti — ${c.venueCity}, CA`,
       description: `Celebrate Durga Puja ${year} in Orange County with Sanhoti — puja, pushpanjali, dhunuchi naach, Bengali food, and concerts. Near Irvine and ${c.venueCity}, open to all of Southern California.`,
-      path: '/durga-puja',
+      path: pagePath,
       body,
       ogImage: imageUrl,
       jsonLd: [
@@ -302,7 +320,7 @@ ${faqsHtml}
           '@context': 'https://schema.org',
           '@type': 'Event',
           name: `Sanhoti Durga Puja ${year} (Durgotsav)`,
-          url: `${ORIGIN}/durga-puja`,
+          url: `${ORIGIN}${pagePath}`,
           image: [imageUrl || `${ORIGIN}/images/logo.png`],
           startDate: c.startDate,
           endDate: c.endDate,
@@ -324,7 +342,7 @@ ${faqsHtml}
                 }))
               : {
                   '@type': 'Offer',
-                  url: `${ORIGIN}/durga-puja`,
+                  url: `${ORIGIN}${pagePath}`,
                   price: '0',
                   priceCurrency: 'USD',
                   availability: 'https://schema.org/InStock',
@@ -373,6 +391,9 @@ Poila Boishakh, Bengali concerts, picnics, and charity programs in Orange County
   private async eventPage(idParam: string): Promise<string | null> {
     const event = await this.eventService.getEventById(idParam);
     if (!event) return null;
+    if (isDurgaPujaEventName(event.event_name)) {
+      return this.durgaPujaPage(durgaPujaEventYear(event));
+    }
     const id = event.event_id || event.id || idParam;
     const path = getEventPath(event, id);
     const pageUrl = `${ORIGIN}${path}`;

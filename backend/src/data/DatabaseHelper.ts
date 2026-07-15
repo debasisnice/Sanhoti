@@ -34,6 +34,10 @@ export class DatabaseHelper {
     }
   }
 
+  protected dataFileExists(filename: string): boolean {
+    return existsSync(join(this.dataDir, filename));
+  }
+
   protected writeFile<T>(filename: string, data: T[]): void {
     const filePath = join(this.dataDir, filename);
     try {

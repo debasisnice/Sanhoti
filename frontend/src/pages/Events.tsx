@@ -14,7 +14,7 @@ import {
 } from '../utils/eventType';
 import { QRCodeSVG } from 'qrcode.react';
 import Seo from '../components/Seo';
-import { getEventPath } from '../utils/eventSlug';
+import { getEventDetailPath } from '../utils/eventSlug';
 
 export default function Events() {
   const [searchParams] = useSearchParams();
@@ -394,7 +394,7 @@ export default function Events() {
 
                       <div className="flex flex-col gap-3">
                         <Link
-                          to={getEventPath({ event_name: eventName }, eventId)}
+                          to={getEventDetailPath({ event_name: eventName }, eventId)}
                           className="inline-flex items-center justify-center bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors text-lg"
                         >
                           View Details <ArrowRight className="w-5 h-5 ml-2" />
@@ -538,7 +538,7 @@ export default function Events() {
 
                       <div className="flex flex-col gap-3">
                         <Link
-                          to={getEventPath({ event_name: eventName }, eventId)}
+                          to={getEventDetailPath({ event_name: eventName }, eventId)}
                           className="inline-flex items-center justify-center bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors text-lg"
                         >
                           View Details <ArrowRight className="w-5 h-5 ml-2" />
@@ -697,7 +697,7 @@ export default function Events() {
                       }}
                       className="will-change-transform flex flex-col items-center"
                     >
-                      <Link to={getEventPath({ event_name: eventName }, eventId)} className="flex flex-col items-center">
+                      <Link to={getEventDetailPath({ event_name: eventName }, eventId)} className="flex flex-col items-center">
                         <div
                           className={`bg-white rounded-xl overflow-hidden transition-all duration-300 cursor-pointer ${
                             isMiddle

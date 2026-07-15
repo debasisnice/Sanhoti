@@ -6,6 +6,7 @@ import { Menu, X, User, LogOut, Mail, Phone, ChevronDown, Shield, MapPin } from 
 import { useAuthStore } from '../store/authStore';
 import { authAPI, settingsAPI } from '../services/api';
 import { getEventTypePublicLabel } from '../utils/eventType';
+import { isDurgaPujaPagePath } from '../utils/durgaPuja';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -146,6 +147,12 @@ export default function Navbar() {
   // Filter nav links based on settings
   const navLinks = allNavLinks.filter(link => navbarSettings[link.key]);
 
+  const isNavLinkActive = (link: (typeof allNavLinks)[number]) => {
+    if (link.path === '/') return location.pathname === '/';
+    if (link.key === 'durgaPuja') return isDurgaPujaPagePath(location.pathname);
+    return location.pathname === link.path || location.pathname.startsWith(`${link.path}/`);
+  };
+
   return (
     <nav className="relative shadow-lg sticky top-0 z-50 overflow-x-hidden overflow-y-visible">
       <div className="flex min-h-[6rem] relative">
@@ -212,10 +219,7 @@ export default function Navbar() {
               inside the red section instead of overflowing onto the beige/diagonal */}
           <div className="hidden md:flex flex-wrap items-center justify-end gap-y-1 py-2 relative">
             {navLinks.map((link, index) => {
-              // Check if current path matches the link path
-              const isActive = link.path === '/' 
-                ? location.pathname === '/' 
-                : location.pathname === link.path || location.pathname.startsWith(link.path + '/');
+              const isActive = isNavLinkActive(link);
               
               // Events has a hover dropdown: Fund Raising Events, Charity Events, All
               if (link.key === 'events') {
@@ -433,12 +437,7 @@ export default function Navbar() {
           >
             <div className="px-4 py-4 space-y-4">
               {navLinks.map((link) => {
-                // Check if current path matches the link path
-                const isActive = link.path === '/' 
-                  ? location.pathname === '/' 
-                  : link.key === 'events'
-                    ? location.pathname === link.path || location.pathname.startsWith(link.path + '/')
-                    : location.pathname === link.path || location.pathname.startsWith(link.path + '/');
+                const isActive = isNavLinkActive(link);
                 
                 // Events has sub-items: Fund Raising Events, Charity Events, All
                 if (link.key === 'events') {

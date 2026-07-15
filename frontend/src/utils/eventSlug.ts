@@ -4,6 +4,8 @@
  * backend (and old bookmarks) keep working: /events/ABC123XYZ456 still resolves.
  */
 
+import { isDurgaPujaEventName, durgaPujaEventYear, durgaPujaPagePath } from './durgaPuja';
+
 /** Lowercase, ASCII-ish slug from an event name (e.g. "Durga Puja 2026!" -> "durga-puja-2026"). */
 export function slugifyEventName(name: string | undefined | null): string {
   if (!name) return '';
@@ -28,4 +30,24 @@ export function getEventPath(
 ): string {
   const slug = slugifyEventName(event.event_name || event.title);
   return slug ? `/events/${slug}-${id}` : `/events/${id}`;
+}
+
+/**
+ * Public detail URL for an event. Durga Puja events use the year landing page
+ * (/durga-puja-2026) instead of the generic event detail route.
+ */
+export function getEventDetailPath(
+  event: {
+    event_name?: string;
+    title?: string;
+    year?: number;
+    event_start_dt?: string;
+    date?: string;
+  },
+  id: string
+): string {
+  if (isDurgaPujaEventName(event.event_name || event.title)) {
+    return durgaPujaPagePath(durgaPujaEventYear(event));
+  }
+  return getEventPath(event, id);
 }

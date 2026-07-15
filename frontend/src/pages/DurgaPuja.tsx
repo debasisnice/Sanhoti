@@ -1,27 +1,27 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, Music, Utensils, Users, Sparkles, Ticket } from 'lucide-react';
+import { Calendar, MapPin, Music, Utensils, Users, Sparkles, Ticket, ChevronLeft } from 'lucide-react';
 import Seo from '../components/Seo';
 import { getSiteOrigin } from '../utils/eventShareUrl';
-import { durgaPujaPageAPI, DurgaPujaPageContent, subEventsAPI } from '../services/api';
+import { durgaPujaPageAPI, DurgaPujaPageContent, subEventsAPI, ticketingAPI } from '../services/api';
 import { SubEvent } from '../types';
 import { formatDateWithTime } from '../utils/dateUtils';
+import { durgaPujaPagePath, parseDurgaPujaYearFromPath } from '../utils/durgaPuja';
 
 /**
- * Evergreen Durga Puja landing page (URL stays /durga-puja every year).
- * Content (dates, venue, intro, FAQs) is admin-editable: Admin → Durga Puja Page.
- * The crawler-rendered version (backend SeoPageController) reads the same data.
+ * Year-specific Durga Puja landing page at /durga-puja-YYYY.
+ * Content is admin-editable per year; /durga-puja redirects to the active year.
  */
 
-const YEAR = new Date().getFullYear();
 
-const DEFAULT_CONTENT: DurgaPujaPageContent = {
+const DEFAULT_CONTENT = (year: number): DurgaPujaPageContent => ({
+  year,
   intro:
     "Sanhoti Bengali Association hosts one of Orange County's most vibrant Durga Puja (Durgotsav) celebrations — three days of puja, pushpanjali, dhunuchi naach, Bengali food, and evening cultural concerts. Our Durgotsav 2025 was celebrated in Costa Mesa, CA, minutes from Irvine, Newport Beach, and Huntington Beach, welcoming Bengali and Indian families from across Southern California.",
-  datesText: `October 16–21, ${YEAR} (Shashthi through Vijayadashami)`,
-  startDate: `${YEAR}-10-16`,
-  endDate: `${YEAR}-10-21`,
+  datesText: `October 16–21, ${year} (Shashthi through Vijayadashami)`,
+  startDate: `${year}-10-16`,
+  endDate: `${year}-10-21`,
   venueName: 'Venue to be announced — Orange County, CA',
   venueCity: 'Costa Mesa',
   venueNote: 'Schedule and venue will be announced on our Events page.',
@@ -45,7 +45,7 @@ const DEFAULT_CONTENT: DurgaPujaPageContent = {
   ticketLinks: [],
   ticketsNote: '',
   updated_at: '',
-};
+});
 
 const HIGHLIGHTS = [
   {
@@ -71,30 +71,53 @@ const HIGHLIGHTS = [
 ];
 
 export default function DurgaPuja() {
+  const location = useLocation();
+  const pageYear = parseDurgaPujaYearFromPath(location.pathname) ?? 0;
   const origin = getSiteOrigin();
-  const [content, setContent] = useState<DurgaPujaPageContent>(DEFAULT_CONTENT);
+  const [content, setContent] = useState<DurgaPujaPageContent>(() => DEFAULT_CONTENT(pageYear || new Date().getFullYear()));
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [hasImage, setHasImage] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [subEvents, setSubEvents] = useState<SubEvent[]>([]);
   const [subEventImages, setSubEventImages] = useState<Record<string, string>>({});
+  const [seatBookingOpen, setSeatBookingOpen] = useState(false);
 
   useEffect(() => {
+    if (!Number.isFinite(pageYear) || pageYear < 2000) {
+      setNotFound(true);
+      return;
+    }
+    setNotFound(false);
+    setContent(DEFAULT_CONTENT(pageYear));
+
     const checkImage = async () => {
       try {
-        const { hasImage } = await durgaPujaPageAPI.hasImage();
+        const { hasImage } = await durgaPujaPageAPI.hasImage(pageYear);
         setHasImage(hasImage);
       } catch {
-        // No image — section simply doesn't render
+        setHasImage(false);
       }
     };
-    checkImage();
+    void checkImage();
+
+    void durgaPujaPageAPI
+      .listYears()
+      .then(res => setAvailableYears(res.years))
+      .catch(() => setAvailableYears([]));
+
+    ticketingAPI
+      .getConfig()
+      .then(cfg => setSeatBookingOpen(Boolean(cfg?.is_open && cfg.maps.length > 0)))
+      .catch(() => setSeatBookingOpen(false));
 
     const fetchContentAndSubEvents = async () => {
       let data: DurgaPujaPageContent | null = null;
       try {
-        data = await durgaPujaPageAPI.getContent();
-        if (data && data.intro) setContent(data);
+        data = await durgaPujaPageAPI.getContent(pageYear);
+        if (data?.intro) setContent(data);
       } catch {
-        // Keep defaults if the API is unavailable
+        setNotFound(true);
+        return;
       }
 
       const linkedEventId = data?.linkedEventId;
@@ -120,7 +143,7 @@ export default function DurgaPuja() {
                 imagesMap[se.sub_event_id] = subEventsAPI.getImageUrl(se.sub_event_id, filenames[0]);
               }
             } catch {
-              // Banner is optional — the card still renders without it
+              /* optional */
             }
           })
         );
@@ -129,23 +152,43 @@ export default function DurgaPuja() {
         setSubEvents([]);
       }
     };
-    fetchContentAndSubEvents();
-  }, []);
+    void fetchContentAndSubEvents();
+  }, [pageYear]);
 
   const ticketLinks = (content.ticketLinks ?? []).filter(t => t.label && t.url);
 
-  // Year of the celebration comes from the linked (active) Durga Puja event's
-  // start date, not the calendar year — so the page is correct across new-year
-  // boundaries and when next year's event is announced early.
-  const parsedYear = parseInt((content.startDate || '').slice(0, 4), 10);
-  const eventYear = Number.isFinite(parsedYear) && parsedYear > 2000 ? parsedYear : YEAR;
+  const eventYear = content.year || pageYear;
+  const pagePath = durgaPujaPagePath(eventYear);
+  const previousYear = availableYears.find(y => y < eventYear);
+  const celebrationEnded =
+    (content.endDate &&
+      !Number.isNaN(new Date(`${content.endDate}T23:59:59`).getTime()) &&
+      new Date(`${content.endDate}T23:59:59`).getTime() < Date.now()) ||
+    eventYear < new Date().getFullYear();
+  // Admin-controlled ticketing visibility (from the Durga Puja admin page).
+  const ticketsOff = content.ticketsOff === true;
+  const externalVisible = !ticketsOff && content.showExternalTickets !== false && ticketLinks.length > 0;
+  const internalVisible = !ticketsOff && content.showInternalBooking !== false && seatBookingOpen;
+  const showTickets = !celebrationEnded;
+
+  if (notFound) {
+    return (
+      <div className="py-24 text-center px-4">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Durga Puja page not found</h1>
+        <p className="text-gray-600 mb-6">We do not have a landing page for that year yet.</p>
+        <Link to="/events" className="text-primary-600 hover:text-primary-700 font-semibold underline">
+          Browse all events
+        </Link>
+      </div>
+    );
+  }
 
   const jsonLd = [
     {
       '@context': 'https://schema.org',
       '@type': 'Event',
       name: `Sanhoti Durga Puja ${eventYear} (Durgotsav)`,
-      url: `${origin}/durga-puja`,
+      url: `${origin}${pagePath}`,
       startDate: content.startDate,
       endDate: content.endDate,
       eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
@@ -167,7 +210,7 @@ export default function DurgaPuja() {
       },
       description:
         'Three-day Durga Puja celebration in Orange County, California: puja and pushpanjali, dhunuchi naach, sindoor khela, Bengali food, and evening cultural concerts.',
-      ...(ticketLinks.length > 0
+      ...(externalVisible
         ? {
             offers: ticketLinks.map(t => ({
               '@type': 'Offer',
@@ -195,8 +238,8 @@ export default function DurgaPuja() {
       <Seo
         title={`Durga Puja in Orange County ${eventYear} | Sanhoti — ${content.venueCity}, CA`}
         description={`Celebrate Durga Puja ${eventYear} in Orange County with Sanhoti — puja, pushpanjali, dhunuchi naach, Bengali food, and concerts. Near Irvine and ${content.venueCity}, open to all of Southern California.`}
-        path="/durga-puja"
-        ogImage={hasImage ? durgaPujaPageAPI.getImageUrl() : undefined}
+        path={pagePath}
+        ogImage={hasImage ? durgaPujaPageAPI.getImageUrl(eventYear) : undefined}
         jsonLd={jsonLd}
       />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -239,7 +282,7 @@ export default function DurgaPuja() {
           {hasImage && (
             <div className="mb-10">
               <img
-                src={durgaPujaPageAPI.getImageUrl()}
+                src={durgaPujaPageAPI.getImageUrl(eventYear)}
                 alt={`Sanhoti Durga Puja ${eventYear} in Orange County — flyer`}
                 className="w-full max-h-[36rem] object-contain rounded-2xl shadow-lg bg-white"
                 onError={() => setHasImage(false)}
@@ -247,13 +290,28 @@ export default function DurgaPuja() {
             </div>
           )}
 
+          {showTickets && (
           <div className="mb-12">
             <div className="bg-white rounded-2xl shadow-lg border border-yellow-200 p-6">
               <div className="flex items-center gap-2 mb-3">
                 <Ticket className="w-7 h-7 text-primary-600" />
                 <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Tickets</h2>
               </div>
-              {ticketLinks.length > 0 ? (
+              {internalVisible && (
+                <div className="mb-4">
+                  <Link
+                    to="/book-your-seat"
+                    className="inline-flex items-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+                  >
+                    <Ticket className="w-5 h-5" />
+                    Book Your Seat
+                  </Link>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Pick your exact seats on our interactive seat map.
+                  </p>
+                </div>
+              )}
+              {externalVisible ? (
                 <>
                   {content.ticketsNote && (
                     <p className="text-gray-700 mb-4">{content.ticketsNote}</p>
@@ -276,6 +334,10 @@ export default function DurgaPuja() {
                     Ticket booking is handled on our ticketing partner's website.
                   </p>
                 </>
+              ) : internalVisible ? null : ticketsOff ? (
+                <p className="text-gray-700">
+                  Tickets coming soon — please check back here for booking details.
+                </p>
               ) : (
                 <p className="text-gray-700">
                   {content.ticketsNote ||
@@ -295,6 +357,7 @@ export default function DurgaPuja() {
               )}
             </div>
           </div>
+          )}
 
           {subEvents.length > 0 && (
             <div className="mb-12">
@@ -396,7 +459,7 @@ export default function DurgaPuja() {
             </>
           )}
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 mb-10">
             {content.linkedEventId && (
               <Link
                 to={`/events/${content.linkedEventId}`}
@@ -428,6 +491,21 @@ export default function DurgaPuja() {
               Contact Us
             </Link>
           </div>
+
+          {previousYear && (
+            <div className="border-t border-gray-200 pt-8">
+              <Link
+                to={durgaPujaPagePath(previousYear)}
+                className="inline-flex items-center gap-2 text-primary-700 hover:text-primary-800 font-semibold"
+              >
+                <ChevronLeft className="w-5 h-5" />
+                Durga Puja {previousYear}
+              </Link>
+              <p className="text-sm text-gray-500 mt-1">
+                View last year&apos;s celebration page, dates, and programs.
+              </p>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>

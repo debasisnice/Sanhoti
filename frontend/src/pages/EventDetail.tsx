@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, ArrowLeft, Bell, Image as ImageIcon, ArrowRight } from 'lucide-react';
 import { eventsAPI, noticesAPI, galleriesAPI, subEventsAPI } from '../services/api';
@@ -14,6 +14,7 @@ import Seo from '../components/Seo';
 import { seoPlainText } from '../seo/seoUtils';
 import { buildEventJsonLd } from '../seo/eventJsonLd';
 import { getEventPath } from '../utils/eventSlug';
+import { isDurgaPujaEventName, durgaPujaEventYear, durgaPujaPagePath } from '../utils/durgaPuja';
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
@@ -152,6 +153,10 @@ export default function EventDetail() {
       fetchEventAndImage();
     }
   }, [id]);
+
+  if (!loading && event && isDurgaPujaEventName(event.event_name)) {
+    return <Navigate to={durgaPujaPagePath(durgaPujaEventYear(event))} replace />;
+  }
 
   if (loading) {
     return (

@@ -1,15 +1,19 @@
 import { Request, Response } from 'express';
 import { EventService } from '../services/EventService.js';
 import { GalleryService } from '../services/GalleryService.js';
-import { getEventPath } from '../utils/slug.js';
+import { DurgaPujaPageService } from '../services/DurgaPujaPageService.js';
+import { getEventDetailPath } from '../utils/slug.js';
+import { durgaPujaPagePath } from '../utils/durgaPuja.js';
 
 export class SitemapController {
   private eventService: EventService;
   private galleryService: GalleryService;
+  private durgaPujaPageService: DurgaPujaPageService;
 
   constructor() {
     this.eventService = new EventService();
     this.galleryService = new GalleryService();
+    this.durgaPujaPageService = new DurgaPujaPageService();
   }
 
   async generateSitemap(req: Request, res: Response): Promise<void> {
@@ -17,9 +21,10 @@ export class SitemapController {
       const baseUrl = process.env.BASE_URL || 'https://www.sanhoti.org';
       
       // Fetch all dynamic content
-      const [activeEvents, publicGalleries] = await Promise.all([
+      const [activeEvents, publicGalleries, durgaYears] = await Promise.all([
         this.eventService.getActiveEvents(),
         this.galleryService.getPublicGalleries(),
+        this.durgaPujaPageService.listYears(),
       ]);
 
       // Get current date for lastmod
@@ -59,8 +64,18 @@ export class SitemapController {
     <loc>${baseUrl}/durga-puja</loc>
     <lastmod>${currentDate}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.85</priority>
   </url>
+${durgaYears
+  .map(
+    year => `  <url>
+    <loc>${baseUrl}${durgaPujaPagePath(year)}</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>`
+  )
+  .join('\n')}
   
   <url>
     <loc>${baseUrl}/notices</loc>
@@ -129,7 +144,7 @@ export class SitemapController {
             : currentDate;
           
           sitemap += `  <url>
-    <loc>${baseUrl}${getEventPath(event, event.event_id)}</loc>
+    <loc>${baseUrl}${getEventDetailPath(event, event.event_id)}</loc>
     <lastmod>${eventLastMod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>

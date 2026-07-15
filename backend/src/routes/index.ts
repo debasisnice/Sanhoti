@@ -25,6 +25,7 @@ import { PaymentQRController } from '../controllers/PaymentQRController.js';
 import { SubEventController } from '../controllers/SubEventController.js';
 import { SitemapController } from '../controllers/SitemapController.js';
 import { DurgaPujaPageController } from '../controllers/DurgaPujaPageController.js';
+import { TicketingController } from '../controllers/TicketingController.js';
 
 const router = Router();
 
@@ -50,6 +51,7 @@ const boardMembersController = new BoardMembersController();
 const paymentQRController = new PaymentQRController();
 const subEventController = new SubEventController();
 const sitemapController = new SitemapController();
+const ticketingController = new TicketingController();
 
 // Helper to bind controller methods
 function bindController(controller: any, methodName: string) {
@@ -135,10 +137,13 @@ router.get('/committee', bindController(authController, 'getCommitteeMembers'));
 // Settings - Public (for navbar visibility, accessible to all users)
 router.get('/settings', bindController(settingsController, 'getSettings'));
 
-// Durga Puja page content - Public (rendered on /durga-puja)
+// Durga Puja page content - Public (rendered on /durga-puja-YYYY)
+router.get('/durga-puja-page/years', bindController(durgaPujaPageController, 'listYears'));
+router.get('/durga-puja-page/active', bindController(durgaPujaPageController, 'getActive'));
+router.get('/durga-puja-page/:year/image', bindController(durgaPujaPageController, 'getImage'));
+router.get('/durga-puja-page/:year/has-image', bindController(durgaPujaPageController, 'hasImage'));
+router.get('/durga-puja-page/:year', bindController(durgaPujaPageController, 'getContent'));
 router.get('/durga-puja-page', bindController(durgaPujaPageController, 'getContent'));
-router.get('/durga-puja-page/image', bindController(durgaPujaPageController, 'getImage'));
-router.get('/durga-puja-page/has-image', bindController(durgaPujaPageController, 'hasImage'));
 
 // Sponsors - Public routes
 router.get('/sponsors/images', bindController(sponsorController, 'getImages'));
@@ -157,6 +162,19 @@ router.get('/boardmembers/postnames', bindController(boardMembersController, 'ge
 // Payment QR - Public routes
 router.get('/paymentqr/image', bindController(paymentQRController, 'getImage'));
 router.get('/paymentqr/has-image', bindController(paymentQRController, 'hasImage'));
+
+// Seat booking ("Book Your Seat") - Public routes (guest checkout, no auth)
+router.get('/booking/config', bindController(ticketingController, 'getPublicConfig'));
+router.get('/booking/availability', bindController(ticketingController, 'getAvailability'));
+router.post('/booking/hold', bindController(ticketingController, 'holdSeats'));
+router.delete('/booking/hold/:holdId', bindController(ticketingController, 'releaseHold'));
+// POST variant so navigator.sendBeacon (POST-only) can release a hold on tab close
+router.post('/booking/hold/:holdId/release', bindController(ticketingController, 'releaseHold'));
+router.post('/booking/discount/preview', bindController(ticketingController, 'previewDiscount'));
+router.post('/booking/discount/preview-meals', bindController(ticketingController, 'previewMealsDiscount'));
+router.post('/booking/checkout', bindController(ticketingController, 'checkout'));
+router.post('/booking/checkout-meals', bindController(ticketingController, 'checkoutMeals'));
+router.get('/booking/bookings/:id', bindController(ticketingController, 'getBooking'));
 
 // Sub-Events - Public routes (for event detail page) - MUST be before authenticate middleware
 router.get('/sub-events/event/:eventId', bindController(subEventController, 'getSubEventsByEventId'));
@@ -564,21 +582,120 @@ router.delete('/special-access/:id',
 );
 
 // Durga Puja page content - Admin (GET is public, defined above)
+router.put('/durga-puja-page/:year',
+  requireAdmin,
+  auditLog('UPDATE', 'durga-puja-page'),
+  bindController(durgaPujaPageController, 'updateContent')
+);
 router.put('/durga-puja-page',
   requireAdmin,
   auditLog('UPDATE', 'durga-puja-page'),
   bindController(durgaPujaPageController, 'updateContent')
 );
-router.post('/durga-puja-page/image',
+router.post('/durga-puja-page/:year/image',
   requireAdmin,
   auditLog('UPLOAD', 'durga-puja-page_image'),
   durgaPujaPageController.uploadImage(),
   bindController(durgaPujaPageController, 'handleImageUpload')
 );
-router.delete('/durga-puja-page/image',
+router.delete('/durga-puja-page/:year/image',
   requireAdmin,
   auditLog('DELETE', 'durga-puja-page_image'),
   bindController(durgaPujaPageController, 'deleteImage')
+);
+
+// Seat booking ("Book Your Seat") - Admin routes
+router.get('/booking/admin/config', requireAdmin, bindController(ticketingController, 'getAdminConfig'));
+router.put('/booking/admin/config',
+  requireAdmin,
+  auditLog('UPDATE', 'seat-booking-config'),
+  bindController(ticketingController, 'updateConfig')
+);
+router.get('/booking/admin/profile', requireAdmin, bindController(ticketingController, 'getProfile'));
+router.put('/booking/admin/profile',
+  requireAdmin,
+  auditLog('UPDATE', 'ticketing-profile'),
+  bindController(ticketingController, 'updateProfile')
+);
+router.get('/booking/admin/maps', requireAdmin, bindController(ticketingController, 'listMaps'));
+router.post('/booking/admin/maps',
+  requireAdmin,
+  auditLog('CREATE', 'seat-map'),
+  bindController(ticketingController, 'createMap')
+);
+router.get('/booking/admin/map-templates', requireAdmin, bindController(ticketingController, 'listMapTemplates'));
+router.put('/booking/admin/map-templates/:slot',
+  requireAdmin,
+  auditLog('UPDATE', 'seat-map-template'),
+  bindController(ticketingController, 'saveMapTemplate')
+);
+router.delete('/booking/admin/map-templates/:slot',
+  requireAdmin,
+  auditLog('DELETE', 'seat-map-template'),
+  bindController(ticketingController, 'deleteMapTemplate')
+);
+router.put('/booking/admin/maps/:mapId',
+  requireAdmin,
+  auditLog('UPDATE', 'seat-map'),
+  bindController(ticketingController, 'updateMap')
+);
+router.delete('/booking/admin/maps/:mapId',
+  requireAdmin,
+  auditLog('DELETE', 'seat-map'),
+  bindController(ticketingController, 'deleteMap')
+);
+router.get('/booking/admin/holds', requireAdmin, bindController(ticketingController, 'listHolds'));
+router.get('/booking/admin/bookings', requireAdmin, bindController(ticketingController, 'listBookings'));
+router.put('/booking/admin/bookings/:id/status',
+  requireAdmin,
+  auditLog('UPDATE', 'seat-booking'),
+  bindController(ticketingController, 'setBookingStatus')
+);
+router.delete('/booking/admin/bookings/:id',
+  requireAdmin,
+  auditLog('DELETE', 'seat-booking'),
+  bindController(ticketingController, 'deleteBooking')
+);
+router.put('/booking/admin/bookings/:id/extend',
+  requireAdmin,
+  auditLog('UPDATE', 'seat-booking'),
+  bindController(ticketingController, 'extendBookingPayment')
+);
+router.post('/booking/admin/bookings/:id/resend-ticket',
+  requireAdmin,
+  auditLog('UPDATE', 'seat-booking'),
+  bindController(ticketingController, 'resendTicket')
+);
+// Admission QR check-in (event-day scanning). Scan is audited inside the
+// controller (payload is an admission secret — keep it out of the generic audit).
+router.post('/booking/admin/checkin/scan',
+  requireAdmin,
+  bindController(ticketingController, 'scanAdmission')
+);
+router.post('/booking/admin/checkin/correct',
+  requireAdmin,
+  auditLog('UPDATE', 'admission-checkin'),
+  bindController(ticketingController, 'correctCheckin')
+);
+router.get('/booking/admin/checkin/stats', requireAdmin, bindController(ticketingController, 'checkinStats'));
+router.get('/booking/admin/checkin/gates', requireAdmin, bindController(ticketingController, 'listCheckinGates'));
+router.get('/booking/admin/ticket-stats', requireAdmin, bindController(ticketingController, 'getTicketStats'));
+
+router.get('/booking/admin/discounts', requireAdmin, bindController(ticketingController, 'listDiscounts'));
+router.post('/booking/admin/discounts',
+  requireAdmin,
+  auditLog('CREATE', 'seat-booking-discount'),
+  bindController(ticketingController, 'createDiscount')
+);
+router.put('/booking/admin/discounts/:id',
+  requireAdmin,
+  auditLog('UPDATE', 'seat-booking-discount'),
+  bindController(ticketingController, 'updateDiscount')
+);
+router.delete('/booking/admin/discounts/:id',
+  requireAdmin,
+  auditLog('DELETE', 'seat-booking-discount'),
+  bindController(ticketingController, 'deleteDiscount')
 );
 
 // Settings - Admin routes (GET is public, defined above)

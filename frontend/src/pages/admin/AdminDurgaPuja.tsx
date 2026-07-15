@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Plus, Trash2, ExternalLink, Upload, ImageIcon, Calendar, Ticket } from 'lucide-react';
 import {
@@ -11,13 +11,17 @@ import {
 import { SubEvent } from '../../types';
 import { formatDateWithTime } from '../../utils/dateUtils';
 
+import { durgaPujaPagePath } from '../../utils/durgaPuja';
+
 /**
- * Admin editor for the public /durga-puja landing page.
- * Update dates and venue each year (ideally by June/July, before other
- * organizations publish theirs) — the URL never changes.
+ * Admin editor for public /durga-puja-YYYY pages — active or archived years.
  */
 export default function AdminDurgaPuja() {
   const [content, setContent] = useState<DurgaPujaPageContent | null>(null);
+  const [editYear, setEditYear] = useState<number>(new Date().getFullYear());
+  const [activeYear, setActiveYear] = useState<number>(new Date().getFullYear());
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [loadingYear, setLoadingYear] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasImage, setHasImage] = useState(false);
   const [imageVersion, setImageVersion] = useState(0); // cache-buster after upload
@@ -27,22 +31,22 @@ export default function AdminDurgaPuja() {
   const [subEventImages, setSubEventImages] = useState<Record<string, string>>({});
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const load = async () => {
-      let data: DurgaPujaPageContent | null = null;
+  const loadYear = useCallback(async (year: number) => {
+    setLoadingYear(true);
+    setSubEvents([]);
+    setSubEventImages({});
+    setHasImage(false);
+    try {
+      const data = await durgaPujaPageAPI.getContent(year);
+      setEditYear(year);
+      setContent(data);
       try {
-        data = await durgaPujaPageAPI.getContent();
-        setContent(data);
+        const { hasImage: img } = await durgaPujaPageAPI.hasImage(year);
+        setHasImage(img);
       } catch {
-        toast.error('Failed to load Durga Puja page content');
+        setHasImage(false);
       }
-      try {
-        const { hasImage } = await durgaPujaPageAPI.hasImage();
-        setHasImage(hasImage);
-      } catch {
-        // ignore
-      }
-      if (data?.linkedEventId) {
+      if (data.linkedEventId) {
         try {
           const all = await subEventsAPI.getByEventId(data.linkedEventId);
           const active = all
@@ -64,18 +68,42 @@ export default function AdminDurgaPuja() {
                   imagesMap[se.sub_event_id] = subEventsAPI.getImageUrl(se.sub_event_id, filenames[0]);
                 }
               } catch {
-                // banner optional
+                /* optional */
               }
             })
           );
           setSubEventImages(imagesMap);
         } catch {
-          // no sub-events available
+          setSubEvents([]);
         }
       }
-    };
-    load();
+    } catch {
+      toast.error(`Failed to load Durga Puja page for ${year}`);
+      setContent(null);
+    } finally {
+      setLoadingYear(false);
+    }
   }, []);
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const { years, activeYear: live } = await durgaPujaPageAPI.listYears();
+        setAvailableYears(years);
+        setActiveYear(live);
+        await loadYear(live);
+      } catch {
+        toast.error('Failed to load Durga Puja page years');
+        setLoadingYear(false);
+      }
+    };
+    void init();
+  }, [loadYear]);
+
+  const handleYearChange = (year: number) => {
+    if (year === editYear || loadingYear) return;
+    void loadYear(year);
+  };
 
   const toggleSubEventVisibility = async (subEvent: SubEvent) => {
     const next = !subEvent.show_in_durga_puja_page;
@@ -99,7 +127,7 @@ export default function AdminDurgaPuja() {
     if (!file) return;
     setUploading(true);
     try {
-      await durgaPujaPageAPI.uploadImage(file);
+      await durgaPujaPageAPI.uploadImage(editYear, file);
       setHasImage(true);
       setImageVersion(v => v + 1);
       toast.success('Image uploaded');
@@ -113,7 +141,7 @@ export default function AdminDurgaPuja() {
 
   const handleImageDelete = async () => {
     try {
-      await durgaPujaPageAPI.deleteImage();
+      await durgaPujaPageAPI.deleteImage(editYear);
       setHasImage(false);
       toast.success('Image removed');
     } catch {
@@ -177,10 +205,12 @@ export default function AdminDurgaPuja() {
     }
     setSaving(true);
     try {
-      const { updated_at, ...patch } = content;
-      const saved = await durgaPujaPageAPI.updateContent(patch);
+      // Strip server-managed fields; the rest is the editable patch.
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { updated_at, year: _y, ...patch } = content;
+      const saved = await durgaPujaPageAPI.updateContent(editYear, patch);
       setContent(saved);
-      toast.success('Durga Puja page updated');
+      toast.success(`Durga Puja ${editYear} page updated`);
     } catch (error: any) {
       toast.error(error?.response?.data?.error || 'Failed to save');
     } finally {
@@ -188,7 +218,7 @@ export default function AdminDurgaPuja() {
     }
   };
 
-  if (!content) {
+  if (loadingYear && !content) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
@@ -196,30 +226,62 @@ export default function AdminDurgaPuja() {
     );
   }
 
+  if (!content) {
+    return (
+      <div className="max-w-5xl w-full py-12 text-center text-gray-600">
+        <p>No Durga Puja page found for the selected year.</p>
+      </div>
+    );
+  }
+
+  const isArchived = editYear !== activeYear;
+
   const inputCls =
     'w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500';
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-5xl w-full">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Durga Puja Page</h1>
-        <a
-          href="/durga-puja"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 text-sm font-medium"
-        >
-          View public page <ExternalLink className="w-4 h-4" />
-        </a>
+        <h1 className="text-3xl font-bold text-gray-900">Durga Puja Page</h1>
+        <div className="flex items-center gap-3">
+          <select
+            id="dp-year"
+            aria-label="Celebration year"
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
+            value={editYear}
+            disabled={loadingYear}
+            onChange={e => handleYearChange(Number(e.target.value))}
+          >
+            {availableYears.map(y => (
+              <option key={y} value={y}>
+                {y}
+                {y === activeYear ? ' (live)' : ''}
+              </option>
+            ))}
+          </select>
+          <a
+            href={durgaPujaPagePath(editYear)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 text-sm font-medium whitespace-nowrap"
+          >
+            View public page <ExternalLink className="w-4 h-4" />
+          </a>
+        </div>
       </div>
       <p className="text-gray-600 mb-6">
-        This content appears on the public <code>/durga-puja</code> page (and in what Google reads).
-        When you create or update a future event whose name contains "Durga", its dates and venue
-        are synced here automatically — you can still override them below. Update each year by
-        June/July.
+        This content appears on the public <code>{durgaPujaPagePath(editYear)}</code> page (and in what
+        Google reads). Use the year selector above to edit archived pages. When you create or update a
+        future event whose name contains &quot;Durga&quot;, its dates and venue are synced to the live
+        year automatically — you can still override them below. Update each year by June/July.
       </p>
       {content.linkedEventId && (
         <p className="text-sm text-gray-500 mb-4">
+          {isArchived && (
+            <>
+              <span className="text-gray-600">Archived year — </span>
+            </>
+          )}
           Dates/venue last synced from event{' '}
           <a
             href={`/events/${content.linkedEventId}`}
@@ -319,7 +381,7 @@ export default function AdminDurgaPuja() {
           {hasImage ? (
             <div className="mb-3">
               <img
-                src={`${durgaPujaPageAPI.getImageUrl()}?v=${imageVersion}`}
+                src={`${durgaPujaPageAPI.getImageUrl(editYear)}?v=${imageVersion}`}
                 alt="Durga Puja page"
                 className="max-h-64 rounded-lg border border-gray-200 object-contain bg-gray-50"
               />
@@ -359,6 +421,58 @@ export default function AdminDurgaPuja() {
           <p className="text-xs text-gray-500 mt-1">
             JPEG/PNG/WebP/GIF, max 20MB. Uploading a new image replaces the current one.
           </p>
+        </div>
+
+        <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            <span className="inline-flex items-center gap-1.5">
+              <Ticket className="w-4 h-4 text-primary-600" /> Ticketing on the public page
+            </span>
+          </label>
+          <p className="text-xs text-gray-500 mb-3">
+            Choose what the public {content.year} page offers — in-website booking, external link(s),
+            both, or switch everything off.
+          </p>
+          <div className="space-y-2.5">
+            <label className="flex items-start gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 accent-primary-600"
+                checked={content.showInternalBooking !== false}
+                disabled={content.ticketsOff === true}
+                onChange={e => set('showInternalBooking', e.target.checked)}
+              />
+              <span>
+                <span className="font-medium">In-website booking</span> — show the “Book Your Seat”
+                button (also requires the seat system to be open in Ticket Settings).
+              </span>
+            </label>
+            <label className="flex items-start gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 accent-primary-600"
+                checked={content.showExternalTickets !== false}
+                disabled={content.ticketsOff === true}
+                onChange={e => set('showExternalTickets', e.target.checked)}
+              />
+              <span>
+                <span className="font-medium">External ticket link(s)</span> — show the buttons
+                configured below.
+              </span>
+            </label>
+            <label className="flex items-start gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 accent-primary-600"
+                checked={content.ticketsOff === true}
+                onChange={e => set('ticketsOff', e.target.checked)}
+              />
+              <span>
+                <span className="font-medium">Off</span> — hide the booking buttons and show a
+                “Tickets coming soon” message on the public page.
+              </span>
+            </label>
+          </div>
         </div>
 
         <div>
@@ -489,7 +603,8 @@ export default function AdminDurgaPuja() {
       <div className="mt-8 bg-white rounded-xl shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-1">Sub-events on the Durga Puja page</h2>
         <p className="text-gray-600 text-sm mb-4">
-          Turn a sub-event on to show it (with its banner) on the public <code>/durga-puja</code>{' '}
+          Turn a sub-event on to show it (with its banner) on the public{' '}
+          <code>{durgaPujaPagePath(editYear)}</code>{' '}
           page, below Dates &amp; Venue. Sub-events come from the linked Durga Puja event.
         </p>
 

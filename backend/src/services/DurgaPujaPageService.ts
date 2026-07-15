@@ -1,6 +1,7 @@
 import { DurgaPujaPageDataHelper } from '../data/DurgaPujaPageDataHelper.js';
 import { EventDataHelper } from '../data/EventDataHelper.js';
 import { DurgaPujaFaq, DurgaPujaPageContent, Event, TicketLink } from '../models/types.js';
+import { durgaPujaEventYear } from '../utils/durgaPuja.js';
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const MAX_TEXT = 2000;
@@ -18,12 +19,23 @@ export class DurgaPujaPageService {
     this.eventDataHelper = new EventDataHelper();
   }
 
+  async listYears(): Promise<number[]> {
+    return this.dataHelper.listYears();
+  }
+
+  async getActiveYear(): Promise<number> {
+    const flagged = await this.findActiveDurgaEvent();
+    if (flagged) return durgaPujaEventYear(flagged);
+    const years = await this.listYears();
+    return years[0] ?? new Date().getFullYear();
+  }
+
+  async getContentByYear(year: number): Promise<DurgaPujaPageContent | null> {
+    return this.dataHelper.getByYear(year);
+  }
+
   async getContent(): Promise<DurgaPujaPageContent> {
     let content = await this.dataHelper.get();
-    // One-time migration/backfill: ensure some Durga event carries the
-    // "Active Durga Puja Event" flag (events created before the flag existed
-    // won't have it). Prefer the already-linked event, then the next upcoming
-    // Durga event. The flagged event is what feeds this page from then on.
     try {
       const flagged = await this.findActiveDurgaEvent();
       if (!flagged) {
@@ -74,7 +86,10 @@ export class DurgaPujaPageService {
     }
   }
 
-  async updateContent(patch: Partial<DurgaPujaPageContent>): Promise<DurgaPujaPageContent> {
+  async updateContent(
+    year: number,
+    patch: Partial<DurgaPujaPageContent>
+  ): Promise<DurgaPujaPageContent> {
     const clean: Partial<DurgaPujaPageContent> = {};
 
     const textFields = ['intro', 'datesText', 'venueName', 'venueCity', 'venueNote'] as const;
@@ -97,8 +112,9 @@ export class DurgaPujaPageService {
         clean[field] = value;
       }
     }
-    const start = clean.startDate ?? (await this.dataHelper.get()).startDate;
-    const end = clean.endDate ?? (await this.dataHelper.get()).endDate;
+    const existing = (await this.dataHelper.getByYear(year)) ?? (await this.dataHelper.getOrCreate(year));
+    const start = clean.startDate ?? existing.startDate;
+    const end = clean.endDate ?? existing.endDate;
     if (start && end && end < start) {
       throw new Error('endDate cannot be before startDate');
     }
@@ -132,6 +148,16 @@ export class DurgaPujaPageService {
       clean.ticketsNote = patch.ticketsNote.trim();
     }
 
+    for (const field of ['showInternalBooking', 'showExternalTickets', 'ticketsOff'] as const) {
+      const value = patch[field];
+      if (value !== undefined) {
+        if (typeof value !== 'boolean') {
+          throw new Error(`${field} must be a boolean`);
+        }
+        clean[field] = value;
+      }
+    }
+
     if (patch.ticketLinks !== undefined) {
       if (!Array.isArray(patch.ticketLinks) || patch.ticketLinks.length > MAX_TICKET_LINKS) {
         throw new Error(`ticketLinks must be an array of at most ${MAX_TICKET_LINKS} items`);
@@ -149,7 +175,7 @@ export class DurgaPujaPageService {
         }
         const label = link.label.trim();
         const url = link.url.trim();
-        if (!label && !url) continue; // skip empty rows from the admin form
+        if (!label && !url) continue;
         if (!label || !url) {
           throw new Error('Each ticket link needs both a label and a URL');
         }
@@ -161,23 +187,17 @@ export class DurgaPujaPageService {
       clean.ticketLinks = ticketLinks;
     }
 
-    return this.dataHelper.update(clean);
+    return this.dataHelper.update(year, clean);
   }
 
-  /**
-   * Auto-sync the landing page's dates/venue from the Active Durga Puja Event.
-   * Called by EventService on event create/update. Guards:
-   * - event must carry the is_active_durga_puja_event flag (the admin's
-   *   explicit choice of which event feeds this page)
-   * - event name must contain "durga" or "durgotsav" (safety net)
-   * Only dates, venue name, and the linked event id are touched — intro,
-   * FAQs, venue city, and ticket links stay as the admin wrote them.
-   */
   async syncFromEvent(event: Event): Promise<void> {
     try {
       if (event.is_active_durga_puja_event !== true) return;
       const name = (event.event_name || '').toLowerCase();
       if (!/durga|durgotsav/.test(name)) return;
+
+      const year = durgaPujaEventYear(event);
+      await this.dataHelper.getOrCreate(year);
 
       const start = new Date(event.event_start_dt);
       const end = new Date(event.event_end_dt || event.event_start_dt);
@@ -192,11 +212,10 @@ export class DurgaPujaPageService {
       const location = (event.location || '').trim();
       if (location) {
         patch.venueName = location;
-        patch.venueNote = 'See the event page for the full schedule and RSVP.';
+        patch.venueNote = 'See this page for the full schedule and ticket information.';
       }
-      await this.dataHelper.update(patch);
+      await this.dataHelper.update(year, patch);
     } catch (error) {
-      // Never let page sync break event creation
       console.error('Durga Puja page sync failed:', error);
     }
   }
@@ -212,10 +231,9 @@ function isHttpUrl(value: string): boolean {
 }
 
 function toIsoDate(d: Date): string {
-  return d.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' }); // yyyy-mm-dd
+  return d.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
 }
 
-/** "October 16–21, 2026" or "September 26 – October 1, 2026". */
 function formatDateRange(start: Date, end: Date): string {
   const opts = { timeZone: 'America/Los_Angeles' } as const;
   const startMonth = start.toLocaleDateString('en-US', { ...opts, month: 'long' });
