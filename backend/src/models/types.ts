@@ -579,6 +579,42 @@ export interface DiscountCode {
   updated_at: string;
 }
 
+/** Frozen snapshot of an event's ticketing configuration at save/archive time. */
+export interface TicketSetupSnapshot {
+  categories: SeatCategory[];
+  child_age_range: ChildAgeRange;
+  meal_days: MealDayPricing[];
+  sub_event_configs: SubEventTicketingConfig[];
+  hold_minutes: number;
+  payment_window_hours: number;
+  booking_note?: string;
+  seat_maps: SeatMap[];
+  discounts: DiscountCode[];
+}
+
+/** Saved, archivable ticket setup for one event (one active per event). */
+export interface TicketSetup {
+  setup_id: string;
+  event_id: string;
+  event_name: string;
+  label: string;
+  status: 'active' | 'archived';
+  snapshot: TicketSetupSnapshot;
+  created_at: string;
+  updated_at: string;
+  archived_at?: string;
+}
+
+/** Reusable theater seat layout in the saved-maps library (unlimited). */
+export interface TheaterMap {
+  theater_map_id: string;
+  name: string;
+  matrix: { rows: number; cols: number };
+  seats: SeatMapTemplateSeat[];
+  created_at: string;
+  updated_at: string;
+}
+
 /** Admin-editable content for a public /durga-puja-YYYY landing page. */
 export interface DurgaPujaPageContent {
   /** Celebration year this page represents (e.g. 2026 → /durga-puja-2026). */

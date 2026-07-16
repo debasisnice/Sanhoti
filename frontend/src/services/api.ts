@@ -1083,6 +1083,45 @@ export interface DiscountCode {
   created_at: string;
   updated_at: string;
 }
+
+export interface TicketSetupSnapshot {
+  categories: SeatCategory[];
+  child_age_range: ChildAgeRange;
+  meal_days: MealDayPricing[];
+  sub_event_configs: SubEventTicketingConfig[];
+  hold_minutes: number;
+  payment_window_hours: number;
+  booking_note?: string;
+  seat_maps: SeatMap[];
+  discounts: DiscountCode[];
+}
+
+export interface TicketSetup {
+  setup_id: string;
+  event_id: string;
+  event_name: string;
+  label: string;
+  status: 'active' | 'archived';
+  snapshot: TicketSetupSnapshot;
+  created_at: string;
+  updated_at: string;
+  archived_at?: string;
+}
+
+export interface TheaterMap {
+  theater_map_id: string;
+  name: string;
+  matrix: { rows: number; cols: number };
+  seats: Array<{
+    row: number;
+    col: number;
+    category_name: string;
+    blocked?: boolean;
+  }>;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface DiscountPreview {
   code: string;
   type: 'percent' | 'fixed';
@@ -1339,13 +1378,20 @@ export const ticketingAPI = {
     const response = await api.get('/booking/admin/maps');
     return response.data;
   },
-  createMap: async (data: Partial<SeatMap> & { template_slot?: 1 | 2 }): Promise<SeatMap> => {
+  createMap: async (
+    data: Partial<SeatMap> & { template_slot?: 1 | 2; theater_map_id?: string }
+  ): Promise<SeatMap> => {
     const response = await api.post('/booking/admin/maps', data);
     return response.data;
   },
   updateMap: async (
     mapId: string,
-    patch: Partial<SeatMap> & { apply_template_slot?: 1 | 2; template_slot?: 1 | 2 }
+    patch: Partial<SeatMap> & {
+      apply_template_slot?: 1 | 2;
+      template_slot?: 1 | 2;
+      apply_theater_map_id?: string;
+      theater_map_id?: string;
+    }
   ): Promise<SeatMap> => {
     const response = await api.put(`/booking/admin/maps/${mapId}`, patch);
     return response.data;
@@ -1453,6 +1499,53 @@ export const ticketingAPI = {
   },
   deleteDiscount: async (discountId: string): Promise<void> => {
     await api.delete(`/booking/admin/discounts/${discountId}`);
+  },
+};
+
+export const ticketSetupsAPI = {
+  list: async (): Promise<TicketSetup[]> => {
+    const response = await api.get('/booking/admin/setups');
+    return response.data;
+  },
+  get: async (setupId: string): Promise<TicketSetup> => {
+    const response = await api.get(`/booking/admin/setups/${setupId}`);
+    return response.data;
+  },
+  save: async (eventId: string): Promise<TicketSetup> => {
+    const response = await api.post('/booking/admin/setups/save', { event_id: eventId });
+    return response.data;
+  },
+  archive: async (setupId: string): Promise<TicketSetup> => {
+    const response = await api.post(`/booking/admin/setups/${setupId}/archive`);
+    return response.data;
+  },
+  remove: async (setupId: string): Promise<void> => {
+    await api.delete(`/booking/admin/setups/${setupId}`);
+  },
+};
+
+export const theaterMapsAPI = {
+  list: async (): Promise<TheaterMap[]> => {
+    const response = await api.get('/booking/admin/theater-maps');
+    return response.data;
+  },
+  create: async (data: {
+    name: string;
+    matrix: { rows: number; cols: number };
+    seats: TheaterMap['seats'];
+  }): Promise<TheaterMap> => {
+    const response = await api.post('/booking/admin/theater-maps', data);
+    return response.data;
+  },
+  update: async (
+    theaterMapId: string,
+    patch: Partial<Pick<TheaterMap, 'name' | 'matrix' | 'seats'>>
+  ): Promise<TheaterMap> => {
+    const response = await api.put(`/booking/admin/theater-maps/${theaterMapId}`, patch);
+    return response.data;
+  },
+  remove: async (theaterMapId: string): Promise<void> => {
+    await api.delete(`/booking/admin/theater-maps/${theaterMapId}`);
   },
 };
 

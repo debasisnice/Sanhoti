@@ -26,6 +26,8 @@ import { SubEventController } from '../controllers/SubEventController.js';
 import { SitemapController } from '../controllers/SitemapController.js';
 import { DurgaPujaPageController } from '../controllers/DurgaPujaPageController.js';
 import { TicketingController } from '../controllers/TicketingController.js';
+import { TicketSetupController } from '../controllers/TicketSetupController.js';
+import { TheaterMapController } from '../controllers/TheaterMapController.js';
 
 const router = Router();
 
@@ -52,6 +54,8 @@ const paymentQRController = new PaymentQRController();
 const subEventController = new SubEventController();
 const sitemapController = new SitemapController();
 const ticketingController = new TicketingController();
+const ticketSetupController = new TicketSetupController();
+const theaterMapController = new TheaterMapController();
 
 // Helper to bind controller methods
 function bindController(controller: any, methodName: string) {
@@ -680,6 +684,41 @@ router.post('/booking/admin/checkin/correct',
 router.get('/booking/admin/checkin/stats', requireAdmin, bindController(ticketingController, 'checkinStats'));
 router.get('/booking/admin/checkin/gates', requireAdmin, bindController(ticketingController, 'listCheckinGates'));
 router.get('/booking/admin/ticket-stats', requireAdmin, bindController(ticketingController, 'getTicketStats'));
+
+router.get('/booking/admin/setups', requireAdmin, bindController(ticketSetupController, 'listSetups'));
+router.post('/booking/admin/setups/save',
+  requireAdmin,
+  auditLog('UPDATE', 'ticket-setup'),
+  bindController(ticketSetupController, 'saveActive')
+);
+router.get('/booking/admin/setups/:id', requireAdmin, bindController(ticketSetupController, 'getSetup'));
+router.post('/booking/admin/setups/:id/archive',
+  requireAdmin,
+  auditLog('ARCHIVE', 'ticket-setup'),
+  bindController(ticketSetupController, 'archiveSetup')
+);
+router.delete('/booking/admin/setups/:id',
+  requireAdmin,
+  auditLog('DELETE', 'ticket-setup'),
+  bindController(ticketSetupController, 'deleteSetup')
+);
+
+router.get('/booking/admin/theater-maps', requireAdmin, bindController(theaterMapController, 'listMaps'));
+router.post('/booking/admin/theater-maps',
+  requireAdmin,
+  auditLog('CREATE', 'theater-map'),
+  bindController(theaterMapController, 'createMap')
+);
+router.put('/booking/admin/theater-maps/:id',
+  requireAdmin,
+  auditLog('UPDATE', 'theater-map'),
+  bindController(theaterMapController, 'updateMap')
+);
+router.delete('/booking/admin/theater-maps/:id',
+  requireAdmin,
+  auditLog('DELETE', 'theater-map'),
+  bindController(theaterMapController, 'deleteMap')
+);
 
 router.get('/booking/admin/discounts', requireAdmin, bindController(ticketingController, 'listDiscounts'));
 router.post('/booking/admin/discounts',

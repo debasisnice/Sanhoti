@@ -1,5 +1,6 @@
 import { SeatMapDataHelper } from '../data/SeatMapDataHelper.js';
 import { SeatMapTemplateDataHelper } from '../data/SeatMapTemplateDataHelper.js';
+import { TheaterMapDataHelper } from '../data/TheaterMapDataHelper.js';
 import { TicketingProfileDataHelper, categoryAdultPrice, categoryChildPrice, categoriesForEntireEvent, categoriesForSubEvent, migrateProfileCategories } from '../data/TicketingProfileDataHelper.js';
 import { SeatHoldDataHelper } from '../data/SeatHoldDataHelper.js';
 import { BookingDataHelper, MAX_PENDING_BOOKINGS_PER_EMAIL } from '../data/BookingDataHelper.js';
@@ -222,6 +223,7 @@ type ActiveContext = {
 export class TicketingService {
   private mapHelper = new SeatMapDataHelper();
   private templateHelper = new SeatMapTemplateDataHelper();
+  private theaterMapHelper = new TheaterMapDataHelper();
   private profileHelper = new TicketingProfileDataHelper();
   private holdHelper = new SeatHoldDataHelper();
   private bookingHelper = new BookingDataHelper();
@@ -576,7 +578,7 @@ export class TicketingService {
     return eventId ? this.mapHelper.findByEventId(String(eventId)) : this.mapHelper.findAll();
   }
 
-  async createMap(input: Partial<SeatMap> & { template_slot?: unknown }): Promise<SeatMap> {
+  async createMap(input: Partial<SeatMap> & { template_slot?: unknown; theater_map_id?: unknown }): Promise<SeatMap> {
     const association = await this.validateAssociation(input.event_id, input.sub_event_id, undefined);
     const profile = await this.profileHelper.findByEventId(association.event_id);
     if (!profile) throw new Error('Create the event ticketing profile before adding maps');
@@ -585,9 +587,13 @@ export class TicketingService {
     const templateSlot = this.parseTemplateSlot(input.template_slot);
     const template = templateSlot ? await this.templateHelper.findBySlot(templateSlot) : null;
     if (templateSlot && !template) throw new Error(`Saved layout slot ${templateSlot} is empty`);
+    const theaterMapId = String(input.theater_map_id ?? '').trim();
+    const theaterMap = theaterMapId ? await this.theaterMapHelper.findById(theaterMapId) : null;
+    if (theaterMapId && !theaterMap) throw new Error('Saved theater map not found');
     const mapCategories = this.categoriesForMap(association, profile);
-    const layout = template
-      ? this.buildLayoutFromTemplate(template, mapCategories)
+    const layoutSource = theaterMap ?? template;
+    const layout = layoutSource
+      ? this.buildLayoutFromSavedSeats(layoutSource, mapCategories)
       : this.validateMapPayload(
           {
             matrix: input.matrix ?? { rows: 15, cols: 24 },
@@ -607,7 +613,12 @@ export class TicketingService {
 
   async updateMap(
     mapId: string,
-    input: Partial<SeatMap> & { template_slot?: unknown; apply_template_slot?: unknown }
+    input: Partial<SeatMap> & {
+      template_slot?: unknown;
+      apply_template_slot?: unknown;
+      theater_map_id?: unknown;
+      apply_theater_map_id?: unknown;
+    }
   ): Promise<SeatMap | null> {
     const current = await this.mapHelper.findById(String(mapId));
     if (!current) return null;
@@ -626,9 +637,13 @@ export class TicketingService {
     const applySlot = this.parseTemplateSlot(input.apply_template_slot ?? input.template_slot);
     const template = applySlot ? await this.templateHelper.findBySlot(applySlot) : null;
     if (applySlot && !template) throw new Error(`Saved layout slot ${applySlot} is empty`);
+    const applyTheaterMapId = String(input.apply_theater_map_id ?? input.theater_map_id ?? '').trim();
+    const theaterMap = applyTheaterMapId ? await this.theaterMapHelper.findById(applyTheaterMapId) : null;
+    if (applyTheaterMapId && !theaterMap) throw new Error('Saved theater map not found');
     const mapCategories = this.categoriesForMap(association, profile, current);
-    const clean = template
-      ? this.buildLayoutFromTemplate(template, mapCategories)
+    const layoutSource = theaterMap ?? template;
+    const clean = layoutSource
+      ? this.buildLayoutFromSavedSeats(layoutSource, mapCategories)
       : this.validateMapPayload(input, mapCategories, current);
     return this.mapHelper.update(current.map_id, {
       ...clean,
@@ -704,14 +719,14 @@ export class TicketingService {
     throw new Error('template slot must be 1 or 2');
   }
 
-  private buildLayoutFromTemplate(
-    template: SeatMapTemplate,
+  private buildLayoutFromSavedSeats(
+    source: { matrix: { rows: number; cols: number }; seats: SeatMapTemplateSeat[] },
     categories: SeatCategory[]
   ): Pick<SeatMap, 'matrix' | 'sections' | 'seat_positions' | 'blocked_seats'> {
     if (categories.length === 0) throw new Error('Add at least one category before applying a saved layout');
     const categoryByName = new Map(categories.map(category => [category.name.trim().toLowerCase(), category.category_id]));
     const fallbackId = categories[0].category_id;
-    const sorted = [...template.seats].sort((a, b) => a.row - b.row || a.col - b.col);
+    const sorted = [...source.seats].sort((a, b) => a.row - b.row || a.col - b.col);
     const sections: SeatingSection[] = [];
     const seat_positions: Record<string, { x: number; y: number }> = {};
     const blocked_seats: string[] = [];
@@ -737,11 +752,18 @@ export class TicketingService {
       if (seat.blocked) blocked_seats.push(seatId);
     }
     return {
-      matrix: template.matrix,
+      matrix: source.matrix,
       sections: this.validateSections(sections, categories),
       seat_positions: this.validateSeatPositions(seat_positions, sections),
       blocked_seats: this.validateBlockedSeats(blocked_seats, sections),
     };
+  }
+
+  private buildLayoutFromTemplate(
+    template: SeatMapTemplate,
+    categories: SeatCategory[]
+  ): Pick<SeatMap, 'matrix' | 'sections' | 'seat_positions' | 'blocked_seats'> {
+    return this.buildLayoutFromSavedSeats(template, categories);
   }
 
   private validateMapPayload(

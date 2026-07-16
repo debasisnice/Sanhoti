@@ -3,11 +3,14 @@ import toast from 'react-hot-toast';
 import { ExternalLink, Plus, Trash2 } from 'lucide-react';
 import {
   ticketingAPI,
+  ticketSetupsAPI,
+  theaterMapsAPI,
   eventsAPI,
   subEventsAPI,
   TicketingProfile,
   SeatMap,
-  SeatMapTemplate,
+  TheaterMap,
+  TicketSetup,
   SeatBooking,
   DiscountCode,
   UnavailableSeats,
@@ -21,6 +24,8 @@ import {
 } from '../../services/api';
 import { SubEvent } from '../../types';
 import SeatGridDesigner, { GridSeat, seatsFromConfig, MatrixLayoutPayload } from './SeatGridDesigner';
+import AdminEventTickets from './AdminEventTickets';
+import AdminTheaterMaps from './AdminTheaterMaps';
 
 /**
  * Admin management for the public /book-your-seat page:
@@ -30,8 +35,29 @@ import SeatGridDesigner, { GridSeat, seatsFromConfig, MatrixLayoutPayload } from
 const inputCls =
   'w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500';
 
-type Tab = 'setup' | 'seatmap' | 'discounts';
-type SetupSubTab = 'entire_event' | 'meals' | 'sub_events';
+const TICKET_SETUP_DRAFT_EVENT_KEY = 'sanhoti-ticket-setup-draft-event';
+
+function readDraftEventId(): string {
+  const params = new URLSearchParams(window.location.search);
+  const fromUrl = params.get('edit')?.trim();
+  if (fromUrl) {
+    localStorage.setItem(TICKET_SETUP_DRAFT_EVENT_KEY, fromUrl);
+    window.history.replaceState({}, '', window.location.pathname);
+    return fromUrl;
+  }
+  return localStorage.getItem(TICKET_SETUP_DRAFT_EVENT_KEY)?.trim() ?? '';
+}
+
+function persistDraftEventId(eventId: string): void {
+  localStorage.setItem(TICKET_SETUP_DRAFT_EVENT_KEY, eventId);
+}
+
+function clearDraftEventId(): void {
+  localStorage.removeItem(TICKET_SETUP_DRAFT_EVENT_KEY);
+}
+
+type TopTab = 'new_setup' | 'event_tickets' | 'theater_maps';
+type Tab = 'entire_event' | 'meals' | 'sub_events' | 'seatmap' | 'discounts';
 
 /** True when the date string is valid and already in the past. */
 function isPast(dateStr?: string): boolean {
@@ -142,7 +168,7 @@ function newCategory(index: number): SeatCategory {
     child_price: 0,
     color: '#f59e0b',
     price: 0,
-    entire_event_enabled: false,
+    entire_event_enabled: true,
   };
 }
 
@@ -217,11 +243,12 @@ function updateSubEventConfig(
 }
 
 export default function AdminBookYourSeat() {
-  const [tab, setTab] = useState<Tab>('setup');
-  const [setupSubTab, setSetupSubTab] = useState<SetupSubTab>('entire_event');
+  const [topTab, setTopTab] = useState<TopTab>('new_setup');
+  const [tab, setTab] = useState<Tab>('entire_event');
   const [config, setConfig] = useState<TicketingProfile | null>(null);
   const [maps, setMaps] = useState<SeatMap[]>([]);
-  const [mapTemplates, setMapTemplates] = useState<SeatMapTemplate[]>([]);
+  const [theaterMaps, setTheaterMaps] = useState<TheaterMap[]>([]);
+  const [activeSetup, setActiveSetup] = useState<TicketSetup | null>(null);
   const [selectedMapId, setSelectedMapId] = useState('');
   const [bookings, setBookings] = useState<SeatBooking[]>([]);
   const [discounts, setDiscounts] = useState<DiscountCode[]>([]);
@@ -235,48 +262,32 @@ export default function AdminBookYourSeat() {
   const [gridSeats, setGridSeats] = useState<GridSeat[]>([]);
   const [blockedSids, setBlockedSids] = useState<string[]>([]);
   const [matrixDims, setMatrixDims] = useState({ rows: 15, cols: 24 });
-  const [layoutSource, setLayoutSource] = useState<'blank' | '1' | '2'>('blank');
+  const [layoutSource, setLayoutSource] = useState<string>('blank');
   const [loadFailed, setLoadFailed] = useState(false);
+  const [draftEventId, setDraftEventId] = useState('');
+
+  const resetToEmptySetup = useCallback(() => {
+    setConfig(emptyProfile());
+    setMaps([]);
+    setSelectedMapId('');
+    setGridSeats([]);
+    setBlockedSids([]);
+    setMatrixDims({ rows: 15, cols: 24 });
+    setSubEvents([]);
+    setActiveSetup(null);
+    setDraftEventId('');
+    clearDraftEventId();
+    setLoadFailed(false);
+  }, []);
 
   const loadAll = useCallback(async () => {
-    let cfg: TicketingProfile | null = null;
-    try {
-      cfg = normalizeProfile(await ticketingAPI.getAdminProfile());
-      setConfig(cfg);
-      setLoadFailed(false);
-      const loadedMaps = await ticketingAPI.listMaps();
-      setMaps(loadedMaps);
-      const current = loadedMaps.find(m => m.map_id === selectedMapId) ?? loadedMaps[0];
-      if (current) {
-        setSelectedMapId(current.map_id);
-        const parsed = seatsFromConfig(current);
-        setGridSeats(parsed.seats);
-        setBlockedSids(parsed.blockedSids);
-        setMatrixDims(current.matrix);
-      }
-    } catch (error: any) {
-      if (error?.response?.status === 404) {
-        cfg = emptyProfile();
-        setConfig(cfg);
-        setLoadFailed(false);
-      } else {
-        setLoadFailed(true);
-        toast.error('Failed to load booking configuration');
-      }
-    }
+    const draftId = readDraftEventId();
+    setDraftEventId(draftId);
+
     try {
       setEvents(await eventsAPI.getAll());
     } catch {
       /* ignore */
-    }
-    if (cfg?.event_id) {
-      try {
-        const loadedSubs = await subEventsAPI.getByEventId(cfg.event_id);
-        setSubEvents(loadedSubs);
-        setConfig(prev => (prev ? syncSubEventConfigs(prev, loadedSubs) : prev));
-      } catch {
-        setSubEvents([]);
-      }
     }
     try {
       setBookings(await ticketingAPI.listBookings());
@@ -289,7 +300,7 @@ export default function AdminBookYourSeat() {
       /* ignore */
     }
     try {
-      setMapTemplates(await ticketingAPI.listMapTemplates());
+      setTheaterMaps(await theaterMapsAPI.list());
     } catch {
       /* ignore */
     }
@@ -299,17 +310,77 @@ export default function AdminBookYourSeat() {
     } catch {
       /* ignore */
     }
-  }, [selectedMapId]);
+
+    if (draftId) {
+      try {
+        const profile = normalizeProfile(await ticketingAPI.getAdminProfile(draftId));
+        setConfig(profile);
+        setLoadFailed(false);
+        const loadedMaps = await ticketingAPI.listMaps();
+        const eventMaps = loadedMaps.filter(m => m.event_id === draftId);
+        setMaps(eventMaps);
+        setSelectedMapId(prevSelected => {
+          const current = eventMaps.find(m => m.map_id === prevSelected) ?? eventMaps[0];
+          if (current) {
+            const parsed = seatsFromConfig(current);
+            setGridSeats(parsed.seats);
+            setBlockedSids(parsed.blockedSids);
+            setMatrixDims(current.matrix);
+            return current.map_id;
+          }
+          setGridSeats([]);
+          setBlockedSids([]);
+          return '';
+        });
+      } catch (error: any) {
+        if (error?.response?.status === 404) {
+          resetToEmptySetup();
+        } else {
+          setLoadFailed(true);
+          toast.error('Failed to load draft setup');
+        }
+      }
+      try {
+        const loadedSubs = await subEventsAPI.getByEventId(draftId);
+        setSubEvents(loadedSubs);
+        setConfig(prev => (prev ? syncSubEventConfigs(prev, loadedSubs) : prev));
+      } catch {
+        setSubEvents([]);
+      }
+      try {
+        const setups = await ticketSetupsAPI.list();
+        setActiveSetup(setups.find(s => s.event_id === draftId && s.status === 'active') ?? null);
+      } catch {
+        setActiveSetup(null);
+      }
+    } else {
+      resetToEmptySetup();
+    }
+  }, [resetToEmptySetup]);
+
+  const refreshMapContext = useCallback(async () => {
+    try {
+      setBookings(await ticketingAPI.listBookings());
+    } catch {
+      /* ignore */
+    }
+    try {
+      const { unavailable } = await ticketingAPI.getAvailability();
+      setUnavailable(unavailable);
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   useEffect(() => {
     loadAll();
   }, [loadAll]);
 
   useEffect(() => {
-    if (setupSubTab === 'sub_events' && subEvents.length === 0) {
-      setSetupSubTab('entire_event');
+    if (tab === 'sub_events' && subEvents.length === 0) {
+      setTab('entire_event');
     }
-  }, [setupSubTab, subEvents.length]);
+  }, [tab, subEvents.length]);
 
   // Seats taken by non-cancelled bookings (seat_id -> booking) for the map tab
   const bookedBy = useMemo(() => {
@@ -327,6 +398,14 @@ export default function AdminBookYourSeat() {
     if (selectedMap?.sub_event_id) return categoriesForSubEvent(config, selectedMap.sub_event_id);
     return categoriesForEntireEvent(config);
   }, [config, selectedMap]);
+
+  const canDesignSeatMaps = useMemo(() => {
+    if (!config || config.categories.length === 0) return false;
+    if (categoriesForEntireEvent(config).length > 0) return true;
+    return config.sub_event_configs.some(
+      c => c.ticketing_type === 'concert' && (c.enabled_category_ids?.length ?? 0) > 0
+    );
+  }, [config]);
 
   const concertSubEvents = useMemo(
     () =>
@@ -349,24 +428,167 @@ export default function AdminBookYourSeat() {
         setSubEvents([]);
         setConfig(c => (c ? { ...c, event_id: eventId, sub_event_configs: [] } : c));
       }
+      try {
+        const setups = await ticketSetupsAPI.list();
+        setActiveSetup(setups.find(s => s.event_id === eventId && s.status === 'active') ?? null);
+      } catch {
+        setActiveSetup(null);
+      }
     } else {
       setSubEvents([]);
+      setActiveSetup(null);
       setConfig(c => (c ? { ...c, event_id: eventId, sub_event_configs: [] } : c));
     }
   };
 
-  const validateCategories = (categories: SeatCategory[], label: string) => {
+  const getCategoryError = (categories: SeatCategory[], label: string): string | null => {
     for (const c of categories) {
-      if (!c.name.trim()) {
-        toast.error(`${label}: every category needs a name`);
-        return false;
-      }
+      if (!c.name.trim()) return `${label}: every category needs a name`;
       if (!(categoryAdultPrice(c) >= 0) || !(categoryChildPrice(c) >= 0)) {
-        toast.error(`${label}: category "${c.name}" has invalid prices`);
-        return false;
+        return `${label}: category "${c.name}" has invalid prices`;
       }
     }
-    return true;
+    return null;
+  };
+
+  const seatCountOnMap = (map: SeatMap): number =>
+    map.sections.filter(s => s.rows === 1 && s.seats_per_row === 1).length;
+
+  /** Validate every sub-tab before save; returns the tab to focus when invalid. */
+  const validateFullSetup = (): { tab: Tab; message: string } | null => {
+    if (!config) return { tab: 'entire_event', message: 'Booking configuration is not loaded' };
+
+    if (!config.event_id?.trim()) {
+      return { tab: 'entire_event', message: 'Select an event on Entire Event Tickets' };
+    }
+
+    const hold = Number(config.hold_minutes);
+    if (!Number.isInteger(hold) || hold < 1 || hold > 60) {
+      return { tab: 'entire_event', message: 'Hold time must be an integer from 1 to 60 minutes' };
+    }
+
+    const paymentWindow = Number(config.payment_window_hours ?? 48);
+    if (!Number.isInteger(paymentWindow) || paymentWindow < 1 || paymentWindow > 336) {
+      return { tab: 'entire_event', message: 'Payment window must be an integer from 1 to 336 hours' };
+    }
+
+    const { min_age, max_age } = config.child_age_range ?? { min_age: 0, max_age: 12 };
+    if (!Number.isInteger(min_age) || min_age < 0 || min_age > 17) {
+      return { tab: 'entire_event', message: 'Child min age must be an integer from 0 to 17' };
+    }
+    if (!Number.isInteger(max_age) || max_age < min_age || max_age > 17) {
+      return { tab: 'entire_event', message: 'Child max age must be an integer from min age to 17' };
+    }
+
+    const categoryErr = getCategoryError(config.categories, 'Entire Event Tickets');
+    if (categoryErr) return { tab: 'entire_event', message: categoryErr };
+
+    if (config.categories.length === 0) {
+      return { tab: 'entire_event', message: 'Add at least one seat category on Entire Event Tickets' };
+    }
+
+    for (const day of config.meal_days ?? []) {
+      if (!day.label?.trim()) {
+        return { tab: 'meals', message: 'Every meal day needs a label on Daily Lunch & Dinner Pricing' };
+      }
+      for (const key of ['lunch_adult_price', 'lunch_child_price', 'dinner_adult_price', 'dinner_child_price'] as const) {
+        const price = Number(day[key]);
+        if (!Number.isFinite(price) || price < 0) {
+          return {
+            tab: 'meals',
+            message: `Meal day "${day.label || 'Untitled'}": invalid ${key.replace(/_/g, ' ')}`,
+          };
+        }
+      }
+    }
+
+    for (const subConfig of config.sub_event_configs) {
+      const subName =
+        subEvents.find(se => se.sub_event_id === subConfig.sub_event_id)?.sub_event_name ?? 'Sub-event';
+
+      for (const addon of subConfig.food_addons ?? []) {
+        if (!addon.name.trim()) {
+          return { tab: 'sub_events', message: `${subName}: every food add-on needs a name` };
+        }
+        if (!foodAddonSlotValue(addon, config.meal_days ?? [])) {
+          return { tab: 'sub_events', message: `${subName}: select a meal for each food add-on` };
+        }
+        if (!(Number(addon.adult_price) > 0) && !(Number(addon.child_price) > 0)) {
+          return { tab: 'sub_events', message: `${subName}: “${addon.name}” needs a price` };
+        }
+      }
+
+      if (subConfig.ticketing_type === 'concert' && (subConfig.enabled_category_ids ?? []).length === 0) {
+        return {
+          tab: 'sub_events',
+          message: `${subName}: enable at least one seat category for the concert map`,
+        };
+      }
+
+      for (const row of subConfig.category_prices ?? []) {
+        if (!(Number(row.adult_price) >= 0) || !(Number(row.child_price) >= 0)) {
+          return { tab: 'sub_events', message: `${subName}: invalid seat category pricing` };
+        }
+      }
+
+      if (subConfig.ticketing_type === 'concert') {
+        const subMap = maps.find(
+          m => m.event_id === config.event_id && m.sub_event_id === subConfig.sub_event_id
+        );
+        if (!subMap) {
+          return {
+            tab: 'seatmap',
+            message: `${subName}: create a seat map on Seat Maps for this concert sub-event`,
+          };
+        }
+        if (seatCountOnMap(subMap) === 0) {
+          return {
+            tab: 'seatmap',
+            message: `${subName}: paint at least one seat on its seat map`,
+          };
+        }
+      }
+    }
+
+    const keptIds = new Set(config.categories.map(c => c.category_id));
+    const eventMaps = maps.filter(m => m.event_id === config.event_id);
+
+    const orphanedMain = eventMaps
+      .filter(map => !map.sub_event_id)
+      .flatMap(map => map.sections)
+      .filter(s => !keptIds.has(s.category_id));
+    if (orphanedMain.length > 0) {
+      return {
+        tab: 'seatmap',
+        message: `${orphanedMain.length} whole-event seat(s) use a removed category — repaint on Seat Maps`,
+      };
+    }
+
+    for (const subConfig of config.sub_event_configs) {
+      const keptSubIds = new Set(subConfig.enabled_category_ids ?? []);
+      const orphanedSub = eventMaps
+        .filter(map => map.sub_event_id === subConfig.sub_event_id)
+        .flatMap(map => map.sections)
+        .filter(s => !keptSubIds.has(s.category_id));
+      if (orphanedSub.length > 0) {
+        const subName =
+          subEvents.find(se => se.sub_event_id === subConfig.sub_event_id)?.sub_event_name ?? 'Sub-event';
+        return {
+          tab: 'seatmap',
+          message: `${subName}: ${orphanedSub.length} seat(s) use a removed category — fix on Seat Maps`,
+        };
+      }
+    }
+
+    const hasEntireEventTiers = config.categories.some(c => c.entire_event_enabled !== false);
+    if (hasEntireEventTiers) {
+      const mainMap = eventMaps.find(m => !m.sub_event_id);
+      if (mainMap && seatCountOnMap(mainMap) === 0) {
+        return { tab: 'seatmap', message: 'Whole-event seat map has no seats — paint the grid on Seat Maps' };
+      }
+    }
+
+    return null;
   };
 
   const syncSubEventCategoryPrices = (
@@ -493,50 +715,11 @@ export default function AdminBookYourSeat() {
 
   const saveSetup = async () => {
     if (!config) return;
-    if (!validateCategories(config.categories, 'Categories')) return;
-    for (const subConfig of config.sub_event_configs) {
-      const subName = subEvents.find(se => se.sub_event_id === subConfig.sub_event_id)?.sub_event_name ?? 'Sub-event';
-      for (const addon of subConfig.food_addons) {
-        if (!addon.name.trim()) return void toast.error(`${subName}: every food add-on needs a name`);
-        if (!foodAddonSlotValue(addon, config.meal_days ?? [])) {
-          return void toast.error(`${subName}: select a meal for each food add-on`);
-        }
-        if (!(Number(addon.adult_price) > 0) && !(Number(addon.child_price) > 0)) {
-          return void toast.error(`${subName}: “${addon.name}” needs a price`);
-        }
-      }
-      if (subConfig.ticketing_type === 'concert' && (subConfig.enabled_category_ids ?? []).length === 0) {
-        return void toast.error(`${subName}: enable at least one seat category for the concert map`);
-      }
-      for (const row of subConfig.category_prices ?? []) {
-        if (!(Number(row.adult_price) >= 0) || !(Number(row.child_price) >= 0)) {
-          return void toast.error(`${subName}: invalid seat category pricing`);
-        }
-      }
-    }
-    const { min_age, max_age } = config.child_age_range ?? { min_age: 0, max_age: 12 };
-    if (min_age > max_age) return void toast.error('Child max age must be at least min age');
-
-    const keptIds = new Set(config.categories.map(c => c.category_id));
-    const orphanedMain = maps
-      .filter(map => !map.sub_event_id)
-      .flatMap(map => map.sections)
-      .filter(s => !keptIds.has(s.category_id));
-    if (orphanedMain.length > 0) {
-      toast.error(`${orphanedMain.length} whole-event seat(s) still use a removed category — repaint them first`);
+    const validationError = validateFullSetup();
+    if (validationError) {
+      toast.error(validationError.message);
+      setTab(validationError.tab);
       return;
-    }
-    for (const subConfig of config.sub_event_configs) {
-      const keptSubIds = new Set(subConfig.enabled_category_ids ?? []);
-      const orphanedSub = maps
-        .filter(map => map.sub_event_id === subConfig.sub_event_id)
-        .flatMap(map => map.sections)
-        .filter(s => !keptSubIds.has(s.category_id));
-      if (orphanedSub.length > 0) {
-        const subName = subEvents.find(se => se.sub_event_id === subConfig.sub_event_id)?.sub_event_name ?? 'Sub-event';
-        toast.error(`${subName}: ${orphanedSub.length} seat(s) still use a removed category`);
-        return;
-      }
     }
 
     setSaving(true);
@@ -552,11 +735,73 @@ export default function AdminBookYourSeat() {
         categories: config.categories,
       });
       setConfig(normalizeProfile(syncSubEventConfigs(saved, subEvents)));
-      toast.success('Booking setup saved');
+      if (config.event_id) {
+        persistDraftEventId(config.event_id);
+        setDraftEventId(config.event_id);
+        try {
+          const setup = await ticketSetupsAPI.save(config.event_id);
+          setActiveSetup(setup);
+        } catch (error: any) {
+          toast.error(error?.response?.data?.error || 'Setup saved but snapshot failed');
+        }
+        try {
+          const loadedMaps = await ticketingAPI.listMaps();
+          setMaps(loadedMaps.filter(m => m.event_id === config.event_id));
+        } catch {
+          /* ignore */
+        }
+      }
+      toast.success('Setup saved as draft');
     } catch (error: any) {
       toast.error(error?.response?.data?.error || 'Failed to save');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const archiveActiveSetup = async () => {
+    if (!activeSetup) return void toast.error('No active setup to archive for this event');
+    if (!window.confirm(`Archive "${activeSetup.label}"? You can start a new setup after archiving.`)) return;
+    setSaving(true);
+    try {
+      await ticketSetupsAPI.archive(activeSetup.setup_id);
+      resetToEmptySetup();
+      toast.success('Setup archived');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || 'Failed to archive setup');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const syncProfileForMapOps = async (): Promise<boolean> => {
+    if (!config?.event_id) {
+      toast.error('Select an event on Entire Event Tickets first');
+      setTab('entire_event');
+      return false;
+    }
+    const categoryErr = getCategoryError(config.categories, 'Entire Event Tickets');
+    if (categoryErr) {
+      toast.error(categoryErr);
+      setTab('entire_event');
+      return false;
+    }
+    try {
+      const saved = await ticketingAPI.updateProfile({
+        event_id: config.event_id,
+        hold_minutes: config.hold_minutes,
+        payment_window_hours: config.payment_window_hours,
+        booking_note: config.booking_note ?? '',
+        child_age_range: config.child_age_range,
+        meal_days: config.meal_days,
+        sub_event_configs: config.sub_event_configs,
+        categories: config.categories,
+      });
+      setConfig(normalizeProfile(syncSubEventConfigs(saved, subEvents)));
+      return true;
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || 'Failed to sync categories for seat maps');
+      return false;
     }
   };
 
@@ -572,6 +817,7 @@ export default function AdminBookYourSeat() {
     }
     setSaving(true);
     try {
+      if (!(await syncProfileForMapOps())) return;
       const saved = await ticketingAPI.updateMap(selectedMap.map_id, payload);
       setMaps(prev => prev.map(map => map.map_id === saved.map_id ? saved : map));
       const parsed = seatsFromConfig(saved);
@@ -594,21 +840,42 @@ export default function AdminBookYourSeat() {
     setMatrixDims(map.matrix);
   };
 
-  const createMap = async (subEventId?: string, templateSlot?: 1 | 2) => {
+  const createMap = async (subEventId?: string) => {
     const eventId = config?.event_id;
-    if (!eventId) return void toast.error('Select and save an event first');
+    if (!eventId) return void toast.error('Select an event on Entire Event Tickets first');
     const subEvent = subEvents.find(se => se.sub_event_id === subEventId);
-    const slot = templateSlot ?? (layoutSource === 'blank' ? undefined : Number(layoutSource) as 1 | 2);
-    if (slot && !mapTemplates.some(template => template.slot === slot)) {
-      return void toast.error(`Saved layout slot ${slot} is empty`);
+    const mapCategories = subEventId
+      ? categoriesForSubEvent(config!, subEventId)
+      : categoriesForEntireEvent(config!);
+    if (mapCategories.length === 0) {
+      if (subEventId) {
+        toast.error('Enable at least one seat category for this concert on Sub Event Tickets');
+        setTab('sub_events');
+      } else if ((config?.categories.length ?? 0) > 0) {
+        toast.error('Check "Entire event" on at least one category on Entire Event Tickets');
+        setTab('entire_event');
+      } else {
+        toast.error('Add at least one seat category on Entire Event Tickets');
+        setTab('entire_event');
+      }
+      return;
     }
+    let theaterId: string | undefined;
+    if (layoutSource.startsWith('tm:')) {
+      theaterId = layoutSource.slice(3);
+    }
+    if (theaterId && !theaterMaps.some(map => map.theater_map_id === theaterId)) {
+      return void toast.error('Selected theater map not found');
+    }
+    setSaving(true);
     try {
+      if (!(await syncProfileForMapOps())) return;
       const created = await ticketingAPI.createMap({
         event_id: eventId,
         sub_event_id: subEventId,
         name: subEvent?.sub_event_name ?? 'Whole event',
         is_open: false,
-        ...(slot ? { template_slot: slot } : {
+        ...(theaterId ? { theater_map_id: theaterId } : {
           matrix: { rows: 15, cols: 24 },
           sections: [],
           seat_positions: {},
@@ -617,60 +884,9 @@ export default function AdminBookYourSeat() {
       });
       setMaps(prev => [...prev, created]);
       selectMap(created);
-      toast.success(slot ? `Seat map created from saved layout ${slot}` : 'Seat map created');
+      toast.success(theaterId ? 'Seat map created from theater map' : 'Seat map created');
     } catch (error: any) {
       toast.error(error?.response?.data?.error || 'Failed to create map');
-    }
-  };
-
-  const saveMapTemplate = async (slot: 1 | 2) => {
-    if (!selectedMapId) return void toast.error('Select a seat map first');
-    const selectedMap = maps.find(map => map.map_id === selectedMapId);
-    if (!selectedMap) return;
-    const defaultName = selectedMap.name || `Layout ${slot}`;
-    const name = window.prompt(`Name for saved layout slot ${slot}:`, defaultName)?.trim();
-    if (!name) return;
-    setSaving(true);
-    try {
-      const saved = await ticketingAPI.saveMapTemplate(slot, { name, map_id: selectedMapId });
-      setMapTemplates(prev => {
-        const next = prev.filter(template => template.slot !== slot);
-        return [...next, saved].sort((a, b) => a.slot - b.slot);
-      });
-      toast.success(`Layout saved to slot ${slot}`);
-    } catch (error: any) {
-      toast.error(error?.response?.data?.error || 'Failed to save layout');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const deleteMapTemplate = async (slot: 1 | 2) => {
-    const existing = mapTemplates.find(template => template.slot === slot);
-    if (!existing) return;
-    if (!window.confirm(`Clear saved layout slot ${slot} ("${existing.name}")?`)) return;
-    try {
-      await ticketingAPI.deleteMapTemplate(slot);
-      setMapTemplates(prev => prev.filter(template => template.slot !== slot));
-      toast.success(`Saved layout slot ${slot} cleared`);
-    } catch (error: any) {
-      toast.error(error?.response?.data?.error || 'Failed to delete saved layout');
-    }
-  };
-
-  const applyMapTemplate = async (slot: 1 | 2) => {
-    if (!selectedMapId) return void toast.error('Select a seat map first');
-    const template = mapTemplates.find(item => item.slot === slot);
-    if (!template) return void toast.error(`Saved layout slot ${slot} is empty`);
-    if (!window.confirm(`Replace the current map layout with "${template.name}"? Existing seat ids will change.`)) return;
-    setSaving(true);
-    try {
-      const saved = await ticketingAPI.updateMap(selectedMapId, { apply_template_slot: slot });
-      setMaps(prev => prev.map(map => map.map_id === saved.map_id ? saved : map));
-      selectMap(saved);
-      toast.success(`Applied saved layout "${template.name}"`);
-    } catch (error: any) {
-      toast.error(error?.response?.data?.error || 'Failed to apply saved layout');
     } finally {
       setSaving(false);
     }
@@ -737,17 +953,17 @@ export default function AdminBookYourSeat() {
       <div className="flex flex-wrap gap-2 mb-6">
         {(
           [
-            ['setup', 'Setup'],
-            ['seatmap', 'Seat Maps'],
-            ['discounts', 'Discounts'],
-          ] as [Tab, string][]
+            ['new_setup', 'New Ticket Setup'],
+            ['event_tickets', 'Event Tickets'],
+            ['theater_maps', 'Saved Theater Maps'],
+          ] as [TopTab, string][]
         ).map(([key, label]) => (
           <button
             key={key}
             type="button"
-            onClick={() => setTab(key)}
-            className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-              tab === key ? 'bg-primary-600 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+            onClick={() => setTopTab(key)}
+            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
+              topTab === key ? 'bg-primary-600 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
             {label}
@@ -755,118 +971,123 @@ export default function AdminBookYourSeat() {
         ))}
       </div>
 
-      {/* ------------------------------------------------------------ Setup */}
-      {tab === 'setup' && (
-        <div className="space-y-6 bg-white rounded-xl shadow p-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Event this booking is for <span className="text-red-500">*</span>
-            </label>
-            <div>
-              <select
-                className={inputCls}
-                value={config.event_id ?? ''}
-                onChange={e => onEventChange(e.target.value)}
+      {topTab === 'event_tickets' && <AdminEventTickets />}
+      {topTab === 'theater_maps' && <AdminTheaterMaps />}
+
+      {topTab === 'new_setup' && (
+        <>
+      {!draftEventId && (
+        <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+          No setup is loaded yet. Choose an event, configure the tabs below, then save as draft to keep your work.
+        </div>
+      )}
+
+      <div className="bg-white rounded-xl shadow-lg mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="flex -mb-px overflow-x-auto" role="tablist" aria-label="Ticket setup sections">
+            {(
+              [
+                ['entire_event', 'Entire Event Tickets'],
+                ['meals', 'Daily Lunch & Dinner Pricing'],
+                ...(subEvents.length > 0 ? [['sub_events', 'Sub Event Tickets'] as const] : []),
+                ['seatmap', 'Seat Maps'],
+                ['discounts', 'Discounts'],
+              ] as [Tab, string][]
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={tab === key}
+                id={`ticket-tab-${key}`}
+                aria-controls={`ticket-panel-${key}`}
+                onClick={() => setTab(key)}
+                className={`px-4 sm:px-6 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+                  tab === key
+                    ? 'border-primary-600 text-primary-600 bg-white'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
               >
-                <option value="">Select an event…</option>
-                {events
-                  .filter(
-                    e =>
-                      e.event_id === config.event_id || // keep current association visible
-                      !isPast(e.event_end_dt || e.event_start_dt)
-                  )
-                  .map(e => (
-                    <option key={e.event_id} value={e.event_id}>
-                      {e.event_name}
-                      {e.year ? ` (${e.year})` : ''}
-                      {isPast(e.event_end_dt || e.event_start_dt) ? ' — past' : ''}
-                    </option>
-                  ))}
-              </select>
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Configure main-event pricing, daily meals, and sub-event ticketing in the tabs below. Concert sub-events use the Seat Maps tab.
-            </p>
-          </div>
+                {label}
+              </button>
+            ))}
+          </nav>
+        </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hold time (minutes)
-              </label>
-              <input
-                type="number"
-                min={1}
-                max={60}
-                className={inputCls}
-                value={config.hold_minutes}
-                onChange={e => set('hold_minutes', parseInt(e.target.value, 10) || 10)}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Payment window (hours)
-              </label>
-              <input
-                type="number"
-                min={1}
-                max={336}
-                className={inputCls}
-                value={config.payment_window_hours ?? 48}
-                onChange={e => set('payment_window_hours', parseInt(e.target.value, 10) || 48)}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Note on booking page (optional)
-              </label>
-              <input
-                className={inputCls}
-                value={config.booking_note ?? ''}
-                onChange={e => set('booking_note', e.target.value)}
-                placeholder="e.g. Doors open at 5pm"
-              />
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-red-200 overflow-hidden">
-            <div
-              role="tablist"
-              aria-label="Booking setup sections"
-              className="flex flex-wrap items-end gap-1 bg-red-100 px-3 pt-2 border-b border-red-200"
-            >
-              {(
-                [
-                  ['entire_event', 'Entire Event Tickets'],
-                  ['meals', 'Daily Lunch & Dinner Pricing'],
-                  ...(subEvents.length > 0 ? [['sub_events', 'Sub Event Tickets'] as const] : []),
-                ] as [SetupSubTab, string][]
-              ).map(([key, label]) => {
-                const selected = setupSubTab === key;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    role="tab"
-                    aria-selected={selected}
-                    onClick={() => setSetupSubTab(key)}
-                    className={`px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors ${
-                      selected
-                        ? 'bg-red-50 text-red-900 border border-red-200 border-b-red-50 -mb-px relative z-10'
-                        : 'text-red-800 hover:bg-red-200/60 border border-transparent'
-                    }`}
+        <div className="p-6">
+          {tab === 'entire_event' && (
+            <div id="ticket-panel-entire_event" role="tabpanel" aria-labelledby="ticket-tab-entire_event" className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Event this booking is for <span className="text-red-500">*</span>
+                </label>
+                <div>
+                  <select
+                    className={inputCls}
+                    value={config.event_id ?? ''}
+                    onChange={e => onEventChange(e.target.value)}
                   >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
+                    <option value="">Select an event…</option>
+                    {events
+                      .filter(
+                        e =>
+                          e.event_id === config.event_id ||
+                          !isPast(e.event_end_dt || e.event_start_dt)
+                      )
+                      .map(e => (
+                        <option key={e.event_id} value={e.event_id}>
+                          {e.event_name}
+                          {e.year ? ` (${e.year})` : ''}
+                          {isPast(e.event_end_dt || e.event_start_dt) ? ' — past' : ''}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Configure main-event pricing, daily meals, and sub-event ticketing using the tabs above. Concert sub-events use the Seat Maps tab.
+                </p>
+              </div>
 
-            <div
-              role="tabpanel"
-              className="bg-red-50 p-5"
-            >
-              {setupSubTab === 'entire_event' && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Hold time (minutes)
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={60}
+                    className={inputCls}
+                    value={config.hold_minutes}
+                    onChange={e => set('hold_minutes', parseInt(e.target.value, 10) || 10)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Payment window (hours)
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={336}
+                    className={inputCls}
+                    value={config.payment_window_hours ?? 48}
+                    onChange={e => set('payment_window_hours', parseInt(e.target.value, 10) || 48)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Note on booking page (optional)
+                  </label>
+                  <input
+                    className={inputCls}
+                    value={config.booking_note ?? ''}
+                    onChange={e => set('booking_note', e.target.value)}
+                    placeholder="e.g. Doors open at 5pm"
+                  />
+                </div>
+              </div>
+
             <div className="space-y-5">
               <div className="border border-gray-200 rounded-lg p-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Child age range</label>
@@ -1002,10 +1223,26 @@ export default function AdminBookYourSeat() {
                 </div>
               </div>
             </div>
-              )}
 
-              {setupSubTab === 'meals' && (
-            <div>
+            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+              <p className="text-sm text-gray-600">
+                The seat layout (rows, passages, seat categories, blocked seats) is designed visually
+                on the{' '}
+                <button
+                  type="button"
+                  onClick={() => setTab('seatmap')}
+                  className="text-primary-600 hover:text-primary-700 underline font-medium"
+                >
+                  Seat Maps tab
+                </button>
+                . Define your categories above first, then paint the grid there.
+              </p>
+            </div>
+            </div>
+          )}
+
+          {tab === 'meals' && (
+            <div id="ticket-panel-meals" role="tabpanel" aria-labelledby="ticket-tab-meals" className="space-y-6">
               <div className="flex items-center justify-between mb-2">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Daily lunch &amp; dinner pricing</label>
@@ -1104,10 +1341,10 @@ export default function AdminBookYourSeat() {
                 )}
               </div>
             </div>
-              )}
+          )}
 
-              {setupSubTab === 'sub_events' && subEvents.length > 0 && (
-            <div className="space-y-4">
+          {tab === 'sub_events' && subEvents.length > 0 && (
+            <div id="ticket-panel-sub_events" role="tabpanel" aria-labelledby="ticket-tab-sub_events" className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Sub-event ticketing</label>
                   <p className="text-xs text-gray-500">
@@ -1334,121 +1571,68 @@ export default function AdminBookYourSeat() {
                 );
               })}
             </div>
+          )}
+
+          {tab === 'seatmap' && (
+            <div id="ticket-panel-seatmap" role="tabpanel" aria-labelledby="ticket-tab-seatmap" className="overflow-x-auto space-y-5">
+          {!canDesignSeatMaps ? (
+            <p className="text-sm text-gray-600">
+              {(config.categories.length ?? 0) > 0 ? (
+                <>
+                  Categories exist but none are ready for seat maps yet. Check{' '}
+                  <strong>Entire event</strong> on at least one category here, or enable categories for a
+                  concert on the{' '}
+                  <button
+                    type="button"
+                    onClick={() => setTab('sub_events')}
+                    className="text-primary-600 hover:text-primary-700 underline font-medium"
+                  >
+                    Sub Event Tickets
+                  </button>{' '}
+                  tab.
+                </>
+              ) : (
+                <>
+                  Add at least one seat category on the{' '}
+                  <button
+                    type="button"
+                    onClick={() => setTab('entire_event')}
+                    className="text-primary-600 hover:text-primary-700 underline font-medium"
+                  >
+                    Entire Event Tickets
+                  </button>{' '}
+                  tab first — then design the seat grid here.
+                </>
               )}
-            </div>
-          </div>
-
-          {/* Seat layout lives on the Seat Map tab (painted grid designer) */}
-          <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-            <p className="text-sm text-gray-600">
-              The seat layout (rows, passages, seat categories, blocked seats) is designed visually
-              on the{' '}
-              <button
-                type="button"
-                onClick={() => setTab('seatmap')}
-                className="text-primary-600 hover:text-primary-700 underline font-medium"
-              >
-                Seat Maps tab
-              </button>
-              . Define your categories above first, then paint the grid there.
             </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={saveSetup}
-            disabled={saving}
-            className="bg-primary-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50"
-          >
-            {saving ? 'Saving…' : 'Save Setup'}
-          </button>
-        </div>
-      )}
-
-      {/* ---------------------------------------------------------- Seat map */}
-      {tab === 'seatmap' && (
-        <div className="bg-white rounded-xl shadow p-6 overflow-x-auto space-y-5">
-          {activeCategories.length === 0 ? (
+          ) : activeCategories.length === 0 && selectedMapId ? (
             <p className="text-sm text-gray-600">
-              Add at least one seat category on the{' '}
+              This map has no usable categories yet. For a whole-event map, check{' '}
+              <strong>Entire event</strong> on categories. For a concert map, enable categories on{' '}
               <button
                 type="button"
-                onClick={() => setTab('setup')}
+                onClick={() => setTab('sub_events')}
                 className="text-primary-600 hover:text-primary-700 underline font-medium"
               >
-                Setup tab
-              </button>{' '}
-              first — then design the seat grid here.
+                Sub Event Tickets
+              </button>
+              .
             </p>
           ) : (
             <>
-              <div className="border border-dashed border-gray-300 rounded-lg p-4 space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="font-semibold text-gray-900">Saved layouts</p>
-                    <p className="text-sm text-gray-600">Save up to two seat maps and reuse them on other events or sub-events.</p>
-                  </div>
-                  {selectedMapId ? (
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => saveMapTemplate(1)}
-                        disabled={saving}
-                        className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 disabled:opacity-50"
-                      >
-                        Save current → Slot 1
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => saveMapTemplate(2)}
-                        disabled={saving}
-                        className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 disabled:opacity-50"
-                      >
-                        Save current → Slot 2
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {([1, 2] as const).map(slot => {
-                    const template = mapTemplates.find(item => item.slot === slot);
-                    return (
-                      <div key={slot} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                        <p className="text-sm font-medium text-gray-900">Slot {slot}</p>
-                        {template ? (
-                          <>
-                            <p className="text-sm text-gray-700 mt-1">{template.name}</p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {template.seats.length} seats · {template.matrix.rows}×{template.matrix.cols} grid
-                            </p>
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              {selectedMapId ? (
-                                <button
-                                  type="button"
-                                  onClick={() => applyMapTemplate(slot)}
-                                  disabled={saving}
-                                  className="text-xs text-primary-600 font-medium hover:text-primary-700 disabled:opacity-50"
-                                >
-                                  Apply to current map
-                                </button>
-                              ) : null}
-                              <button
-                                type="button"
-                                onClick={() => deleteMapTemplate(slot)}
-                                className="text-xs text-red-600 font-medium hover:text-red-700"
-                              >
-                                Clear
-                              </button>
-                            </div>
-                          </>
-                        ) : (
-                          <p className="text-sm text-gray-500 mt-1">Empty</p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              {theaterMaps.length > 0 && (
+                <p className="text-sm text-gray-600">
+                  Reusable layouts live on{' '}
+                  <button
+                    type="button"
+                    onClick={() => setTopTab('theater_maps')}
+                    className="text-primary-600 hover:text-primary-700 underline font-medium"
+                  >
+                    Saved Theater Maps
+                  </button>
+                  . Pick one below when creating a new seat map.
+                </p>
+              )}
 
               <div className="flex flex-wrap items-center gap-2">
                 {maps.filter(map => map.event_id === config.event_id).map(map => (
@@ -1478,16 +1662,15 @@ export default function AdminBookYourSeat() {
                 <select
                   className={`${inputCls} w-auto`}
                   value={layoutSource}
-                  onChange={e => setLayoutSource(e.target.value as 'blank' | '1' | '2')}
+                  onChange={e => setLayoutSource(e.target.value)}
                   aria-label="Layout source for new map"
                 >
                   <option value="blank">New blank map</option>
-                  <option value="1" disabled={!mapTemplates.some(template => template.slot === 1)}>
-                    From saved slot 1{mapTemplates.find(template => template.slot === 1) ? `: ${mapTemplates.find(template => template.slot === 1)!.name}` : ' (empty)'}
-                  </option>
-                  <option value="2" disabled={!mapTemplates.some(template => template.slot === 2)}>
-                    From saved slot 2{mapTemplates.find(template => template.slot === 2) ? `: ${mapTemplates.find(template => template.slot === 2)!.name}` : ' (empty)'}
-                  </option>
+                  {theaterMaps.map(tm => (
+                    <option key={tm.theater_map_id} value={`tm:${tm.theater_map_id}`}>
+                      From theater map: {tm.name}
+                    </option>
+                  ))}
                 </select>
                 {subEvents.length > 0 ? (
                   <select
@@ -1522,19 +1705,68 @@ export default function AdminBookYourSeat() {
                   bookedBy={bookedBy}
                   saving={saving}
                   onSave={saveLayout}
-                  onRefresh={loadAll}
+                  onRefresh={refreshMapContext}
                 />
               ) : (
                 <p className="text-sm text-gray-500">Create or select a map to design its seats.</p>
               )}
             </>
           )}
-        </div>
-      )}
+            </div>
+          )}
 
-      {/* --------------------------------------------------------- Discounts */}
-      {tab === 'discounts' && (
-        <DiscountsTab discounts={discounts} onChange={setDiscounts} />
+          {tab === 'discounts' && (
+            <div id="ticket-panel-discounts" role="tabpanel" aria-labelledby="ticket-tab-discounts">
+              <DiscountsTab discounts={discounts} onChange={setDiscounts} embedded />
+            </div>
+          )}
+
+          {tab !== 'discounts' && (
+            <div className="pt-6 mt-6 border-t border-gray-200 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={saveSetup}
+                disabled={saving}
+                className="bg-primary-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50"
+              >
+                {saving ? 'Saving…' : 'Save Setup as Draft'}
+              </button>
+              {draftEventId && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        'Start a new setup? Unsaved changes in this session will be cleared from the editor.'
+                      )
+                    ) {
+                      resetToEmptySetup();
+                    }
+                  }}
+                  disabled={saving}
+                  className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg font-medium hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Start new setup
+                </button>
+              )}
+              {activeSetup && (
+                <button
+                  type="button"
+                  onClick={() => void archiveActiveSetup()}
+                  disabled={saving}
+                  className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg font-medium hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Archive this setup
+                </button>
+              )}
+              <p className="text-xs text-gray-500 w-full sm:w-auto sm:ml-auto">
+                Validates all tabs before saving as draft. Your draft reloads on the next visit after you save.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+        </>
       )}
     </div>
   );
@@ -1543,9 +1775,11 @@ export default function AdminBookYourSeat() {
 function DiscountsTab({
   discounts,
   onChange,
+  embedded = false,
 }: {
   discounts: DiscountCode[];
   onChange: (d: DiscountCode[]) => void;
+  embedded?: boolean;
 }) {
   const [form, setForm] = useState({
     code: '',
@@ -1601,9 +1835,13 @@ function DiscountsTab({
     }
   };
 
+  const sectionCls = embedded
+    ? 'border border-gray-200 rounded-lg p-6'
+    : 'bg-white rounded-xl shadow p-6';
+
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow p-6">
+      <div className={sectionCls}>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">New discount code</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           <input
@@ -1677,7 +1915,7 @@ function DiscountsTab({
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow p-6">
+      <div className={sectionCls}>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Existing codes</h2>
         {discounts.length === 0 ? (
           <p className="text-gray-500 text-sm">No discount codes yet.</p>
