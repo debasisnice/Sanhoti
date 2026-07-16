@@ -516,7 +516,7 @@ export class TicketingService {
     const meal_days = input.meal_days !== undefined
       ? this.validateMealDays(input.meal_days)
       : existing?.meal_days ?? [];
-    const sub_event_configs = input.sub_event_configs !== undefined
+    let sub_event_configs = input.sub_event_configs !== undefined
       ? await this.validateSubEventConfigs(id, input.sub_event_configs, categories, meal_days)
       : existing?.sub_event_configs ?? [];
     const hold_minutes = this.validateHoldMinutes(input.hold_minutes ?? existing?.hold_minutes ?? 10);
@@ -527,9 +527,13 @@ export class TicketingService {
     const booking_note = String(input.booking_note ?? existing?.booking_note ?? '').trim();
     if (booking_note.length > 2000) throw new Error('Invalid booking_note');
 
+    const maps = existing ? await this.mapHelper.findByEventId(id) : [];
+    if (input.sub_event_configs !== undefined && maps.length > 0) {
+      sub_event_configs = this.mergeMapCategoriesIntoSubEventConfigs(sub_event_configs, maps, categories);
+    }
+
     if (existing && input.categories !== undefined) {
       const retained = new Set(categories.map(category => category.category_id));
-      const maps = await this.mapHelper.findByEventId(id);
       const inUse = maps
         .filter(map => !map.sub_event_id)
         .flatMap(map => map.sections)
@@ -539,7 +543,6 @@ export class TicketingService {
       }
     }
     if (existing && input.sub_event_configs !== undefined) {
-      const maps = await this.mapHelper.findByEventId(id);
       for (const map of maps.filter(item => item.sub_event_id)) {
         const config = sub_event_configs.find(item => item.sub_event_id === map.sub_event_id);
         const allowed = new Set(config?.enabled_category_ids ?? []);
@@ -2154,6 +2157,32 @@ export class TicketingService {
       map_name: item.map.name,
       ...(item.map.sub_event_id ? { sub_event_id: item.map.sub_event_id } : {}),
     };
+  }
+
+  /** Keep sub-event enabled categories in sync with painted seat-map sections. */
+  private mergeMapCategoriesIntoSubEventConfigs(
+    sub_event_configs: SubEventTicketingConfig[],
+    maps: SeatMap[],
+    categories: SeatCategory[]
+  ): SubEventTicketingConfig[] {
+    const validIds = new Set(categories.map(category => category.category_id));
+    return sub_event_configs.map(config => {
+      const enabled = new Set(config.enabled_category_ids ?? []);
+      for (const map of maps) {
+        if (map.sub_event_id !== config.sub_event_id) continue;
+        for (const section of map.sections) {
+          if (validIds.has(section.category_id)) enabled.add(section.category_id);
+        }
+      }
+      const enabled_category_ids = [...enabled];
+      const category_prices = this.validateSubEventCategoryPrices(
+        config.category_prices,
+        undefined,
+        enabled_category_ids,
+        categories
+      );
+      return { ...config, enabled_category_ids, category_prices };
+    });
   }
 
   private categoriesForMap(

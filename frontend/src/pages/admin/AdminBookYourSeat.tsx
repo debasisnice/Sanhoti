@@ -626,10 +626,6 @@ export default function AdminBookYourSeat() {
           if (!category_prices.some(row => row.category_id === categoryId)) {
             category_prices.push({ category_id: categoryId, adult_price: 0, child_price: 0 });
           }
-        } else {
-          ids.delete(categoryId);
-          const nextPrices = category_prices.filter(row => row.category_id !== categoryId);
-          return { ...cfg, enabled_category_ids: [...ids], category_prices: nextPrices };
         }
         return { ...cfg, enabled_category_ids: [...ids], category_prices };
       });
