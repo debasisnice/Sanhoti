@@ -1,3 +1,4 @@
+import { safeServedFilename } from '../utils/safeFile.js';
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import { DocumentService } from '../services/DocumentService.js';
@@ -220,7 +221,7 @@ export class DocumentController {
   async serveDocumentFile(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { filename } = req.params;
-      const decodedFilename = decodeURIComponent(filename);
+      const decodedFilename = safeServedFilename(decodeURIComponent(filename));
       
       const filePath = join(documentsDir, decodedFilename);
       
@@ -259,7 +260,7 @@ export class DocumentController {
       const fileUrl = document.fileUrl;
       const filenameMatch = fileUrl.match(/\/files\/(.+)$/);
       if (filenameMatch) {
-        const filename = decodeURIComponent(filenameMatch[1]);
+        const filename = safeServedFilename(decodeURIComponent(filenameMatch[1]));
         const filePath = join(documentsDir, filename);
         
         // Delete file if it exists

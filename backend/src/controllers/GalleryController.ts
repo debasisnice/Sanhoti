@@ -1,3 +1,4 @@
+import { safeServedFilename } from '../utils/safeFile.js';
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import { GalleryService } from '../services/GalleryService.js';
@@ -324,7 +325,7 @@ export class GalleryController {
   async deleteGalleryPhoto(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { eventId, filename } = req.params;
-      const decodedFilename = decodeURIComponent(filename);
+      const decodedFilename = safeServedFilename(decodeURIComponent(filename));
       
       const success = await this.galleryService.deletePhotoFromFolder(eventId, decodedFilename);
       if (!success) {
@@ -343,7 +344,7 @@ export class GalleryController {
   async servePhoto(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { eventId, filename } = req.params;
-      const decodedFilename = decodeURIComponent(filename);
+      const decodedFilename = safeServedFilename(decodeURIComponent(filename));
       
       // Try to authenticate if token is provided, but don't require it
       // This allows images to load with auth when available

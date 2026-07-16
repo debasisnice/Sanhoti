@@ -27,19 +27,31 @@ mkdir -p "$LOCAL_PATH"
 echo "📋 Step 1: Downloading JSON data files..."
 echo ""
 
-# List of JSON files to download
+# List of JSON files to download (missing files on prod are skipped safely).
 JSON_FILES=(
     "events.json"
     "subEvents.json"
     "rsvps.json"
     "galleries.json"
     "magazines.json"
+    "news.json"
     "notices.json"
     "documents.json"
     "users.json"
     "settings.json"
     "messages.json"
     "auditLogs.json"
+    "durgaPujaPage.json"
+    # Ticketing / seat booking data
+    "ticketingProfile.json"
+    "seatMaps.json"
+    "seatMapTemplates.json"
+    "theaterMaps.json"
+    "ticketSetups.json"
+    "seatBookings.json"
+    "seatHolds.json"
+    "seatingConfig.json"
+    "discountCodes.json"
 )
 
 # Download each JSON file

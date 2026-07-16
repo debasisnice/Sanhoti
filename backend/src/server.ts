@@ -20,6 +20,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+// Behind Nginx + Cloudflare: trust proxy headers so req.ip / rate-limiting see
+// the real client IP instead of the proxy's.
+app.set('trust proxy', true);
+
 // Middleware - CORS configuration
 const allowedOrigins = process.env.CORS_ORIGIN 
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())

@@ -1,3 +1,4 @@
+import { safeServedFilename } from '../utils/safeFile.js';
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import { MagazineService } from '../services/MagazineService.js';
@@ -220,7 +221,7 @@ export class MagazineController {
   async serveMagazineFile(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { filename } = req.params;
-      const decodedFilename = decodeURIComponent(filename);
+      const decodedFilename = safeServedFilename(decodeURIComponent(filename));
       
       const filePath = join(magazinesDir, decodedFilename);
       
@@ -259,7 +260,7 @@ export class MagazineController {
       const fileUrl = magazine.fileUrl;
       const filenameMatch = fileUrl.match(/\/files\/(.+)$/);
       if (filenameMatch) {
-        const filename = decodeURIComponent(filenameMatch[1]);
+        const filename = safeServedFilename(decodeURIComponent(filenameMatch[1]));
         const filePath = join(magazinesDir, filename);
         
         // Delete file if it exists

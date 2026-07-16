@@ -65,6 +65,15 @@ jobs:
           [ -d "$APP_DIR/backend/data/DurgaPuja_Page" ] && cp -r "$APP_DIR/backend/data/DurgaPuja_Page" "$MEDIA_BACKUP/" || true
           echo "✅ Media backed up to $MEDIA_BACKUP"
 
+          # Preserve runtime JSON data (bookings, seat maps, ticket setups, users,
+          # settings, …). The hard reset below would otherwise overwrite or delete
+          # production data with the repo copy — these files are gitignored.
+          echo "💾 Backing up runtime data files..."
+          DATA_BACKUP="/tmp/sanhoti-data-backup-$$"
+          mkdir -p "$DATA_BACKUP"
+          cp "$APP_DIR/backend/data/"*.json "$DATA_BACKUP/" 2>/dev/null || true
+          echo "✅ Data files backed up to $DATA_BACKUP"
+
           # Sync to remote (fail deploy if this fails — do not build stale tree)
           echo "📥 Fetching and syncing to origin..."
           git fetch origin
@@ -88,6 +97,12 @@ jobs:
           [ -d "$MEDIA_BACKUP/DurgaPuja_Page" ] && cp -r "$MEDIA_BACKUP/DurgaPuja_Page/." "$APP_DIR/backend/data/DurgaPuja_Page/" || true
           rm -rf "$MEDIA_BACKUP"
           echo "✅ Uploaded media restored"
+
+          # Restore runtime JSON data after the hard reset (prod keeps its own data).
+          echo "♻️  Restoring runtime data files..."
+          cp "$DATA_BACKUP/"*.json "$APP_DIR/backend/data/" 2>/dev/null || true
+          rm -rf "$DATA_BACKUP"
+          echo "✅ Runtime data restored"
           
           # Build backend
           echo "🔨 Building backend..."

@@ -1,3 +1,4 @@
+import { safeServedFilename } from '../utils/safeFile.js';
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import multer from 'multer';
@@ -80,7 +81,7 @@ export class HomePageController {
   async getImage(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { filename } = req.params;
-      const decodedFilename = decodeURIComponent(filename);
+      const decodedFilename = safeServedFilename(decodeURIComponent(filename));
       
       const imagePath = join(homePageDir, decodedFilename);
       
@@ -151,7 +152,7 @@ export class HomePageController {
   async deleteImage(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { filename } = req.params;
-      const decodedFilename = decodeURIComponent(filename);
+      const decodedFilename = safeServedFilename(decodeURIComponent(filename));
       
       const imagePath = join(homePageDir, decodedFilename);
       

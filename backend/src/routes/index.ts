@@ -2,6 +2,7 @@ import express, { Router } from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth.js';
 import { requireAdmin, requireMember } from '../middleware/rbac.js';
 import { auditLog } from '../middleware/audit.js';
+import { rateLimit } from '../middleware/rateLimit.js';
 
 // Controllers
 import { AuthController } from '../controllers/AuthController.js';
@@ -65,8 +66,10 @@ function bindController(controller: any, methodName: string) {
 }
 
 // Public routes
-router.post('/auth/register', bindController(authController, 'register'));
-router.post('/auth/login', bindController(authController, 'login'));
+// Generous per-IP limits on abuse-prone public endpoints (fail-open; keyed on the
+// real client IP via CF-Connecting-IP behind Cloudflare, so legit users are safe).
+router.post('/auth/register', rateLimit({ windowMs: 15 * 60_000, max: 10, key: 'register' }), bindController(authController, 'register'));
+router.post('/auth/login', rateLimit({ windowMs: 15 * 60_000, max: 30, key: 'login' }), bindController(authController, 'login'));
 
 // Sitemap - Public route (must be early to avoid conflicts)
 router.get('/sitemap.xml', (req, res) => {
@@ -127,13 +130,13 @@ router.get('/documents/access-code/:code', bindController(documentController, 'g
 router.get('/documents/files/:filename', bindController(documentController, 'serveDocumentFile'));
 
 // RSVP - Public (guest RSVP)
-router.post('/rsvps', bindController(rsvpController, 'createRSVP'));
+router.post('/rsvps', rateLimit({ windowMs: 10 * 60_000, max: 30, key: 'rsvp' }), bindController(rsvpController, 'createRSVP'));
 
-// Special Access - Public validation
-router.post('/special-access/validate', bindController(specialAccessController, 'validateCode'));
+// Special Access - Public validation (rate-limited: this is a code guess)
+router.post('/special-access/validate', rateLimit({ windowMs: 15 * 60_000, max: 20, key: 'access-code' }), bindController(specialAccessController, 'validateCode'));
 
 // Messages - Public (contact form)
-router.post('/messages', bindController(messageController, 'createMessage'));
+router.post('/messages', rateLimit({ windowMs: 10 * 60_000, max: 15, key: 'contact' }), bindController(messageController, 'createMessage'));
 
 // Committee - Public (get committee members)
 router.get('/committee', bindController(authController, 'getCommitteeMembers'));

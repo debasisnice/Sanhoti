@@ -1,3 +1,4 @@
+import { safeServedFilename } from '../utils/safeFile.js';
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import multer from 'multer';
@@ -115,7 +116,7 @@ export class SponsorController {
   async getImage(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { filename } = req.params;
-      const decodedFilename = decodeURIComponent(filename);
+      const decodedFilename = safeServedFilename(decodeURIComponent(filename));
       
       const imagePath = join(sponsorsDir, decodedFilename);
       
@@ -195,7 +196,7 @@ export class SponsorController {
   async deleteImage(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { filename } = req.params;
-      const decodedFilename = decodeURIComponent(filename);
+      const decodedFilename = safeServedFilename(decodeURIComponent(filename));
       
       const imagePath = join(sponsorsDir, decodedFilename);
       
@@ -217,7 +218,7 @@ export class SponsorController {
     try {
       const { filename } = req.params;
       const { sponsorshipType } = req.body;
-      const decodedFilename = decodeURIComponent(filename);
+      const decodedFilename = safeServedFilename(decodeURIComponent(filename));
       
       const validTypes = ['Grand', 'Platinum', 'Gold', 'Silver', 'None'];
       if (!sponsorshipType || !validTypes.includes(sponsorshipType)) {

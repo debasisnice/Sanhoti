@@ -1,3 +1,4 @@
+import { safeServedFilename } from '../utils/safeFile.js';
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import { EventService } from '../services/EventService.js';
@@ -455,7 +456,7 @@ export class EventController {
   async getEventImage(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { eventId, filename } = req.params;
-      const decodedFilename = decodeURIComponent(filename);
+      const decodedFilename = safeServedFilename(decodeURIComponent(filename));
       
       const folderPath = await this.eventDataHelper.getEventImageFolderPath(eventId);
       if (!folderPath) {

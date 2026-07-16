@@ -1,3 +1,4 @@
+import { safeServedFilename } from '../utils/safeFile.js';
 import express, { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import { NewsService } from '../services/NewsService.js';
@@ -317,7 +318,7 @@ export class NewsController {
   async serveMedia(req: express.Request, res: Response): Promise<void> {
     try {
       const { filename } = req.params;
-      const decodedFilename = decodeURIComponent(filename);
+      const decodedFilename = safeServedFilename(decodeURIComponent(filename));
       const filePath = join(newsMediaDir, decodedFilename);
 
       if (!existsSync(filePath)) {

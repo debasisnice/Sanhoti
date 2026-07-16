@@ -46,7 +46,17 @@ export class AuditDataHelper extends DatabaseHelper {
       userEmail: log.userEmail || '',
     };
     logs.push(newLog);
-    this.writeFile(this.filename, logs);
+    // Bound the file so admin mutations don't get slower forever (each write
+    // rewrites the whole file). Keep the most recent entries by timestamp; older
+    // ones age out. (`logs` came back newest-first, so cap by timestamp, not slice.)
+    const MAX_AUDIT_LOGS = 20000;
+    const toStore =
+      logs.length > MAX_AUDIT_LOGS
+        ? [...logs]
+            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+            .slice(0, MAX_AUDIT_LOGS)
+        : logs;
+    this.writeFile(this.filename, toStore);
     return newLog;
   }
 

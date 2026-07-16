@@ -75,15 +75,8 @@ backend/data/DurgaPuja_Page/
 # Local data backups
 backend/data-local-backup-*/
 
-# Data files with sensitive information
-backend/data/settings.json
-backend/data/auditLogs.json
-backend/data/documents.json
-backend/data/events.json
-backend/data/galleries.json
-backend/data/magazines.json
-backend/data/messages.json
-backend/data/notices.json
-backend/data/rsvps.json
-backend/data/subEvents.json
-backend/data/users.json
+# Runtime data — never tracked in git so a deploy can't overwrite production data.
+# Prod keeps its own copies; deploy.yml backs up + restores backend/data/*.json
+# around the hard reset. (Supersedes the previous per-file list, which missed the
+# ticketing files — bookings, seat maps, ticket setups, etc.)
+backend/data/*.json

@@ -1,3 +1,4 @@
+import { safeServedFilename } from '../utils/safeFile.js';
 import { Response, Request } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import { SubEventService } from '../services/SubEventService.js';
@@ -280,7 +281,7 @@ export class SubEventController {
   async getSubEventImage(req: Request, res: Response): Promise<void> {
     try {
       const { id, filename } = req.params;
-      const decodedFilename = decodeURIComponent(filename);
+      const decodedFilename = safeServedFilename(decodeURIComponent(filename));
       const subEvent = await this.subEventService.getSubEventById(id);
       
       if (!subEvent || !subEvent.event_image_path) {
