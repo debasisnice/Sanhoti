@@ -59,7 +59,7 @@ if [ ! -f "$MAP_CONF" ]; then
 # they are handled by the app's /og/ routes.
 map $http_user_agent $is_seo_bot {
     default 0;
-    ~*(googlebot|bingbot|slurp|duckduckbot|baiduspider|yandex(bot)?|applebot|petalbot|gptbot|oai-searchbot|perplexitybot|claudebot|amazonbot|ecosia|qwantbot|seznambot|ia_archiver) 1;
+    ~*(googlebot|google-inspectiontool|googleother|storebot-google|mediapartners-google|google-safety|bingbot|slurp|duckduckbot|baiduspider|yandex(bot)?|applebot|petalbot|gptbot|oai-searchbot|perplexitybot|claudebot|amazonbot|ecosia|qwantbot|seznambot|ia_archiver) 1;
 }
 EOF
   echo "✅ Created $MAP_CONF"

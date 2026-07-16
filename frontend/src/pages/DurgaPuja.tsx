@@ -115,8 +115,13 @@ export default function DurgaPuja() {
       try {
         data = await durgaPujaPageAPI.getContent(pageYear);
         if (data?.intro) setContent(data);
-      } catch {
-        setNotFound(true);
+      } catch (err) {
+        // Only an explicit 404 means "no landing page for this year". Transient,
+        // network, 5xx, or stale-cache errors must NOT render a soft-404 — keep the
+        // default content so users and crawlers always see a valid page (avoids Google
+        // "Soft 404" on client-rendered fetches).
+        const status = (err as { response?: { status?: number } })?.response?.status;
+        if (status === 404) setNotFound(true);
         return;
       }
 

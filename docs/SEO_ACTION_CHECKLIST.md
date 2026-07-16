@@ -4,6 +4,20 @@ _Goal: outrank Aikotaan for "Durga Puja in Orange County" and "Bengali Associati
 
 ---
 
+## 🔴 Priority 0b — Fix "Soft 404" on Durga Puja year pages
+
+**The problem:** Search Console live-tested `/durga-puja-2026` and returned **"Page cannot be indexed: Soft 404."** It fetched successfully but was **"Crawled as: Google Inspection Tool smartphone"** — whose user-agent is *not* `Googlebot`. Nginx only routes `googlebot` to the clean server-rendered `/seo/` page, so Google's other crawlers get the raw React SPA, which client-side fetches `/api/durga-puja-page/2026`; if that render shows the "not found" fallback (stale cache, transient error), Google records a soft 404.
+
+**Fixed in code** (already done):
+1. `frontend/src/pages/DurgaPuja.tsx` — the page now only renders "not found" on an explicit **404** from the API. Transient/network/5xx/stale-cache errors keep the valid default content, so crawlers never see a soft-404.
+2. `deploy/apply-seo-nginx.sh` — added `google-inspectiontool`, `googleother`, `storebot-google`, `mediapartners-google`, `google-safety` to the crawler list so Google's inspection/rendering tools also receive the prerendered `/seo/` HTML.
+
+**To go live:** push (auto-deploys the frontend fix), **and run `sudo bash deploy/apply-seo-nginx.sh` on the server** to apply the widened bot list (this is the same script that adds the `/index.html` redirect — see Priority 1). Then purge Cloudflare, and in Search Console re-run **Test Live URL** on `/durga-puja-2026`.
+
+**Immediate check:** the earlier soft-404 test ran at 10:03 PM, before the cache purge. Re-run **Test Live URL** now — it may already pass.
+
+---
+
 ## 🔴 Priority 0 — Fix the hardcoded canonical (biggest indexing bug — deploy ASAP)
 
 **The problem:** `frontend/index.html` had a hardcoded `<link rel="canonical" href="https://www.sanhoti.org/">`. Because that one static file is served for *every* SPA route, every page (e.g. `/durga-puja-2026`) told Google "my canonical is the homepage." React fixes it client-side, but Google reads the raw HTML first. This is what produces the **"Duplicate without user-selected canonical," "Alternate page with proper canonical tag,"** and **"indexing issues detected"** warnings in Search Console, and why `/durga-puja-2026` shows "Discovered – currently not indexed."
