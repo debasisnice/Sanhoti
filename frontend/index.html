@@ -5,7 +5,11 @@
     <link rel="icon" type="image/png" href="/images/logo.png" />
     <link rel="apple-touch-icon" href="/images/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="canonical" href="https://www.sanhoti.org/" />
+    <!-- NOTE: Do NOT hardcode a canonical here. This static index.html is served for
+         every SPA route, so a fixed canonical makes every page (e.g. /durga-puja-2026)
+         declare the homepage as its canonical, causing "Duplicate / wrong canonical"
+         in Search Console. The per-page canonical is set at runtime by src/components/Seo.tsx
+         (react-helmet), and bots get correct canonicals via the /seo/* prerender. -->
     <meta name="description" content="Sanhoti Bengali Association of Orange County, CA — Durga Puja, Poila Boishakh, Bengali festivals, concerts, and community events serving Orange County and Southern California (SoCal). Bengali Association near me in Orange County." />
     <meta name="keywords" content="Bengali Association, Bengali Association Orange County, Durga Puja Orange County, Durga Puja Costa Mesa, Durga Puja near Irvine, Bengali festival Orange County, Bengali concert Southern California, Bengali Association Southern California, Bengali Association SoCal, Indian Association Southern California, Bengali Association near me, Sanhoti, Bengali community Orange County, Bengali community Southern California, Bengali events Orange County, Bengali Association RSM, Bengali Association Rancho Santa Margarita, Bengali Association CA" />
     <meta name="theme-color" content="#B8860B" />

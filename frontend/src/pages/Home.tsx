@@ -572,16 +572,11 @@ export default function Home() {
                   transition={{ delay: 0.2, duration: 0.8 }}
                   className="text-base md:text-2xl lg:text-3xl font-bold text-white drop-shadow-lg mb-0.5 md:mb-1 opacity-95"
                 >
-                  Welcome to Sanhoti
+                  <span className="block">Welcome to Sanhoti</span>
+                  <span className="block text-xs md:text-base lg:text-lg font-normal opacity-90">
+                    Bengali Association of Orange County, CA
+                  </span>
                 </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4, duration: 0.8 }}
-                  className="text-xs md:text-base lg:text-lg text-white drop-shadow-lg opacity-90"
-          >
-                  Bengali Association of Orange County, CA
-          </motion.p>
               </div>
             </div>
             
