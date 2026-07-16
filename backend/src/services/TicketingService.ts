@@ -507,7 +507,7 @@ export class TicketingService {
     const id = String(eventId || input.event_id || '').trim();
     if (!id || !(await this.eventHelper.findById(id))) throw new Error('The selected event does not exist');
     const existing = await this.profileHelper.findByEventId(id);
-    const categories = input.categories !== undefined
+    let categories = input.categories !== undefined
       ? this.validateCategories(input.categories)
       : existing?.categories ?? [];
     const child_age_range = input.child_age_range !== undefined
@@ -528,6 +528,30 @@ export class TicketingService {
     if (booking_note.length > 2000) throw new Error('Invalid booking_note');
 
     const maps = existing ? await this.mapHelper.findByEventId(id) : [];
+
+    // Preserve any category still painted on this event's seat maps but missing
+    // from the incoming master list, carried over from the saved profile. This
+    // keeps a save from orphaning a map's seats (which would lose their pricing
+    // tier) and is what prevents the "category is still used by seat map" mismatch
+    // from ever forming. The admin can remove it later after re-painting the map.
+    if (existing && input.sub_event_configs !== undefined && maps.length > 0) {
+      const masterIds = new Set(categories.map(category => category.category_id));
+      const existingById = new Map(
+        (existing.categories ?? []).map(category => [category.category_id, category] as const)
+      );
+      const usedByMaps = new Set(
+        maps.flatMap(map => map.sections.map(section => section.category_id))
+      );
+      const carried: SeatCategory[] = [];
+      for (const categoryId of usedByMaps) {
+        if (!masterIds.has(categoryId) && existingById.has(categoryId)) {
+          carried.push(existingById.get(categoryId)!);
+          masterIds.add(categoryId);
+        }
+      }
+      if (carried.length > 0) categories = [...categories, ...carried];
+    }
+
     if (input.sub_event_configs !== undefined && maps.length > 0) {
       sub_event_configs = this.mergeMapCategoriesIntoSubEventConfigs(sub_event_configs, maps, categories);
     }
@@ -543,10 +567,20 @@ export class TicketingService {
       }
     }
     if (existing && input.sub_event_configs !== undefined) {
+      // `mergeMapCategoriesIntoSubEventConfigs` already forces every VALID master
+      // category used by a map back into the sub-event's enabled list, so a real
+      // category can never be silently dropped here. Only enforce this guard for
+      // known master categories; ignore ids a map still references that are absent
+      // from the saved master list (a stale category left on the map after it was
+      // removed/renamed). Blocking on those just traps the admin — they can't be
+      // re-enabled anyway — so we let the save through.
+      const validIds = new Set(categories.map(category => category.category_id));
       for (const map of maps.filter(item => item.sub_event_id)) {
         const config = sub_event_configs.find(item => item.sub_event_id === map.sub_event_id);
         const allowed = new Set(config?.enabled_category_ids ?? []);
-        const inUse = map.sections.find(section => !allowed.has(section.category_id));
+        const inUse = map.sections.find(
+          section => validIds.has(section.category_id) && !allowed.has(section.category_id)
+        );
         if (inUse) {
           throw new TicketingConflictError(`Sub-event category "${inUse.category_id}" is still used by seat map "${map.name}"`);
         }

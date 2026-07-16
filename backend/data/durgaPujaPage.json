@@ -33,9 +33,10 @@
       }
     ],
     "ticketsNote": "",
-    "updated_at": "2026-07-15T21:34:33.806Z",
+    "updated_at": "2026-07-16T01:01:45.354Z",
     "linkedEventId": "0NVRAOYZYUI1",
-    "ticketsOff": true
+    "ticketsOff": false,
+    "showExternalTickets": false
   },
   {
     "year": 2025,

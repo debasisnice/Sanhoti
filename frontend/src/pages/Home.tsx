@@ -165,12 +165,12 @@ export default function Home() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        // Fetch upcoming events for the "Upcoming Events" section
-        const upcoming = await eventsAPI.getUpcoming();
+        // Fetch upcoming + all active events concurrently (independent calls).
+        const [upcoming, allActiveEvents] = await Promise.all([
+          eventsAPI.getUpcoming(),
+          eventsAPI.getActive(),
+        ]);
         setUpcomingEvents(upcoming);
-        
-        // Fetch ALL active events to find priority event (regardless of past/future)
-        const allActiveEvents = await eventsAPI.getActive();
         
         // Featured fund-raising (Festival type): priority event; charity has its own hero card
         const priority = allActiveEvents.find(
@@ -180,32 +180,37 @@ export default function Home() {
         if (priority) {
           setPriorityEvent(priority);
           
-          // Fetch event image if event has event_image_path
-          if (priority.event_id && priority.event_image_path) {
-            try {
-              const imageData = await eventsAPI.getImagePublic(priority.event_id);
-              if (imageData) {
-                // Construct full URL using getImageUrl method
-                const imageUrl = eventsAPI.getImageUrl(priority.event_id, imageData.filename);
-                setPriorityEventImage(imageUrl);
+          // Fetch the priority event's image and home sub-events concurrently.
+          await Promise.all([
+            (async () => {
+              if (priority.event_id && priority.event_image_path) {
+                try {
+                  const imageData = await eventsAPI.getImagePublic(priority.event_id);
+                  if (imageData) {
+                    setPriorityEventImage(
+                      eventsAPI.getImageUrl(priority.event_id, imageData.filename)
+                    );
+                  }
+                } catch (error) {
+                  // Silently fail if no images are found - image is optional
+                }
               }
-            } catch (error) {
-              // Silently fail if no images are found - image is optional
-            }
-          }
-          
-          // Fetch sub-events for priority event that should be shown on home page
-          try {
-            const subEvents = await subEventsAPI.getByEventId(priority.event_id);
-            const homePageSubEvents = subEvents.filter(
-              (se: SubEvent) => se.show_in_home_page === true && se.is_active === true
-            );
-            setPriorityEventSubEvents(homePageSubEvents);
-          } catch (error) {
-            console.error('Error fetching sub-events:', error);
-            // Silently fail if no sub-events are found
-            setPriorityEventSubEvents([]);
-          }
+            })(),
+            (async () => {
+              try {
+                const subEvents = await subEventsAPI.getByEventId(priority.event_id);
+                setPriorityEventSubEvents(
+                  subEvents.filter(
+                    (se: SubEvent) => se.show_in_home_page === true && se.is_active === true
+                  )
+                );
+              } catch (error) {
+                console.error('Error fetching sub-events:', error);
+                // Silently fail if no sub-events are found
+                setPriorityEventSubEvents([]);
+              }
+            })(),
+          ]);
         } else {
           setPriorityEvent(null);
           setPriorityEventImage(null);
@@ -251,17 +256,21 @@ export default function Home() {
           if (!a.is_priority && b.is_priority) return 1;
           return 0;
         });
-        const pairs: { url: string; isPriority: boolean }[] = [];
-        for (const e of charityEvents) {
-          if (!(e.event_id && (e as any).event_image_path)) continue;
-          try {
-            const imageData = await eventsAPI.getImagePublic(e.event_id!);
-            const url = imageData ? eventsAPI.getImageUrl(e.event_id!, imageData.filename) : null;
-            if (url) pairs.push({ url, isPriority: !!e.is_priority });
-          } catch {
-            // skip missing images
-          }
-        }
+        const pairResults = await Promise.all(
+          charityEvents.map(async (e) => {
+            if (!(e.event_id && (e as any).event_image_path)) return null;
+            try {
+              const imageData = await eventsAPI.getImagePublic(e.event_id!);
+              const url = imageData ? eventsAPI.getImageUrl(e.event_id!, imageData.filename) : null;
+              return url ? { url, isPriority: !!e.is_priority } : null;
+            } catch {
+              return null;
+            }
+          })
+        );
+        const pairs = pairResults.filter(
+          (p): p is { url: string; isPriority: boolean } => p !== null
+        );
         const charityImages = pairs.map((p) => p.url);
         const pImgIdx = pairs.findIndex((p) => p.isPriority);
         const priorityIdx = pImgIdx >= 0 ? pImgIdx : null;

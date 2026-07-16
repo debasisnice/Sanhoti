@@ -3,27 +3,27 @@
     "event_id": "0NVRAOYZYUI1",
     "categories": [
       {
-        "category_id": "NEW-1784162663515-0",
+        "category_id": "NEW-1784165406900-0",
         "name": "VIP",
-        "color": "#f55c0a",
+        "color": "#f5220a",
         "adult_price": 200,
         "child_price": 100,
         "price": 200,
         "entire_event_enabled": true
       },
       {
-        "category_id": "NEW-1784162692947-1",
+        "category_id": "NEW-1784165418699-1",
         "name": "Platinum",
-        "color": "#0af57c",
+        "color": "#0af570",
         "adult_price": 160,
         "child_price": 80,
         "price": 160,
         "entire_event_enabled": true
       },
       {
-        "category_id": "NEW-1784162713280-2",
+        "category_id": "NEW-1784165439266-2",
         "name": "Standard",
-        "color": "#0a83f5",
+        "color": "#310af5",
         "adult_price": 0,
         "child_price": 0,
         "price": 0,
@@ -31,12 +31,12 @@
       }
     ],
     "child_age_range": {
-      "min_age": 5,
+      "min_age": 0,
       "max_age": 12
     },
     "meal_days": [
       {
-        "day_id": "DAY-1784162738531",
+        "day_id": "DAY-1784165455250",
         "label": "Friday Oct-09",
         "date": "2026-10-09",
         "lunch_adult_price": 0,
@@ -45,7 +45,7 @@
         "dinner_child_price": 15
       },
       {
-        "day_id": "DAY-1784162783913",
+        "day_id": "DAY-1784165455667",
         "label": "Saturday Oct-10",
         "date": "2026-10-10",
         "lunch_adult_price": 25,
@@ -54,8 +54,9 @@
         "dinner_child_price": 15
       },
       {
-        "day_id": "DAY-1784162874082",
+        "day_id": "DAY-1784165456166",
         "label": "Sunday Oct-11",
+        "date": "2026-10-11",
         "lunch_adult_price": 25,
         "lunch_child_price": 15,
         "dinner_adult_price": 0,
@@ -67,30 +68,30 @@
         "sub_event_id": "GLCMPDYU0K4C",
         "ticketing_type": "concert",
         "enabled_category_ids": [
-          "NEW-1784162663515-0",
-          "NEW-1784162692947-1",
-          "NEW-1784162713280-2"
+          "NEW-1784165406900-0",
+          "NEW-1784165418699-1",
+          "NEW-1784165439266-2"
         ],
         "category_prices": [
           {
-            "category_id": "NEW-1784162663515-0",
+            "category_id": "NEW-1784165406900-0",
             "adult_price": 80,
             "child_price": 80
           },
           {
-            "category_id": "NEW-1784162692947-1",
+            "category_id": "NEW-1784165418699-1",
             "adult_price": 60,
             "child_price": 60
           },
           {
-            "category_id": "NEW-1784162713280-2",
+            "category_id": "NEW-1784165439266-2",
             "adult_price": 40,
             "child_price": 40
           }
         ],
         "food_addons": [
           {
-            "addon_id": "FOOD-1784163351961",
+            "addon_id": "FOOD-1784165539167",
             "name": "Friday Oct-09 Dinner",
             "adult_price": 25,
             "child_price": 15
@@ -101,30 +102,30 @@
         "sub_event_id": "J79G25C94TIX",
         "ticketing_type": "concert",
         "enabled_category_ids": [
-          "NEW-1784162663515-0",
-          "NEW-1784162692947-1",
-          "NEW-1784162713280-2"
+          "NEW-1784165406900-0",
+          "NEW-1784165418699-1",
+          "NEW-1784165439266-2"
         ],
         "category_prices": [
           {
-            "category_id": "NEW-1784162663515-0",
+            "category_id": "NEW-1784165406900-0",
             "adult_price": 80,
             "child_price": 80
           },
           {
-            "category_id": "NEW-1784162692947-1",
+            "category_id": "NEW-1784165418699-1",
             "adult_price": 60,
             "child_price": 60
           },
           {
-            "category_id": "NEW-1784162713280-2",
+            "category_id": "NEW-1784165439266-2",
             "adult_price": 40,
             "child_price": 40
           }
         ],
         "food_addons": [
           {
-            "addon_id": "FOOD-1784163376445",
+            "addon_id": "FOOD-1784165569182",
             "name": "Saturday Oct-10 Dinner",
             "adult_price": 25,
             "child_price": 15
@@ -133,7 +134,7 @@
       }
     ],
     "hold_minutes": 10,
-    "payment_window_hours": 24,
-    "updated_at": "2026-07-16T01:03:24.195Z"
+    "payment_window_hours": 48,
+    "updated_at": "2026-07-16T01:39:05.367Z"
   }
 ]
