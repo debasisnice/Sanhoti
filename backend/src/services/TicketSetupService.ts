@@ -104,9 +104,21 @@ export class TicketSetupService {
     });
   }
 
-  async deleteSetup(setupId: string): Promise<boolean> {
+  async deleteSetup(setupId: string): Promise<{ deleted: boolean; live_config_cleared: boolean; event_id?: string }> {
     await this.ensureMigrated();
-    return this.setupHelper.delete(String(setupId).trim());
+    const setup = await this.setupHelper.findById(String(setupId).trim());
+    if (!setup) return { deleted: false, live_config_cleared: false };
+    const eventId = setup.event_id;
+    const removed = await this.setupHelper.delete(setup.setup_id);
+    if (!removed) return { deleted: false, live_config_cleared: false };
+    const remainingForEvent = (await this.setupHelper.findAll()).filter(s => s.event_id === eventId);
+    let live_config_cleared = false;
+    if (remainingForEvent.length === 0) {
+      await this.profileHelper.deleteByEventId(eventId);
+      await this.mapHelper.deleteByEventId(eventId);
+      live_config_cleared = true;
+    }
+    return { deleted: true, live_config_cleared, event_id: eventId };
   }
 
   async migrateFromExisting(): Promise<void> {

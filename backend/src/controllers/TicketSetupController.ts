@@ -63,12 +63,12 @@ export class TicketSetupController {
 
   async deleteSetup(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const deleted = await this.service.deleteSetup(req.params.id);
-      if (!deleted) {
+      const result = await this.service.deleteSetup(req.params.id);
+      if (!result.deleted) {
         res.status(404).json({ error: 'Ticket setup not found' });
         return;
       }
-      res.json({ deleted: true });
+      res.json(result);
     } catch (error) {
       status400(res, error, 'Failed to delete ticket setup');
     }

@@ -1519,8 +1519,11 @@ export const ticketSetupsAPI = {
     const response = await api.post(`/booking/admin/setups/${setupId}/archive`);
     return response.data;
   },
-  remove: async (setupId: string): Promise<void> => {
-    await api.delete(`/booking/admin/setups/${setupId}`);
+  remove: async (
+    setupId: string
+  ): Promise<{ deleted: boolean; live_config_cleared: boolean; event_id?: string }> => {
+    const response = await api.delete(`/booking/admin/setups/${setupId}`);
+    return response.data;
   },
 };
 

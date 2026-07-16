@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { BarChart3, RefreshCw } from 'lucide-react';
-import { eventsAPI, ticketingAPI, type TicketStatCard, type TicketStatDetail, type TicketStatGuest } from '../../services/api';
+import { eventsAPI, ticketSetupsAPI, ticketingAPI, type TicketSetup, type TicketStatCard, type TicketStatDetail, type TicketStatGuest } from '../../services/api';
 import { Event } from '../../types';
+import { eventsWithSavedTicketSetups, NO_SAVED_TICKET_SETUPS_LABEL } from './ticketSetupEvents';
 
 const EVENT_STORAGE_KEY = 'sanhoti_ticket_stats_event';
 
@@ -104,6 +105,7 @@ function StatCard({
 
 export default function AdminTicketStats() {
   const [events, setEvents] = useState<Event[]>([]);
+  const [ticketSetups, setTicketSetups] = useState<TicketSetup[]>([]);
   const [eventId, setEventId] = useState(() => {
     try {
       return sessionStorage.getItem(EVENT_STORAGE_KEY) ?? '';
@@ -117,13 +119,29 @@ export default function AdminTicketStats() {
   const [guestStatusTab, setGuestStatusTab] = useState<GuestStatusTab>('pending_payment');
   const [loading, setLoading] = useState(false);
 
+  const eventOptions = useMemo(
+    () => eventsWithSavedTicketSetups(events, ticketSetups),
+    [events, ticketSetups]
+  );
+  const hasSavedSetups = eventOptions.length > 0;
+  const eventIdValid = Boolean(eventId && eventOptions.some(event => event.event_id === eventId));
+
   useEffect(() => {
-    void eventsAPI.getAll().then(setEvents).catch(() => toast.error('Could not load events'));
+    void Promise.all([
+      eventsAPI.getAll().then(setEvents),
+      ticketSetupsAPI.list().then(setTicketSetups),
+    ]).catch(() => toast.error('Could not load events or ticket setups'));
   }, []);
+
+  useEffect(() => {
+    if (eventId && !eventOptions.some(event => event.event_id === eventId)) {
+      setEventId('');
+    }
+  }, [eventId, eventOptions]);
 
   const loadStats = useCallback(
     async (scope?: string) => {
-      if (!eventId) {
+      if (!eventIdValid) {
         setCards([]);
         setDetail(null);
         return;
@@ -139,7 +157,7 @@ export default function AdminTicketStats() {
         setLoading(false);
       }
     },
-    [eventId]
+    [eventIdValid]
   );
 
   useEffect(() => {
@@ -180,7 +198,7 @@ export default function AdminTicketStats() {
         <button
           type="button"
           onClick={() => void loadStats(selectedScope || undefined)}
-          disabled={loading || !eventId}
+          disabled={loading || !eventIdValid}
           className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -195,8 +213,10 @@ export default function AdminTicketStats() {
           value={eventId}
           onChange={e => setEventId(e.target.value)}
         >
-          <option value="">Select event…</option>
-          {events.map(event => (
+          <option value="">
+            {hasSavedSetups ? 'Select event…' : NO_SAVED_TICKET_SETUPS_LABEL}
+          </option>
+          {eventOptions.map(event => (
             <option key={event.event_id} value={event.event_id}>
               {event.event_name}
               {event.year ? ` (${event.year})` : ''}
@@ -205,23 +225,29 @@ export default function AdminTicketStats() {
         </select>
       </div>
 
-      {!eventId && (
+      {!hasSavedSetups && (
+        <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-gray-500">
+          Save a ticket setup under Ticket Settings → Event Tickets to view statistics here.
+        </div>
+      )}
+
+      {hasSavedSetups && !eventIdValid && (
         <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-gray-500">
           Select an event to view ticket statistics.
         </div>
       )}
 
-      {eventId && loading && cards.length === 0 && (
+      {eventIdValid && loading && cards.length === 0 && (
         <div className="text-sm text-gray-500">Loading stats…</div>
       )}
 
-      {eventId && cards.length === 0 && !loading && (
+      {eventIdValid && cards.length === 0 && !loading && (
         <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-gray-500">
           No meal or sub-event gates configured for this event.
         </div>
       )}
 
-      {groupedCards.meals.length > 0 && (
+      {eventIdValid && groupedCards.meals.length > 0 && (
         <section>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-3">Meals</h2>
           <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
@@ -237,7 +263,7 @@ export default function AdminTicketStats() {
         </section>
       )}
 
-      {groupedCards.subs.length > 0 && (
+      {eventIdValid && groupedCards.subs.length > 0 && (
         <section>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-3">Sub-events</h2>
           <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
@@ -253,7 +279,7 @@ export default function AdminTicketStats() {
         </section>
       )}
 
-      {detail && (
+      {eventIdValid && detail && (
         <section className="border-t border-gray-200 pt-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             Guest list — {detail.label}

@@ -3,13 +3,19 @@ import toast from 'react-hot-toast';
 import { Camera, CameraOff, CheckCircle2, XCircle, AlertTriangle, QrCode } from 'lucide-react';
 import {
   eventsAPI,
+  ticketSetupsAPI,
   ticketingAPI,
   type AdmissionResult,
   type AdmissionScanResult,
   type CheckinGate,
   type CheckinStats,
+  type TicketSetup,
 } from '../../services/api';
 import { Event } from '../../types';
+import {
+  eventsWithSavedTicketSetups,
+  NO_SAVED_TICKET_SETUPS_LABEL,
+} from './ticketSetupEvents';
 
 interface Html5QrcodeInstance {
   start(
@@ -36,7 +42,6 @@ const GATE_STORAGE_KEY = 'sanhoti_checkin_gate';
 const SCANNER_ELEMENT_ID = 'admission-qr-reader';
 const DUPLICATE_WINDOW_MS = 3000;
 const RESULT_HOLD_MS = 4000;
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
 type Tone = 'green' | 'amber' | 'red';
 
@@ -67,16 +72,6 @@ function formatTime(iso?: string): string {
   }
 }
 
-function recentEvents(events: Event[]): Event[] {
-  const cutoff = Date.now() - SEVEN_DAYS_MS;
-  return events
-    .filter(event => {
-      const end = Date.parse(event.event_end_dt);
-      return Number.isFinite(end) && end >= cutoff;
-    })
-    .sort((a, b) => Date.parse(a.event_start_dt) - Date.parse(b.event_start_dt));
-}
-
 function groupGates(gates: CheckinGate[]): Map<string, CheckinGate[]> {
   const map = new Map<string, CheckinGate[]>();
   for (const gate of gates) {
@@ -91,6 +86,7 @@ export default function AdminScanQR() {
   const secureContext = typeof window !== 'undefined' && window.isSecureContext;
 
   const [events, setEvents] = useState<Event[]>([]);
+  const [ticketSetups, setTicketSetups] = useState<TicketSetup[]>([]);
   const [eventId, setEventId] = useState(() => {
     try {
       return sessionStorage.getItem(EVENT_STORAGE_KEY) ?? '';
@@ -126,15 +122,32 @@ export default function AdminScanQR() {
   const processingRef = useRef(false);
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const eventOptions = useMemo(() => recentEvents(events), [events]);
+  const eventOptions = useMemo(
+    () => eventsWithSavedTicketSetups(events, ticketSetups, { recentOnly: true }),
+    [events, ticketSetups]
+  );
+
+  const hasSavedSetups = eventOptions.length > 0;
+  const eventIdValid = Boolean(eventId && eventOptions.some(event => event.event_id === eventId));
 
   useEffect(() => {
-    void eventsAPI.getAll().then(setEvents).catch(() => toast.error('Could not load events'));
+    void Promise.all([
+      eventsAPI.getAll().then(setEvents),
+      ticketSetupsAPI.list().then(setTicketSetups),
+    ]).catch(() => toast.error('Could not load events or ticket setups'));
   }, []);
 
   useEffect(() => {
-    if (!eventId) {
+    if (eventId && !eventOptions.some(event => event.event_id === eventId)) {
+      setEventId('');
+    }
+  }, [eventId, eventOptions]);
+
+  useEffect(() => {
+    if (!eventIdValid) {
       setGates([]);
+      setScope('');
+      setStats(null);
       return;
     }
     void ticketingAPI
@@ -147,7 +160,7 @@ export default function AdminScanQR() {
         });
       })
       .catch(() => toast.error('Could not load gates for this event'));
-  }, [eventId]);
+  }, [eventId, eventIdValid]);
 
   useEffect(() => {
     try {
@@ -166,13 +179,16 @@ export default function AdminScanQR() {
   }, [scope]);
 
   const refreshStats = useCallback(async () => {
-    if (!scope) return;
+    if (!scope || !eventIdValid) {
+      setStats(null);
+      return;
+    }
     try {
       setStats(await ticketingAPI.checkinStats(scope, eventId || undefined));
     } catch {
       /* non-fatal */
     }
-  }, [scope, eventId]);
+  }, [scope, eventId, eventIdValid]);
 
   useEffect(() => {
     void refreshStats();
@@ -407,7 +423,7 @@ export default function AdminScanQR() {
             Event-day admission check-in — select event and gate, then scan guest tickets.
           </p>
         </div>
-        {stats && (
+        {stats && eventIdValid && scope && (
           <div className="text-right">
             <div className="text-2xl font-bold text-primary-600">
               {stats.checked_in}
@@ -429,7 +445,9 @@ export default function AdminScanQR() {
             value={eventId}
             onChange={e => setEventId(e.target.value)}
           >
-            <option value="">Select event…</option>
+            <option value="">
+              {hasSavedSetups ? 'Select event…' : NO_SAVED_TICKET_SETUPS_LABEL}
+            </option>
             {eventOptions.map(event => (
               <option key={event.event_id} value={event.event_id}>
                 {event.event_name}
@@ -444,18 +462,27 @@ export default function AdminScanQR() {
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
             value={scope}
             onChange={e => handleGateChange(e.target.value)}
-            disabled={!eventId || gates.length === 0}
+            disabled={!eventIdValid || gates.length === 0}
           >
-            {!gates.length && <option value="">No gates</option>}
-            {[...gateGroups.entries()].map(([group, items]) => (
-              <optgroup key={group} label={group}>
-                {items.map(gate => (
-                  <option key={gate.scope} value={gate.scope}>
-                    {gate.label}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
+            <option value="">
+              {!hasSavedSetups
+                ? NO_SAVED_TICKET_SETUPS_LABEL
+                : !eventIdValid
+                  ? 'Select event first…'
+                  : gates.length
+                    ? 'Select gate…'
+                    : 'No gates'}
+            </option>
+            {eventIdValid &&
+              [...gateGroups.entries()].map(([group, items]) => (
+                <optgroup key={group} label={group}>
+                  {items.map(gate => (
+                    <option key={gate.scope} value={gate.scope}>
+                      {gate.label}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
           </select>
         </div>
       </div>

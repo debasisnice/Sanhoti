@@ -290,6 +290,16 @@ export class TicketingProfileDataHelper extends DatabaseHelper {
     return profile;
   }
 
+  async deleteByEventId(eventId: string): Promise<boolean> {
+    const id = String(eventId).trim();
+    if (!id) return false;
+    const profiles = this.readFile<TicketingProfile>(FILENAME);
+    const remaining = profiles.filter(item => item.event_id !== id);
+    if (remaining.length === profiles.length) return false;
+    this.writeFile<TicketingProfile>(FILENAME, remaining);
+    return true;
+  }
+
   newId(): string {
     return this.generate12DigitAlphanumericId();
   }

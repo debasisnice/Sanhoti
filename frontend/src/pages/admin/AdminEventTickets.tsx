@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { Archive, Trash2 } from 'lucide-react';
 import { ticketSetupsAPI, TicketSetup } from '../../services/api';
 import TicketSetupView, { snapshotSummaryLine } from './TicketSetupView';
+import { clearDraftEventId, TICKET_SETUP_DRAFT_EVENT_KEY } from './ticketSetupEvents';
 
 const inputCls =
   'border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500';
@@ -56,11 +57,30 @@ export default function AdminEventTickets() {
 
   const deleteSetup = async () => {
     if (!selected) return;
-    if (!window.confirm(`Delete "${selected.label}" permanently? This does not change live booking config.`)) return;
+    const remainingForEvent = setups.filter(
+      s => s.event_id === selected.event_id && s.setup_id !== selected.setup_id
+    );
+    const clearsLive = remainingForEvent.length === 0;
+    const message = clearsLive
+      ? `Delete "${selected.label}"? This is the last saved setup for ${selected.event_name}. ` +
+        'The live ticketing profile and seat maps for this event will also be removed.'
+      : `Delete "${selected.label}" permanently? Other saved setups for this event will be kept.`;
+    if (!window.confirm(message)) return;
     setBusy(true);
     try {
-      await ticketSetupsAPI.remove(selected.setup_id);
-      toast.success('Setup deleted');
+      const result = await ticketSetupsAPI.remove(selected.setup_id);
+      if (result.live_config_cleared) {
+        try {
+          if (localStorage.getItem(TICKET_SETUP_DRAFT_EVENT_KEY) === result.event_id) {
+            clearDraftEventId();
+          }
+        } catch {
+          /* ignore */
+        }
+        toast.success('Setup and live ticketing config deleted');
+      } else {
+        toast.success('Setup deleted');
+      }
       await load();
     } catch (error: any) {
       toast.error(error?.response?.data?.error || 'Failed to delete setup');

@@ -93,6 +93,17 @@ export class SeatMapDataHelper extends DatabaseHelper {
     return true;
   }
 
+  async deleteByEventId(eventId: string): Promise<number> {
+    const id = String(eventId).trim();
+    if (!id) return 0;
+    const maps = await this.findAll();
+    const remaining = maps.filter(map => map.event_id !== id);
+    const removed = maps.length - remaining.length;
+    if (removed === 0) return 0;
+    this.writeFile<SeatMap>(MAPS_FILE, remaining);
+    return removed;
+  }
+
   newId(): string {
     return this.generate12DigitAlphanumericId();
   }

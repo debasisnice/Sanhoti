@@ -40,3 +40,14 @@ describe('TicketSetupService archive validation', () => {
     await expect(service.archiveSetup('MISSINGSETUP1')).resolves.toBeNull();
   });
 });
+
+describe('TicketSetupService delete', () => {
+  it('returns not deleted when setup is missing', async () => {
+    const { TicketSetupService } = await import('../services/TicketSetupService.js');
+    const service = new TicketSetupService();
+    await expect(service.deleteSetup('MISSINGSETUP1')).resolves.toEqual({
+      deleted: false,
+      live_config_cleared: false,
+    });
+  });
+});
