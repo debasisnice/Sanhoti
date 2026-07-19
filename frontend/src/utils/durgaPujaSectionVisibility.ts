@@ -5,8 +5,6 @@ export type DurgaPujaVisibilityContext = {
   content: DurgaPujaPageContent;
   /** Sub-events with show_in_durga_puja_page (Programs & Events strip). */
   durgaPujaSubEvents?: SubEvent[];
-  seatBookingOpen?: boolean;
-  hasSavedTicketData?: boolean;
 };
 
 function sectionEnabled(content: DurgaPujaPageContent, key: keyof DurgaPujaSectionToggles): boolean {
@@ -30,8 +28,7 @@ export function isDurgaPujaSectionPublic(
   key: keyof DurgaPujaSectionToggles,
   ctx: DurgaPujaVisibilityContext
 ): boolean {
-  const { content, durgaPujaSubEvents = [], seatBookingOpen = false, hasSavedTicketData = false } =
-    ctx;
+  const { content, durgaPujaSubEvents = [] } = ctx;
   if (!sectionEnabled(content, key)) return false;
 
   const venue = content.venue ?? {};
