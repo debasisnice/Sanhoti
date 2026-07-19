@@ -100,6 +100,11 @@ export default defineConfig({
             handler: 'NetworkOnly'
           },
           {
+            // Large PDFs must not be cached by the service worker (breaks react-pdf / iframe viewers).
+            urlPattern: /\/api\/durga-puja-page\/\d+\/sponsorship-pdf/i,
+            handler: 'NetworkOnly',
+          },
+          {
             urlPattern: /\/api\/.*/i,
             handler: 'NetworkFirst',
             options: {

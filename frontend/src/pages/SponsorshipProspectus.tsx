@@ -2,9 +2,89 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Download, Mail, FileText } from 'lucide-react';
+import { Document as PDFDocument, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
 import Seo from '../components/Seo';
 import { durgaPujaPageAPI } from '../services/api';
 import { durgaPujaPagePath } from '../utils/durgaPuja';
+
+if (typeof window !== 'undefined') {
+  pdfjs.GlobalWorkerOptions.workerSrc = '/pdfjs/pdf.worker.min.mjs';
+}
+
+function ProspectusPdfViewer({ pdfUrl }: { pdfUrl: string }) {
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [pageWidth, setPageWidth] = useState(800);
+
+  useEffect(() => {
+    const updateWidth = () => setPageWidth(Math.min(900, window.innerWidth - 48));
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 sm:p-4">
+      {loading && (
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600" />
+        </div>
+      )}
+      {error && (
+        <div className="text-center py-12 px-4">
+          <p className="text-red-600 mb-4">{error}</p>
+          <a
+            href={pdfUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary-600 hover:underline font-medium"
+          >
+            Open PDF in a new tab
+          </a>
+        </div>
+      )}
+      <PDFDocument
+        file={pdfUrl}
+        onLoadSuccess={({ numPages: pages }) => {
+          setNumPages(pages);
+          setLoading(false);
+          setError(null);
+        }}
+        onLoadError={(err) => {
+          console.error('Sponsorship prospectus PDF load error:', err);
+          setError('Could not display the PDF in your browser.');
+          setLoading(false);
+        }}
+        loading={null}
+      >
+        {numPages && (
+          <div className="space-y-4">
+            {Array.from({ length: numPages }, (_, index) => (
+              <Page
+                key={`page_${index + 1}`}
+                pageNumber={index + 1}
+                width={pageWidth}
+                renderTextLayer={false}
+                renderAnnotationLayer={false}
+                className="mx-auto shadow-md bg-white"
+              />
+            ))}
+          </div>
+        )}
+      </PDFDocument>
+      <p className="text-xs text-gray-500 mt-3 text-center">
+        Trouble viewing the PDF?{' '}
+        <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">
+          Open it in a new tab
+        </a>
+        .
+      </p>
+    </div>
+  );
+}
 
 /**
  * Sponsorship prospectus funnel page at /become-our-sponsor.
@@ -98,20 +178,7 @@ export default function SponsorshipProspectus() {
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600" />
             </div>
           ) : hasPdf ? (
-            <div>
-              <iframe
-                src={`${pdfUrl}#view=FitH&pagemode=none&navpanes=0`}
-                title="Sponsorship Prospectus"
-                className="w-full aspect-[612/792] min-h-[600px] rounded-xl border border-gray-200 bg-gray-50"
-              />
-              <p className="text-xs text-gray-500 mt-2">
-                Trouble viewing the PDF?{' '}
-                <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">
-                  Open it in a new tab
-                </a>
-                .
-              </p>
-            </div>
+            <ProspectusPdfViewer pdfUrl={pdfUrl} />
           ) : (
             <div className="bg-white rounded-2xl shadow border border-gray-100 p-8 text-center">
               <FileText className="w-10 h-10 text-gray-300 mx-auto mb-3" />

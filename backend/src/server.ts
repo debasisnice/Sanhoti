@@ -42,6 +42,10 @@ app.use((req, res, next) => {
   if (req.path.startsWith('/og/')) {
     return next();
   }
+  // Skip restrictive headers for binary/embeddable assets (PDF viewer breaks with CSP on the file).
+  if (/\/sponsorship-pdf$/i.test(req.path)) {
+    return next();
+  }
   // Skip restrictive headers for user manual (to allow iframe embedding)
   if (req.path.startsWith('/api/user-manual')) {
     // Allow embedding from sanhoti.org and localhost
