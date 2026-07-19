@@ -219,9 +219,11 @@ export class DurgaPujaPageController {
         storage,
         limits: { fileSize: 25 * 1024 * 1024 },
         fileFilter: (_req, file, cb) => {
-          const isPdf =
-            /\.pdf$/i.test(file.originalname) && /application\/pdf/i.test(file.mimetype);
-          if (isPdf) cb(null, true);
+          // Accept by extension OR pdf mimetype — some browsers/OSes send
+          // application/octet-stream for .pdf files, which shouldn't be rejected.
+          const okExt = /\.pdf$/i.test(file.originalname);
+          const okMime = /pdf/i.test(file.mimetype);
+          if (okExt || okMime) cb(null, true);
           else cb(new Error('Only PDF files are allowed'));
         },
       }).single('pdf')(req, res, next);
@@ -256,9 +258,9 @@ export class DurgaPujaPageController {
         res.status(404).json({ error: 'Sponsorship prospectus not found' });
         return;
       }
-      res.sendFile(resolve(durgaPujaSponsorshipPdfPath(year)), {
-        headers: { 'Content-Type': 'application/pdf' },
-      });
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline; filename="sponsorship-prospectus.pdf"');
+      res.sendFile(resolve(durgaPujaSponsorshipPdfPath(year)));
     } catch (error: any) {
       console.error('Error serving sponsorship PDF:', error);
       res.status(500).json({ error: 'Failed to serve PDF' });
