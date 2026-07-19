@@ -787,6 +787,9 @@ export interface DurgaPujaSponsorshipInfo {
   packagePdfUrl?: string;
   contactEmail?: string;
   contactNote?: string;
+  /** Target for the hero "Become a Sponsor" button — a Google Form URL or an
+   *  internal path. Empty defaults to /contact. */
+  buttonUrl?: string;
 }
 
 /** Vendor & stall registration (Section 11). */

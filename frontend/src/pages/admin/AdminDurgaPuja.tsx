@@ -17,6 +17,21 @@ import { isDurgaPujaSectionPublic } from '../../utils/durgaPujaSectionVisibility
 const INPUT_CLS =
   'w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500';
 
+/** Recommended volunteer categories (also used as Google Form checkbox options). */
+const DEFAULT_VOLUNTEER_CATEGORIES = [
+  'Puja',
+  'Decoration',
+  'Food service',
+  'Guest welcome',
+  'Ticketing',
+  'Logistics',
+  'Parking',
+  'Cultural program',
+  'Photography',
+  'Social media',
+  'Cleanup',
+];
+
 const HIGHLIGHT_ICON_OPTIONS = [
   'sparkles',
   'music',
@@ -223,6 +238,7 @@ function EditorSection({
   visible,
   publicVisible,
   onToggle,
+  toggleLabel = 'Show this section on the public page',
   children,
 }: {
   title: string;
@@ -231,6 +247,8 @@ function EditorSection({
   /** True when this section is currently rendered on the public Durga Puja page. */
   publicVisible?: boolean;
   onToggle: (key: keyof DurgaPujaSectionToggles, val: boolean) => void;
+  /** Label for the visibility checkbox (some sections repurpose it). */
+  toggleLabel?: string;
   children: React.ReactNode;
 }) {
   const statusLabel = publicVisible
@@ -262,7 +280,7 @@ function EditorSection({
             checked={visible}
             onChange={e => onToggle(sectionKey, e.target.checked)}
           />
-          Show this section on the public page
+          {toggleLabel}
         </label>
         {children}
       </div>
@@ -1335,45 +1353,25 @@ export default function AdminDurgaPuja() {
         </EditorSection>
 
         {/* ---- Section 10: Sponsorship ---- */}
-        <EditorSection title="10. Sponsorship" sectionKey="sponsorship" visible={visible('sponsorship')} publicVisible={publicOnSite('sponsorship')} onToggle={toggleSection}>
+        <EditorSection title="10. Sponsorship" sectionKey="sponsorship" visible={visible('sponsorship')} publicVisible={publicOnSite('sponsorship')} onToggle={toggleSection} toggleLabel="Show the “Become a Sponsor” button on the public page">
+          <p className="text-xs text-gray-500">
+            There is no separate Sponsorship section on the public page. The “Become a Sponsor” button
+            lives in the page hero: check the box above to show it, and set where it goes below.
+            Unchecked = the button is hidden.
+          </p>
           <div>
-            <FieldLabel>Intro</FieldLabel>
-            <textarea className={INPUT_CLS} rows={2} value={sponsorship.intro ?? ''} onChange={e => patchObj('sponsorship', { intro: e.target.value })} />
-          </div>
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <FieldLabel>Sponsorship packages</FieldLabel>
-              <button type="button" onClick={() => addNestedItem('sponsorship', 'packages', { name: '', price: '', benefits: [] })} className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"><Plus className="w-4 h-4" /> Add package</button>
-            </div>
-            <div className="space-y-3">
-              {nestedArr('sponsorship', 'packages').map((p: any, i: number) => (
-                <div key={i} className="border border-gray-200 rounded-lg p-3 space-y-2">
-                  <div className="flex gap-2 items-center">
-                    <input className={`${INPUT_CLS} flex-1`} value={p.name ?? ''} placeholder="Title Sponsor" onChange={e => updateNestedItem('sponsorship', 'packages', i, { name: e.target.value })} />
-                    <input className="border border-gray-300 rounded-lg px-2 py-2 text-sm w-40" value={p.price ?? ''} placeholder="$5,000" onChange={e => updateNestedItem('sponsorship', 'packages', i, { price: e.target.value })} />
-                    <button type="button" onClick={() => removeNestedItem('sponsorship', 'packages', i)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Benefits (logo placement, stage acknowledgment, complimentary tickets, stall, etc.)</p>
-                    <StringListEditor value={p.benefits} onChange={v => updateNestedItem('sponsorship', 'packages', i, { benefits: v })} placeholder="Benefit" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <FieldLabel>Download package URL (PDF)</FieldLabel>
-              <input className={INPUT_CLS} value={sponsorship.packagePdfUrl ?? ''} onChange={e => patchObj('sponsorship', { packagePdfUrl: e.target.value })} placeholder="https://…" />
-            </div>
-            <div>
-              <FieldLabel>Sponsorship contact email</FieldLabel>
-              <input className={INPUT_CLS} value={sponsorship.contactEmail ?? ''} onChange={e => patchObj('sponsorship', { contactEmail: e.target.value })} placeholder="sponsors@sanhoti.org" />
-            </div>
-          </div>
-          <div>
-            <FieldLabel>Contact note</FieldLabel>
-            <input className={INPUT_CLS} value={sponsorship.contactNote ?? ''} onChange={e => patchObj('sponsorship', { contactNote: e.target.value })} />
+            <FieldLabel>“Become a Sponsor” button link</FieldLabel>
+            <input
+              className={INPUT_CLS}
+              value={sponsorship.buttonUrl ?? ''}
+              onChange={e => patchObj('sponsorship', { buttonUrl: e.target.value })}
+              placeholder="https://docs.google.com/forms/…  (leave empty for /contact)"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Paste a Google Form link to collect sponsor interest, or leave this empty to send visitors
+              to the <span className="font-medium">/contact</span> page. You can also enter any other URL
+              or an internal path. This is specific to the {content.year} page.
+            </p>
           </div>
         </EditorSection>
 
@@ -1407,24 +1405,37 @@ export default function AdminDurgaPuja() {
         </EditorSection>
 
         {/* ---- Section 12: Volunteer ---- */}
-        <EditorSection title="12. Volunteer" sectionKey="volunteer" visible={visible('volunteer')} publicVisible={publicOnSite('volunteer')} onToggle={toggleSection}>
+        <EditorSection title="12. Volunteer" sectionKey="volunteer" visible={visible('volunteer')} publicVisible={publicOnSite('volunteer')} onToggle={toggleSection} toggleLabel="Show the “Volunteer” button on the public page (opens your Google Form)">
+          <p className="text-xs text-gray-500">
+            There is no separate Volunteer section on the public page. The Volunteer button lives in the
+            page hero: check the box above and set the Google Form URL below, and the button opens that
+            form directly. Unchecked (or no form URL) = the button is hidden.
+          </p>
           <div>
-            <FieldLabel>Intro</FieldLabel>
-            <textarea className={INPUT_CLS} rows={2} value={volunteer.intro ?? ''} onChange={e => patchObj('volunteer', { intro: e.target.value })} />
+            <FieldLabel>Google Form URL</FieldLabel>
+            <input className={INPUT_CLS} value={volunteer.formUrl ?? ''} onChange={e => patchObj('volunteer', { formUrl: e.target.value })} placeholder="https://docs.google.com/forms/…" />
+            <p className="text-xs text-gray-500 mt-1">
+              Build a Google Form with a Checkboxes question for the categories plus Name and Email (or
+              turn on “Collect email addresses”), then paste its share link here. Submissions appear in
+              the form’s Responses tab / linked Google Sheet — enable “Get email notifications for new
+              responses” to be emailed on each signup. This form is specific to the {content.year} page.
+            </p>
           </div>
           <div>
-            <FieldLabel>Volunteer categories</FieldLabel>
+            <div className="flex items-center justify-between mb-1">
+              <FieldLabel>Volunteer categories (reference for your form)</FieldLabel>
+              <button
+                type="button"
+                onClick={() => patchObj('volunteer', { categories: DEFAULT_VOLUNTEER_CATEGORIES })}
+                className="text-primary-600 text-xs font-medium hover:text-primary-700"
+              >
+                Fill recommended
+              </button>
+            </div>
             <StringListEditor value={volunteer.categories} onChange={v => patchObj('volunteer', { categories: v })} placeholder="Puja, Food service, Parking, Photography…" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <FieldLabel>Registration form URL</FieldLabel>
-              <input className={INPUT_CLS} value={volunteer.formUrl ?? ''} onChange={e => patchObj('volunteer', { formUrl: e.target.value })} placeholder="https://…" />
-            </div>
-            <div>
-              <FieldLabel>Volunteer contact email</FieldLabel>
-              <input className={INPUT_CLS} value={volunteer.contactEmail ?? ''} onChange={e => patchObj('volunteer', { contactEmail: e.target.value })} placeholder="volunteer@sanhoti.org" />
-            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Not shown on the public page — use this as your checklist when adding the <span className="font-medium">Checkboxes</span> question in the Google Form.
+            </p>
           </div>
         </EditorSection>
 

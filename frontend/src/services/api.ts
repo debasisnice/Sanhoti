@@ -959,6 +959,7 @@ export interface DurgaPujaSponsorshipInfo {
   packagePdfUrl?: string;
   contactEmail?: string;
   contactNote?: string;
+  buttonUrl?: string;
 }
 export interface DurgaPujaVendorInfo {
   intro?: string;

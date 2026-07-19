@@ -23,7 +23,6 @@ import {
   Facebook,
   Instagram,
   MessageCircle,
-  CheckCircle2,
   ExternalLink,
   PartyPopper,
 } from 'lucide-react';
@@ -344,6 +343,19 @@ function Countdown({ targetIso }: { targetIso: string }) {
 }
 
 /** Renders a CTA/link that may be an anchor (#id), internal path, or external URL. */
+/**
+ * Normalize an admin-entered link. Anchors (#), internal paths (/), and known
+ * protocols (http(s)/mailto/tel) are left alone; a bare host like
+ * "forms.gle/abc" or "docs.google.com/…" gets an https:// prefix so buttons
+ * actually open it instead of being treated as a same-page anchor.
+ */
+function normalizeUrl(raw?: string): string {
+  const s = (raw || '').trim();
+  if (!s) return s;
+  if (/^(https?:|mailto:|tel:|#|\/)/i.test(s)) return s;
+  return `https://${s}`;
+}
+
 function SmartButton({
   href,
   children,
@@ -562,7 +574,7 @@ export default function DurgaPuja() {
       : [
           { label: 'Buy Tickets', href: '#tickets', style: 'primary' as const },
           { label: 'View Schedule', href: '#schedule', style: 'secondary' as const },
-          { label: 'Become a Sponsor', href: '/contact', style: 'secondary' as const },
+          { label: 'Become a Sponsor', href: '#sponsor', style: 'secondary' as const },
           { label: 'Volunteer', href: '#volunteer', style: 'secondary' as const },
         ]
   ).filter(cta => ticketSalesOpen || !isTicketRelatedCta(cta));
@@ -596,9 +608,15 @@ export default function DurgaPuja() {
   const food = content.food;
   const puja = content.puja;
   const kids = content.kids;
-  const sponsorship = content.sponsorship;
   const vendors = content.vendors;
   const volunteer = content.volunteer;
+  // Volunteer & Sponsorship have no standalone public section — their toggles only
+  // control the hero buttons. The "Volunteer" button opens the Google Form (only
+  // shown when a form URL is set); the "Become a Sponsor" button opens the
+  // configured link, defaulting to /contact when none is set.
+  const volunteerButtonOn = show('volunteer');
+  const sponsorButtonOn = show('sponsorship');
+  const sponsorHref = normalizeUrl(content.sponsorship?.buttonUrl || '/contact');
   const gallery = content.gallery;
   const contacts = content.contacts ?? [];
   const social = content.social;
@@ -740,11 +758,33 @@ export default function DurgaPuja() {
               {showCountdown && content.startDate && <Countdown targetIso={content.startDate} />}
 
               <div className="mt-8 flex flex-wrap justify-center gap-3">
-                {ctaButtons.map((cta, i) => (
-                  <SmartButton key={i} href={cta.href} variant={cta.style === 'secondary' ? 'secondary' : 'primary'}>
-                    {cta.label}
-                  </SmartButton>
-                ))}
+                {ctaButtons
+                  // Volunteer & Sponsor CTAs are gated by their admin toggles. Volunteer
+                  // needs a Google Form URL to appear; Sponsor always has a target
+                  // (defaults to /contact).
+                  .filter(cta => {
+                    const h = (cta.href || '').trim().toLowerCase();
+                    const isVolunteer = h === '#volunteer' || /volunteer/i.test(cta.label || '');
+                    const isSponsor = h === '#sponsor' || /sponsor/i.test(cta.label || '');
+                    if (isVolunteer) return volunteerButtonOn && Boolean(volunteer?.formUrl);
+                    if (isSponsor) return sponsorButtonOn;
+                    return true;
+                  })
+                  .map((cta, i) => {
+                    const h = (cta.href || '').trim().toLowerCase();
+                    const isVolunteer = h === '#volunteer' || /volunteer/i.test(cta.label || '');
+                    const isSponsor = h === '#sponsor' || /sponsor/i.test(cta.label || '');
+                    const href = isVolunteer
+                      ? normalizeUrl(volunteer?.formUrl)
+                      : isSponsor
+                        ? sponsorHref
+                        : normalizeUrl(cta.href);
+                    return (
+                      <SmartButton key={i} href={href} variant={cta.style === 'secondary' ? 'secondary' : 'primary'}>
+                        {cta.label}
+                      </SmartButton>
+                    );
+                  })}
               </div>
             </motion.div>
           </div>
@@ -876,7 +916,7 @@ export default function DurgaPuja() {
 
               {ticketing?.buttonUrl && !ticketsOff && (
                 <a
-                  href={ticketing.buttonUrl}
+                  href={normalizeUrl(ticketing.buttonUrl)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors mb-4"
@@ -1387,77 +1427,9 @@ export default function DurgaPuja() {
           </div>
         )}
 
-        {/* ---- Section 10: Sponsorship ---- */}
-        {show('sponsorship') &&
-          sponsorship &&
-          (sponsorship.intro || (sponsorship.packages && sponsorship.packages.length)) && (
-            <div className="mb-10">
-              <SectionHeading id="sponsor" kicker="Partner With Us">Sponsorship</SectionHeading>
-              <div className={cardCls}>
-                {sponsorship.intro && <p className="text-gray-700 mb-4">{sponsorship.intro}</p>}
-                {sponsorship.packages && sponsorship.packages.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {sponsorship.packages.map((p, i) => {
-                      // Cycle a subtle premium accent for the tier's top bar.
-                      const accents = [
-                        'from-amber-400 to-yellow-500',
-                        'from-slate-300 to-slate-400',
-                        'from-orange-400 to-primary-500',
-                      ];
-                      const accent = accents[i % accents.length];
-                      return (
-                        <div
-                          key={i}
-                          className="relative overflow-hidden rounded-xl border border-yellow-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-                        >
-                          <div className={`h-1.5 w-full bg-gradient-to-r ${accent}`} />
-                          <div className="p-4">
-                            <p className="font-bold text-gray-900">{p.name}</p>
-                            {p.price && (
-                              <p className="text-2xl font-extrabold text-primary-700 mb-2">{p.price}</p>
-                            )}
-                            {p.benefits && p.benefits.length > 0 && (
-                              <ul className="space-y-1.5 text-sm text-gray-600">
-                                {p.benefits.map((b, bi) => (
-                                  <li key={bi} className="flex items-start gap-1.5">
-                                    <CheckCircle2 className="w-4 h-4 text-primary-600 mt-0.5 flex-shrink-0" />
-                                    <span>{b}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                <div className="flex flex-wrap gap-3 mt-5">
-                  {sponsorship.packagePdfUrl && (
-                    <a
-                      href={sponsorship.packagePdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 bg-primary-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
-                    >
-                      <ExternalLink className="w-4 h-4" /> Download Sponsorship Package
-                    </a>
-                  )}
-                  {sponsorship.contactEmail && (
-                    <a
-                      href={`mailto:${sponsorship.contactEmail}?subject=Sanhoti Durga Puja ${eventYear} Sponsorship`}
-                      className="inline-flex items-center gap-2 bg-white border-2 border-primary-600 text-primary-600 px-5 py-2.5 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
-                    >
-                      <Mail className="w-4 h-4" /> Contact Sponsorship Team
-                    </a>
-                  )}
-                </div>
-                {sponsorship.contactNote && (
-                  <p className="text-sm text-gray-500 mt-3">{sponsorship.contactNote}</p>
-                )}
-              </div>
-            </div>
-          )}
+        {/* Sponsorship has no standalone section — the hero "Become a Sponsor" button
+            (gated by the admin toggle) opens the configured link (Google Form or
+            /contact). See hero CTA logic above. */}
 
         {/* ---- Section 11: Vendors & stalls ---- */}
         {show('vendors') && vendors && (vendors.intro || (vendors.types && vendors.types.length)) && (
@@ -1494,7 +1466,7 @@ export default function DurgaPuja() {
               </div>
               <div className="flex flex-wrap gap-3 mt-5">
                 {vendors.formUrl && (
-                  <SmartButton href={vendors.formUrl}>
+                  <SmartButton href={normalizeUrl(vendors.formUrl)}>
                     <Store className="w-4 h-4" /> Register as a Vendor
                   </SmartButton>
                 )}
@@ -1511,42 +1483,8 @@ export default function DurgaPuja() {
           </div>
         )}
 
-        {/* ---- Section 12: Volunteer ---- */}
-        {show('volunteer') &&
-          volunteer &&
-          (volunteer.intro || (volunteer.categories && volunteer.categories.length)) && (
-            <div className="mb-10">
-              <SectionHeading id="volunteer">Volunteer</SectionHeading>
-              <div className={cardCls}>
-                {volunteer.intro && <p className="text-gray-700 mb-4">{volunteer.intro}</p>}
-                {volunteer.categories && volunteer.categories.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {volunteer.categories.map((c, i) => (
-                      <span key={i} className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full">
-                        <Heart className="w-3.5 h-3.5 text-primary-600" />
-                        {c}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <div className="flex flex-wrap gap-3">
-                  {volunteer.formUrl && (
-                    <SmartButton href={volunteer.formUrl}>
-                      <Heart className="w-4 h-4" /> Sign Up to Volunteer
-                    </SmartButton>
-                  )}
-                  {volunteer.contactEmail && (
-                    <a
-                      href={`mailto:${volunteer.contactEmail}?subject=Sanhoti Durga Puja ${eventYear} Volunteering`}
-                      className="inline-flex items-center gap-2 bg-white border-2 border-primary-600 text-primary-600 px-5 py-2.5 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
-                    >
-                      <Mail className="w-4 h-4" /> Email Volunteer Team
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+        {/* Volunteer has no standalone section — the hero "Volunteer" button (gated by
+            the admin toggle) opens the Google Form directly. See hero CTA logic above. */}
 
         {/* ---- Section 13: About Sanhoti ---- */}
         {show('about') && content.about && (

@@ -29,15 +29,21 @@ export function isDurgaPujaSectionPublic(
   ctx: DurgaPujaVisibilityContext
 ): boolean {
   const { content, durgaPujaSubEvents = [] } = ctx;
+
+  // Volunteer & Sponsorship have no standalone public section — their toggles only
+  // control the hero "Volunteer" / "Become a Sponsor" buttons. Treat them as
+  // "live on site" (green) exactly when the toggle is checked.
+  if (key === 'volunteer' || key === 'sponsorship') {
+    return sectionEnabled(content, key);
+  }
+
   if (!sectionEnabled(content, key)) return false;
 
   const venue = content.venue ?? {};
   const food = content.food;
   const puja = content.puja;
   const kids = content.kids;
-  const sponsorship = content.sponsorship;
   const vendors = content.vendors;
-  const volunteer = content.volunteer;
   const gallery = content.gallery;
   const social = content.social;
   const contacts = content.contacts ?? [];
@@ -83,16 +89,8 @@ export function isDurgaPujaSectionPublic(
       return Boolean(puja && (puja.intro || (puja.timings && puja.timings.length) || puja.priestInfo));
     case 'kids':
       return Boolean(kids && (kids.intro || (kids.activities && kids.activities.length)));
-    case 'sponsorship':
-      return Boolean(
-        sponsorship && (sponsorship.intro || (sponsorship.packages && sponsorship.packages.length))
-      );
     case 'vendors':
       return Boolean(vendors && (vendors.intro || (vendors.types && vendors.types.length)));
-    case 'volunteer':
-      return Boolean(
-        volunteer && (volunteer.intro || (volunteer.categories && volunteer.categories.length))
-      );
     case 'about':
       return Boolean(content.about);
     case 'gallery':
