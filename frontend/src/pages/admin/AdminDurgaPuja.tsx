@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import { Plus, Trash2, ExternalLink, Upload, ImageIcon, Calendar, Ticket } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, Upload, ImageIcon, Calendar, Ticket, FileText } from 'lucide-react';
 import {
   durgaPujaPageAPI,
   DurgaPujaPageContent,
@@ -309,12 +309,16 @@ export default function AdminDurgaPuja() {
   const [subEvents, setSubEvents] = useState<SubEvent[]>([]);
   const [subEventImages, setSubEventImages] = useState<Record<string, string>>({});
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [hasSponsorshipPdf, setHasSponsorshipPdf] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
 
   const loadYear = useCallback(async (year: number) => {
     setLoadingYear(true);
     setSubEvents([]);
     setSubEventImages({});
     setHasImage(false);
+    setHasSponsorshipPdf(false);
     try {
       const data = await durgaPujaPageAPI.getContent(year);
       setEditYear(year);
@@ -324,6 +328,12 @@ export default function AdminDurgaPuja() {
         setHasImage(img);
       } catch {
         setHasImage(false);
+      }
+      try {
+        const { hasPdf } = await durgaPujaPageAPI.hasSponsorshipPdf(year);
+        setHasSponsorshipPdf(hasPdf);
+      } catch {
+        setHasSponsorshipPdf(false);
       }
       if (data.linkedEventId) {
         try {
@@ -398,6 +408,35 @@ export default function AdminDurgaPuja() {
       toast.error(error?.response?.data?.error || 'Failed to update visibility');
     } finally {
       setTogglingId(null);
+    }
+  };
+
+  const handlePdfSelected = async (file: File | undefined) => {
+    if (!file) return;
+    if (!/\.pdf$/i.test(file.name)) {
+      toast.error('Please choose a PDF file');
+      return;
+    }
+    setUploadingPdf(true);
+    try {
+      await durgaPujaPageAPI.uploadSponsorshipPdf(editYear, file);
+      setHasSponsorshipPdf(true);
+      toast.success('Sponsorship prospectus uploaded');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || 'Failed to upload PDF');
+    } finally {
+      setUploadingPdf(false);
+      if (pdfInputRef.current) pdfInputRef.current.value = '';
+    }
+  };
+
+  const handlePdfDelete = async () => {
+    try {
+      await durgaPujaPageAPI.deleteSponsorshipPdf(editYear);
+      setHasSponsorshipPdf(false);
+      toast.success('Sponsorship prospectus removed');
+    } catch {
+      toast.error('Failed to remove PDF');
     }
   };
 
@@ -1356,21 +1395,71 @@ export default function AdminDurgaPuja() {
         <EditorSection title="10. Sponsorship" sectionKey="sponsorship" visible={visible('sponsorship')} publicVisible={publicOnSite('sponsorship')} onToggle={toggleSection} toggleLabel="Show the “Become a Sponsor” button on the public page">
           <p className="text-xs text-gray-500">
             There is no separate Sponsorship section on the public page. The “Become a Sponsor” button
-            lives in the page hero: check the box above to show it, and set where it goes below.
-            Unchecked = the button is hidden.
+            lives in the page hero (check the box above to show it). By default it opens a prospectus
+            page that displays the PDF below plus a “Contact Us to Sponsor” button.
           </p>
+
           <div>
-            <FieldLabel>“Become a Sponsor” button link</FieldLabel>
+            <FieldLabel>Sponsorship prospectus (PDF)</FieldLabel>
+            {hasSponsorshipPdf ? (
+              <div className="flex items-center gap-2 text-sm text-green-700 mb-2">
+                <FileText className="w-4 h-4" /> Prospectus uploaded
+                <a
+                  href={durgaPujaPageAPI.sponsorshipPdfUrl(editYear)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-600 hover:text-primary-700 underline"
+                >
+                  View
+                </a>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                <FileText className="w-4 h-4" /> No prospectus uploaded yet
+              </div>
+            )}
+            <input
+              ref={pdfInputRef}
+              type="file"
+              accept="application/pdf,.pdf"
+              className="hidden"
+              onChange={e => handlePdfSelected(e.target.files?.[0])}
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => pdfInputRef.current?.click()}
+                disabled={uploadingPdf}
+                className="inline-flex items-center gap-2 bg-white border-2 border-primary-600 text-primary-600 px-4 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors disabled:opacity-50"
+              >
+                <Upload className="w-4 h-4" />
+                {uploadingPdf ? 'Uploading…' : hasSponsorshipPdf ? 'Replace PDF' : 'Upload PDF'}
+              </button>
+              {hasSponsorshipPdf && (
+                <button
+                  type="button"
+                  onClick={handlePdfDelete}
+                  className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 px-3 py-2 font-medium"
+                >
+                  <Trash2 className="w-4 h-4" /> Remove
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">PDF up to 25MB. Uploading replaces the current one.</p>
+          </div>
+
+          <div>
+            <FieldLabel>Optional: send the button straight to a link instead</FieldLabel>
             <input
               className={INPUT_CLS}
               value={sponsorship.buttonUrl ?? ''}
               onChange={e => patchObj('sponsorship', { buttonUrl: e.target.value })}
-              placeholder="https://docs.google.com/forms/…  (leave empty for /contact)"
+              placeholder="https://docs.google.com/forms/…  or  /contact"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Paste a Google Form link to collect sponsor interest, or leave this empty to send visitors
-              to the <span className="font-medium">/contact</span> page. You can also enter any other URL
-              or an internal path. This is specific to the {content.year} page.
+              Leave empty to use the prospectus page above. If you set a URL here (e.g. a Google Form) or
+              a path like <span className="font-medium">/contact</span>, the button goes there directly and
+              skips the prospectus page. Specific to the {content.year} page.
             </p>
           </div>
         </EditorSection>

@@ -616,7 +616,11 @@ export default function DurgaPuja() {
   // configured link, defaulting to /contact when none is set.
   const volunteerButtonOn = show('volunteer');
   const sponsorButtonOn = show('sponsorship');
-  const sponsorHref = normalizeUrl(content.sponsorship?.buttonUrl || '/contact');
+  // Sponsor button: an admin-set override URL (e.g. a Google Form) wins; otherwise it
+  // opens the year's sponsorship prospectus page (PDF + Contact Us).
+  const sponsorHref = content.sponsorship?.buttonUrl
+    ? normalizeUrl(content.sponsorship.buttonUrl)
+    : '/become-our-sponsor';
   const gallery = content.gallery;
   const contacts = content.contacts ?? [];
   const social = content.social;

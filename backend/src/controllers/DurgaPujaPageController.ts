@@ -15,6 +15,9 @@ import {
   findDurgaPujaAssetFile,
   listDurgaPujaAssets,
   isDurgaPujaAssetCategory,
+  durgaPujaSponsorshipPdfDir,
+  durgaPujaSponsorshipPdfPath,
+  durgaPujaSponsorshipPdfExists,
   type DurgaPujaAssetCategory,
 } from '../data/DurgaPujaPageDataHelper.js';
 
@@ -195,6 +198,95 @@ export class DurgaPujaPageController {
     } catch (error: any) {
       console.error('Error uploading Durga Puja page image:', error);
       res.status(500).json({ error: 'Failed to upload image', details: error.message });
+    }
+  }
+
+  // ---- Sponsorship prospectus PDF (one per year) ----
+
+  uploadSponsorshipPdf() {
+    return (req: AuthRequest, res: Response, next: () => void) => {
+      const year = parseYearParam(req.params.year);
+      if (!year) {
+        res.status(400).json({ error: 'Invalid year' });
+        return;
+      }
+      const dir = durgaPujaSponsorshipPdfDir(year);
+      const storage = multer.diskStorage({
+        destination: (_req, _file, cb) => cb(null, dir),
+        filename: (_req, _file, cb) => cb(null, 'sponsorship-prospectus.pdf'),
+      });
+      multer({
+        storage,
+        limits: { fileSize: 25 * 1024 * 1024 },
+        fileFilter: (_req, file, cb) => {
+          const isPdf =
+            /\.pdf$/i.test(file.originalname) && /application\/pdf/i.test(file.mimetype);
+          if (isPdf) cb(null, true);
+          else cb(new Error('Only PDF files are allowed'));
+        },
+      }).single('pdf')(req, res, next);
+    };
+  }
+
+  async handleSponsorshipPdfUpload(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const year = parseYearParam(req.params.year);
+      if (!year) {
+        res.status(400).json({ error: 'Invalid year' });
+        return;
+      }
+      if (!req.file) {
+        res.status(400).json({ error: 'No file uploaded' });
+        return;
+      }
+      res.json({
+        message: 'Sponsorship prospectus uploaded',
+        url: `/api/durga-puja-page/${year}/sponsorship-pdf`,
+      });
+    } catch (error: any) {
+      console.error('Error uploading sponsorship PDF:', error);
+      res.status(500).json({ error: 'Failed to upload PDF', details: error.message });
+    }
+  }
+
+  async getSponsorshipPdf(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const year = parseYearParam(req.params.year);
+      if (!year || !durgaPujaSponsorshipPdfExists(year)) {
+        res.status(404).json({ error: 'Sponsorship prospectus not found' });
+        return;
+      }
+      res.sendFile(resolve(durgaPujaSponsorshipPdfPath(year)), {
+        headers: { 'Content-Type': 'application/pdf' },
+      });
+    } catch (error: any) {
+      console.error('Error serving sponsorship PDF:', error);
+      res.status(500).json({ error: 'Failed to serve PDF' });
+    }
+  }
+
+  async hasSponsorshipPdf(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const year = parseYearParam(req.params.year);
+      res.json({ hasPdf: year ? durgaPujaSponsorshipPdfExists(year) : false });
+    } catch {
+      res.json({ hasPdf: false });
+    }
+  }
+
+  async deleteSponsorshipPdf(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const year = parseYearParam(req.params.year);
+      if (!year) {
+        res.status(400).json({ error: 'Invalid year' });
+        return;
+      }
+      const file = durgaPujaSponsorshipPdfPath(year);
+      if (existsSync(file)) unlinkSync(file);
+      res.json({ message: 'Sponsorship prospectus removed' });
+    } catch (error: any) {
+      console.error('Error deleting sponsorship PDF:', error);
+      res.status(500).json({ error: 'Failed to delete PDF' });
     }
   }
 

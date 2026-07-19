@@ -341,6 +341,25 @@ export function listDurgaPujaAssets(year: number, category: DurgaPujaAssetCatego
     .sort((a, b) => statSync(join(dir, b)).mtimeMs - statSync(join(dir, a)).mtimeMs);
 }
 
+/**
+ * Sponsorship prospectus PDF, stored per year at
+ * DurgaPuja_Page/<year>/sponsorship-prospectus.pdf.
+ */
+export function durgaPujaSponsorshipPdfDir(year: number): string {
+  const dir = join(IMAGE_ROOT, String(year));
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+export function durgaPujaSponsorshipPdfPath(year: number): string {
+  return join(IMAGE_ROOT, String(year), 'sponsorship-prospectus.pdf');
+}
+
+export function durgaPujaSponsorshipPdfExists(year: number): boolean {
+  const file = durgaPujaSponsorshipPdfPath(year);
+  return existsSync(file) && statSync(file).isFile();
+}
+
 /** Resolve a single asset file path, or null if it does not exist / is unsafe. */
 export function findDurgaPujaAssetFile(
   year: number,

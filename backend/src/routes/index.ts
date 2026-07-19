@@ -151,6 +151,8 @@ router.get('/durga-puja-page/:year/image', bindController(durgaPujaPageControlle
 router.get('/durga-puja-page/:year/has-image', bindController(durgaPujaPageController, 'hasImage'));
 router.get('/durga-puja-page/:year/assets/:category/:filename', bindController(durgaPujaPageController, 'getAsset'));
 router.get('/durga-puja-page/:year/assets/:category', bindController(durgaPujaPageController, 'listAssets'));
+router.get('/durga-puja-page/:year/sponsorship-pdf/has', bindController(durgaPujaPageController, 'hasSponsorshipPdf'));
+router.get('/durga-puja-page/:year/sponsorship-pdf', bindController(durgaPujaPageController, 'getSponsorshipPdf'));
 router.get('/durga-puja-page/:year', bindController(durgaPujaPageController, 'getContent'));
 router.get('/durga-puja-page', bindController(durgaPujaPageController, 'getContent'));
 
@@ -622,6 +624,17 @@ router.delete('/durga-puja-page/:year/assets/:category/:filename',
   requireAdmin,
   auditLog('DELETE', 'durga-puja-page_asset'),
   bindController(durgaPujaPageController, 'deleteAsset')
+);
+router.post('/durga-puja-page/:year/sponsorship-pdf',
+  requireAdmin,
+  auditLog('UPLOAD', 'durga-puja-page_sponsorship_pdf'),
+  durgaPujaPageController.uploadSponsorshipPdf(),
+  bindController(durgaPujaPageController, 'handleSponsorshipPdfUpload')
+);
+router.delete('/durga-puja-page/:year/sponsorship-pdf',
+  requireAdmin,
+  auditLog('DELETE', 'durga-puja-page_sponsorship_pdf'),
+  bindController(durgaPujaPageController, 'deleteSponsorshipPdf')
 );
 
 // Seat booking ("Book Your Seat") - Admin routes

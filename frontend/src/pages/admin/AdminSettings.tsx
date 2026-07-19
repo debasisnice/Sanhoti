@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Settings, Users, Award, Home, Upload, Trash2, X, UserCircle, QrCode, BookOpen } from 'lucide-react';
-import { settingsAPI, usersAPI, sponsorsAPI, homepageAPI, boardMembersAPI, paymentQRAPI } from '../../services/api';
+import { settingsAPI, usersAPI, sponsorsAPI, homepageAPI, boardMembersAPI, paymentQRAPI, durgaPujaPageAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { convertPSTToLocal } from '../../utils/dateUtils';
 import { DEFAULT_HOME_STATEMENTS, DEFAULT_HOME_HERO_BANNER_MESSAGE } from '../../constants/homePageStatements';
@@ -107,6 +107,9 @@ export default function AdminSettings() {
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [sponsorImages, setSponsorImages] = useState<SponsorImage[]>([]);
+  const [prospectusYear, setProspectusYear] = useState<number>(new Date().getFullYear());
+  const [hasProspectusPdf, setHasProspectusPdf] = useState(false);
+  const [uploadingProspectus, setUploadingProspectus] = useState(false);
   const [homePageImages, setHomePageImages] = useState<HomePageImage[]>([]);
   const [boardMemberImages, setBoardMemberImages] = useState<BoardMemberImage[]>([]);
   const [selectedPostName, setSelectedPostName] = useState<string>('President');
@@ -159,6 +162,7 @@ export default function AdminSettings() {
       fetchUsers();
     } else if (activeTab === 'sponsors') {
       fetchSponsorImages();
+      fetchProspectusStatus();
     } else if (activeTab === 'homepage') {
       fetchHomePageImages();
       fetchSettings(); // Fetch settings to load social links
@@ -228,6 +232,51 @@ export default function AdminSettings() {
       setSponsorImages(images);
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to fetch sponsor images');
+    }
+  };
+
+  const fetchProspectusStatus = async (year?: number) => {
+    try {
+      let y = year;
+      if (!y) {
+        const { activeYear } = await durgaPujaPageAPI.listYears();
+        y = activeYear || new Date().getFullYear();
+        setProspectusYear(y);
+      }
+      const { hasPdf } = await durgaPujaPageAPI.hasSponsorshipPdf(y);
+      setHasProspectusPdf(hasPdf);
+    } catch {
+      setHasProspectusPdf(false);
+    }
+  };
+
+  const handleProspectusSelected = async (file: File | undefined) => {
+    if (!file) return;
+    if (!/\.pdf$/i.test(file.name)) {
+      toast.error('Please choose a PDF file');
+      return;
+    }
+    setUploadingProspectus(true);
+    try {
+      await durgaPujaPageAPI.uploadSponsorshipPdf(prospectusYear, file);
+      setHasProspectusPdf(true);
+      toast.success(`Sponsorship prospectus uploaded for ${prospectusYear}`);
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to upload prospectus');
+    } finally {
+      setUploadingProspectus(false);
+      const el = document.getElementById('prospectus-file-input') as HTMLInputElement | null;
+      if (el) el.value = '';
+    }
+  };
+
+  const handleProspectusDelete = async () => {
+    try {
+      await durgaPujaPageAPI.deleteSponsorshipPdf(prospectusYear);
+      setHasProspectusPdf(false);
+      toast.success('Sponsorship prospectus removed');
+    } catch {
+      toast.error('Failed to remove prospectus');
     }
   };
 
@@ -1283,6 +1332,52 @@ export default function AdminSettings() {
                 <p className="text-gray-600">
                   Upload and manage sponsor images. These images will be displayed on the public Sponsors page.
                 </p>
+              </div>
+
+              {/* Sponsorship Prospectus PDF (Durga Puja) */}
+              <div className="mb-8 p-6 bg-yellow-50 rounded-lg border border-yellow-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Sponsorship Prospectus (Durga Puja {prospectusYear})</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  This PDF is shown on the “Become a Sponsor” page for Durga Puja {prospectusYear}. Uploading here
+                  replaces the same file you can manage from the Durga Puja admin page.
+                </p>
+                {hasProspectusPdf ? (
+                  <div className="flex items-center gap-2 text-sm text-green-700 mb-3">
+                    <span className="inline-block w-2 h-2 rounded-full bg-green-500" />
+                    Prospectus uploaded
+                    <a
+                      href={durgaPujaPageAPI.sponsorshipPdfUrl(prospectusYear)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary-600 hover:text-primary-700 underline"
+                    >
+                      View PDF
+                    </a>
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-500 mb-3">No prospectus uploaded yet.</div>
+                )}
+                <input
+                  id="prospectus-file-input"
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  onChange={(e) => handleProspectusSelected(e.target.files?.[0])}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-600 file:text-white hover:file:bg-primary-700 disabled:opacity-50"
+                  disabled={uploadingProspectus}
+                />
+                <div className="flex items-center gap-3 mt-3">
+                  {uploadingProspectus && <span className="text-sm text-gray-500">Uploading…</span>}
+                  {hasProspectusPdf && !uploadingProspectus && (
+                    <button
+                      type="button"
+                      onClick={handleProspectusDelete}
+                      className="text-sm text-red-600 hover:text-red-700 font-medium"
+                    >
+                      Remove prospectus
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-2">PDF up to 25MB. Uploading replaces the current one.</p>
               </div>
 
               {/* Upload Section */}

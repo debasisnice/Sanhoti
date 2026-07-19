@@ -1891,6 +1891,23 @@ export const durgaPujaPageAPI = {
   deleteAsset: async (year: number, category: string, filename: string): Promise<void> => {
     await api.delete(`/durga-puja-page/${year}/assets/${category}/${filename}`);
   },
+  // Sponsorship prospectus PDF (one per year).
+  sponsorshipPdfUrl: (year: number): string => `/api/durga-puja-page/${year}/sponsorship-pdf`,
+  hasSponsorshipPdf: async (year: number): Promise<{ hasPdf: boolean }> => {
+    const response = await api.get(`/durga-puja-page/${year}/sponsorship-pdf/has`);
+    return response.data;
+  },
+  uploadSponsorshipPdf: async (year: number, file: File): Promise<{ url: string }> => {
+    const formData = new FormData();
+    formData.append('pdf', file);
+    const response = await api.post(`/durga-puja-page/${year}/sponsorship-pdf`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+  deleteSponsorshipPdf: async (year: number): Promise<void> => {
+    await api.delete(`/durga-puja-page/${year}/sponsorship-pdf`);
+  },
 };
 
 // Settings API

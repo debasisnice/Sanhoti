@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Award, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { sponsorsAPI } from '../services/api';
+import { Award, ChevronLeft, ChevronRight, X, FileText } from 'lucide-react';
+import { sponsorsAPI, durgaPujaPageAPI } from '../services/api';
 import Seo from '../components/Seo';
 
 interface SponsorImage {
@@ -15,6 +15,7 @@ export default function Sponsors() {
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedImage, setSelectedImage] = useState<SponsorImage | null>(null);
+  const [prospectusYear, setProspectusYear] = useState<number | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -45,6 +46,24 @@ export default function Sponsors() {
     };
 
     fetchSponsors();
+  }, []);
+
+  // Load the active Durga Puja year's sponsorship prospectus (if one is uploaded).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { activeYear } = await durgaPujaPageAPI.listYears();
+        const year = activeYear || new Date().getFullYear();
+        const { hasPdf } = await durgaPujaPageAPI.hasSponsorshipPdf(year);
+        if (!cancelled) setProspectusYear(hasPdf ? year : null);
+      } catch {
+        if (!cancelled) setProspectusYear(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Auto-rotate carousel every 3 seconds (more than 2 images only)
@@ -287,6 +306,28 @@ export default function Sponsors() {
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {/* Sponsorship prospectus tile */}
+        {prospectusYear && (
+          <div className="mt-6 flex justify-center">
+            <a
+              href={durgaPujaPageAPI.sponsorshipPdfUrl(prospectusYear)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center gap-3 bg-white border border-yellow-200 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all p-4"
+            >
+              <div className="w-11 h-14 rounded-md bg-red-50 border border-red-100 flex items-center justify-center flex-shrink-0">
+                <FileText className="w-6 h-6 text-red-600" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold text-gray-900 group-hover:text-primary-700">
+                  Sponsorship Prospectus {prospectusYear}
+                </p>
+                <p className="text-sm text-gray-500">Durga Puja {prospectusYear} — opens the PDF in a new tab</p>
+              </div>
+            </a>
           </div>
         )}
       </div>
