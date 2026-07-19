@@ -149,6 +149,8 @@ router.get('/durga-puja-page/years', bindController(durgaPujaPageController, 'li
 router.get('/durga-puja-page/active', bindController(durgaPujaPageController, 'getActive'));
 router.get('/durga-puja-page/:year/image', bindController(durgaPujaPageController, 'getImage'));
 router.get('/durga-puja-page/:year/has-image', bindController(durgaPujaPageController, 'hasImage'));
+router.get('/durga-puja-page/:year/assets/:category/:filename', bindController(durgaPujaPageController, 'getAsset'));
+router.get('/durga-puja-page/:year/assets/:category', bindController(durgaPujaPageController, 'listAssets'));
 router.get('/durga-puja-page/:year', bindController(durgaPujaPageController, 'getContent'));
 router.get('/durga-puja-page', bindController(durgaPujaPageController, 'getContent'));
 
@@ -610,6 +612,17 @@ router.delete('/durga-puja-page/:year/image',
   auditLog('DELETE', 'durga-puja-page_image'),
   bindController(durgaPujaPageController, 'deleteImage')
 );
+router.post('/durga-puja-page/:year/assets/:category',
+  requireAdmin,
+  auditLog('UPLOAD', 'durga-puja-page_asset'),
+  durgaPujaPageController.uploadAsset(),
+  bindController(durgaPujaPageController, 'handleAssetUpload')
+);
+router.delete('/durga-puja-page/:year/assets/:category/:filename',
+  requireAdmin,
+  auditLog('DELETE', 'durga-puja-page_asset'),
+  bindController(durgaPujaPageController, 'deleteAsset')
+);
 
 // Seat booking ("Book Your Seat") - Admin routes
 router.get('/booking/admin/config', requireAdmin, bindController(ticketingController, 'getAdminConfig'));
@@ -824,6 +837,11 @@ router.put('/settings/zelle-phone',
   requireAdmin,
   auditLog('UPDATE', 'zelle_phone'),
   bindController(settingsController, 'updateZellePhoneNumber')
+);
+router.put('/settings/stripe-donation',
+  requireAdmin,
+  auditLog('UPDATE', 'stripe_donation'),
+  bindController(settingsController, 'updateStripeDonation')
 );
 router.put('/settings/social-links',
   requireAdmin,

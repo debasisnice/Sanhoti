@@ -22,6 +22,35 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Handle expired/missing sessions: if a protected call returns 401 while the app
+// still believes it's authenticated (the persisted auth store says so), the JWT has
+// lapsed. Clear the stale session and send the user to log in again so writes stop
+// silently failing with "Authentication required". Anonymous public browsing (no
+// stored session) is left untouched.
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    const url: string = error?.config?.url || '';
+    const isAuthCall = url.includes('/auth/');
+    if (status === 401 && !isAuthCall) {
+      const authRaw = localStorage.getItem('auth-storage') || '';
+      const hasToken = Boolean(localStorage.getItem('token'));
+      const thoughtAuthed = hasToken || authRaw.includes('"isAuthenticated":true');
+      if (thoughtAuthed) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('auth-storage');
+        if (!window.location.pathname.startsWith('/login')) {
+          const from = encodeURIComponent(window.location.pathname);
+          window.location.href = `/login?expired=1&from=${from}`;
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Auth API
 export const authAPI = {
   register: async (data: {
@@ -206,6 +235,22 @@ export const eventsAPI = {
 };
 
 // Sub-Events API
+export interface SubEventSeoFields {
+  seo_page_enabled: boolean;
+  seo_event_type: string;
+  performers: string;
+  performer_type: 'Person' | 'MusicGroup';
+  venue_name: string;
+  venue_city: string;
+  venue_region: string;
+  venue_street: string;
+  venue_postal: string;
+  venue_area: string;
+  ticket_url: string;
+  ticket_price: string;
+  ticket_currency: string;
+}
+
 export const subEventsAPI = {
   getAll: async (): Promise<SubEvent[]> => {
     const response = await api.get('/sub-events');
@@ -236,7 +281,7 @@ export const subEventsAPI = {
     rsvp_link?: string;
     rsvp_enabled?: boolean;
     show_in_home_page?: boolean;
-  }): Promise<SubEvent> => {
+  } & Partial<SubEventSeoFields>): Promise<SubEvent> => {
     const response = await api.post('/sub-events', data);
     return response.data;
   },
@@ -249,7 +294,7 @@ export const subEventsAPI = {
     location: string;
     is_active: boolean;
     rsvp_link: string;
-  }>): Promise<SubEvent> => {
+  } & SubEventSeoFields>): Promise<SubEvent> => {
     const response = await api.put(`/sub-events/${id}`, data);
     return response.data;
   },
@@ -805,6 +850,171 @@ export interface TicketLink {
   label: string;
   url: string;
 }
+export interface DurgaPujaCta {
+  label: string;
+  href: string;
+  style?: 'primary' | 'secondary';
+}
+export interface DurgaPujaHighlight {
+  title: string;
+  text?: string;
+  icon?: string;
+  imageUrl?: string;
+}
+export interface DurgaPujaScheduleItem {
+  time?: string;
+  title: string;
+  description?: string;
+}
+export interface DurgaPujaScheduleDay {
+  dayLabel: string;
+  date?: string;
+  items: DurgaPujaScheduleItem[];
+}
+export interface DurgaPujaArtist {
+  name: string;
+  bio?: string;
+  dateTime?: string;
+  performanceType?: string;
+  ticketInfo?: string;
+  imageUrl?: string;
+  /** When true, the public card links to /sub-events/:subEventId (SEO detail page). */
+  linkSubEventPage?: boolean;
+  subEventId?: string;
+  /** YouTube or other video URL — embedded on the public artist card when possible. */
+  videoUrl?: string;
+}
+export interface DurgaPujaTicketing {
+  adultPrice?: string;
+  childPrice?: string;
+  weekendPackage?: string;
+  familyPackage?: string;
+  concertOnly?: string;
+  freeEntryAge?: string;
+  foodInclusion?: string;
+  refundPolicy?: string;
+  transferPolicy?: string;
+  maxCapacity?: string;
+  buttonUrl?: string;
+  buttonLabel?: string;
+  qrImageUrl?: string;
+}
+export interface DurgaPujaVenueInfo {
+  name?: string;
+  buildingName?: string;
+  streetAddress?: string;
+  mapsUrl?: string;
+  parkingLot?: string;
+  parkingCost?: string;
+  accessibleParking?: string;
+  recommendedEntrance?: string;
+  publicTransit?: string;
+  layoutNote?: string;
+  venueMapImageUrl?: string;
+}
+export interface DurgaPujaMeal {
+  name: string;
+  description?: string;
+  hours?: string;
+}
+export interface DurgaPujaFoodInfo {
+  intro?: string;
+  meals?: DurgaPujaMeal[];
+  vegetarian?: string;
+  kidsMenu?: string;
+  allergyNotice?: string;
+  tokenProcess?: string;
+  photos?: string[];
+}
+export interface DurgaPujaTiming {
+  label: string;
+  time?: string;
+}
+export interface DurgaPujaPujaInfo {
+  intro?: string;
+  timings?: DurgaPujaTiming[];
+  priestInfo?: string;
+  itemsToBring?: string;
+  attireGuidance?: string;
+  rules?: string;
+}
+export interface DurgaPujaKidsActivity {
+  title: string;
+  description?: string;
+}
+export interface DurgaPujaKidsInfo {
+  intro?: string;
+  activities?: DurgaPujaKidsActivity[];
+  ageRequirements?: string;
+  supervisionPolicy?: string;
+}
+export interface DurgaPujaSponsorPackage {
+  name: string;
+  price?: string;
+  benefits?: string[];
+}
+export interface DurgaPujaSponsorshipInfo {
+  intro?: string;
+  packages?: DurgaPujaSponsorPackage[];
+  packagePdfUrl?: string;
+  contactEmail?: string;
+  contactNote?: string;
+}
+export interface DurgaPujaVendorInfo {
+  intro?: string;
+  types?: string[];
+  stallFees?: string;
+  provisions?: string;
+  electricity?: string;
+  setupTimes?: string;
+  insurance?: string;
+  deadline?: string;
+  contactEmail?: string;
+  formUrl?: string;
+}
+export interface DurgaPujaVolunteerInfo {
+  intro?: string;
+  categories?: string[];
+  contactEmail?: string;
+  formUrl?: string;
+}
+export interface DurgaPujaGalleryInfo {
+  intro?: string;
+  galleryLink?: string;
+  videoUrl?: string;
+  images?: string[];
+}
+export interface DurgaPujaContact {
+  role: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+}
+export interface DurgaPujaSocial {
+  facebook?: string;
+  instagram?: string;
+  youtube?: string;
+  whatsapp?: string;
+}
+export interface DurgaPujaSectionToggles {
+  hero?: boolean;
+  highlights?: boolean;
+  schedule?: boolean;
+  artists?: boolean;
+  tickets?: boolean;
+  venue?: boolean;
+  food?: boolean;
+  puja?: boolean;
+  kids?: boolean;
+  sponsorship?: boolean;
+  vendors?: boolean;
+  volunteer?: boolean;
+  about?: boolean;
+  gallery?: boolean;
+  faqs?: boolean;
+  contact?: boolean;
+  subEvents?: boolean;
+}
 export interface DurgaPujaPageContent {
   year: number;
   intro: string;
@@ -825,8 +1035,75 @@ export interface DurgaPujaPageContent {
   showExternalTickets?: boolean;
   /** Master switch — hide ALL ticketing on the public page (default false). */
   ticketsOff?: boolean;
+  /** Show saved ticket pricing from Book Your Seat (default false). */
+  showSavedTickets?: boolean;
+  /** Embed the Yapsody event-list widget in the Tickets section (default false). */
+  showYapsodyWidget?: boolean;
+  /** Yapsody widget event id (e.g. "212239" → div id yapwid-event-212239). */
+  yapsodyEventId?: string;
+  /** Yapsody widget data-venue-code (e.g. "sanhoti"). */
+  yapsodyVenueCode?: string;
+  /** Show a Donate button in the Tickets section (links to /donate). */
+  showDonateButtonInTickets?: boolean;
   /** Set automatically when a "Durga Puja" event is created/updated. */
   linkedEventId?: string;
+
+  // Section 1: Hero
+  heroTagline?: string;
+  heroSubheadline?: string;
+  showCountdown?: boolean;
+  ctaButtons?: DurgaPujaCta[];
+
+  // Section 2: Highlights
+  highlights?: DurgaPujaHighlight[];
+  expectedAttendance?: string;
+
+  // Section 3: Schedule
+  scheduleNote?: string;
+  scheduleDays?: DurgaPujaScheduleDay[];
+
+  // Section 4: Artists
+  artists?: DurgaPujaArtist[];
+
+  // Section 5: Ticketing details
+  ticketing?: DurgaPujaTicketing;
+
+  // Section 6: Venue & parking
+  venue?: DurgaPujaVenueInfo;
+  venues?: DurgaPujaVenueInfo[];
+  showVenueDefaults?: boolean;
+
+  // Section 7: Food
+  food?: DurgaPujaFoodInfo;
+
+  // Section 8: Puja & religious
+  puja?: DurgaPujaPujaInfo;
+
+  // Section 9: Children & family
+  kids?: DurgaPujaKidsInfo;
+
+  // Section 10: Sponsorship
+  sponsorship?: DurgaPujaSponsorshipInfo;
+
+  // Section 11: Vendors & stalls
+  vendors?: DurgaPujaVendorInfo;
+
+  // Section 12: Volunteer
+  volunteer?: DurgaPujaVolunteerInfo;
+
+  // Section 13: About Sanhoti
+  about?: string;
+
+  // Section 14: Previous-year gallery
+  gallery?: DurgaPujaGalleryInfo;
+
+  // Section 16: Contact
+  contacts?: DurgaPujaContact[];
+  social?: DurgaPujaSocial;
+
+  /** Per-section visibility toggles. */
+  sections?: DurgaPujaSectionToggles;
+
   updated_at: string;
 }
 // Seat booking ("Book Your Seat") API
@@ -1590,6 +1867,29 @@ export const durgaPujaPageAPI = {
   deleteImage: async (year: number): Promise<void> => {
     await api.delete(`/durga-puja-page/${year}/image`);
   },
+  // Generic per-category assets (artist/food/venue/gallery/qr images).
+  listAssets: async (
+    year: number,
+    category: string
+  ): Promise<{ filename: string; url: string }[]> => {
+    const response = await api.get(`/durga-puja-page/${year}/assets/${category}`);
+    return response.data.assets ?? [];
+  },
+  uploadAsset: async (
+    year: number,
+    category: string,
+    file: File
+  ): Promise<{ filename: string; url: string }> => {
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await api.post(`/durga-puja-page/${year}/assets/${category}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+  deleteAsset: async (year: number, category: string, filename: string): Promise<void> => {
+    await api.delete(`/durga-puja-page/${year}/assets/${category}/${filename}`);
+  },
 };
 
 // Settings API
@@ -1604,6 +1904,14 @@ export const settingsAPI = {
   },
   updateZellePhoneNumber: async (phoneNumber: string): Promise<any> => {
     const response = await api.put('/settings/zelle-phone', { phoneNumber });
+    return response.data;
+  },
+  updateStripeDonation: async (payload: {
+    showStripeDonateButton: boolean;
+    stripeBuyButtonId: string;
+    stripePublishableKey: string;
+  }): Promise<any> => {
+    const response = await api.put('/settings/stripe-donation', payload);
     return response.data;
   },
   updateSocialLinks: async (facebookLink: string, whatsappLink: string, instagramLink: string): Promise<any> => {

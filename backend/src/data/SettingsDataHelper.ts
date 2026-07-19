@@ -71,6 +71,31 @@ export class SettingsDataHelper extends DatabaseHelper {
     return updated;
   }
 
+  async updateStripeDonation(config: {
+    showStripeDonateButton: boolean;
+    stripeBuyButtonId: string;
+    stripePublishableKey: string;
+  }): Promise<Settings> {
+    let current = await this.get();
+    if (!current) {
+      current = this.getDefaultSettings();
+    }
+
+    const buyButtonId = config.stripeBuyButtonId.trim();
+    const publishableKey = config.stripePublishableKey.trim();
+
+    const updated: Settings = {
+      ...current,
+      showStripeDonateButton: config.showStripeDonateButton,
+      stripeBuyButtonId: buyButtonId === '' ? undefined : buyButtonId,
+      stripePublishableKey: publishableKey === '' ? undefined : publishableKey,
+      updated_at: new Date().toISOString(),
+    };
+
+    this.writeFile(this.filename, [updated]);
+    return updated;
+  }
+
   async updateZellePhoneNumber(phoneNumber: string): Promise<Settings> {
     let current = await this.get();
     if (!current) {

@@ -3,10 +3,14 @@ import { motion } from 'framer-motion';
 import { Heart, CreditCard, Mail } from 'lucide-react';
 import { paymentQRAPI, settingsAPI } from '../services/api';
 import Seo from '../components/Seo';
+import StripeBuyButtonEmbed from '../components/StripeBuyButtonEmbed';
 
 export default function Donate() {
   const [paymentQRImage, setPaymentQRImage] = useState<string | null>(null);
   const [zellePhoneNumber, setZellePhoneNumber] = useState<string>('');
+  const [showStripeDonateButton, setShowStripeDonateButton] = useState(false);
+  const [stripeBuyButtonId, setStripeBuyButtonId] = useState('');
+  const [stripePublishableKey, setStripePublishableKey] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,6 +31,10 @@ export default function Donate() {
         } else {
           setZellePhoneNumber('');
         }
+
+        setShowStripeDonateButton(settings.showStripeDonateButton === true);
+        setStripeBuyButtonId(settings.stripeBuyButtonId ?? '');
+        setStripePublishableKey(settings.stripePublishableKey ?? '');
       } catch (error) {
         console.error('Failed to fetch payment data:', error);
         setPaymentQRImage(null);
@@ -71,9 +79,33 @@ export default function Donate() {
             className="bg-white rounded-xl shadow-lg p-8"
           >
             <p className="text-lg text-gray-700 leading-relaxed mb-4">
-              We warmly invite you to join Sanhoti in its ongoing volunteer and charitable efforts—every contribution, big or small, makes a difference. We call upon all well-wishers to stand with us in this meaningful journey. Together, we can build a brighter and more compassionate future for the generations to come. If you wish to support us financially, donations can be made online through Zelle.
+              We warmly invite you to join Sanhoti in its ongoing volunteer and charitable efforts—every contribution, big or small, makes a difference. We call upon all well-wishers to stand with us in this meaningful journey. Together, we can build a brighter and more compassionate future for the generations to come. If you wish to support us financially, donations can be made online by card or through Zelle.
             </p>
           </motion.div>
+
+          {/* Stripe Card Donation Section */}
+          {!loading && showStripeDonateButton && stripeBuyButtonId && stripePublishableKey && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="bg-white rounded-xl shadow-lg p-8"
+            >
+              <div className="flex items-center mb-6">
+                <div className="bg-primary-100 rounded-lg p-3 mr-4">
+                  <CreditCard className="w-6 h-6 text-primary-600" />
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900">Donate by Card</h2>
+              </div>
+              <p className="text-lg text-gray-700 leading-relaxed mb-6 text-center">
+                Make a secure online donation with your credit or debit card.
+              </p>
+              <StripeBuyButtonEmbed
+                buyButtonId={stripeBuyButtonId}
+                publishableKey={stripePublishableKey}
+              />
+            </motion.div>
+          )}
 
           {/* Zelle Donation Section */}
           <motion.div

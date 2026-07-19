@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { EventService } from '../services/EventService.js';
 import { GalleryService } from '../services/GalleryService.js';
 import { DurgaPujaPageService } from '../services/DurgaPujaPageService.js';
+import { SubEventService } from '../services/SubEventService.js';
 import { getEventDetailPath } from '../utils/slug.js';
 import { durgaPujaPagePath } from '../utils/durgaPuja.js';
 
@@ -9,11 +10,13 @@ export class SitemapController {
   private eventService: EventService;
   private galleryService: GalleryService;
   private durgaPujaPageService: DurgaPujaPageService;
+  private subEventService: SubEventService;
 
   constructor() {
     this.eventService = new EventService();
     this.galleryService = new GalleryService();
     this.durgaPujaPageService = new DurgaPujaPageService();
+    this.subEventService = new SubEventService();
   }
 
   async generateSitemap(req: Request, res: Response): Promise<void> {
@@ -21,10 +24,11 @@ export class SitemapController {
       const baseUrl = process.env.BASE_URL || 'https://www.sanhoti.org';
       
       // Fetch all dynamic content
-      const [activeEvents, publicGalleries, durgaYears] = await Promise.all([
+      const [activeEvents, publicGalleries, durgaYears, allSubEvents] = await Promise.all([
         this.eventService.getActiveEvents(),
         this.galleryService.getPublicGalleries(),
         this.durgaPujaPageService.listYears(),
+        this.subEventService.getAllSubEvents().catch(() => []),
       ]);
 
       // Get current date for lastmod
@@ -153,8 +157,30 @@ ${durgaYears
         }
       }
 
+      // Add opted-in sub-event SEO pages (e.g. concerts)
+      const seoSubEvents = allSubEvents.filter(
+        se => se.seo_page_enabled === true && se.is_active !== false && se.sub_event_id
+      );
+      if (seoSubEvents.length > 0) {
+        sitemap += `
+  <!-- Dynamic Sub-event Pages -->
+`;
+        for (const se of seoSubEvents) {
+          const seLastMod = se.updated_at
+            ? new Date(se.updated_at).toISOString().split('T')[0]
+            : currentDate;
+          sitemap += `  <url>
+    <loc>${baseUrl}/sub-events/${se.sub_event_id}</loc>
+    <lastmod>${seLastMod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+`;
+        }
+      }
+
       // Add gallery pages
-      sitemap += `  
+      sitemap += `
   <!-- Dynamic Gallery Pages -->
 `;
       

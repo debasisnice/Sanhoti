@@ -77,6 +77,20 @@ export default function AdminEvents() {
     rsvp_link: '',
     rsvp_enabled: false,
     show_in_home_page: false,
+    // Dedicated SEO page fields
+    seo_page_enabled: false,
+    seo_event_type: 'Event',
+    performers: '',
+    performer_type: 'Person' as 'Person' | 'MusicGroup',
+    venue_name: '',
+    venue_city: '',
+    venue_region: 'CA',
+    venue_street: '',
+    venue_postal: '',
+    venue_area: '',
+    ticket_url: '',
+    ticket_price: '',
+    ticket_currency: 'USD',
   });
   const [subEventStartTime, setSubEventStartTime] = useState('');
   const [subEventEndTime, setSubEventEndTime] = useState('');
@@ -379,6 +393,19 @@ export default function AdminEvents() {
       rsvp_link: '',
       rsvp_enabled: false,
       show_in_home_page: false,
+      seo_page_enabled: false,
+      seo_event_type: 'Event',
+      performers: '',
+      performer_type: 'Person',
+      venue_name: '',
+      venue_city: '',
+      venue_region: 'CA',
+      venue_street: '',
+      venue_postal: '',
+      venue_area: '',
+      ticket_url: '',
+      ticket_price: '',
+      ticket_currency: 'USD',
     });
     setSubEventStartTime('');
     setSubEventEndTime('');
@@ -404,6 +431,19 @@ export default function AdminEvents() {
       rsvp_link: subEvent.rsvp_link || '',
       rsvp_enabled: subEvent.rsvp_enabled || false,
       show_in_home_page: subEvent.show_in_home_page || false,
+      seo_page_enabled: subEvent.seo_page_enabled || false,
+      seo_event_type: subEvent.seo_event_type || 'Event',
+      performers: subEvent.performers || '',
+      performer_type: subEvent.performer_type || 'Person',
+      venue_name: subEvent.venue_name || '',
+      venue_city: subEvent.venue_city || '',
+      venue_region: subEvent.venue_region || 'CA',
+      venue_street: subEvent.venue_street || '',
+      venue_postal: subEvent.venue_postal || '',
+      venue_area: subEvent.venue_area || '',
+      ticket_url: subEvent.ticket_url || '',
+      ticket_price: subEvent.ticket_price || '',
+      ticket_currency: subEvent.ticket_currency || 'USD',
     });
     setSubEventStartTime(startDateTime.time);
     setSubEventEndTime(endDateTime.time);
@@ -443,7 +483,24 @@ export default function AdminEvents() {
         }
         return convertLocalToPST(dateTime);
       };
-      
+
+      // Dedicated-SEO-page fields (shared by create + update).
+      const seoFields = {
+        seo_page_enabled: subEventFormData.seo_page_enabled,
+        seo_event_type: subEventFormData.seo_event_type,
+        performers: subEventFormData.performers.trim(),
+        performer_type: subEventFormData.performer_type,
+        venue_name: subEventFormData.venue_name.trim(),
+        venue_city: subEventFormData.venue_city.trim(),
+        venue_region: subEventFormData.venue_region.trim(),
+        venue_street: subEventFormData.venue_street.trim(),
+        venue_postal: subEventFormData.venue_postal.trim(),
+        venue_area: subEventFormData.venue_area.trim(),
+        ticket_url: subEventFormData.ticket_url.trim(),
+        ticket_price: subEventFormData.ticket_price.trim(),
+        ticket_currency: subEventFormData.ticket_currency.trim() || 'USD',
+      };
+
       if (editingSubEvent) {
         // Update existing sub-event
         const updateData: any = {
@@ -455,6 +512,7 @@ export default function AdminEvents() {
           is_active: subEventFormData.is_active,
           rsvp_enabled: subEventFormData.rsvp_enabled,
           show_in_home_page: subEventFormData.show_in_home_page,
+          ...seoFields,
         };
         
         // Handle rsvp_link: set to null if empty to remove it, otherwise set to the value
@@ -494,6 +552,7 @@ export default function AdminEvents() {
           rsvp_link: subEventFormData.rsvp_link || undefined,
           rsvp_enabled: subEventFormData.rsvp_enabled,
           show_in_home_page: subEventFormData.show_in_home_page,
+          ...seoFields,
         });
         
         // Upload image if selected
@@ -531,6 +590,19 @@ export default function AdminEvents() {
       rsvp_link: '',
       rsvp_enabled: false,
       show_in_home_page: false,
+      seo_page_enabled: false,
+      seo_event_type: 'Event',
+      performers: '',
+      performer_type: 'Person',
+      venue_name: '',
+      venue_city: '',
+      venue_region: 'CA',
+      venue_street: '',
+      venue_postal: '',
+      venue_area: '',
+      ticket_url: '',
+      ticket_price: '',
+      ticket_currency: 'USD',
     });
     setSubEventStartTime('');
     setSubEventEndTime('');
@@ -1282,6 +1354,138 @@ export default function AdminEvents() {
                   <span className="text-xs text-gray-500">
                     (If checked, this sub-event will be shown on the home page below the priority event)
                   </span>
+                </div>
+
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="sub_event_seo_enabled"
+                      checked={subEventFormData.seo_page_enabled}
+                      onChange={(e) => setSubEventFormData({ ...subEventFormData, seo_page_enabled: e.target.checked })}
+                      className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                    />
+                    <label htmlFor="sub_event_seo_enabled" className="text-sm font-medium text-gray-700">
+                      Generate dedicated SEO page
+                    </label>
+                    <span className="text-xs text-gray-500">
+                      (Indexable /sub-events/… page + sitemap entry for Google)
+                    </span>
+                  </div>
+
+                  {subEventFormData.seo_page_enabled && (
+                    <div className="mt-3 space-y-3 pl-1">
+                      <p className="text-xs text-gray-500">
+                        Fill these for strong Google results (e.g. a concert). The sub-event name above becomes the page title/H1.
+                      </p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Event type</label>
+                          <select
+                            value={subEventFormData.seo_event_type}
+                            onChange={(e) => setSubEventFormData({ ...subEventFormData, seo_event_type: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          >
+                            <option value="Event">Event (default)</option>
+                            <option value="MusicEvent">MusicEvent (concert)</option>
+                            <option value="TheaterEvent">TheaterEvent</option>
+                            <option value="Festival">Festival</option>
+                            <option value="ChildrensEvent">ChildrensEvent</option>
+                            <option value="FoodEvent">FoodEvent</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Performer type</label>
+                          <select
+                            value={subEventFormData.performer_type}
+                            onChange={(e) => setSubEventFormData({ ...subEventFormData, performer_type: e.target.value as 'Person' | 'MusicGroup' })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          >
+                            <option value="Person">Person (solo artist)</option>
+                            <option value="MusicGroup">MusicGroup (band)</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Performer name(s)</label>
+                        <input
+                          type="text"
+                          value={subEventFormData.performers}
+                          onChange={(e) => setSubEventFormData({ ...subEventFormData, performers: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          placeholder="Akriti Kakar"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">Comma-separated for multiple artists.</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <input
+                          type="text"
+                          value={subEventFormData.venue_name}
+                          onChange={(e) => setSubEventFormData({ ...subEventFormData, venue_name: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          placeholder="Venue / gym name"
+                        />
+                        <input
+                          type="text"
+                          value={subEventFormData.venue_street}
+                          onChange={(e) => setSubEventFormData({ ...subEventFormData, venue_street: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          placeholder="Street address"
+                        />
+                        <input
+                          type="text"
+                          value={subEventFormData.venue_city}
+                          onChange={(e) => setSubEventFormData({ ...subEventFormData, venue_city: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          placeholder="City (e.g. Costa Mesa)"
+                        />
+                        <input
+                          type="text"
+                          value={subEventFormData.venue_region}
+                          onChange={(e) => setSubEventFormData({ ...subEventFormData, venue_region: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          placeholder="State (e.g. CA)"
+                        />
+                        <input
+                          type="text"
+                          value={subEventFormData.venue_postal}
+                          onChange={(e) => setSubEventFormData({ ...subEventFormData, venue_postal: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          placeholder="ZIP"
+                        />
+                        <input
+                          type="text"
+                          value={subEventFormData.venue_area}
+                          onChange={(e) => setSubEventFormData({ ...subEventFormData, venue_area: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          placeholder="Area keyword (e.g. Orange County)"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 gap-3">
+                        <input
+                          type="url"
+                          value={subEventFormData.ticket_url}
+                          onChange={(e) => setSubEventFormData({ ...subEventFormData, ticket_url: e.target.value })}
+                          className="col-span-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          placeholder="Ticket URL (https://…)"
+                        />
+                        <input
+                          type="text"
+                          value={subEventFormData.ticket_price}
+                          onChange={(e) => setSubEventFormData({ ...subEventFormData, ticket_price: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          placeholder="Price (e.g. 40)"
+                        />
+                        <input
+                          type="text"
+                          value={subEventFormData.ticket_currency}
+                          onChange={(e) => setSubEventFormData({ ...subEventFormData, ticket_currency: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          placeholder="USD"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center space-x-2">

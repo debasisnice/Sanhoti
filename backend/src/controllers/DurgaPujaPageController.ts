@@ -6,10 +6,16 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { existsSync, readdirSync, statSync, unlinkSync } from 'fs';
 import { DurgaPujaPageService } from '../services/DurgaPujaPageService.js';
+import { randomBytes } from 'crypto';
 import {
   durgaPujaImageDir,
   findDurgaPujaImageFile,
   durgaPujaPageImageExists,
+  durgaPujaAssetDir,
+  findDurgaPujaAssetFile,
+  listDurgaPujaAssets,
+  isDurgaPujaAssetCategory,
+  type DurgaPujaAssetCategory,
 } from '../data/DurgaPujaPageDataHelper.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -189,6 +195,142 @@ export class DurgaPujaPageController {
     } catch (error: any) {
       console.error('Error uploading Durga Puja page image:', error);
       res.status(500).json({ error: 'Failed to upload image', details: error.message });
+    }
+  }
+
+  // ---- Generic per-category assets (artist/food/venue/gallery/qr images) ----
+
+  private parseAssetCategory(raw: string | undefined): DurgaPujaAssetCategory | null {
+    const value = String(raw ?? '');
+    return isDurgaPujaAssetCategory(value) ? value : null;
+  }
+
+  uploadAsset() {
+    return (req: AuthRequest, res: Response, next: () => void) => {
+      const year = parseYearParam(req.params.year);
+      const category = this.parseAssetCategory(req.params.category);
+      if (!year) {
+        res.status(400).json({ error: 'Invalid year' });
+        return;
+      }
+      if (!category) {
+        res.status(400).json({ error: 'Invalid asset category' });
+        return;
+      }
+      const dir = durgaPujaAssetDir(year, category);
+      const storage = multer.diskStorage({
+        destination: (_req, _file, cb) => cb(null, dir),
+        filename: (_req, file, cb) => {
+          const ext = file.originalname.split('.').pop()?.toLowerCase() || 'jpg';
+          cb(null, `${Date.now()}-${randomBytes(4).toString('hex')}.${ext}`);
+        },
+      });
+      multer({
+        storage,
+        limits: { fileSize: 20 * 1024 * 1024 },
+        fileFilter: (_req, file, cb) => {
+          const allowed = /jpeg|jpg|png|gif|webp/;
+          if (allowed.test(file.originalname.toLowerCase()) && allowed.test(file.mimetype)) {
+            cb(null, true);
+          } else {
+            cb(new Error('Only image files are allowed (jpeg, jpg, png, gif, webp)'));
+          }
+        },
+      }).single('image')(req, res, next);
+    };
+  }
+
+  async handleAssetUpload(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const year = parseYearParam(req.params.year);
+      const category = this.parseAssetCategory(req.params.category);
+      if (!year || !category) {
+        res.status(400).json({ error: 'Invalid year or category' });
+        return;
+      }
+      const file = req.file;
+      if (!file) {
+        res.status(400).json({ error: 'No file uploaded' });
+        return;
+      }
+      res.json({
+        message: 'Asset uploaded successfully',
+        filename: file.filename,
+        url: `/api/durga-puja-page/${year}/assets/${category}/${file.filename}`,
+      });
+    } catch (error: any) {
+      console.error('Error uploading Durga Puja asset:', error);
+      res.status(500).json({ error: 'Failed to upload asset', details: error.message });
+    }
+  }
+
+  async listAssets(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const year = parseYearParam(req.params.year);
+      const category = this.parseAssetCategory(req.params.category);
+      if (!year || !category) {
+        res.status(400).json({ error: 'Invalid year or category' });
+        return;
+      }
+      const assets = listDurgaPujaAssets(year, category).map(filename => ({
+        filename,
+        url: `/api/durga-puja-page/${year}/assets/${category}/${filename}`,
+      }));
+      res.json({ assets });
+    } catch (error: any) {
+      console.error('Error listing Durga Puja assets:', error);
+      res.status(500).json({ error: 'Failed to list assets' });
+    }
+  }
+
+  async getAsset(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const year = parseYearParam(req.params.year);
+      const category = this.parseAssetCategory(req.params.category);
+      if (!year || !category) {
+        res.status(404).json({ error: 'Asset not found' });
+        return;
+      }
+      const file = findDurgaPujaAssetFile(year, category, req.params.filename);
+      if (!file) {
+        res.status(404).json({ error: 'Asset not found' });
+        return;
+      }
+      const ext = file.toLowerCase().split('.').pop();
+      const contentTypeMap: Record<string, string> = {
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        png: 'image/png',
+        gif: 'image/gif',
+        webp: 'image/webp',
+      };
+      res.sendFile(resolve(file), {
+        headers: { 'Content-Type': contentTypeMap[ext || ''] || 'image/jpeg' },
+      });
+    } catch (error: any) {
+      console.error('Error serving Durga Puja asset:', error);
+      res.status(500).json({ error: 'Failed to serve asset' });
+    }
+  }
+
+  async deleteAsset(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const year = parseYearParam(req.params.year);
+      const category = this.parseAssetCategory(req.params.category);
+      if (!year || !category) {
+        res.status(400).json({ error: 'Invalid year or category' });
+        return;
+      }
+      const file = findDurgaPujaAssetFile(year, category, req.params.filename);
+      if (!file) {
+        res.status(404).json({ error: 'Asset not found' });
+        return;
+      }
+      unlinkSync(file);
+      res.json({ message: 'Asset deleted' });
+    } catch (error: any) {
+      console.error('Error deleting Durga Puja asset:', error);
+      res.status(500).json({ error: 'Failed to delete asset' });
     }
   }
 

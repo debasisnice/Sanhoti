@@ -114,6 +114,9 @@ export default function AdminSettings() {
   const [paymentQRImage, setPaymentQRImage] = useState<string | null>(null);
   const [hasPaymentQRImage, setHasPaymentQRImage] = useState<boolean>(false);
   const [zellePhoneNumber, setZellePhoneNumber] = useState<string>('');
+  const [showStripeDonateButton, setShowStripeDonateButton] = useState(false);
+  const [stripeBuyButtonId, setStripeBuyButtonId] = useState('');
+  const [stripePublishableKey, setStripePublishableKey] = useState('');
   const [selectedPaymentQRFile, setSelectedPaymentQRFile] = useState<File | null>(null);
   const [facebookLink, setFacebookLink] = useState<string>('');
   const [whatsappLink, setWhatsappLink] = useState<string>('');
@@ -168,6 +171,7 @@ export default function AdminSettings() {
     } else if (activeTab === 'paymentqr') {
       fetchPaymentQRImage();
       fetchZellePhoneNumber();
+      fetchStripeDonationSettings();
     }
   }, [activeTab]);
 
@@ -279,6 +283,17 @@ export default function AdminSettings() {
       setZellePhoneNumber(settings.zellePhoneNumber || '');
     } catch (error: any) {
       console.error('Failed to fetch Zelle phone number:', error);
+    }
+  };
+
+  const fetchStripeDonationSettings = async () => {
+    try {
+      const settings = await settingsAPI.getSettings();
+      setShowStripeDonateButton(settings.showStripeDonateButton === true);
+      setStripeBuyButtonId(settings.stripeBuyButtonId || '');
+      setStripePublishableKey(settings.stripePublishableKey || '');
+    } catch (error: any) {
+      console.error('Failed to fetch Stripe donation settings:', error);
     }
   };
 
@@ -437,6 +452,23 @@ export default function AdminSettings() {
       await fetchZellePhoneNumber();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to update Zelle phone number');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveStripeDonation = async () => {
+    try {
+      setSaving(true);
+      await settingsAPI.updateStripeDonation({
+        showStripeDonateButton,
+        stripeBuyButtonId,
+        stripePublishableKey,
+      });
+      toast.success('Stripe donation settings updated successfully');
+      await fetchStripeDonationSettings();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to update Stripe donation settings');
     } finally {
       setSaving(false);
     }
@@ -1893,6 +1925,56 @@ export default function AdminSettings() {
                 <p className="text-gray-600">
                   Upload and manage the payment QR code image. Only one image can be stored at a time. Uploading a new image will replace the existing one.
                 </p>
+              </div>
+
+              {/* Stripe Donate Button Section */}
+              <div className="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Stripe Donate Button</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Embed a Stripe Buy Button on the public <strong>/donate</strong> page. Copy the buy button ID and publishable key from your Stripe Dashboard → Payment Links / Buy buttons.
+                </p>
+                <div className="space-y-4">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showStripeDonateButton}
+                      onChange={(e) => setShowStripeDonateButton(e.target.checked)}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm font-medium text-gray-900">Show Stripe donate button on /donate</span>
+                  </label>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Buy Button ID
+                    </label>
+                    <input
+                      type="text"
+                      value={stripeBuyButtonId}
+                      onChange={(e) => setStripeBuyButtonId(e.target.value)}
+                      placeholder="e.g., buy_btn_1Tuh0wBcLHW6AWr9Uqw5YxEA"
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 font-mono text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Publishable Key
+                    </label>
+                    <input
+                      type="text"
+                      value={stripePublishableKey}
+                      onChange={(e) => setStripePublishableKey(e.target.value)}
+                      placeholder="e.g., pk_live_..."
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 font-mono text-sm"
+                    />
+                  </div>
+                  <button
+                    onClick={handleSaveStripeDonation}
+                    disabled={saving}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {saving ? 'Saving...' : 'Save Stripe Settings'}
+                  </button>
+                </div>
               </div>
 
               {/* Zelle Phone Number Section */}

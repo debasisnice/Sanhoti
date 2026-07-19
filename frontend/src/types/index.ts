@@ -76,7 +76,30 @@ export interface SubEvent {
   rsvp_enabled?: boolean; // If true, allow RSVP (either external link or internal form)
   show_in_home_page?: boolean; // If true, show this sub-event on home page below priority event
   show_in_durga_puja_page?: boolean; // If true, show this sub-event (with banner) on the /durga-puja page
+
+  // Dedicated SEO page (opt-in)
+  seo_page_enabled?: boolean;
+  seo_event_type?: SubEventSeoType;
+  performers?: string;
+  performer_type?: 'Person' | 'MusicGroup';
+  venue_name?: string;
+  venue_city?: string;
+  venue_region?: string;
+  venue_street?: string;
+  venue_postal?: string;
+  venue_area?: string;
+  ticket_url?: string;
+  ticket_price?: string;
+  ticket_currency?: string;
 }
+
+export type SubEventSeoType =
+  | 'Event'
+  | 'MusicEvent'
+  | 'TheaterEvent'
+  | 'Festival'
+  | 'ChildrensEvent'
+  | 'FoodEvent';
 
 export interface RSVP {
   id: string;

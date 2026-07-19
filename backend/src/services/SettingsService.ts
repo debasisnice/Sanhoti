@@ -30,6 +30,36 @@ export class SettingsService {
     return this.settingsDataHelper.updateZellePhoneNumber(phoneNumber);
   }
 
+  async updateStripeDonation(config: {
+    showStripeDonateButton: boolean;
+    stripeBuyButtonId: string;
+    stripePublishableKey: string;
+  }): Promise<Settings> {
+    const buyButtonId = config.stripeBuyButtonId.trim();
+    const publishableKey = config.stripePublishableKey.trim();
+
+    if (config.showStripeDonateButton) {
+      if (!buyButtonId) {
+        throw new Error('Stripe buy button ID is required when the donate button is enabled');
+      }
+      if (!/^buy_btn_/.test(buyButtonId)) {
+        throw new Error('Stripe buy button ID must start with buy_btn_');
+      }
+      if (!publishableKey) {
+        throw new Error('Stripe publishable key is required when the donate button is enabled');
+      }
+      if (!/^pk_(test|live)_/.test(publishableKey)) {
+        throw new Error('Stripe publishable key must start with pk_test_ or pk_live_');
+      }
+    }
+
+    return this.settingsDataHelper.updateStripeDonation({
+      showStripeDonateButton: config.showStripeDonateButton,
+      stripeBuyButtonId: buyButtonId,
+      stripePublishableKey: publishableKey,
+    });
+  }
+
   async updateSocialLinks(facebookLink?: string, whatsappLink?: string, instagramLink?: string): Promise<Settings> {
     return this.settingsDataHelper.updateSocialLinks(facebookLink, whatsappLink, instagramLink);
   }

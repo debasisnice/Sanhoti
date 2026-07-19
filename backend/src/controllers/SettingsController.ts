@@ -48,6 +48,37 @@ export class SettingsController {
     }
   }
 
+  async updateStripeDonation(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { showStripeDonateButton, stripeBuyButtonId, stripePublishableKey } = req.body ?? {};
+
+      if (typeof showStripeDonateButton !== 'boolean') {
+        res.status(400).json({ error: 'showStripeDonateButton must be a boolean' });
+        return;
+      }
+      if (stripeBuyButtonId !== undefined && typeof stripeBuyButtonId !== 'string') {
+        res.status(400).json({ error: 'stripeBuyButtonId must be a string' });
+        return;
+      }
+      if (stripePublishableKey !== undefined && typeof stripePublishableKey !== 'string') {
+        res.status(400).json({ error: 'stripePublishableKey must be a string' });
+        return;
+      }
+
+      const settings = await this.settingsService.updateStripeDonation({
+        showStripeDonateButton,
+        stripeBuyButtonId: stripeBuyButtonId ?? '',
+        stripePublishableKey: stripePublishableKey ?? '',
+      });
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error updating Stripe donation settings:', error);
+      const message = error?.message ?? 'Failed to update Stripe donation settings';
+      const status = message.includes('required') || message.includes('must start') ? 400 : 500;
+      res.status(status).json({ error: message, details: error.message });
+    }
+  }
+
   async updateZellePhoneNumber(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { phoneNumber } = req.body;

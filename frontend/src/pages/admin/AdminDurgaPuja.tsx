@@ -6,15 +6,276 @@ import {
   DurgaPujaPageContent,
   DurgaPujaFaq,
   TicketLink,
+  DurgaPujaSectionToggles,
   subEventsAPI,
 } from '../../services/api';
 import { SubEvent } from '../../types';
 import { formatDateWithTime } from '../../utils/dateUtils';
-
 import { durgaPujaPagePath } from '../../utils/durgaPuja';
+import { isDurgaPujaSectionPublic } from '../../utils/durgaPujaSectionVisibility';
+
+const INPUT_CLS =
+  'w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500';
+
+const HIGHLIGHT_ICON_OPTIONS = [
+  'sparkles',
+  'music',
+  'utensils',
+  'users',
+  'calendar',
+  'ticket',
+  'heart',
+  'baby',
+  'store',
+  'party',
+];
+
+/** Upload/paste a single image for a category; stores the resulting URL. */
+function AssetImageField({
+  year,
+  category,
+  value,
+  onChange,
+  label,
+}: {
+  year: number;
+  category: string;
+  value?: string;
+  onChange: (url: string) => void;
+  label?: string;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const ref = useRef<HTMLInputElement>(null);
+  const upload = async (file?: File) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { url } = await durgaPujaPageAPI.uploadAsset(year, category, file);
+      onChange(url);
+      toast.success('Image uploaded');
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || 'Upload failed');
+    } finally {
+      setUploading(false);
+      if (ref.current) ref.current.value = '';
+    }
+  };
+  return (
+    <div>
+      {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
+      {value && (
+        <img
+          src={value}
+          alt=""
+          className="max-h-40 rounded-lg border border-gray-200 object-contain bg-gray-50 mb-2"
+        />
+      )}
+      <div className="flex items-center gap-2">
+        <input
+          ref={ref}
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp"
+          className="hidden"
+          onChange={e => upload(e.target.files?.[0])}
+        />
+        <button
+          type="button"
+          onClick={() => ref.current?.click()}
+          disabled={uploading}
+          className="inline-flex items-center gap-1 bg-white border-2 border-primary-600 text-primary-600 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary-50 disabled:opacity-50"
+        >
+          <Upload className="w-4 h-4" />
+          {uploading ? 'Uploading…' : 'Upload'}
+        </button>
+        {value && (
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            className="text-red-500 hover:text-red-700 text-sm"
+          >
+            Remove
+          </button>
+        )}
+      </div>
+      <input
+        className={`${INPUT_CLS} mt-2`}
+        value={value || ''}
+        placeholder="…or paste an image URL"
+        onChange={e => onChange(e.target.value)}
+      />
+    </div>
+  );
+}
+
+/** Upload/manage a list of images for a category. */
+function AssetImageList({
+  year,
+  category,
+  value,
+  onChange,
+}: {
+  year: number;
+  category: string;
+  value?: string[];
+  onChange: (urls: string[]) => void;
+}) {
+  const items = value ?? [];
+  const [uploading, setUploading] = useState(false);
+  const ref = useRef<HTMLInputElement>(null);
+  const upload = async (file?: File) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { url } = await durgaPujaPageAPI.uploadAsset(year, category, file);
+      onChange([...items, url]);
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || 'Upload failed');
+    } finally {
+      setUploading(false);
+      if (ref.current) ref.current.value = '';
+    }
+  };
+  return (
+    <div>
+      {items.length > 0 && (
+        <div className="flex flex-wrap gap-3 mb-2">
+          {items.map((src, i) => (
+            <div key={i} className="relative">
+              <img src={src} alt="" className="w-24 h-24 object-cover rounded-lg border border-gray-200" />
+              <button
+                type="button"
+                onClick={() => onChange(items.filter((_, idx) => idx !== i))}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5"
+                aria-label="Remove image"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <input
+        ref={ref}
+        type="file"
+        accept="image/jpeg,image/png,image/gif,image/webp"
+        className="hidden"
+        onChange={e => upload(e.target.files?.[0])}
+      />
+      <button
+        type="button"
+        onClick={() => ref.current?.click()}
+        disabled={uploading}
+        className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium disabled:opacity-50"
+      >
+        <Plus className="w-4 h-4" />
+        {uploading ? 'Uploading…' : 'Add image'}
+      </button>
+    </div>
+  );
+}
+
+/** Simple editable list of strings. */
+function StringListEditor({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value?: string[];
+  onChange: (v: string[]) => void;
+  placeholder?: string;
+}) {
+  const items = value ?? [];
+  return (
+    <div className="space-y-2">
+      {items.map((it, i) => (
+        <div key={i} className="flex gap-2">
+          <input
+            className={INPUT_CLS}
+            value={it}
+            placeholder={placeholder}
+            onChange={e => onChange(items.map((v, idx) => (idx === i ? e.target.value : v)))}
+          />
+          <button
+            type="button"
+            onClick={() => onChange(items.filter((_, idx) => idx !== i))}
+            className="text-red-500 hover:text-red-700 p-1"
+            aria-label="Remove item"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => onChange([...items, ''])}
+        className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"
+      >
+        <Plus className="w-4 h-4" /> Add
+      </button>
+    </div>
+  );
+}
+
+/** Collapsible editor block with a per-section visibility toggle. */
+function EditorSection({
+  title,
+  sectionKey,
+  visible,
+  publicVisible,
+  onToggle,
+  children,
+}: {
+  title: string;
+  sectionKey: keyof DurgaPujaSectionToggles;
+  visible: boolean;
+  /** True when this section is currently rendered on the public Durga Puja page. */
+  publicVisible?: boolean;
+  onToggle: (key: keyof DurgaPujaSectionToggles, val: boolean) => void;
+  children: React.ReactNode;
+}) {
+  const statusLabel = publicVisible
+    ? 'Live on site'
+    : visible
+      ? 'Not on site yet'
+      : 'Hidden';
+  const statusClass = publicVisible
+    ? 'text-green-700'
+    : visible
+      ? 'text-amber-600'
+      : 'text-gray-400';
+
+  return (
+    <details
+      className={`rounded-xl shadow group border ${
+        publicVisible ? 'bg-green-50 border-green-200' : 'bg-white border-gray-100'
+      }`}
+    >
+      <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-gray-900 flex items-center justify-between gap-3">
+        <span>{title}</span>
+        <span className={`text-xs font-medium shrink-0 ${statusClass}`}>{statusLabel}</span>
+      </summary>
+      <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4">
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            className="h-4 w-4 accent-primary-600"
+            checked={visible}
+            onChange={e => onToggle(sectionKey, e.target.checked)}
+          />
+          Show this section on the public page
+        </label>
+        {children}
+      </div>
+    </details>
+  );
+}
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return <label className="block text-sm font-medium text-gray-700 mb-1">{children}</label>;
+}
 
 /**
- * Admin editor for public /durga-puja-YYYY pages — active or archived years.
+ * Admin editor for the full public /durga-puja-YYYY festival page — all 16 sections.
  */
 export default function AdminDurgaPuja() {
   const [content, setContent] = useState<DurgaPujaPageContent | null>(null);
@@ -24,7 +285,7 @@ export default function AdminDurgaPuja() {
   const [loadingYear, setLoadingYear] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasImage, setHasImage] = useState(false);
-  const [imageVersion, setImageVersion] = useState(0); // cache-buster after upload
+  const [imageVersion, setImageVersion] = useState(0);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [subEvents, setSubEvents] = useState<SubEvent[]>([]);
@@ -57,7 +318,6 @@ export default function AdminDurgaPuja() {
               return ta - tb;
             });
           setSubEvents(active);
-
           const imagesMap: Record<string, string> = {};
           await Promise.all(
             active.map(async se => {
@@ -149,36 +409,114 @@ export default function AdminDurgaPuja() {
     }
   };
 
+  // ---- Generic content setters ----
   const set = <K extends keyof DurgaPujaPageContent>(key: K, value: DurgaPujaPageContent[K]) =>
     setContent(c => (c ? { ...c, [key]: value } : c));
 
+  const patchObj = (key: keyof DurgaPujaPageContent, patch: Record<string, unknown>) =>
+    setContent(c =>
+      c ? { ...c, [key]: { ...((c[key] as Record<string, unknown>) ?? {}), ...patch } } : c
+    );
+
+  const toggleSection = (key: keyof DurgaPujaSectionToggles, val: boolean) =>
+    setContent(c => (c ? { ...c, sections: { ...(c.sections ?? {}), [key]: val } } : c));
+
+  // Top-level array helpers
+  const arr = (key: keyof DurgaPujaPageContent): any[] =>
+    ((content?.[key] as any[]) ?? []);
+  const updateItem = (key: keyof DurgaPujaPageContent, index: number, patch: Record<string, unknown>) =>
+    setContent(c => {
+      if (!c) return c;
+      const list = [...((c[key] as any[]) ?? [])];
+      list[index] = { ...list[index], ...patch };
+      return { ...c, [key]: list };
+    });
+  const addItem = (key: keyof DurgaPujaPageContent, item: unknown) =>
+    setContent(c => (c ? { ...c, [key]: [...((c[key] as any[]) ?? []), item] } : c));
+  const removeItem = (key: keyof DurgaPujaPageContent, index: number) =>
+    setContent(c => (c ? { ...c, [key]: ((c[key] as any[]) ?? []).filter((_, i) => i !== index) } : c));
+
+  // Nested-object array helpers (e.g. food.meals, puja.timings)
+  const nestedArr = (objKey: keyof DurgaPujaPageContent, arrKey: string): any[] =>
+    (((content?.[objKey] as any)?.[arrKey] as any[]) ?? []);
+  const updateNestedItem = (
+    objKey: keyof DurgaPujaPageContent,
+    arrKey: string,
+    index: number,
+    patch: Record<string, unknown>
+  ) =>
+    setContent(c => {
+      if (!c) return c;
+      const obj: any = { ...((c[objKey] as any) ?? {}) };
+      const list = [...((obj[arrKey] as any[]) ?? [])];
+      list[index] = { ...list[index], ...patch };
+      obj[arrKey] = list;
+      return { ...c, [objKey]: obj };
+    });
+  const addNestedItem = (objKey: keyof DurgaPujaPageContent, arrKey: string, item: unknown) =>
+    setContent(c => {
+      if (!c) return c;
+      const obj: any = { ...((c[objKey] as any) ?? {}) };
+      obj[arrKey] = [...((obj[arrKey] as any[]) ?? []), item];
+      return { ...c, [objKey]: obj };
+    });
+  const removeNestedItem = (objKey: keyof DurgaPujaPageContent, arrKey: string, index: number) =>
+    setContent(c => {
+      if (!c) return c;
+      const obj: any = { ...((c[objKey] as any) ?? {}) };
+      obj[arrKey] = ((obj[arrKey] as any[]) ?? []).filter((_, i) => i !== index);
+      return { ...c, [objKey]: obj };
+    });
+
+  // Schedule day-item helpers (array within an array)
+  const updateScheduleItem = (di: number, ii: number, patch: Record<string, unknown>) =>
+    setContent(c => {
+      if (!c) return c;
+      const days = [...(c.scheduleDays ?? [])];
+      const day = { ...days[di] };
+      const items = [...(day.items ?? [])];
+      items[ii] = { ...items[ii], ...patch };
+      day.items = items;
+      days[di] = day;
+      return { ...c, scheduleDays: days };
+    });
+  const addScheduleItem = (di: number) =>
+    setContent(c => {
+      if (!c) return c;
+      const days = [...(c.scheduleDays ?? [])];
+      const day = { ...days[di], items: [...(days[di].items ?? []), { time: '', title: '', description: '' }] };
+      days[di] = day;
+      return { ...c, scheduleDays: days };
+    });
+  const removeScheduleItem = (di: number, ii: number) =>
+    setContent(c => {
+      if (!c) return c;
+      const days = [...(c.scheduleDays ?? [])];
+      const day = { ...days[di], items: (days[di].items ?? []).filter((_, i) => i !== ii) };
+      days[di] = day;
+      return { ...c, scheduleDays: days };
+    });
+
+  // FAQ + ticket link helpers (existing)
   const setFaq = (index: number, patch: Partial<DurgaPujaFaq>) =>
     setContent(c => {
       if (!c) return c;
       const faqs = c.faqs.map((f, i) => (i === index ? { ...f, ...patch } : f));
       return { ...c, faqs };
     });
-
   const addFaq = () =>
     setContent(c => (c ? { ...c, faqs: [...c.faqs, { question: '', answer: '' }] } : c));
-
   const removeFaq = (index: number) =>
     setContent(c => (c ? { ...c, faqs: c.faqs.filter((_, i) => i !== index) } : c));
 
   const setTicketLink = (index: number, patch: Partial<TicketLink>) =>
     setContent(c => {
       if (!c) return c;
-      const ticketLinks = (c.ticketLinks ?? []).map((t, i) =>
-        i === index ? { ...t, ...patch } : t
-      );
+      const ticketLinks = (c.ticketLinks ?? []).map((t, i) => (i === index ? { ...t, ...patch } : t));
       return { ...c, ticketLinks };
     });
-
   const addTicketLink = () =>
-    setContent(c =>
-      c ? { ...c, ticketLinks: [...(c.ticketLinks ?? []), { label: '', url: '' }] } : c
-    );
-
+    setContent(c => (c ? { ...c, ticketLinks: [...(c.ticketLinks ?? []), { label: '', url: '' }] } : c));
   const removeTicketLink = (index: number) =>
     setContent(c =>
       c ? { ...c, ticketLinks: (c.ticketLinks ?? []).filter((_, i) => i !== index) } : c
@@ -193,7 +531,7 @@ export default function AdminDurgaPuja() {
     for (const link of content.ticketLinks ?? []) {
       const label = link.label.trim();
       const url = link.url.trim();
-      if (!label && !url) continue; // empty rows are dropped by the backend
+      if (!label && !url) continue;
       if (!label || !url) {
         toast.error('Each ticket link needs both a label and a URL');
         return;
@@ -205,7 +543,6 @@ export default function AdminDurgaPuja() {
     }
     setSaving(true);
     try {
-      // Strip server-managed fields; the rest is the editable patch.
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { updated_at, year: _y, ...patch } = content;
       const saved = await durgaPujaPageAPI.updateContent(editYear, patch);
@@ -235,9 +572,21 @@ export default function AdminDurgaPuja() {
   }
 
   const isArchived = editYear !== activeYear;
-
-  const inputCls =
-    'w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500';
+  const sec = content.sections ?? {};
+  const visible = (key: keyof DurgaPujaSectionToggles) => sec[key] !== false;
+  const durgaPujaVisibleSubEvents = subEvents.filter(se => se.show_in_durga_puja_page === true);
+  const publicOnSite = (key: keyof DurgaPujaSectionToggles) =>
+    isDurgaPujaSectionPublic(key, { content, durgaPujaSubEvents: durgaPujaVisibleSubEvents });
+  const ticketing = content.ticketing ?? {};
+  const venue = content.venue ?? {};
+  const food = content.food ?? {};
+  const puja = content.puja ?? {};
+  const kids = content.kids ?? {};
+  const sponsorship = content.sponsorship ?? {};
+  const vendors = content.vendors ?? {};
+  const volunteer = content.volunteer ?? {};
+  const gallery = content.gallery ?? {};
+  const social = content.social ?? {};
 
   return (
     <div className="max-w-5xl w-full">
@@ -269,19 +618,14 @@ export default function AdminDurgaPuja() {
           </a>
         </div>
       </div>
-      <p className="text-gray-600 mb-6">
-        This content appears on the public <code>{durgaPujaPagePath(editYear)}</code> page (and in what
-        Google reads). Use the year selector above to edit archived pages. When you create or update a
-        future event whose name contains &quot;Durga&quot;, its dates and venue are synced to the live
-        year automatically — you can still override them below. Update each year by June/July.
+      <p className="text-gray-600 mb-2">
+        Everything on the public <code>{durgaPujaPagePath(editYear)}</code> page is edited here. Dates
+        and venue sync automatically from the linked &quot;Durga Puja&quot; event — you can override
+        them below. Each section can be shown or hidden with its toggle.
       </p>
       {content.linkedEventId && (
         <p className="text-sm text-gray-500 mb-4">
-          {isArchived && (
-            <>
-              <span className="text-gray-600">Archived year — </span>
-            </>
-          )}
+          {isArchived && <span className="text-gray-600">Archived year — </span>}
           Dates/venue last synced from event{' '}
           <a
             href={`/events/${content.linkedEventId}`}
@@ -295,294 +639,949 @@ export default function AdminDurgaPuja() {
         </p>
       )}
 
-      <div className="space-y-5 bg-white rounded-xl shadow p-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Intro paragraph</label>
-          <textarea
-            className={inputCls}
-            rows={4}
-            value={content.intro}
-            onChange={e => set('intro', e.target.value)}
-          />
-        </div>
+      <div className="sticky top-0 z-10 bg-gray-50/90 backdrop-blur py-3 mb-4 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="bg-primary-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50"
+        >
+          {saving ? 'Saving…' : 'Save Changes'}
+        </button>
+        {content.updated_at && (
+          <span className="text-sm text-gray-500">
+            Last updated {new Date(content.updated_at).toLocaleString()}
+          </span>
+        )}
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Dates (as shown to visitors)
-          </label>
-          <input
-            className={inputCls}
-            value={content.datesText}
-            onChange={e => set('datesText', e.target.value)}
-            placeholder="October 16–21, 2026 (Shashthi through Vijayadashami)"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-4">
+        {/* ---- Basics (always shown) ---- */}
+        <div className="bg-white rounded-xl shadow p-6 space-y-4">
+          <h2 className="font-semibold text-gray-900">Basics</h2>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Start date (for Google)
-            </label>
-            <input
-              type="date"
-              className={inputCls}
-              value={content.startDate}
-              onChange={e => set('startDate', e.target.value)}
-            />
+            <FieldLabel>Intro paragraph</FieldLabel>
+            <textarea className={INPUT_CLS} rows={4} value={content.intro} onChange={e => set('intro', e.target.value)} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              End date (for Google)
-            </label>
+            <FieldLabel>Dates (as shown to visitors)</FieldLabel>
             <input
-              type="date"
-              className={inputCls}
-              value={content.endDate}
-              onChange={e => set('endDate', e.target.value)}
+              className={INPUT_CLS}
+              value={content.datesText}
+              onChange={e => set('datesText', e.target.value)}
+              placeholder="October 9–11, 2026"
             />
           </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Venue name</label>
-          <input
-            className={inputCls}
-            value={content.venueName}
-            onChange={e => set('venueName', e.target.value)}
-            placeholder="Estancia High School, Costa Mesa"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Venue city</label>
-            <input
-              className={inputCls}
-              value={content.venueCity}
-              onChange={e => set('venueCity', e.target.value)}
-              placeholder="Costa Mesa"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Venue note</label>
-            <input
-              className={inputCls}
-              value={content.venueNote}
-              onChange={e => set('venueNote', e.target.value)}
-              placeholder="Schedule will be announced on our Events page."
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Page image (shown below Dates &amp; Venue on the public page — e.g. the flyer)
-          </label>
-          {hasImage ? (
-            <div className="mb-3">
-              <img
-                src={`${durgaPujaPageAPI.getImageUrl(editYear)}?v=${imageVersion}`}
-                alt="Durga Puja page"
-                className="max-h-64 rounded-lg border border-gray-200 object-contain bg-gray-50"
-              />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <FieldLabel>Start date (for Google)</FieldLabel>
+              <input type="date" className={INPUT_CLS} value={content.startDate} onChange={e => set('startDate', e.target.value)} />
             </div>
-          ) : (
-            <div className="mb-3 flex items-center gap-2 text-gray-400 text-sm">
-              <ImageIcon className="w-5 h-5" /> No image uploaded yet
+            <div>
+              <FieldLabel>End date (for Google)</FieldLabel>
+              <input type="date" className={INPUT_CLS} value={content.endDate} onChange={e => set('endDate', e.target.value)} />
             </div>
-          )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/gif,image/webp"
-            className="hidden"
-            onChange={e => handleImageSelected(e.target.files?.[0])}
-          />
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="inline-flex items-center gap-2 bg-white border-2 border-primary-600 text-primary-600 px-4 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors disabled:opacity-50"
-            >
-              <Upload className="w-4 h-4" />
-              {uploading ? 'Uploading…' : hasImage ? 'Change Image' : 'Upload Image'}
-            </button>
-            {hasImage && (
+          </div>
+          <div>
+            <FieldLabel>Venue name</FieldLabel>
+            <input
+              className={INPUT_CLS}
+              value={content.venueName}
+              onChange={e => set('venueName', e.target.value)}
+              placeholder="Orange Coast College, Costa Mesa"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <FieldLabel>Venue city</FieldLabel>
+              <input className={INPUT_CLS} value={content.venueCity} onChange={e => set('venueCity', e.target.value)} placeholder="Costa Mesa" />
+            </div>
+            <div>
+              <FieldLabel>Venue note</FieldLabel>
+              <input className={INPUT_CLS} value={content.venueNote} onChange={e => set('venueNote', e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <FieldLabel>Hero / flyer image (background behind the title, and the OG share image)</FieldLabel>
+            {hasImage ? (
+              <div className="mb-3">
+                <img
+                  src={`${durgaPujaPageAPI.getImageUrl(editYear)}?v=${imageVersion}`}
+                  alt="Durga Puja page"
+                  className="max-h-64 rounded-lg border border-gray-200 object-contain bg-gray-50"
+                />
+              </div>
+            ) : (
+              <div className="mb-3 flex items-center gap-2 text-gray-400 text-sm">
+                <ImageIcon className="w-5 h-5" /> No image uploaded yet
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              className="hidden"
+              onChange={e => handleImageSelected(e.target.files?.[0])}
+            />
+            <div className="flex gap-2">
               <button
                 type="button"
-                onClick={handleImageDelete}
-                className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 px-3 py-2 font-medium"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="inline-flex items-center gap-2 bg-white border-2 border-primary-600 text-primary-600 px-4 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors disabled:opacity-50"
               >
-                <Trash2 className="w-4 h-4" /> Remove
+                <Upload className="w-4 h-4" />
+                {uploading ? 'Uploading…' : hasImage ? 'Change Image' : 'Upload Image'}
               </button>
-            )}
+              {hasImage && (
+                <button
+                  type="button"
+                  onClick={handleImageDelete}
+                  className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 px-3 py-2 font-medium"
+                >
+                  <Trash2 className="w-4 h-4" /> Remove
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">JPEG/PNG/WebP/GIF, max 20MB.</p>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            JPEG/PNG/WebP/GIF, max 20MB. Uploading a new image replaces the current one.
-          </p>
         </div>
 
-        <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            <span className="inline-flex items-center gap-1.5">
-              <Ticket className="w-4 h-4 text-primary-600" /> Ticketing on the public page
-            </span>
+        <p className="mb-4 text-sm text-gray-600 bg-green-50 border border-green-200 rounded-lg px-4 py-2.5">
+          <span className="inline-block w-3 h-3 rounded-sm bg-green-100 border border-green-300 align-middle mr-2" />
+          Light green sections are <strong className="font-medium text-green-800">live on the public page</strong> right now
+          (toggle on + enough content). Amber label = enabled but not visible yet.
+        </p>
+
+        {/* ---- Section 1: Hero ---- */}
+        <EditorSection title="1. Hero (title, tagline, countdown, buttons)" sectionKey="hero" visible={visible('hero')} publicVisible={publicOnSite('hero')} onToggle={toggleSection}>
+          <div>
+            <FieldLabel>Hero tagline (short message under the title)</FieldLabel>
+            <textarea
+              className={INPUT_CLS}
+              rows={2}
+              value={content.heroTagline ?? ''}
+              onChange={e => set('heroTagline', e.target.value)}
+              placeholder="Join Sanhoti for three unforgettable days of devotion, Bengali culture, music, food…"
+            />
+          </div>
+          <div>
+            <FieldLabel>Hero sub-headline</FieldLabel>
+            <input
+              className={INPUT_CLS}
+              value={content.heroSubheadline ?? ''}
+              onChange={e => set('heroSubheadline', e.target.value)}
+              placeholder="Akriti Kakar & Subhadeep Das Live"
+            />
+          </div>
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-primary-600"
+              checked={content.showCountdown !== false}
+              onChange={e => set('showCountdown', e.target.checked)}
+            />
+            Show countdown to the start date
           </label>
-          <p className="text-xs text-gray-500 mb-3">
-            Choose what the public {content.year} page offers — in-website booking, external link(s),
-            both, or switch everything off.
-          </p>
-          <div className="space-y-2.5">
-            <label className="flex items-start gap-2 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                className="mt-0.5 h-4 w-4 accent-primary-600"
-                checked={content.showInternalBooking !== false}
-                disabled={content.ticketsOff === true}
-                onChange={e => set('showInternalBooking', e.target.checked)}
-              />
-              <span>
-                <span className="font-medium">In-website booking</span> — show the “Book Your Seat”
-                button (also requires the seat system to be open in Ticket Settings).
-              </span>
-            </label>
-            <label className="flex items-start gap-2 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                className="mt-0.5 h-4 w-4 accent-primary-600"
-                checked={content.showExternalTickets !== false}
-                disabled={content.ticketsOff === true}
-                onChange={e => set('showExternalTickets', e.target.checked)}
-              />
-              <span>
-                <span className="font-medium">External ticket link(s)</span> — show the buttons
-                configured below.
-              </span>
-            </label>
-            <label className="flex items-start gap-2 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                className="mt-0.5 h-4 w-4 accent-primary-600"
-                checked={content.ticketsOff === true}
-                onChange={e => set('ticketsOff', e.target.checked)}
-              />
-              <span>
-                <span className="font-medium">Off</span> — hide the booking buttons and show a
-                “Tickets coming soon” message on the public page.
-              </span>
-            </label>
-          </div>
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-gray-700">
-              <span className="inline-flex items-center gap-1.5">
-                <Ticket className="w-4 h-4 text-primary-600" /> Ticket booking links
-              </span>
-            </label>
-            <button
-              type="button"
-              onClick={addTicketLink}
-              className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 text-sm font-medium"
-            >
-              <Plus className="w-4 h-4" /> Add Link
-            </button>
-          </div>
-          <p className="text-xs text-gray-500 mb-3">
-            Links to external ticketing sites (Eventbrite, Sulekha, etc.) shown as buttons in the
-            "Tickets" section of the public page. Leave empty to show a "Ticket booking opens soon"
-            placeholder instead.
-          </p>
-          {(content.ticketLinks ?? []).length > 0 && (
-            <div className="space-y-3 mb-3">
-              {(content.ticketLinks ?? []).map((link, i) => (
-                <div key={i} className="border border-gray-200 rounded-lg p-3">
-                  <div className="flex items-start gap-2">
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <input
-                        className={inputCls}
-                        value={link.label}
-                        onChange={e => setTicketLink(i, { label: e.target.value })}
-                        placeholder="Label (e.g. Full Event Pass)"
-                      />
-                      <input
-                        className={inputCls}
-                        type="url"
-                        value={link.url}
-                        onChange={e => setTicketLink(i, { url: e.target.value })}
-                        placeholder="https://…"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeTicketLink(i)}
-                      className="text-red-500 hover:text-red-700 p-1"
-                      aria-label={`Remove ticket link ${i + 1}`}
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <FieldLabel>Call-to-action buttons</FieldLabel>
+              <button type="button" onClick={() => addItem('ctaButtons', { label: '', href: '', style: 'primary' })} className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium">
+                <Plus className="w-4 h-4" /> Add button
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mb-2">
+              Target can be an anchor (#tickets, #schedule, #sponsor, #volunteer), an internal path
+              (/book-your-seat), or a full URL. Leave empty to use the default four buttons.
+            </p>
+            <div className="space-y-2">
+              {arr('ctaButtons').map((b: any, i: number) => (
+                <div key={i} className="flex flex-wrap gap-2 items-center">
+                  <input className={`${INPUT_CLS} flex-1 min-w-[8rem]`} value={b.label ?? ''} placeholder="Label" onChange={e => updateItem('ctaButtons', i, { label: e.target.value })} />
+                  <input className={`${INPUT_CLS} flex-1 min-w-[8rem]`} value={b.href ?? ''} placeholder="#tickets or https://…" onChange={e => updateItem('ctaButtons', i, { href: e.target.value })} />
+                  <select className="border border-gray-300 rounded-lg px-2 py-2 text-sm" value={b.style ?? 'primary'} onChange={e => updateItem('ctaButtons', i, { style: e.target.value })}>
+                    <option value="primary">Solid</option>
+                    <option value="secondary">Outline</option>
+                  </select>
+                  <button type="button" onClick={() => removeItem('ctaButtons', i)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
                 </div>
               ))}
             </div>
-          )}
-          <input
-            className={inputCls}
-            value={content.ticketsNote ?? ''}
-            onChange={e => set('ticketsNote', e.target.value)}
-            placeholder="Optional note, e.g. Early-bird pricing until Sep 1"
-          />
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-gray-700">
-              FAQs (shown on the page and eligible for Google rich results)
-            </label>
-            <button
-              type="button"
-              onClick={addFaq}
-              className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 text-sm font-medium"
-            >
-              <Plus className="w-4 h-4" /> Add FAQ
-            </button>
           </div>
+        </EditorSection>
+
+        {/* ---- Section 2: Highlights ---- */}
+        <EditorSection title="2. Event highlights" sectionKey="highlights" visible={visible('highlights')} publicVisible={publicOnSite('highlights')} onToggle={toggleSection}>
+          <p className="text-xs text-gray-500">Leave empty to show a default set of highlights.</p>
           <div className="space-y-4">
-            {content.faqs.map((faq, i) => (
-              <div key={i} className="border border-gray-200 rounded-lg p-3">
-                <div className="flex items-start gap-2">
-                  <div className="flex-1 space-y-2">
-                    <input
-                      className={inputCls}
-                      value={faq.question}
-                      onChange={e => setFaq(i, { question: e.target.value })}
-                      placeholder="Question"
-                    />
-                    <textarea
-                      className={inputCls}
-                      rows={2}
-                      value={faq.answer}
-                      onChange={e => setFaq(i, { answer: e.target.value })}
-                      placeholder="Answer"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeFaq(i)}
-                    className="text-red-500 hover:text-red-700 p-1"
-                    aria-label={`Remove FAQ ${i + 1}`}
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+            {arr('highlights').map((h: any, i: number) => (
+              <div key={i} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                <div className="flex gap-2 items-center">
+                  <select className="border border-gray-300 rounded-lg px-2 py-2 text-sm" value={h.icon ?? 'sparkles'} onChange={e => updateItem('highlights', i, { icon: e.target.value })}>
+                    {HIGHLIGHT_ICON_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                  <input className={`${INPUT_CLS} flex-1`} value={h.title ?? ''} placeholder="Title" onChange={e => updateItem('highlights', i, { title: e.target.value })} />
+                  <button type="button" onClick={() => removeItem('highlights', i)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
+                </div>
+                <textarea className={INPUT_CLS} rows={2} value={h.text ?? ''} placeholder="Short description" onChange={e => updateItem('highlights', i, { text: e.target.value })} />
+                <AssetImageField year={editYear} category="highlights" value={h.imageUrl} onChange={url => updateItem('highlights', i, { imageUrl: url })} label="Optional image (used instead of the icon)" />
+              </div>
+            ))}
+          </div>
+          <button type="button" onClick={() => addItem('highlights', { icon: 'sparkles', title: '', text: '' })} className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"><Plus className="w-4 h-4" /> Add highlight</button>
+          <div>
+            <FieldLabel>Expected attendance</FieldLabel>
+            <input className={INPUT_CLS} value={content.expectedAttendance ?? ''} placeholder="Approximately 1,000 attendees" onChange={e => set('expectedAttendance', e.target.value)} />
+          </div>
+        </EditorSection>
+
+        {/* ---- Section 3: Schedule ---- */}
+        <EditorSection title="3. Three-day schedule" sectionKey="schedule" visible={visible('schedule')} publicVisible={publicOnSite('schedule')} onToggle={toggleSection}>
+          <div className="space-y-4">
+            {arr('scheduleDays').map((day: any, di: number) => (
+              <div key={di} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                <div className="flex gap-2 items-center">
+                  <input className={`${INPUT_CLS} flex-1`} value={day.dayLabel ?? ''} placeholder="Friday, October 9" onChange={e => updateItem('scheduleDays', di, { dayLabel: e.target.value })} />
+                  <button type="button" onClick={() => removeItem('scheduleDays', di)} className="text-red-500 hover:text-red-700 p-1" aria-label="Remove day"><Trash2 className="w-4 h-4" /></button>
+                </div>
+                <div className="space-y-2 pl-3 border-l-2 border-gray-100">
+                  {(day.items ?? []).map((item: any, ii: number) => (
+                    <div key={ii} className="flex flex-wrap gap-2 items-start">
+                      <input className="border border-gray-300 rounded-lg px-2 py-2 text-sm w-28" value={item.time ?? ''} placeholder="6:00 PM" onChange={e => updateScheduleItem(di, ii, { time: e.target.value })} />
+                      <div className="flex-1 min-w-[10rem] space-y-1">
+                        <input className={INPUT_CLS} value={item.title ?? ''} placeholder="Opening ceremony" onChange={e => updateScheduleItem(di, ii, { title: e.target.value })} />
+                        <input className={INPUT_CLS} value={item.description ?? ''} placeholder="Optional detail" onChange={e => updateScheduleItem(di, ii, { description: e.target.value })} />
+                      </div>
+                      <button type="button" onClick={() => removeScheduleItem(di, ii)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => addScheduleItem(di)} className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"><Plus className="w-4 h-4" /> Add item</button>
                 </div>
               </div>
             ))}
           </div>
+          <button type="button" onClick={() => addItem('scheduleDays', { dayLabel: '', items: [] })} className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"><Plus className="w-4 h-4" /> Add day</button>
+          <div>
+            <FieldLabel>Schedule note</FieldLabel>
+            <input className={INPUT_CLS} value={content.scheduleNote ?? ''} placeholder="Schedule may be updated. Please check this page before attending." onChange={e => set('scheduleNote', e.target.value)} />
+          </div>
+        </EditorSection>
+
+        {/* ---- Section 4: Artists ---- */}
+        <EditorSection title="4. Featured artists" sectionKey="artists" visible={visible('artists')} publicVisible={publicOnSite('artists')} onToggle={toggleSection}>
+          <div className="space-y-4">
+            {arr('artists').map((a: any, i: number) => (
+              <div key={i} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                <div className="flex gap-2 items-center">
+                  <input className={`${INPUT_CLS} flex-1`} value={a.name ?? ''} placeholder="Artist name" onChange={e => updateItem('artists', i, { name: e.target.value })} />
+                  <button type="button" onClick={() => removeItem('artists', i)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <input className={INPUT_CLS} value={a.performanceType ?? ''} placeholder="Performance type (e.g. Live in Concert)" onChange={e => updateItem('artists', i, { performanceType: e.target.value })} />
+                  <input className={INPUT_CLS} value={a.dateTime ?? ''} placeholder="Sat, Oct 10 · 8:00 PM" onChange={e => updateItem('artists', i, { dateTime: e.target.value })} />
+                </div>
+                <textarea className={INPUT_CLS} rows={2} value={a.bio ?? ''} placeholder="Short biography" onChange={e => updateItem('artists', i, { bio: e.target.value })} />
+                <input className={INPUT_CLS} value={a.ticketInfo ?? ''} placeholder="Included with ticket / separate ticket required" onChange={e => updateItem('artists', i, { ticketInfo: e.target.value })} />
+                <div>
+                  <FieldLabel>Video link (optional)</FieldLabel>
+                  <input
+                    className={INPUT_CLS}
+                    value={a.videoUrl ?? ''}
+                    placeholder="https://www.youtube.com/watch?v=… or youtu.be/…"
+                    onChange={e => updateItem('artists', i, { videoUrl: e.target.value })}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    YouTube and Vimeo links embed on the public page; other URLs show a watch link.
+                  </p>
+                </div>
+                <AssetImageField year={editYear} category="artists" value={a.imageUrl} onChange={url => updateItem('artists', i, { imageUrl: url })} label="Artist photo" />
+                <div className="border-t border-gray-100 pt-2 space-y-2">
+                  <label className="flex items-start gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5 h-4 w-4 accent-primary-600"
+                      checked={a.linkSubEventPage === true}
+                      disabled={subEvents.length === 0}
+                      onChange={e =>
+                        updateItem('artists', i, {
+                          linkSubEventPage: e.target.checked,
+                          ...(e.target.checked && !a.subEventId && subEvents[0]
+                            ? { subEventId: subEvents[0].sub_event_id }
+                            : {}),
+                          ...(!e.target.checked ? { subEventId: undefined } : {}),
+                        })
+                      }
+                    />
+                    <span>
+                      <span className="font-medium">Link card to sub-event public page</span>
+                      <span className="block text-xs text-gray-500 mt-0.5">
+                        Visitors can open the SEO concert page (/sub-events/…) from this card on the Durga Puja page.
+                      </span>
+                    </span>
+                  </label>
+                  {a.linkSubEventPage && (
+                    <div>
+                      <FieldLabel>Sub-event page</FieldLabel>
+                      {subEvents.length === 0 ? (
+                        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                          Link a Sanhoti event above (Section 1) with sub-events, or enable sub-events on the Events admin page.
+                        </p>
+                      ) : (
+                        <select
+                          className={INPUT_CLS}
+                          value={a.subEventId ?? ''}
+                          onChange={e =>
+                            updateItem('artists', i, {
+                              subEventId: e.target.value || undefined,
+                            })
+                          }
+                        >
+                          <option value="">Select sub-event…</option>
+                          {subEvents.map(se => (
+                            <option key={se.sub_event_id} value={se.sub_event_id}>
+                              {se.sub_event_name}
+                              {se.sub_event_start_dt
+                                ? ` — ${formatDateWithTime(se.sub_event_start_dt)}`
+                                : ''}
+                              {se.seo_page_enabled ? ' (SEO page on)' : ''}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          <button type="button" onClick={() => addItem('artists', { name: '' })} className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"><Plus className="w-4 h-4" /> Add artist</button>
+        </EditorSection>
+
+        {/* ---- Section 5: Tickets ---- */}
+        <EditorSection title="5. Tickets" sectionKey="tickets" visible={visible('tickets')} publicVisible={publicOnSite('tickets')} onToggle={toggleSection}>
+          <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-2.5">
+            <p className="text-sm font-medium text-gray-700 flex items-center gap-1.5"><Ticket className="w-4 h-4 text-primary-600" /> Ticketing visibility</p>
+            <label className="flex items-start gap-2 text-sm text-gray-700">
+              <input type="checkbox" className="mt-0.5 h-4 w-4 accent-primary-600" checked={content.showInternalBooking !== false} disabled={content.ticketsOff === true} onChange={e => set('showInternalBooking', e.target.checked)} />
+              <span><span className="font-medium">In-website booking</span> — show the “Book Your Seat” button (needs the seat system open).</span>
+            </label>
+            <label className="flex items-start gap-2 text-sm text-gray-700">
+              <input type="checkbox" className="mt-0.5 h-4 w-4 accent-primary-600" checked={content.showExternalTickets !== false} disabled={content.ticketsOff === true} onChange={e => set('showExternalTickets', e.target.checked)} />
+              <span><span className="font-medium">External ticket link(s)</span> — show the buttons configured below.</span>
+            </label>
+            <label className="flex items-start gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 accent-primary-600"
+                checked={content.showDonateButtonInTickets === true}
+                disabled={content.ticketsOff === true}
+                onChange={e => set('showDonateButtonInTickets', e.target.checked)}
+              />
+              <span>
+                <span className="font-medium">Donate button</span> — links to{' '}
+                <code className="text-xs bg-gray-200 px-1 rounded">/donate</code>, shown to the right of
+                external ticket buttons (e.g. Yapsody) on the public page.
+              </span>
+            </label>
+            <label className="flex items-start gap-2 text-sm text-gray-700">
+              <input type="checkbox" className="mt-0.5 h-4 w-4 accent-primary-600" checked={content.ticketsOff === true} onChange={e => set('ticketsOff', e.target.checked)} />
+              <span><span className="font-medium">Off</span> — hide all ticketing and show “Tickets coming soon”.</span>
+            </label>
+            <label className="flex items-start gap-2 text-sm text-gray-700">
+              <input type="checkbox" className="mt-0.5 h-4 w-4 accent-primary-600" checked={content.showSavedTickets === true} onChange={e => set('showSavedTickets', e.target.checked)} />
+              <span>
+                <span className="font-medium">Show saved tickets</span> — display the ticket pricing
+                configured on the{' '}
+                <a href="/admin/book-your-seat" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline">
+                  Book Your Seat
+                </a>{' '}
+                page: entire-event category prices, child age range, daily lunch &amp; dinner pricing
+                (meals priced 0 are hidden), and sub-event ticketing. Unchecked = hidden from the public.
+              </span>
+            </label>
+          </div>
+
+          <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-3">
+            <p className="text-sm font-medium text-gray-700">Yapsody event list widget</p>
+            <label className="flex items-start gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 accent-primary-600"
+                checked={content.showYapsodyWidget === true}
+                disabled={content.ticketsOff === true}
+                onChange={e => set('showYapsodyWidget', e.target.checked)}
+              />
+              <span>
+                <span className="font-medium">Show embedded Yapsody ticket list</span> — renders the
+                Yapsody event-list widget at the top of the public Tickets section.
+              </span>
+            </label>
+            {content.showYapsodyWidget && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-0 sm:pl-6">
+                <div>
+                  <FieldLabel>Event ID</FieldLabel>
+                  <input
+                    className={INPUT_CLS}
+                    value={content.yapsodyEventId ?? ''}
+                    onChange={e => set('yapsodyEventId', e.target.value)}
+                    placeholder="212239"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Creates the widget div id: yapwid-event-…</p>
+                </div>
+                <div>
+                  <FieldLabel>Venue code</FieldLabel>
+                  <input
+                    className={INPUT_CLS}
+                    value={content.yapsodyVenueCode ?? ''}
+                    onChange={e => set('yapsodyVenueCode', e.target.value)}
+                    placeholder="sanhoti"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">The data-venue-code attribute from Yapsody.</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <FieldLabel>External ticket booking links</FieldLabel>
+              <button type="button" onClick={addTicketLink} className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"><Plus className="w-4 h-4" /> Add Link</button>
+            </div>
+            <div className="space-y-3">
+              {(content.ticketLinks ?? []).map((link, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input className={INPUT_CLS} value={link.label} onChange={e => setTicketLink(i, { label: e.target.value })} placeholder="Label (e.g. Full Event Pass)" />
+                    <input className={INPUT_CLS} type="url" value={link.url} onChange={e => setTicketLink(i, { url: e.target.value })} placeholder="https://sanhoti.yapsody.com/" />
+                  </div>
+                  <button type="button" onClick={() => removeTicketLink(i)} className="text-red-500 hover:text-red-700 p-1" aria-label={`Remove ticket link ${i + 1}`}><Trash2 className="w-5 h-5" /></button>
+                </div>
+              ))}
+            </div>
+            <input className={`${INPUT_CLS} mt-2`} value={content.ticketsNote ?? ''} onChange={e => set('ticketsNote', e.target.value)} placeholder="Optional note, e.g. Early-bird pricing until Sep 1" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {([
+              ['adultPrice', 'Adult ticket price'],
+              ['childPrice', 'Child ticket price'],
+              ['weekendPackage', 'Weekend package'],
+              ['familyPackage', 'Family package'],
+              ['concertOnly', 'Concert-only ticket'],
+              ['freeEntryAge', "Children's free-entry age"],
+              ['foodInclusion', 'Food inclusion / exclusion'],
+              ['maxCapacity', 'Maximum venue capacity'],
+              ['refundPolicy', 'Refund policy'],
+              ['transferPolicy', 'Ticket-transfer policy'],
+              ['buttonUrl', 'Primary ticket button URL'],
+              ['buttonLabel', 'Primary ticket button label'],
+            ] as [string, string][]).map(([key, label]) => (
+              <div key={key}>
+                <FieldLabel>{label}</FieldLabel>
+                <input className={INPUT_CLS} value={(ticketing as any)[key] ?? ''} onChange={e => patchObj('ticketing', { [key]: e.target.value })} />
+              </div>
+            ))}
+          </div>
+          <AssetImageField year={editYear} category="qr" value={ticketing.qrImageUrl} onChange={url => patchObj('ticketing', { qrImageUrl: url })} label="Ticket QR code image" />
+        </EditorSection>
+
+        {/* ---- Section 6: Venue & parking ---- */}
+        <EditorSection title="6. Venue & parking" sectionKey="venue" visible={visible('venue')} publicVisible={publicOnSite('venue')} onToggle={toggleSection}>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm space-y-2">
+            <p className="text-gray-700">
+              <span className="font-medium">Main venue (from the event):</span>{' '}
+              {content.venueName || '— not set on the linked event yet'}
+            </p>
+            {subEvents.filter(se => se.location).length > 0 && (
+              <div>
+                <p className="font-medium text-gray-700">Sub-event venues (from each sub-event):</p>
+                <ul className="mt-1 space-y-0.5 text-gray-600 list-disc list-inside">
+                  {subEvents
+                    .filter(se => se.location)
+                    .map(se => (
+                      <li key={se.sub_event_id}>
+                        {se.sub_event_name}: {se.location}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            )}
+            <p className="text-xs text-gray-500">
+              These pre-fill the public Venue section automatically from the event and its sub-events —
+              you don&apos;t need to retype them. Edit the main venue on the linked event (or the Basics
+              &quot;Venue name&quot; field above); edit a sub-event&apos;s venue from the Events admin.
+              The fields below are optional extras (parking, entrance, transit, map) and override the
+              building name only if you fill them in.
+            </p>
+          </div>
+          <label className="flex items-start gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              className="mt-0.5 h-4 w-4 accent-primary-600"
+              checked={content.showVenueDefaults !== false}
+              onChange={e => set('showVenueDefaults', e.target.checked)}
+            />
+            <span>
+              <span className="font-medium">Show the event &amp; sub-event addresses</span> — display
+              the main venue pulled from the event and the sub-event venue list on the public page.
+              Uncheck to show only the venues you add below (the Venue section stays visible; use the
+              section toggle above to hide the whole section).
+            </span>
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {([
+              ['buildingName', 'Building / gym name (optional override)'],
+              ['streetAddress', 'Full street address (optional)'],
+              ['mapsUrl', 'Google Maps URL'],
+              ['parkingLot', 'Parking lot number'],
+              ['parkingCost', 'Parking cost / free-parking info'],
+              ['accessibleParking', 'Accessible parking details'],
+              ['recommendedEntrance', 'Recommended entrance'],
+              ['publicTransit', 'Public transportation info'],
+            ] as [string, string][]).map(([key, label]) => (
+              <div key={key}>
+                <FieldLabel>{label}</FieldLabel>
+                <input className={INPUT_CLS} value={(venue as any)[key] ?? ''} onChange={e => patchObj('venue', { [key]: e.target.value })} />
+              </div>
+            ))}
+          </div>
+          <div>
+            <FieldLabel>Layout note (where worship, food, stalls, outdoor activities are)</FieldLabel>
+            <textarea className={INPUT_CLS} rows={2} value={venue.layoutNote ?? ''} onChange={e => patchObj('venue', { layoutNote: e.target.value })} />
+          </div>
+          <AssetImageField year={editYear} category="venue" value={venue.venueMapImageUrl} onChange={url => patchObj('venue', { venueMapImageUrl: url })} label="Venue map image" />
+
+          <div className="border-t border-gray-100 pt-4">
+            <div className="flex items-center justify-between mb-1">
+              <FieldLabel>Additional venues</FieldLabel>
+              <button
+                type="button"
+                onClick={() => addItem('venues', { name: '' })}
+                className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"
+              >
+                <Plus className="w-4 h-4" /> Add venue
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">
+              Add a separate venue for an event or sub-event held at a different location (e.g. a
+              concert). Each appears as its own venue card on the public page.
+            </p>
+            <div className="space-y-4">
+              {arr('venues').map((v: any, i: number) => (
+                <div key={i} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                  <div className="flex gap-2 items-center">
+                    <input
+                      className={`${INPUT_CLS} flex-1 font-medium`}
+                      value={v.name ?? ''}
+                      placeholder="Event name (e.g. Subhadeep Concert)"
+                      onChange={e => updateItem('venues', i, { name: e.target.value })}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeItem('venues', i)}
+                      className="text-red-500 hover:text-red-700 p-1"
+                      aria-label={`Remove venue ${i + 1}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {([
+                      ['buildingName', 'Building / gym name'],
+                      ['streetAddress', 'Full street address'],
+                      ['mapsUrl', 'Google Maps URL'],
+                      ['parkingLot', 'Parking lot number'],
+                      ['parkingCost', 'Parking cost / free-parking info'],
+                      ['accessibleParking', 'Accessible parking details'],
+                      ['recommendedEntrance', 'Recommended entrance'],
+                      ['publicTransit', 'Public transportation info'],
+                    ] as [string, string][]).map(([key, label]) => (
+                      <input
+                        key={key}
+                        className={INPUT_CLS}
+                        value={v[key] ?? ''}
+                        placeholder={label}
+                        onChange={e => updateItem('venues', i, { [key]: e.target.value })}
+                      />
+                    ))}
+                  </div>
+                  <input
+                    className={INPUT_CLS}
+                    value={v.layoutNote ?? ''}
+                    placeholder="Layout note (optional)"
+                    onChange={e => updateItem('venues', i, { layoutNote: e.target.value })}
+                  />
+                  <AssetImageField
+                    year={editYear}
+                    category="venue"
+                    value={v.venueMapImageUrl}
+                    onChange={url => updateItem('venues', i, { venueMapImageUrl: url })}
+                    label="Venue map image (optional)"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </EditorSection>
+
+        {/* ---- Section 7: Food ---- */}
+        <EditorSection title="7. Food" sectionKey="food" visible={visible('food')} publicVisible={publicOnSite('food')} onToggle={toggleSection}>
+          <div>
+            <FieldLabel>Intro</FieldLabel>
+            <textarea className={INPUT_CLS} rows={2} value={food.intro ?? ''} onChange={e => patchObj('food', { intro: e.target.value })} />
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <FieldLabel>Meals</FieldLabel>
+              <button type="button" onClick={() => addNestedItem('food', 'meals', { name: '', hours: '', description: '' })} className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"><Plus className="w-4 h-4" /> Add meal</button>
+            </div>
+            <div className="space-y-2">
+              {nestedArr('food', 'meals').map((m: any, i: number) => (
+                <div key={i} className="flex flex-wrap gap-2 items-center">
+                  <input className={`${INPUT_CLS} flex-1 min-w-[8rem]`} value={m.name ?? ''} placeholder="Friday dinner" onChange={e => updateNestedItem('food', 'meals', i, { name: e.target.value })} />
+                  <input className="border border-gray-300 rounded-lg px-2 py-2 text-sm w-40" value={m.hours ?? ''} placeholder="7:00–9:00 PM" onChange={e => updateNestedItem('food', 'meals', i, { hours: e.target.value })} />
+                  <input className={`${INPUT_CLS} flex-1 min-w-[8rem]`} value={m.description ?? ''} placeholder="Optional detail" onChange={e => updateNestedItem('food', 'meals', i, { description: e.target.value })} />
+                  <button type="button" onClick={() => removeNestedItem('food', 'meals', i)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {([
+              ['vegetarian', 'Vegetarian options'],
+              ['kidsMenu', "Kids' menu"],
+              ['tokenProcess', 'Food-token / meal-ticket process'],
+              ['allergyNotice', 'Food-allergy notice'],
+            ] as [string, string][]).map(([key, label]) => (
+              <div key={key}>
+                <FieldLabel>{label}</FieldLabel>
+                <input className={INPUT_CLS} value={(food as any)[key] ?? ''} onChange={e => patchObj('food', { [key]: e.target.value })} />
+              </div>
+            ))}
+          </div>
+          <div>
+            <FieldLabel>Food photos</FieldLabel>
+            <AssetImageList year={editYear} category="food" value={food.photos} onChange={urls => patchObj('food', { photos: urls })} />
+          </div>
+        </EditorSection>
+
+        {/* ---- Section 8: Puja & religious ---- */}
+        <EditorSection title="8. Puja & religious information" sectionKey="puja" visible={visible('puja')} publicVisible={publicOnSite('puja')} onToggle={toggleSection}>
+          <div>
+            <FieldLabel>Intro</FieldLabel>
+            <textarea className={INPUT_CLS} rows={2} value={puja.intro ?? ''} onChange={e => patchObj('puja', { intro: e.target.value })} />
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <FieldLabel>Timings (Pushpanjali, Sandhi Puja, Kumari Puja, Dhunuchi, Bhog, Sindoor Khela…)</FieldLabel>
+              <button type="button" onClick={() => addNestedItem('puja', 'timings', { label: '', time: '' })} className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"><Plus className="w-4 h-4" /> Add timing</button>
+            </div>
+            <div className="space-y-2">
+              {nestedArr('puja', 'timings').map((t: any, i: number) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <input className={`${INPUT_CLS} flex-1`} value={t.label ?? ''} placeholder="Pushpanjali" onChange={e => updateNestedItem('puja', 'timings', i, { label: e.target.value })} />
+                  <input className="border border-gray-300 rounded-lg px-2 py-2 text-sm w-40" value={t.time ?? ''} placeholder="10:30 AM" onChange={e => updateNestedItem('puja', 'timings', i, { time: e.target.value })} />
+                  <button type="button" onClick={() => removeNestedItem('puja', 'timings', i)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {([
+              ['priestInfo', 'Priest information'],
+              ['itemsToBring', 'Items devotees should bring'],
+              ['attireGuidance', 'Saree / traditional-attire guidance'],
+              ['rules', 'Rules (flowers, offerings, footwear)'],
+            ] as [string, string][]).map(([key, label]) => (
+              <div key={key}>
+                <FieldLabel>{label}</FieldLabel>
+                <input className={INPUT_CLS} value={(puja as any)[key] ?? ''} onChange={e => patchObj('puja', { [key]: e.target.value })} />
+              </div>
+            ))}
+          </div>
+        </EditorSection>
+
+        {/* ---- Section 9: Children & family ---- */}
+        <EditorSection title="9. Children & family activities" sectionKey="kids" visible={visible('kids')} publicVisible={publicOnSite('kids')} onToggle={toggleSection}>
+          <div>
+            <FieldLabel>Intro</FieldLabel>
+            <textarea className={INPUT_CLS} rows={2} value={kids.intro ?? ''} onChange={e => patchObj('kids', { intro: e.target.value })} />
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <FieldLabel>Activities</FieldLabel>
+              <button type="button" onClick={() => addNestedItem('kids', 'activities', { title: '', description: '' })} className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"><Plus className="w-4 h-4" /> Add activity</button>
+            </div>
+            <div className="space-y-2">
+              {nestedArr('kids', 'activities').map((a: any, i: number) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <input className={`${INPUT_CLS} flex-1`} value={a.title ?? ''} placeholder="Art competition" onChange={e => updateNestedItem('kids', 'activities', i, { title: e.target.value })} />
+                  <input className={`${INPUT_CLS} flex-1`} value={a.description ?? ''} placeholder="Optional detail" onChange={e => updateNestedItem('kids', 'activities', i, { description: e.target.value })} />
+                  <button type="button" onClick={() => removeNestedItem('kids', 'activities', i)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <FieldLabel>Age requirements</FieldLabel>
+              <input className={INPUT_CLS} value={kids.ageRequirements ?? ''} onChange={e => patchObj('kids', { ageRequirements: e.target.value })} />
+            </div>
+            <div>
+              <FieldLabel>Parent-supervision policy</FieldLabel>
+              <input className={INPUT_CLS} value={kids.supervisionPolicy ?? ''} onChange={e => patchObj('kids', { supervisionPolicy: e.target.value })} />
+            </div>
+          </div>
+        </EditorSection>
+
+        {/* ---- Section 10: Sponsorship ---- */}
+        <EditorSection title="10. Sponsorship" sectionKey="sponsorship" visible={visible('sponsorship')} publicVisible={publicOnSite('sponsorship')} onToggle={toggleSection}>
+          <div>
+            <FieldLabel>Intro</FieldLabel>
+            <textarea className={INPUT_CLS} rows={2} value={sponsorship.intro ?? ''} onChange={e => patchObj('sponsorship', { intro: e.target.value })} />
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <FieldLabel>Sponsorship packages</FieldLabel>
+              <button type="button" onClick={() => addNestedItem('sponsorship', 'packages', { name: '', price: '', benefits: [] })} className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"><Plus className="w-4 h-4" /> Add package</button>
+            </div>
+            <div className="space-y-3">
+              {nestedArr('sponsorship', 'packages').map((p: any, i: number) => (
+                <div key={i} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                  <div className="flex gap-2 items-center">
+                    <input className={`${INPUT_CLS} flex-1`} value={p.name ?? ''} placeholder="Title Sponsor" onChange={e => updateNestedItem('sponsorship', 'packages', i, { name: e.target.value })} />
+                    <input className="border border-gray-300 rounded-lg px-2 py-2 text-sm w-40" value={p.price ?? ''} placeholder="$5,000" onChange={e => updateNestedItem('sponsorship', 'packages', i, { price: e.target.value })} />
+                    <button type="button" onClick={() => removeNestedItem('sponsorship', 'packages', i)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Benefits (logo placement, stage acknowledgment, complimentary tickets, stall, etc.)</p>
+                    <StringListEditor value={p.benefits} onChange={v => updateNestedItem('sponsorship', 'packages', i, { benefits: v })} placeholder="Benefit" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <FieldLabel>Download package URL (PDF)</FieldLabel>
+              <input className={INPUT_CLS} value={sponsorship.packagePdfUrl ?? ''} onChange={e => patchObj('sponsorship', { packagePdfUrl: e.target.value })} placeholder="https://…" />
+            </div>
+            <div>
+              <FieldLabel>Sponsorship contact email</FieldLabel>
+              <input className={INPUT_CLS} value={sponsorship.contactEmail ?? ''} onChange={e => patchObj('sponsorship', { contactEmail: e.target.value })} placeholder="sponsors@sanhoti.org" />
+            </div>
+          </div>
+          <div>
+            <FieldLabel>Contact note</FieldLabel>
+            <input className={INPUT_CLS} value={sponsorship.contactNote ?? ''} onChange={e => patchObj('sponsorship', { contactNote: e.target.value })} />
+          </div>
+        </EditorSection>
+
+        {/* ---- Section 11: Vendors ---- */}
+        <EditorSection title="11. Vendor & stall registration" sectionKey="vendors" visible={visible('vendors')} publicVisible={publicOnSite('vendors')} onToggle={toggleSection}>
+          <div>
+            <FieldLabel>Intro</FieldLabel>
+            <textarea className={INPUT_CLS} rows={2} value={vendors.intro ?? ''} onChange={e => patchObj('vendors', { intro: e.target.value })} />
+          </div>
+          <div>
+            <FieldLabel>Vendor types</FieldLabel>
+            <StringListEditor value={vendors.types} onChange={v => patchObj('vendors', { types: v })} placeholder="Food vendors, Clothing & jewelry, Nonprofits…" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {([
+              ['stallFees', 'Stall fees'],
+              ['provisions', 'Table & chair provisions'],
+              ['electricity', 'Electricity availability'],
+              ['setupTimes', 'Setup & closing times'],
+              ['insurance', 'Insurance requirements'],
+              ['deadline', 'Application deadline'],
+              ['formUrl', 'Registration form URL'],
+              ['contactEmail', 'Vendor contact email'],
+            ] as [string, string][]).map(([key, label]) => (
+              <div key={key}>
+                <FieldLabel>{label}</FieldLabel>
+                <input className={INPUT_CLS} value={(vendors as any)[key] ?? ''} onChange={e => patchObj('vendors', { [key]: e.target.value })} />
+              </div>
+            ))}
+          </div>
+        </EditorSection>
+
+        {/* ---- Section 12: Volunteer ---- */}
+        <EditorSection title="12. Volunteer" sectionKey="volunteer" visible={visible('volunteer')} publicVisible={publicOnSite('volunteer')} onToggle={toggleSection}>
+          <div>
+            <FieldLabel>Intro</FieldLabel>
+            <textarea className={INPUT_CLS} rows={2} value={volunteer.intro ?? ''} onChange={e => patchObj('volunteer', { intro: e.target.value })} />
+          </div>
+          <div>
+            <FieldLabel>Volunteer categories</FieldLabel>
+            <StringListEditor value={volunteer.categories} onChange={v => patchObj('volunteer', { categories: v })} placeholder="Puja, Food service, Parking, Photography…" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <FieldLabel>Registration form URL</FieldLabel>
+              <input className={INPUT_CLS} value={volunteer.formUrl ?? ''} onChange={e => patchObj('volunteer', { formUrl: e.target.value })} placeholder="https://…" />
+            </div>
+            <div>
+              <FieldLabel>Volunteer contact email</FieldLabel>
+              <input className={INPUT_CLS} value={volunteer.contactEmail ?? ''} onChange={e => patchObj('volunteer', { contactEmail: e.target.value })} placeholder="volunteer@sanhoti.org" />
+            </div>
+          </div>
+        </EditorSection>
+
+        {/* ---- Section 13: About ---- */}
+        <EditorSection title="13. About Sanhoti" sectionKey="about" visible={visible('about')} publicVisible={publicOnSite('about')} onToggle={toggleSection}>
+          <textarea className={INPUT_CLS} rows={4} value={content.about ?? ''} onChange={e => set('about', e.target.value)} placeholder="Sanhoti is a nonprofit Bengali cultural association serving Orange County and Southern California…" />
+        </EditorSection>
+
+        {/* ---- Section 14: Gallery ---- */}
+        <EditorSection title="14. Previous-year gallery" sectionKey="gallery" visible={visible('gallery')} publicVisible={publicOnSite('gallery')} onToggle={toggleSection}>
+          <div>
+            <FieldLabel>Intro</FieldLabel>
+            <textarea className={INPUT_CLS} rows={2} value={gallery.intro ?? ''} onChange={e => patchObj('gallery', { intro: e.target.value })} />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <FieldLabel>Link to full gallery (internal path)</FieldLabel>
+              <input className={INPUT_CLS} value={gallery.galleryLink ?? ''} onChange={e => patchObj('gallery', { galleryLink: e.target.value })} placeholder="/galleries" />
+            </div>
+            <div>
+              <FieldLabel>Highlight video embed URL</FieldLabel>
+              <input className={INPUT_CLS} value={gallery.videoUrl ?? ''} onChange={e => patchObj('gallery', { videoUrl: e.target.value })} placeholder="https://www.youtube.com/embed/…" />
+            </div>
+          </div>
+          <div>
+            <FieldLabel>Gallery images</FieldLabel>
+            <AssetImageList year={editYear} category="gallery" value={gallery.images} onChange={urls => patchObj('gallery', { images: urls })} />
+          </div>
+        </EditorSection>
+
+        {/* ---- Section 15: FAQ ---- */}
+        <EditorSection title="15. Frequently asked questions" sectionKey="faqs" visible={visible('faqs')} publicVisible={publicOnSite('faqs')} onToggle={toggleSection}>
+          <div className="flex justify-end">
+            <button type="button" onClick={addFaq} className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"><Plus className="w-4 h-4" /> Add FAQ</button>
+          </div>
+          <div className="space-y-4">
+            {content.faqs.map((faq, i) => (
+              <div key={i} className="border border-gray-200 rounded-lg p-3 flex items-start gap-2">
+                <div className="flex-1 space-y-2">
+                  <input className={INPUT_CLS} value={faq.question} onChange={e => setFaq(i, { question: e.target.value })} placeholder="Question" />
+                  <textarea className={INPUT_CLS} rows={2} value={faq.answer} onChange={e => setFaq(i, { answer: e.target.value })} placeholder="Answer" />
+                </div>
+                <button type="button" onClick={() => removeFaq(i)} className="text-red-500 hover:text-red-700 p-1" aria-label={`Remove FAQ ${i + 1}`}><Trash2 className="w-5 h-5" /></button>
+              </div>
+            ))}
+          </div>
+        </EditorSection>
+
+        {/* ---- Section 16: Contact ---- */}
+        <EditorSection title="16. Contact" sectionKey="contact" visible={visible('contact')} publicVisible={publicOnSite('contact')} onToggle={toggleSection}>
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <FieldLabel>Contacts</FieldLabel>
+              <button type="button" onClick={() => addItem('contacts', { role: '', name: '', email: '', phone: '' })} className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"><Plus className="w-4 h-4" /> Add contact</button>
+            </div>
+            <div className="space-y-2">
+              {arr('contacts').map((c: any, i: number) => (
+                <div key={i} className="flex flex-wrap gap-2 items-center">
+                  <input className={`${INPUT_CLS} flex-1 min-w-[7rem]`} value={c.role ?? ''} placeholder="General / Tickets / Sponsorship…" onChange={e => updateItem('contacts', i, { role: e.target.value })} />
+                  <input className={`${INPUT_CLS} flex-1 min-w-[7rem]`} value={c.name ?? ''} placeholder="Name (optional)" onChange={e => updateItem('contacts', i, { name: e.target.value })} />
+                  <input className={`${INPUT_CLS} flex-1 min-w-[7rem]`} value={c.email ?? ''} placeholder="Email" onChange={e => updateItem('contacts', i, { email: e.target.value })} />
+                  <input className={`${INPUT_CLS} flex-1 min-w-[7rem]`} value={c.phone ?? ''} placeholder="Phone" onChange={e => updateItem('contacts', i, { phone: e.target.value })} />
+                  <button type="button" onClick={() => removeItem('contacts', i)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {([
+              ['facebook', 'Facebook URL'],
+              ['instagram', 'Instagram URL'],
+              ['youtube', 'YouTube URL'],
+              ['whatsapp', 'WhatsApp URL'],
+            ] as [string, string][]).map(([key, label]) => (
+              <div key={key}>
+                <FieldLabel>{label}</FieldLabel>
+                <input className={INPUT_CLS} value={(social as any)[key] ?? ''} onChange={e => patchObj('social', { [key]: e.target.value })} placeholder="https://…" />
+              </div>
+            ))}
+          </div>
+        </EditorSection>
+
+        {/* ---- Sub-events (from linked event) ---- */}
+        <div
+          className={`rounded-xl shadow p-6 border ${
+            publicOnSite('subEvents') ? 'bg-green-50 border-green-200' : 'bg-white border-gray-100'
+          }`}
+        >
+          <div className="flex items-start justify-between gap-3 mb-1">
+            <h2 className="text-lg font-semibold text-gray-900">Sub-events on the Durga Puja page</h2>
+            <span
+              className={`text-xs font-medium shrink-0 ${
+                publicOnSite('subEvents') ? 'text-green-700' : 'text-gray-400'
+              }`}
+            >
+              {publicOnSite('subEvents') ? 'Live on site' : 'Not on site yet'}
+            </span>
+          </div>
+          <p className="text-gray-600 text-sm mb-4">
+            Turn a sub-event on to show it (with its banner) on the public page, in the “Programs &amp;
+            Events” strip. Sub-events come from the linked Durga Puja event.
+          </p>
+          {!content.linkedEventId ? (
+            <p className="text-sm text-gray-500">
+              No Durga Puja event is linked yet. Create or update a &quot;Durga Puja&quot; event with
+              sub-events, and they will appear here.
+            </p>
+          ) : subEvents.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              The linked event{' '}
+              <a href={`/events/${content.linkedEventId}`} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline">
+                {content.linkedEventId}
+              </a>{' '}
+              has no active sub-events yet.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {subEvents.map(se => {
+                const banner = subEventImages[se.sub_event_id];
+                const on = se.show_in_durga_puja_page === true;
+                return (
+                  <div key={se.sub_event_id} className="flex items-center gap-4 border border-gray-200 rounded-lg p-3">
+                    <div className="w-20 h-20 flex-shrink-0 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden">
+                      {banner ? (
+                        <img src={banner} alt={se.sub_event_name} className="w-full h-full object-cover" />
+                      ) : (
+                        <ImageIcon className="w-6 h-6 text-gray-300" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 truncate">{se.sub_event_name}</p>
+                      {se.sub_event_start_dt && (
+                        <p className="text-sm text-gray-500 flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5" />
+                          {formatDateWithTime(se.sub_event_start_dt)}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={on}
+                      disabled={togglingId === se.sub_event_id}
+                      onClick={() => toggleSubEventVisibility(se)}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${on ? 'bg-primary-600' : 'bg-gray-300'}`}
+                      title={on ? 'Shown on Durga Puja page' : 'Hidden'}
+                    >
+                      <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${on ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        <div className="pt-2">
+        <div className="pt-2 pb-10">
           <button
             type="button"
             onClick={handleSave}
@@ -591,94 +1590,7 @@ export default function AdminDurgaPuja() {
           >
             {saving ? 'Saving…' : 'Save Changes'}
           </button>
-          {content.updated_at && (
-            <span className="ml-3 text-sm text-gray-500">
-              Last updated {new Date(content.updated_at).toLocaleString()}
-            </span>
-          )}
         </div>
-      </div>
-
-      {/* Sub-events with banners shown on the public Durga Puja page */}
-      <div className="mt-8 bg-white rounded-xl shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">Sub-events on the Durga Puja page</h2>
-        <p className="text-gray-600 text-sm mb-4">
-          Turn a sub-event on to show it (with its banner) on the public{' '}
-          <code>{durgaPujaPagePath(editYear)}</code>{' '}
-          page, below Dates &amp; Venue. Sub-events come from the linked Durga Puja event.
-        </p>
-
-        {!content.linkedEventId ? (
-          <p className="text-sm text-gray-500">
-            No Durga Puja event is linked yet. Create or update a "Durga Puja" event with sub-events,
-            and they will appear here.
-          </p>
-        ) : subEvents.length === 0 ? (
-          <p className="text-sm text-gray-500">
-            The linked event{' '}
-            <a
-              href={`/events/${content.linkedEventId}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary-600 hover:text-primary-700 underline"
-            >
-              {content.linkedEventId}
-            </a>{' '}
-            has no active sub-events yet. Add sub-events to it from the Events admin.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {subEvents.map(se => {
-              const banner = subEventImages[se.sub_event_id];
-              const on = se.show_in_durga_puja_page === true;
-              return (
-                <div
-                  key={se.sub_event_id}
-                  className="flex items-center gap-4 border border-gray-200 rounded-lg p-3"
-                >
-                  <div className="w-20 h-20 flex-shrink-0 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden">
-                    {banner ? (
-                      <img src={banner} alt={se.sub_event_name} className="w-full h-full object-cover" />
-                    ) : (
-                      <ImageIcon className="w-6 h-6 text-gray-300" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">{se.sub_event_name}</p>
-                    {se.sub_event_start_dt && (
-                      <p className="text-sm text-gray-500 flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5" />
-                        {formatDateWithTime(se.sub_event_start_dt)}
-                      </p>
-                    )}
-                    {!banner && (
-                      <p className="text-xs text-amber-600 mt-0.5">
-                        No banner uploaded — upload one from the Events admin for the best look.
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={on}
-                    disabled={togglingId === se.sub_event_id}
-                    onClick={() => toggleSubEventVisibility(se)}
-                    className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
-                      on ? 'bg-primary-600' : 'bg-gray-300'
-                    }`}
-                    title={on ? 'Shown on Durga Puja page' : 'Hidden'}
-                  >
-                    <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-                        on ? 'translate-x-5' : 'translate-x-0.5'
-                      }`}
-                    />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
     </div>
   );

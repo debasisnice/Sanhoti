@@ -62,6 +62,7 @@ export class SeoPageController {
       const path = (req.path.replace(/^\/seo/, '') || '/').replace(/\/+$/, '') || '/';
 
       const eventMatch = path.match(/^\/events\/([^/]+)$/);
+      const subEventMatch = path.match(/^\/sub-events\/([^/]+)$/);
       const durgaYear = parseDurgaPujaPageYear(path);
       let html: string;
       if (path === '/') html = await this.homePage();
@@ -69,6 +70,7 @@ export class SeoPageController {
       else if (durgaYear) html = await this.durgaPujaPage(durgaYear);
       else if (path === '/events') html = await this.eventsPage();
       else if (eventMatch) html = (await this.eventPage(decodeURIComponent(eventMatch[1]))) ?? this.notFound(res);
+      else if (subEventMatch) html = (await this.subEventPage(decodeURIComponent(subEventMatch[1]))) ?? this.notFound(res);
       else html = this.staticPage(path);
 
       if (!res.headersSent) {
@@ -413,6 +415,116 @@ Poila Boishakh, Bengali concerts, picnics, and charity programs in Orange County
       body,
       ogType: 'article',
       jsonLd: [this.eventJsonLd(event, pageUrl)],
+    });
+  }
+
+  /** Dedicated crawlable page for an opted-in sub-event (e.g. a concert). */
+  private async subEventPage(id: string): Promise<string | null> {
+    const se = await this.subEventService.getSubEventById(id);
+    // Only opted-in, active sub-events get an indexable page.
+    if (!se || se.seo_page_enabled !== true || se.is_active === false) return null;
+
+    const name = se.sub_event_name || 'Event';
+    const type = se.seo_event_type || 'Event';
+    const area = (se.venue_area || '').trim();
+    const city = (se.venue_city || '').trim();
+    const region = (se.venue_region || 'CA').trim();
+    const performerNames = (se.performers || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+    const performerType = se.performer_type === 'MusicGroup' ? 'MusicGroup' : 'Person';
+    const date = fmtDate(se.sub_event_start_dt);
+    const path = `/sub-events/${se.sub_event_id}`;
+    const pageUrl = `${ORIGIN}${path}`;
+
+    let imageUrl: string | undefined;
+    try {
+      const paths = await this.subEventService.getSubEventImages(se.sub_event_id);
+      if (paths.length > 0) {
+        imageUrl = `${ORIGIN}/api/sub-events/${se.sub_event_id}/image/${encodeURIComponent(basename(paths[0]))}`;
+      }
+    } catch {
+      // image optional
+    }
+
+    const venueLine = [se.venue_name, se.venue_street, city && `${city}, ${region}`, se.venue_postal]
+      .filter(Boolean)
+      .join(', ');
+    const areaPhrase = area || 'Orange County';
+    const performerPhrase = performerNames.length ? performerNames.join(', ') : '';
+    const description =
+      stripHtml(se.event_description, 300) ||
+      `${performerPhrase ? `${performerPhrase} — ` : ''}${name} with Sanhoti Bengali Association in ${areaPhrase}${
+        city ? `, ${city}` : ''
+      }, ${region}${date ? ` on ${date}` : ''}.`;
+
+    const ticketHtml = se.ticket_url
+      ? `<p><a href="${esc(se.ticket_url)}" rel="noopener noreferrer">Buy tickets</a>${
+          se.ticket_price ? ` — ${esc(se.ticket_currency || 'USD')} ${esc(se.ticket_price)}` : ''
+        }</p>`
+      : '';
+
+    const body = `
+<h1>${esc(name)}${area ? ` in ${esc(area)}` : ''}</h1>
+<p>${esc(date)}${venueLine ? ` — ${esc(venueLine)}` : se.location ? ` — ${esc(se.location)}` : ''}</p>
+${performerNames.length ? `<p>Performing live: ${esc(performerNames.join(', '))}</p>` : ''}
+${imageUrl ? `<img src="${esc(imageUrl)}" alt="${esc(name)}${area ? ` — ${esc(area)}` : ''}">` : ''}
+<p>${esc(stripHtml(se.event_description, 2000) || description)}</p>
+${ticketHtml}
+<p><a href="/durga-puja">Sanhoti Durga Puja in Orange County</a> · <a href="/events">All Sanhoti events</a> ·
+<a href="/contact">Contact us</a></p>`;
+
+    const eventJsonLd: Record<string, unknown> = {
+      '@context': 'https://schema.org',
+      '@type': type,
+      name,
+      url: pageUrl,
+      startDate: se.sub_event_start_dt || undefined,
+      endDate: se.sub_event_end_dt || undefined,
+      eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+      eventStatus: 'https://schema.org/EventScheduled',
+      organizer: { '@type': 'Organization', name: ORG_NAME, url: ORIGIN },
+      location: {
+        '@type': 'Place',
+        name: se.venue_name || se.location || `${areaPhrase}, California`,
+        address: {
+          '@type': 'PostalAddress',
+          ...(se.venue_street ? { streetAddress: se.venue_street } : {}),
+          ...(city ? { addressLocality: city } : {}),
+          addressRegion: region,
+          ...(se.venue_postal ? { postalCode: se.venue_postal } : {}),
+          addressCountry: 'US',
+        },
+      },
+      description,
+      ...(imageUrl ? { image: [imageUrl] } : {}),
+      ...(performerNames.length
+        ? { performer: performerNames.map(n => ({ '@type': performerType, name: n })) }
+        : {}),
+      ...(se.ticket_url
+        ? {
+            offers: {
+              '@type': 'Offer',
+              url: se.ticket_url,
+              ...(se.ticket_price
+                ? { price: se.ticket_price, priceCurrency: se.ticket_currency || 'USD' }
+                : {}),
+              availability: 'https://schema.org/InStock',
+              ...(se.sub_event_start_dt ? { validFrom: se.sub_event_start_dt } : {}),
+            },
+          }
+        : { isAccessibleForFree: true }),
+    };
+
+    return this.layout({
+      title: `${name}${area ? ` in ${area}` : ''} | Sanhoti${city ? ` — ${city}, ${region}` : ''}`,
+      description,
+      path,
+      body,
+      ogType: 'article',
+      ogImage: imageUrl,
+      jsonLd: [this.orgJsonLd(), eventJsonLd],
     });
   }
 

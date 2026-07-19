@@ -33,7 +33,7 @@ export class SubEventService {
     is_active: boolean;
     event_id: string;
     rsvp_link?: string;
-  }): Promise<SubEvent> {
+  } & Partial<Omit<SubEvent, 'sub_event_id' | 'created_at' | 'updated_at'>>): Promise<SubEvent> {
     // Validate parent event exists
     const parentEvent = await this.eventDataHelper.findById(data.event_id);
     if (!parentEvent) {
@@ -63,16 +63,60 @@ export class SubEventService {
       throw new Error('Sub-event year must match parent event year');
     }
 
+    const {
+      sub_event_name,
+      sub_event_start_dt,
+      sub_event_end_dt,
+      year,
+      event_description,
+      location,
+      is_active,
+      event_id,
+      rsvp_link,
+      rsvp_enabled,
+      show_in_home_page,
+      show_in_durga_puja_page,
+      seo_page_enabled,
+      seo_event_type,
+      performers,
+      performer_type,
+      venue_name,
+      venue_city,
+      venue_region,
+      venue_street,
+      venue_postal,
+      venue_area,
+      ticket_url,
+      ticket_price,
+      ticket_currency,
+    } = data;
+
     return this.subEventDataHelper.create({
-      sub_event_name: data.sub_event_name,
-      sub_event_start_dt: data.sub_event_start_dt,
-      sub_event_end_dt: data.sub_event_end_dt,
-      year: data.year,
-      event_description: data.event_description,
-      location: data.location,
-      is_active: data.is_active,
-      event_id: data.event_id,
-      rsvp_link: data.rsvp_link,
+      sub_event_name,
+      sub_event_start_dt,
+      sub_event_end_dt,
+      year,
+      event_description,
+      location,
+      is_active,
+      event_id,
+      rsvp_link,
+      rsvp_enabled,
+      show_in_home_page,
+      show_in_durga_puja_page,
+      seo_page_enabled,
+      seo_event_type,
+      performers,
+      performer_type,
+      venue_name,
+      venue_city,
+      venue_region,
+      venue_street,
+      venue_postal,
+      venue_area,
+      ticket_url,
+      ticket_price,
+      ticket_currency,
     });
   }
 

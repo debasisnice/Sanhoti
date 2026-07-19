@@ -148,7 +148,15 @@ export class DurgaPujaPageService {
       clean.ticketsNote = patch.ticketsNote.trim();
     }
 
-    for (const field of ['showInternalBooking', 'showExternalTickets', 'ticketsOff'] as const) {
+    for (const field of [
+      'showInternalBooking',
+      'showExternalTickets',
+      'ticketsOff',
+      'showSavedTickets',
+      'showVenueDefaults',
+      'showYapsodyWidget',
+      'showDonateButtonInTickets',
+    ] as const) {
       const value = patch[field];
       if (value !== undefined) {
         if (typeof value !== 'boolean') {
@@ -187,6 +195,56 @@ export class DurgaPujaPageService {
       clean.ticketLinks = ticketLinks;
     }
 
+    if (patch.yapsodyEventId !== undefined) {
+      if (typeof patch.yapsodyEventId !== 'string' || patch.yapsodyEventId.length > 32) {
+        throw new Error('yapsodyEventId must be a string of at most 32 characters');
+      }
+      const id = patch.yapsodyEventId.trim();
+      clean.yapsodyEventId = id || undefined;
+    }
+
+    if (patch.yapsodyVenueCode !== undefined) {
+      if (typeof patch.yapsodyVenueCode !== 'string' || patch.yapsodyVenueCode.length > 64) {
+        throw new Error('yapsodyVenueCode must be a string of at most 64 characters');
+      }
+      const code = patch.yapsodyVenueCode.trim();
+      clean.yapsodyVenueCode = code || undefined;
+    }
+
+    // Extended 16-section content.
+    // edited by admins only; sanitize recursively (trim + length/array caps) and
+    // pass through rather than hand-validating every nested key.
+    const passthroughKeys: (keyof DurgaPujaPageContent)[] = [
+      'heroTagline',
+      'heroSubheadline',
+      'showCountdown',
+      'ctaButtons',
+      'highlights',
+      'expectedAttendance',
+      'scheduleNote',
+      'scheduleDays',
+      'artists',
+      'ticketing',
+      'venue',
+      'venues',
+      'food',
+      'puja',
+      'kids',
+      'sponsorship',
+      'vendors',
+      'volunteer',
+      'about',
+      'gallery',
+      'contacts',
+      'social',
+      'sections',
+    ];
+    for (const key of passthroughKeys) {
+      if (patch[key] !== undefined) {
+        (clean as Record<string, unknown>)[key] = sanitizeDeep(patch[key]);
+      }
+    }
+
     return this.dataHelper.update(year, clean);
   }
 
@@ -219,6 +277,46 @@ export class DurgaPujaPageService {
       console.error('Durga Puja page sync failed:', error);
     }
   }
+}
+
+const MAX_RICH_TEXT = 5000;
+const MAX_ARRAY_LEN = 60;
+const MAX_OBJECT_KEYS = 60;
+
+/**
+ * Recursively sanitize admin-supplied structured content: trim strings and cap
+ * their length, cap array/object sizes, and drop values of unexpected types.
+ * Keeps nesting shallow (depth-limited) to avoid pathological payloads.
+ */
+function sanitizeDeep(value: unknown, depth = 0): unknown {
+  if (depth > 6) return undefined;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed.length > MAX_RICH_TEXT ? trimmed.slice(0, MAX_RICH_TEXT) : trimmed;
+  }
+  if (typeof value === 'number') return Number.isFinite(value) ? value : undefined;
+  if (typeof value === 'boolean') return value;
+  if (Array.isArray(value)) {
+    return value
+      .slice(0, MAX_ARRAY_LEN)
+      .map(v => sanitizeDeep(v, depth + 1))
+      .filter(v => v !== undefined);
+  }
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    let count = 0;
+    for (const [k, v] of Object.entries(value)) {
+      if (count >= MAX_OBJECT_KEYS) break;
+      if (typeof k !== 'string' || k.length > 100) continue;
+      const sanitized = sanitizeDeep(v, depth + 1);
+      if (sanitized !== undefined) {
+        out[k] = sanitized;
+        count++;
+      }
+    }
+    return out;
+  }
+  return undefined;
 }
 
 function isHttpUrl(value: string): boolean {

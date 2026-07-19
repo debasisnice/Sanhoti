@@ -245,7 +245,38 @@ export interface SubEvent {
   rsvp_enabled?: boolean; // If true, allow RSVP (either external link or internal form)
   show_in_home_page?: boolean; // If true, show this sub-event on home page below priority event
   show_in_durga_puja_page?: boolean; // If true, show this sub-event (with banner) on the /durga-puja page
+
+  // ---- Dedicated SEO page (opt-in) ----
+  /** If true, generate a crawlable /sub-events/:id SEO page + sitemap entry. */
+  seo_page_enabled?: boolean;
+  /** schema.org Event subtype for structured data. Default 'Event'. */
+  seo_event_type?: SubEventSeoType;
+  /** Performer name(s), comma-separated (e.g. "Akriti Kakar"). Used for MusicEvent performer schema. */
+  performers?: string;
+  /** Performer schema type. Default 'Person' (solo artist); use 'MusicGroup' for a band. */
+  performer_type?: 'Person' | 'MusicGroup';
+  /** Structured venue for schema.org Place/PostalAddress. */
+  venue_name?: string;
+  venue_city?: string; // addressLocality, e.g. "Costa Mesa"
+  venue_region?: string; // addressRegion, e.g. "CA"
+  venue_street?: string; // streetAddress
+  venue_postal?: string; // postalCode
+  /** Broad area keyword for titles/description, e.g. "Orange County" or "Los Angeles". */
+  venue_area?: string;
+  /** Ticketing (schema.org offers). */
+  ticket_url?: string;
+  ticket_price?: string; // numeric string; empty = omit price
+  ticket_currency?: string; // default 'USD'
 }
+
+/** schema.org Event subtypes offered for sub-event SEO pages. */
+export type SubEventSeoType =
+  | 'Event'
+  | 'MusicEvent'
+  | 'TheaterEvent'
+  | 'Festival'
+  | 'ChildrensEvent'
+  | 'FoodEvent';
 
 /** Home page About / Vision / Mission / Purpose tab bodies (plain text; see site docs for formatting). */
 export interface HomePageStatements {
@@ -615,6 +646,219 @@ export interface TheaterMap {
   updated_at: string;
 }
 
+/** A call-to-action button in the Durga Puja hero (label + target). */
+export interface DurgaPujaCta {
+  label: string;
+  /** Anchor (#tickets), internal path (/book-your-seat), or external URL. */
+  href: string;
+  style?: 'primary' | 'secondary';
+}
+
+/** A highlight card (Section 2 — event highlights). */
+export interface DurgaPujaHighlight {
+  title: string;
+  text?: string;
+  /** lucide icon key (see FE map): sparkles, music, utensils, users, etc. */
+  icon?: string;
+  imageUrl?: string;
+}
+
+/** One row within a day's schedule. */
+export interface DurgaPujaScheduleItem {
+  time?: string;
+  title: string;
+  description?: string;
+}
+
+/** One day of the three-day schedule (Section 3). */
+export interface DurgaPujaScheduleDay {
+  dayLabel: string;
+  date?: string;
+  items: DurgaPujaScheduleItem[];
+}
+
+/** A featured artist (Section 4). */
+export interface DurgaPujaArtist {
+  name: string;
+  bio?: string;
+  dateTime?: string;
+  performanceType?: string;
+  ticketInfo?: string;
+  imageUrl?: string;
+  /** When true, the public card links to /sub-events/:subEventId (SEO detail page). */
+  linkSubEventPage?: boolean;
+  subEventId?: string;
+  /** YouTube or other video URL — embedded on the public artist card when possible. */
+  videoUrl?: string;
+}
+
+/** Structured ticket details (Section 5). */
+export interface DurgaPujaTicketing {
+  adultPrice?: string;
+  childPrice?: string;
+  weekendPackage?: string;
+  familyPackage?: string;
+  concertOnly?: string;
+  freeEntryAge?: string;
+  foodInclusion?: string;
+  refundPolicy?: string;
+  transferPolicy?: string;
+  maxCapacity?: string;
+  buttonUrl?: string;
+  buttonLabel?: string;
+  qrImageUrl?: string;
+}
+
+/** Venue & parking details (Section 6). */
+export interface DurgaPujaVenueInfo {
+  /** Event/venue label for additional venues, e.g. "Durga Puja" or "Subhadeep Concert". */
+  name?: string;
+  buildingName?: string;
+  streetAddress?: string;
+  mapsUrl?: string;
+  parkingLot?: string;
+  parkingCost?: string;
+  accessibleParking?: string;
+  recommendedEntrance?: string;
+  publicTransit?: string;
+  layoutNote?: string;
+  venueMapImageUrl?: string;
+}
+
+/** A single meal listing (Section 7). */
+export interface DurgaPujaMeal {
+  name: string;
+  description?: string;
+  hours?: string;
+}
+
+/** Food information (Section 7). */
+export interface DurgaPujaFoodInfo {
+  intro?: string;
+  meals?: DurgaPujaMeal[];
+  vegetarian?: string;
+  kidsMenu?: string;
+  allergyNotice?: string;
+  tokenProcess?: string;
+  photos?: string[];
+}
+
+/** A puja/ritual timing (Section 8). */
+export interface DurgaPujaTiming {
+  label: string;
+  time?: string;
+}
+
+/** Puja & religious information (Section 8). */
+export interface DurgaPujaPujaInfo {
+  intro?: string;
+  timings?: DurgaPujaTiming[];
+  priestInfo?: string;
+  itemsToBring?: string;
+  attireGuidance?: string;
+  rules?: string;
+}
+
+/** A children/family activity (Section 9). */
+export interface DurgaPujaKidsActivity {
+  title: string;
+  description?: string;
+}
+
+/** Children & family activities (Section 9). */
+export interface DurgaPujaKidsInfo {
+  intro?: string;
+  activities?: DurgaPujaKidsActivity[];
+  ageRequirements?: string;
+  supervisionPolicy?: string;
+}
+
+/** A sponsorship package (Section 10). */
+export interface DurgaPujaSponsorPackage {
+  name: string;
+  price?: string;
+  benefits?: string[];
+}
+
+/** Sponsorship information (Section 10). */
+export interface DurgaPujaSponsorshipInfo {
+  intro?: string;
+  packages?: DurgaPujaSponsorPackage[];
+  packagePdfUrl?: string;
+  contactEmail?: string;
+  contactNote?: string;
+}
+
+/** Vendor & stall registration (Section 11). */
+export interface DurgaPujaVendorInfo {
+  intro?: string;
+  types?: string[];
+  stallFees?: string;
+  provisions?: string;
+  electricity?: string;
+  setupTimes?: string;
+  insurance?: string;
+  deadline?: string;
+  contactEmail?: string;
+  formUrl?: string;
+}
+
+/** Volunteer registration (Section 12). */
+export interface DurgaPujaVolunteerInfo {
+  intro?: string;
+  categories?: string[];
+  contactEmail?: string;
+  formUrl?: string;
+}
+
+/** Previous-year gallery (Section 14). */
+export interface DurgaPujaGalleryInfo {
+  intro?: string;
+  galleryLink?: string;
+  videoUrl?: string;
+  images?: string[];
+}
+
+/** A contact row (Section 16). */
+export interface DurgaPujaContact {
+  role: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+}
+
+/** Social links (Section 16). */
+export interface DurgaPujaSocial {
+  facebook?: string;
+  instagram?: string;
+  youtube?: string;
+  whatsapp?: string;
+}
+
+/**
+ * Per-section visibility on the public page; omitted or true = shown.
+ * Keys map to the 16 sections plus the sub-events strip.
+ */
+export interface DurgaPujaSectionToggles {
+  hero?: boolean;
+  highlights?: boolean;
+  schedule?: boolean;
+  artists?: boolean;
+  tickets?: boolean;
+  venue?: boolean;
+  food?: boolean;
+  puja?: boolean;
+  kids?: boolean;
+  sponsorship?: boolean;
+  vendors?: boolean;
+  volunteer?: boolean;
+  about?: boolean;
+  gallery?: boolean;
+  faqs?: boolean;
+  contact?: boolean;
+  subEvents?: boolean;
+}
+
 /** Admin-editable content for a public /durga-puja-YYYY landing page. */
 export interface DurgaPujaPageContent {
   /** Celebration year this page represents (e.g. 2026 → /durga-puja-2026). */
@@ -648,8 +892,90 @@ export interface DurgaPujaPageContent {
   showInternalBooking?: boolean;
   showExternalTickets?: boolean;
   ticketsOff?: boolean;
+  /**
+   * Show the saved ticket pricing configured on the Book Your Seat admin page
+   * (entire-event category prices, child age range, daily meal pricing, sub-event
+   * ticketing). Default false — only shown when the admin checks the box.
+   */
+  showSavedTickets?: boolean;
+  /** Embed the Yapsody event-list widget in the Tickets section (default false). */
+  showYapsodyWidget?: boolean;
+  /** Yapsody widget event id (e.g. "212239" → div id yapwid-event-212239). */
+  yapsodyEventId?: string;
+  /** Yapsody widget data-venue-code (e.g. "sanhoti"). */
+  yapsodyVenueCode?: string;
+  /** Show a Donate button in the Tickets section (links to /donate). */
+  showDonateButtonInTickets?: boolean;
   /** Event this page's dates/venue were last auto-synced from (name contains "Durga"). */
   linkedEventId?: string;
+
+  // ---- Section 1: Hero ----
+  /** Short hero message under the H1 (e.g. "Join Sanhoti for three unforgettable days…"). */
+  heroTagline?: string;
+  /** Hero sub-headline, e.g. "Akriti Kakar & Subhadeep Das Live". */
+  heroSubheadline?: string;
+  /** Show the countdown to the start date in the hero (default true). */
+  showCountdown?: boolean;
+  /** Hero call-to-action buttons (Buy Tickets / View Schedule / Sponsor / Volunteer). */
+  ctaButtons?: DurgaPujaCta[];
+
+  // ---- Section 2: Highlights ----
+  highlights?: DurgaPujaHighlight[];
+  /** e.g. "Approximately 1,000 attendees". */
+  expectedAttendance?: string;
+
+  // ---- Section 3: Schedule ----
+  scheduleNote?: string;
+  scheduleDays?: DurgaPujaScheduleDay[];
+
+  // ---- Section 4: Artists ----
+  artists?: DurgaPujaArtist[];
+
+  // ---- Section 5: Ticketing details ----
+  ticketing?: DurgaPujaTicketing;
+
+  // ---- Section 6: Venue & parking ----
+  venue?: DurgaPujaVenueInfo;
+  /** Additional named venues (e.g. a concert at a different location). */
+  venues?: DurgaPujaVenueInfo[];
+  /**
+   * Show the venue name/address auto-pulled from the linked event and the
+   * sub-event venue list. Default true. Uncheck to show only the venues the admin
+   * adds explicitly (the Venue section itself still shows).
+   */
+  showVenueDefaults?: boolean;
+
+  // ---- Section 7: Food ----
+  food?: DurgaPujaFoodInfo;
+
+  // ---- Section 8: Puja & religious ----
+  puja?: DurgaPujaPujaInfo;
+
+  // ---- Section 9: Children & family ----
+  kids?: DurgaPujaKidsInfo;
+
+  // ---- Section 10: Sponsorship ----
+  sponsorship?: DurgaPujaSponsorshipInfo;
+
+  // ---- Section 11: Vendors & stalls ----
+  vendors?: DurgaPujaVendorInfo;
+
+  // ---- Section 12: Volunteer ----
+  volunteer?: DurgaPujaVolunteerInfo;
+
+  // ---- Section 13: About Sanhoti ----
+  about?: string;
+
+  // ---- Section 14: Previous-year gallery ----
+  gallery?: DurgaPujaGalleryInfo;
+
+  // ---- Section 16: Contact ----
+  contacts?: DurgaPujaContact[];
+  social?: DurgaPujaSocial;
+
+  /** Per-section visibility toggles. */
+  sections?: DurgaPujaSectionToggles;
+
   updated_at: string;
 }
 
@@ -670,6 +996,10 @@ export interface Settings {
     joinUs: boolean;
   };
   zellePhoneNumber?: string;
+  /** Stripe Buy Button on /donate (publishable key is safe to expose publicly). */
+  showStripeDonateButton?: boolean;
+  stripeBuyButtonId?: string;
+  stripePublishableKey?: string;
   facebookLink?: string;
   whatsappLink?: string;
   instagramLink?: string;

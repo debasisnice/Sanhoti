@@ -303,3 +303,55 @@ export function findDurgaPujaImageFile(year: number): string | null {
 export function durgaPujaPageImageExists(year: number): boolean {
   return findDurgaPujaImageFile(year) !== null;
 }
+
+/**
+ * Generic per-year, per-category asset storage for the extended Durga Puja page
+ * (artist photos, food photos, venue map, gallery images, QR codes, etc.).
+ * Files live under DurgaPuja_Page/<year>/assets/<category>/.
+ */
+export const DURGA_PUJA_ASSET_CATEGORIES = [
+  'artists',
+  'food',
+  'venue',
+  'gallery',
+  'highlights',
+  'sponsors',
+  'qr',
+  'misc',
+] as const;
+export type DurgaPujaAssetCategory = (typeof DURGA_PUJA_ASSET_CATEGORIES)[number];
+
+export function isDurgaPujaAssetCategory(value: string): value is DurgaPujaAssetCategory {
+  return (DURGA_PUJA_ASSET_CATEGORIES as readonly string[]).includes(value);
+}
+
+/** Absolute directory for a category's assets (created if missing). */
+export function durgaPujaAssetDir(year: number, category: DurgaPujaAssetCategory): string {
+  const dir = join(IMAGE_ROOT, String(year), 'assets', category);
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+/** List asset filenames (images only) for a category, sorted newest-first. */
+export function listDurgaPujaAssets(year: number, category: DurgaPujaAssetCategory): string[] {
+  const dir = join(IMAGE_ROOT, String(year), 'assets', category);
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter(f => IMAGE_RE.test(f) && statSync(join(dir, f)).isFile())
+    .sort((a, b) => statSync(join(dir, b)).mtimeMs - statSync(join(dir, a)).mtimeMs);
+}
+
+/** Resolve a single asset file path, or null if it does not exist / is unsafe. */
+export function findDurgaPujaAssetFile(
+  year: number,
+  category: DurgaPujaAssetCategory,
+  filename: string
+): string | null {
+  // Guard against path traversal — only a bare filename is allowed.
+  if (!filename || filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
+    return null;
+  }
+  const file = join(IMAGE_ROOT, String(year), 'assets', category, filename);
+  if (existsSync(file) && statSync(file).isFile() && IMAGE_RE.test(file)) return file;
+  return null;
+}
