@@ -63,8 +63,8 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
-        // Don't handle navigation for user-manual (loaded in iframe)
-        navigateFallbackDenylist: [/^\/api\/user-manual/],
+        // Never serve the SPA shell for API routes (e.g. direct PDF URLs in a new tab).
+        navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
