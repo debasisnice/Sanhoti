@@ -27,6 +27,43 @@ function stripHtml(s: string | undefined | null, maxLen = 300): string {
   return t.length <= maxLen ? t : `${t.slice(0, maxLen - 1).trimEnd()}…`;
 }
 
+/**
+ * Best-effort parse of a free-text artist slot like "Friday, Oct-09 8:00 PM" or
+ * "Sat, Oct 10 · 8:00 PM" into an ISO 8601 datetime, using the celebration year.
+ * Returns undefined if it can't confidently parse (so we simply omit startDate).
+ */
+function parseArtistDateTime(raw: string | undefined, year: number | undefined): string | undefined {
+  const s = String(raw ?? '').trim();
+  if (!s) return undefined;
+  const months: Record<string, number> = {
+    jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
+    jul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12,
+  };
+  const mMatch = s.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*/i);
+  if (!mMatch) return undefined;
+  const month = months[mMatch[1].toLowerCase()];
+  const dMatch = s.slice((mMatch.index ?? 0) + mMatch[0].length).match(/(\d{1,2})/);
+  if (!dMatch) return undefined;
+  const day = parseInt(dMatch[1], 10);
+  if (!day || day > 31) return undefined;
+
+  let hh = 0;
+  let mm = 0;
+  const tMatch = s.match(/(\d{1,2}):(\d{2})\s*(am|pm)?/i);
+  if (tMatch) {
+    hh = parseInt(tMatch[1], 10);
+    mm = parseInt(tMatch[2], 10);
+    const ap = (tMatch[3] ?? '').toLowerCase();
+    if (ap === 'pm' && hh < 12) hh += 12;
+    if (ap === 'am' && hh === 12) hh = 0;
+  }
+  const yr = year && year >= 2000 ? year : new Date().getFullYear();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  // Pacific time: PDT (-07:00) roughly Mar–early Nov, PST (-08:00) otherwise.
+  const offset = month >= 4 && month <= 10 ? '-07:00' : '-08:00';
+  return `${yr}-${pad(month)}-${pad(day)}T${pad(hh)}:${pad(mm)}:00${offset}`;
+}
+
 function fmtDate(iso: string | undefined): string {
   if (!iso) return '';
   const d = new Date(iso);
@@ -310,6 +347,58 @@ Bengali concerts with visiting artists, and home-style Bengali bhog and food sta
 ${faqsHtml}
 <p>${c.linkedEventId ? `<a href="/events/${esc(c.linkedEventId)}">View the event &amp; RSVP</a> · ` : ''}<a href="/events">All Sanhoti events</a> · <a href="/galleries">Photos from past celebrations</a> ·
 <a href="/contact">Contact us</a>${previousYear ? ` · <a href="${esc(durgaPujaPagePath(previousYear))}">Durga Puja ${previousYear}</a>` : ''}</p>`;
+
+    // Real featured-artist names (from the admin Artists section) power the Event
+    // "performer" schema; fall back to a generic performer only when none are set.
+    const artists = (c.artists ?? []).filter(a => (a?.name ?? '').trim());
+    const artistNames = artists.map(a => a.name.trim());
+    const performer =
+      artistNames.length > 0
+        ? artistNames.map(name => ({ '@type': 'Person', name }))
+        : { '@type': 'PerformingGroup', name: 'Visiting Bengali artists and Sanhoti community performers' };
+
+    // Each featured artist becomes a nested dated concert (subEvent) so the schema
+    // carries who performs and when.
+    const subEventNodes: Record<string, unknown>[] = artists.map(a => {
+      const name = a.name.trim();
+      const start = parseArtistDateTime(a.dateTime, c.year);
+      const imageUrl = (a.imageUrl ?? '').trim();
+      const node: Record<string, unknown> = {
+        '@type': 'MusicEvent',
+        name: a.performanceType?.trim()
+          ? `${name} — ${a.performanceType.trim()}`
+          : `${name} — Live at Sanhoti Durga Puja ${year}`,
+        ...(start ? { startDate: start } : {}),
+        eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+        eventStatus: 'https://schema.org/EventScheduled',
+        organizer: { '@type': 'Organization', name: ORG_NAME, url: ORIGIN },
+        performer: { '@type': 'Person', name },
+        location: {
+          '@type': 'Place',
+          name: c.venueName,
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: c.venueCity,
+            addressRegion: 'CA',
+            addressCountry: 'US',
+          },
+        },
+        ...(a.bio?.trim() ? { description: stripHtml(a.bio, 300) } : {}),
+        ...(imageUrl ? { image: [imageUrl.startsWith('http') ? imageUrl : `${ORIGIN}${imageUrl}`] } : {}),
+        ...(ticketLinks.length > 0
+          ? {
+              offers: {
+                '@type': 'Offer',
+                url: ticketLinks[0].url,
+                availability: 'https://schema.org/InStock',
+                ...(start ? { validFrom: start } : c.startDate ? { validFrom: c.startDate } : {}),
+              },
+            }
+          : {}),
+      };
+      return node;
+    });
+
     return this.layout({
       title: `Durga Puja in Orange County ${year} | Sanhoti — ${c.venueCity}, CA`,
       description: `Celebrate Durga Puja ${year} in Orange County with Sanhoti — puja, pushpanjali, dhunuchi naach, Bengali food, and concerts. Near Irvine and ${c.venueCity}, open to all of Southern California.`,
@@ -329,10 +418,8 @@ ${faqsHtml}
           eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
           eventStatus: 'https://schema.org/EventScheduled',
           organizer: { '@type': 'Organization', name: ORG_NAME, url: ORIGIN },
-          performer: {
-            '@type': 'PerformingGroup',
-            name: 'Visiting Bengali artists and Sanhoti community performers',
-          },
+          performer,
+          ...(subEventNodes.length > 0 ? { subEvent: subEventNodes } : {}),
           offers:
             ticketLinks.length > 0
               ? ticketLinks.map(t => ({
