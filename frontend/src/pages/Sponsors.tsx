@@ -16,6 +16,7 @@ export default function Sponsors() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedImage, setSelectedImage] = useState<SponsorImage | null>(null);
   const [prospectusYear, setProspectusYear] = useState<number | null>(null);
+  const [prospectusVersion, setProspectusVersion] = useState<number>(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -55,8 +56,11 @@ export default function Sponsors() {
       try {
         const { activeYear } = await durgaPujaPageAPI.listYears();
         const year = activeYear || new Date().getFullYear();
-        const { hasPdf } = await durgaPujaPageAPI.hasSponsorshipPdf(year);
-        if (!cancelled) setProspectusYear(hasPdf ? year : null);
+        const { hasPdf, updatedAt } = await durgaPujaPageAPI.hasSponsorshipPdf(year);
+        if (!cancelled) {
+          setProspectusYear(hasPdf ? year : null);
+          setProspectusVersion(updatedAt || 0);
+        }
       } catch {
         if (!cancelled) setProspectusYear(null);
       }
@@ -313,7 +317,7 @@ export default function Sponsors() {
         {prospectusYear && (
           <div className="mt-6 flex justify-center">
             <a
-              href={durgaPujaPageAPI.sponsorshipPdfUrl(prospectusYear)}
+              href={`${durgaPujaPageAPI.sponsorshipPdfUrl(prospectusYear)}?v=${prospectusVersion}`}
               target="_blank"
               rel="noopener noreferrer"
               className="group inline-flex items-center gap-3 bg-white border border-yellow-200 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all p-4"

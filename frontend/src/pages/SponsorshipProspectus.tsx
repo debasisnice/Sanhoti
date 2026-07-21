@@ -95,6 +95,7 @@ function ProspectusPdfViewer({ pdfUrl }: { pdfUrl: string }) {
 export default function SponsorshipProspectus() {
   const [year, setYear] = useState<number | null>(null);
   const [hasPdf, setHasPdf] = useState<boolean | null>(null);
+  const [pdfVersion, setPdfVersion] = useState<number>(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -109,8 +110,11 @@ export default function SponsorshipProspectus() {
       if (cancelled) return;
       setYear(resolvedYear);
       try {
-        const { hasPdf: exists } = await durgaPujaPageAPI.hasSponsorshipPdf(resolvedYear);
-        if (!cancelled) setHasPdf(exists);
+        const { hasPdf: exists, updatedAt } = await durgaPujaPageAPI.hasSponsorshipPdf(resolvedYear);
+        if (!cancelled) {
+          setHasPdf(exists);
+          setPdfVersion(updatedAt || 0);
+        }
       } catch {
         if (!cancelled) setHasPdf(false);
       }
@@ -120,7 +124,9 @@ export default function SponsorshipProspectus() {
     };
   }, []);
 
-  const pdfUrl = year ? durgaPujaPageAPI.sponsorshipPdfUrl(year) : '';
+  // Version the URL by the file's upload time so a replaced PDF (or a stale cached
+  // HTML fallback from before the file existed) is never served from cache.
+  const pdfUrl = year ? `${durgaPujaPageAPI.sponsorshipPdfUrl(year)}?v=${pdfVersion}` : '';
 
   return (
     <div className="py-12 pb-24">

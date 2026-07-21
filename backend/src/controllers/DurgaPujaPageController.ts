@@ -270,7 +270,12 @@ export class DurgaPujaPageController {
   async hasSponsorshipPdf(req: AuthRequest, res: Response): Promise<void> {
     try {
       const year = parseYearParam(req.params.year);
-      res.json({ hasPdf: year ? durgaPujaSponsorshipPdfExists(year) : false });
+      if (year && durgaPujaSponsorshipPdfExists(year)) {
+        const stat = statSync(durgaPujaSponsorshipPdfPath(year));
+        res.json({ hasPdf: true, updatedAt: Math.floor(stat.mtimeMs) });
+      } else {
+        res.json({ hasPdf: false });
+      }
     } catch {
       res.json({ hasPdf: false });
     }

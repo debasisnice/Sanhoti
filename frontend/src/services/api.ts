@@ -1893,7 +1893,7 @@ export const durgaPujaPageAPI = {
   },
   // Sponsorship prospectus PDF (one per year).
   sponsorshipPdfUrl: (year: number): string => `/api/durga-puja-page/${year}/sponsorship-pdf`,
-  hasSponsorshipPdf: async (year: number): Promise<{ hasPdf: boolean }> => {
+  hasSponsorshipPdf: async (year: number): Promise<{ hasPdf: boolean; updatedAt?: number }> => {
     const response = await api.get(`/durga-puja-page/${year}/sponsorship-pdf/has`);
     return response.data;
   },

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { settingsAPI } from '../services/api';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin, Star } from 'lucide-react';
 
 export default function Footer() {
   const [facebookLink, setFacebookLink] = useState<string>('https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr');
@@ -149,6 +149,17 @@ export default function Footer() {
                   </a>
                 </li>
               )}
+              <li>
+                <a
+                  href="https://g.page/r/CUvBja7zNmgjEBM/review"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 hover:text-white transition-colors"
+                >
+                  <Star className="w-4 h-4" />
+                  <span>Review us on Google</span>
+                </a>
+              </li>
             </ul>
           </div>
         </div>
