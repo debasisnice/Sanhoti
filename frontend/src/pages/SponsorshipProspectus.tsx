@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Download, Mail, FileText } from 'lucide-react';
@@ -17,17 +17,27 @@ function ProspectusPdfViewer({ pdfUrl }: { pdfUrl: string }) {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [pageWidth, setPageWidth] = useState(800);
+  const [pageWidth, setPageWidth] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const updateWidth = () => setPageWidth(Math.min(900, window.innerWidth - 48));
+    const el = containerRef.current;
+    if (!el) return;
+
+    const updateWidth = () => {
+      const styles = getComputedStyle(el);
+      const paddingX = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
+      setPageWidth(Math.max(280, Math.floor(el.clientWidth - paddingX)));
+    };
+
     updateWidth();
-    window.addEventListener('resize', updateWidth);
-    return () => window.removeEventListener('resize', updateWidth);
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 sm:p-4">
+    <div ref={containerRef} className="rounded-xl border border-gray-200 bg-gray-50 p-3 sm:p-4 w-full">
       {loading && (
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600" />
@@ -60,8 +70,8 @@ function ProspectusPdfViewer({ pdfUrl }: { pdfUrl: string }) {
         }}
         loading={null}
       >
-        {numPages && (
-          <div className="space-y-4">
+        {numPages && pageWidth && (
+          <div className="space-y-4 w-full">
             {Array.from({ length: numPages }, (_, index) => (
               <Page
                 key={`page_${index + 1}`}
@@ -69,7 +79,7 @@ function ProspectusPdfViewer({ pdfUrl }: { pdfUrl: string }) {
                 width={pageWidth}
                 renderTextLayer={false}
                 renderAnnotationLayer={false}
-                className="mx-auto shadow-md bg-white"
+                className="w-full shadow-md bg-white"
               />
             ))}
           </div>
