@@ -88,6 +88,24 @@ function lowestTicketPrice(t?: {
   return nums.length ? String(Math.min(...nums)) : undefined;
 }
 
+/** Add whole hours to an ISO datetime, preserving its numeric timezone offset. */
+function addHoursToIso(iso: string | undefined, hours: number): string | undefined {
+  if (!iso) return undefined;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return undefined;
+  const offMatch = iso.match(/([+-]\d{2}:\d{2})$/);
+  const offset = offMatch ? offMatch[1] : '+00:00';
+  const sign = offset[0] === '-' ? -1 : 1;
+  const [oh, om] = offset.slice(1).split(':').map(Number);
+  const offsetMs = sign * (oh * 60 + om) * 60000;
+  const local = new Date(d.getTime() + hours * 3600000 + offsetMs);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return (
+    `${local.getUTCFullYear()}-${pad(local.getUTCMonth() + 1)}-${pad(local.getUTCDate())}` +
+    `T${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}:00${offset}`
+  );
+}
+
 function fmtDate(iso: string | undefined): string {
   if (!iso) return '';
   const d = new Date(iso);
@@ -387,6 +405,7 @@ ${faqsHtml}
     const subEventNodes: Record<string, unknown>[] = artists.map(a => {
       const name = a.name.trim();
       const start = parseArtistDateTime(a.dateTime, c.year);
+      const end = addHoursToIso(start, 3);
       const imageUrl = (a.imageUrl ?? '').trim();
       const node: Record<string, unknown> = {
         '@type': 'MusicEvent',
@@ -394,6 +413,7 @@ ${faqsHtml}
           ? `${name} — ${a.performanceType.trim()}`
           : `${name} — Live at Sanhoti Durga Puja ${year}`,
         ...(start ? { startDate: start } : {}),
+        ...(end ? { endDate: end } : {}),
         eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
         eventStatus: 'https://schema.org/EventScheduled',
         organizer: { '@type': 'Organization', name: ORG_NAME, url: ORIGIN },
