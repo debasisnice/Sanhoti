@@ -64,6 +64,30 @@ function parseArtistDateTime(raw: string | undefined, year: number | undefined):
   return `${yr}-${pad(month)}-${pad(day)}T${pad(hh)}:${pad(mm)}:00${offset}`;
 }
 
+/**
+ * Lowest positive numeric ticket price across the admin's free-text ticketing
+ * fields (e.g. "$50", "40"), used as a "from" price on the Event offer so the
+ * optional price/priceCurrency schema fields are populated.
+ */
+function lowestTicketPrice(t?: {
+  adultPrice?: string;
+  childPrice?: string;
+  concertOnly?: string;
+  weekendPackage?: string;
+  familyPackage?: string;
+}): string | undefined {
+  if (!t) return undefined;
+  const nums = [t.adultPrice, t.childPrice, t.concertOnly, t.weekendPackage, t.familyPackage]
+    .map(f => {
+      const m = String(f ?? '')
+        .replace(/,/g, '')
+        .match(/\d+(\.\d+)?/);
+      return m ? parseFloat(m[0]) : NaN;
+    })
+    .filter(n => Number.isFinite(n) && n > 0);
+  return nums.length ? String(Math.min(...nums)) : undefined;
+}
+
 function fmtDate(iso: string | undefined): string {
   if (!iso) return '';
   const d = new Date(iso);
@@ -350,6 +374,7 @@ ${faqsHtml}
 
     // Real featured-artist names (from the admin Artists section) power the Event
     // "performer" schema; fall back to a generic performer only when none are set.
+    const ticketPrice = lowestTicketPrice(c.ticketing);
     const artists = (c.artists ?? []).filter(a => (a?.name ?? '').trim());
     const artistNames = artists.map(a => a.name.trim());
     const performer =
@@ -391,6 +416,7 @@ ${faqsHtml}
                 '@type': 'Offer',
                 url: ticketLinks[0].url,
                 availability: 'https://schema.org/InStock',
+                ...(ticketPrice ? { price: ticketPrice, priceCurrency: 'USD' } : {}),
                 ...(start ? { validFrom: start } : c.startDate ? { validFrom: c.startDate } : {}),
               },
             }
@@ -427,6 +453,7 @@ ${faqsHtml}
                   name: t.label,
                   url: t.url,
                   availability: 'https://schema.org/InStock',
+                  ...(ticketPrice ? { price: ticketPrice, priceCurrency: 'USD' } : {}),
                   ...(c.startDate ? { validFrom: c.startDate } : {}),
                 }))
               : {
