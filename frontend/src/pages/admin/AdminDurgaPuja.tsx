@@ -1464,6 +1464,63 @@ export default function AdminDurgaPuja() {
           </div>
         </EditorSection>
 
+        {/* ---- Sponsor showcase (logos/flyers) ---- */}
+        <EditorSection title="Sponsors (logos & flyers)" sectionKey="sponsorShowcase" visible={visible('sponsorShowcase')} publicVisible={publicOnSite('sponsorShowcase')} onToggle={toggleSection} toggleLabel="Show the sponsor logos/flyers at the bottom of the public page">
+          <p className="text-xs text-gray-500">
+            Separate from the site-wide Sponsors page. Add each sponsor with a title, a tier, and one or
+            more logo/flyer images. They appear grouped by tier (Presenting → Platinum → Gold → Silver)
+            at the bottom of the {content.year} page.
+          </p>
+          <div className="space-y-4">
+            {arr('sponsorShowcase').map((s: any, i: number) => (
+              <div key={i} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                <div className="flex gap-2 items-center">
+                  <input
+                    className={`${INPUT_CLS} flex-1`}
+                    value={s.title ?? ''}
+                    placeholder="Sponsor title / name"
+                    onChange={e => updateItem('sponsorShowcase', i, { title: e.target.value })}
+                  />
+                  <select
+                    className="border border-gray-300 rounded-lg px-2 py-2 text-sm"
+                    value={s.tier ?? 'GOLD'}
+                    onChange={e => updateItem('sponsorShowcase', i, { tier: e.target.value })}
+                  >
+                    <option value="PRESENTING">Presenting</option>
+                    <option value="PLATINUM">Platinum</option>
+                    <option value="GOLD">Gold</option>
+                    <option value="SILVER">Silver</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => removeItem('sponsorShowcase', i)}
+                    className="text-red-500 hover:text-red-700 p-1"
+                    aria-label={`Remove sponsor ${i + 1}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+                <div>
+                  <FieldLabel>Logo / flyer images</FieldLabel>
+                  <AssetImageList
+                    year={editYear}
+                    category="sponsors"
+                    value={s.images}
+                    onChange={urls => updateItem('sponsorShowcase', i, { images: urls })}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => addItem('sponsorShowcase', { title: '', tier: 'GOLD', images: [] })}
+            className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"
+          >
+            <Plus className="w-4 h-4" /> Add sponsor
+          </button>
+        </EditorSection>
+
         {/* ---- Section 11: Vendors ---- */}
         <EditorSection title="11. Vendor & stall registration" sectionKey="vendors" visible={visible('vendors')} publicVisible={publicOnSite('vendors')} onToggle={toggleSection}>
           <div>

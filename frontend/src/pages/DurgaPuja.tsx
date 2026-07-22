@@ -102,6 +102,14 @@ const HIGHLIGHT_ICONS: Record<string, React.ComponentType<{ className?: string }
   party: PartyPopper,
 };
 
+/** Sponsor tiers, most prominent first, with a gradient accent per tier. */
+const SPONSOR_TIERS: { key: string; label: string; accent: string }[] = [
+  { key: 'PRESENTING', label: 'Presenting Sponsor', accent: 'from-orange-500 to-primary-600' },
+  { key: 'PLATINUM', label: 'Platinum Sponsors', accent: 'from-slate-400 to-slate-500' },
+  { key: 'GOLD', label: 'Gold Sponsors', accent: 'from-amber-400 to-yellow-500' },
+  { key: 'SILVER', label: 'Silver Sponsors', accent: 'from-gray-300 to-gray-400' },
+];
+
 const DEFAULT_HIGHLIGHTS: DurgaPujaHighlight[] = [
   {
     icon: 'sparkles',
@@ -624,6 +632,9 @@ export default function DurgaPuja() {
   const gallery = content.gallery;
   const contacts = content.contacts ?? [];
   const social = content.social;
+  const sponsorEntries = (content.sponsorShowcase ?? []).filter(
+    s => s && (s.title || (s.images && s.images.length))
+  );
 
   // Saved ticket pricing from the Book Your Seat admin page (shown only when the
   // admin ticks "Show saved tickets").
@@ -1601,6 +1612,55 @@ export default function DurgaPuja() {
                   )}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* ---- Sponsor showcase (logos/flyers by tier) ---- */}
+        {show('sponsorShowcase') && sponsorEntries.length > 0 && (
+          <div className="mb-10">
+            <SectionHeading kicker="With Gratitude">Our Sponsors</SectionHeading>
+            <div className="space-y-8">
+              {SPONSOR_TIERS.map(tier => {
+                const inTier = sponsorEntries.filter(s => s.tier === tier.key);
+                if (inTier.length === 0) return null;
+                return (
+                  <div key={tier.key}>
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className={`h-1 w-8 rounded-full bg-gradient-to-r ${tier.accent}`} />
+                      <h3 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-700">
+                        {tier.label}
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-6">
+                      {inTier.map((s, i) => (
+                        <div key={i} className="flex flex-col">
+                          <div className="bg-white rounded-xl border border-yellow-200/70 shadow-sm overflow-hidden transition-shadow hover:shadow-md">
+                            {(s.images ?? []).length > 0 ? (
+                              (s.images ?? []).map((src, ii) => (
+                                <img
+                                  key={ii}
+                                  src={src}
+                                  alt={s.title || 'Sponsor'}
+                                  className="w-full h-72 object-contain bg-white"
+                                  loading="lazy"
+                                />
+                              ))
+                            ) : (
+                              <div className="w-full h-72 flex items-center justify-center text-gray-300">
+                                <ImageIcon className="w-8 h-8" />
+                              </div>
+                            )}
+                          </div>
+                          {s.title && (
+                            <p className="mt-2 text-center font-semibold text-gray-900">{s.title}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

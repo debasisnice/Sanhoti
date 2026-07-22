@@ -961,6 +961,12 @@ export interface DurgaPujaSponsorshipInfo {
   contactNote?: string;
   buttonUrl?: string;
 }
+export type DurgaPujaSponsorTier = 'PRESENTING' | 'PLATINUM' | 'GOLD' | 'SILVER';
+export interface DurgaPujaSponsorEntry {
+  title: string;
+  tier: DurgaPujaSponsorTier;
+  images: string[];
+}
 export interface DurgaPujaVendorInfo {
   intro?: string;
   types?: string[];
@@ -1008,6 +1014,7 @@ export interface DurgaPujaSectionToggles {
   puja?: boolean;
   kids?: boolean;
   sponsorship?: boolean;
+  sponsorShowcase?: boolean;
   vendors?: boolean;
   volunteer?: boolean;
   about?: boolean;
@@ -1085,6 +1092,7 @@ export interface DurgaPujaPageContent {
 
   // Section 10: Sponsorship
   sponsorship?: DurgaPujaSponsorshipInfo;
+  sponsorShowcase?: DurgaPujaSponsorEntry[];
 
   // Section 11: Vendors & stalls
   vendors?: DurgaPujaVendorInfo;

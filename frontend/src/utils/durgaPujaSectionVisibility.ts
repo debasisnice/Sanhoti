@@ -91,6 +91,10 @@ export function isDurgaPujaSectionPublic(
       return Boolean(kids && (kids.intro || (kids.activities && kids.activities.length)));
     case 'vendors':
       return Boolean(vendors && (vendors.intro || (vendors.types && vendors.types.length)));
+    case 'sponsorShowcase':
+      return (content.sponsorShowcase ?? []).some(
+        s => s && (s.title || (s.images && s.images.length))
+      );
     case 'about':
       return Boolean(content.about);
     case 'gallery':

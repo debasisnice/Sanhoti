@@ -792,6 +792,17 @@ export interface DurgaPujaSponsorshipInfo {
   buttonUrl?: string;
 }
 
+/** Sponsor tier for the Durga Puja page sponsor showcase. */
+export type DurgaPujaSponsorTier = 'PRESENTING' | 'PLATINUM' | 'GOLD' | 'SILVER';
+
+/** A single sponsor on the Durga Puja page showcase (separate from site-wide sponsors). */
+export interface DurgaPujaSponsorEntry {
+  title: string;
+  tier: DurgaPujaSponsorTier;
+  /** Uploaded logo/flyer image URLs (via the 'sponsors' asset category). */
+  images: string[];
+}
+
 /** Vendor & stall registration (Section 11). */
 export interface DurgaPujaVendorInfo {
   intro?: string;
@@ -853,6 +864,7 @@ export interface DurgaPujaSectionToggles {
   puja?: boolean;
   kids?: boolean;
   sponsorship?: boolean;
+  sponsorShowcase?: boolean;
   vendors?: boolean;
   volunteer?: boolean;
   about?: boolean;
@@ -959,6 +971,8 @@ export interface DurgaPujaPageContent {
 
   // ---- Section 10: Sponsorship ----
   sponsorship?: DurgaPujaSponsorshipInfo;
+  /** Sponsor showcase (logos/flyers by tier) shown at the bottom of the page. */
+  sponsorShowcase?: DurgaPujaSponsorEntry[];
 
   // ---- Section 11: Vendors & stalls ----
   vendors?: DurgaPujaVendorInfo;

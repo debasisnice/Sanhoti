@@ -231,6 +231,7 @@ export class DurgaPujaPageService {
       'puja',
       'kids',
       'sponsorship',
+      'sponsorShowcase',
       'vendors',
       'volunteer',
       'about',
