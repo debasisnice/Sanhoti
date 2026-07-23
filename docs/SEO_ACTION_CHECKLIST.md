@@ -19,6 +19,7 @@ _Goal: rank #1 for "Bengali Association in Orange County" and "Durga Puja in Ora
 Targets both query variants with a dedicated page each:
 - **"Durga Puja in Orange County" (evergreen)** → `backend/src/controllers/SeoPageController.ts`: the `/durga-puja` prerender is now a **self-canonical evergreen landing page** (rich content, FAQ schema, links to the current year page), instead of a thin redirect stub whose canonical deferred to the (unindexed) year page. Gives Google a stable URL to rank for the year-less query. After deploy: Request Indexing on `/durga-puja`.
 - **"Durga Puja 2026 in Orange County" (dated)** → `frontend/src/pages/DurgaPuja.tsx`: the visible React `<h1>` was "Sanhoti Durga Puja 2026" (no location); changed to **"Durga Puja 2026 in Orange County"** so the rendered page and the prerender both lead with the exact target phrase. Title tag + schema already targeted it. After deploy: Request Indexing on `/durga-puja-2026`.
+- **Fix "H1 tag missing" on `/durga-puja`** → `frontend/src/pages/DurgaPujaRedirect.tsx`: the redirect route rendered only a spinner (no H1), which Bing's URL Inspection flagged (its inspector renders the raw SPA rather than the `/seo/` prerender). Added a real `<h1>` + intro to the initial paint so the route always has an H1 regardless of which crawler renders it. After deploy: re-run **Request indexing** on `/durga-puja` in Bing; the SEO/GEO warning should clear.
 
 ---
 
