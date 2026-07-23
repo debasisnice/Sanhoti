@@ -750,7 +750,7 @@ export default function DurgaPuja() {
               <div className="flex items-center justify-center gap-3 mb-4">
                 <Sparkles className={heroImageUrl ? 'w-8 h-8 text-yellow-300' : 'w-8 h-8 text-primary-600'} />
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold">
-                  Sanhoti Durga Puja {eventYear}
+                  Durga Puja {eventYear} in Orange County
                 </h1>
               </div>
               <p className={`text-xl sm:text-2xl font-semibold ${heroImageUrl ? 'text-yellow-100' : 'text-primary-700'}`}>

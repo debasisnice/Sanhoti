@@ -335,16 +335,85 @@ Costa Mesa, Irvine, Tustin, Rancho Santa Margarita, Mission Viejo, and across So
     return `<h2>Durga Puja ${year} — Programs &amp; Events</h2>\n<ul>${items.join('\n')}</ul>`;
   }
 
+  /**
+   * Evergreen `/durga-puja` landing page for the year-less query
+   * "Durga Puja in Orange County". This page is intentionally SELF-canonical
+   * (canonical → /durga-puja) so Google has a stable, always-valid URL to rank
+   * for that query — independent of the dated /durga-puja-YYYY pages (which are
+   * date-specific and have had transient soft-404 indexing issues). The current
+   * celebration's dated page is linked prominently for freshness/crawl paths.
+   * Human visitors still get client-side redirected to the year page by
+   * frontend/src/pages/DurgaPujaRedirect.tsx.
+   */
   private async durgaPujaRedirectPage(): Promise<string> {
     const year = await this.durgaPujaPageService.getActiveYear();
     const target = durgaPujaPagePath(year);
-    const body = `<p>Redirecting to <a href="${esc(target)}">Durga Puja ${year}</a>…</p>`;
+    const body = `
+<h1>Durga Puja in Orange County — Sanhoti Bengali Association</h1>
+<p>Sanhoti hosts one of Orange County's biggest Bengali Durga Puja celebrations —
+a multi-day festival of devotion, culture, and community in Southern California.
+Expect traditional puja and pushpanjali (anjali), sindoor khela, dhunuchi naach,
+kids' performances, live Bengali concerts with visiting artists, and home-style
+Bengali bhog and food stalls. Everyone is welcome, whatever your background.</p>
+<p><strong>This year:</strong> <a href="${esc(target)}">Durga Puja ${year} in Orange County →</a>
+See dates, venue, tickets, and the full schedule on our ${year} page.</p>
+<h2>Durga Puja with Sanhoti — what to expect</h2>
+<ul>
+<li>Traditional Durga Puja rituals: pushpanjali (anjali), aarti, and dhunuchi dance</li>
+<li>Sindoor khela and Bijoya celebrations</li>
+<li>Live Bengali music and concerts with visiting artists</li>
+<li>Authentic Bengali bhog, food stalls, and cultural programs</li>
+<li>Kids' performances and family-friendly community activities</li>
+</ul>
+<h2>Where is Durga Puja in Orange County?</h2>
+<p>Sanhoti Bengali Association is based in Rancho Santa Margarita and hosts Durga
+Puja at venues across Orange County (recent celebrations have been in Costa Mesa,
+near Irvine), welcoming Bengali and Indian families from throughout Orange County
+and Southern California. See the <a href="${esc(target)}">current year's page</a>
+for the exact venue and dates.</p>
+<h2>Past &amp; upcoming celebrations</h2>
+<p><a href="${esc(target)}">Durga Puja ${year}</a> ·
+<a href="/events">All Sanhoti events</a> ·
+<a href="/galleries">Photos from past Durga Pujas</a> ·
+<a href="/contact">Contact us</a></p>`;
     return this.layout({
-      title: `Durga Puja in Orange County ${year} | Sanhoti`,
-      description: `Durga Puja ${year} in Orange County with Sanhoti Bengali Association.`,
-      path: target,
+      title: `Durga Puja in Orange County | Sanhoti Bengali Association — ${year} Dates & Tickets`,
+      description: `Celebrate Durga Puja in Orange County with Sanhoti — puja, pushpanjali, dhunuchi naach, Bengali food, and live concerts. See ${year} dates, venue, and tickets. Serving Orange County & Southern California.`,
+      path: '/durga-puja',
       body,
-      jsonLd: [this.orgJsonLd()],
+      jsonLd: [
+        this.orgJsonLd(),
+        {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: [
+            {
+              '@type': 'Question',
+              name: 'Where is Durga Puja in Orange County?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: `Sanhoti Bengali Association hosts Durga Puja in Orange County, California. Sanhoti is based in Rancho Santa Margarita and holds Durga Puja at venues across Orange County (recent celebrations near Costa Mesa and Irvine), welcoming families from throughout Orange County and Southern California. See our ${year} page for the exact venue and dates.`,
+              },
+            },
+            {
+              '@type': 'Question',
+              name: 'When is Sanhoti Durga Puja this year?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: `Sanhoti's Durga Puja ${year} dates, venue, schedule, and tickets are listed on our Durga Puja ${year} page at ${ORIGIN}${target}.`,
+              },
+            },
+            {
+              '@type': 'Question',
+              name: 'Is Sanhoti Durga Puja open to everyone?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Yes. While rooted in Bengali traditions, Sanhoti Durga Puja welcomes people of all backgrounds, races, religions, and ethnicities across Orange County and Southern California.',
+              },
+            },
+          ],
+        },
+      ],
     });
   }
 

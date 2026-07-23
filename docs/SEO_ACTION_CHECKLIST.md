@@ -1,6 +1,24 @@
 # Sanhoti SEO Action Checklist
 
-_Goal: outrank Aikotaan for "Durga Puja in Orange County" and "Bengali Association in Orange County." Your on-page SEO is already strong and you rank #2 — these are the remaining, higher-leverage fixes._
+_Goal: rank #1 for "Bengali Association in Orange County" and "Durga Puja in Orange County."_
+
+---
+
+## 📊 Current status — updated July 23, 2026 (from live Google results)
+
+- **"Bengali Association in Orange County" — WON. Sanhoti now ranks #1** organically, ahead of Aikotaan, BASC, and Dakshini. The on-page work paid off.
+- **"Durga Puja in Orange County" — NOT ranking yet.** Competitors (Dakshini, Aikotaan) and AllEvents show; Sanhoti does not.
+- **Root cause confirmed:** a `site:sanhoti.org durga puja` search returns **only the stale `/index.html`** from our domain. Google has **not** indexed the clean homepage `/`, and has **not** indexed the dedicated `/durga-puja-YYYY` pages. This means **Priority 0b (soft-404) and Priority 1 (`/index.html` duplicate) below are still NOT deployed on the server** — that is the whole blocker.
+
+### Do these three things, in order (highest leverage):
+1. **Deploy the undeployed fixes** — SSH to EC2 and run `sudo bash deploy/apply-seo-nginx.sh` (applies the `/index.html`→`/` 301 + widened crawler list), then **purge Cloudflare** (Purge Everything). See Priority 0b + Priority 1.
+2. **Google Search Console** — Test Live URL + Request Indexing on `/`, `/durga-puja`, `/durga-puja-2026`; resubmit `sitemap.xml`. See Priority 2.
+3. **Off-page** — verify the **Google Business Profile** and start building event citations/backlinks (AllEvents already ranks a "Durga Puja in Orange County" listing — claim/link ours). See Priority 3.
+
+### New in code (July 23, deploy with next push):
+Targets both query variants with a dedicated page each:
+- **"Durga Puja in Orange County" (evergreen)** → `backend/src/controllers/SeoPageController.ts`: the `/durga-puja` prerender is now a **self-canonical evergreen landing page** (rich content, FAQ schema, links to the current year page), instead of a thin redirect stub whose canonical deferred to the (unindexed) year page. Gives Google a stable URL to rank for the year-less query. After deploy: Request Indexing on `/durga-puja`.
+- **"Durga Puja 2026 in Orange County" (dated)** → `frontend/src/pages/DurgaPuja.tsx`: the visible React `<h1>` was "Sanhoti Durga Puja 2026" (no location); changed to **"Durga Puja 2026 in Orange County"** so the rendered page and the prerender both lead with the exact target phrase. Title tag + schema already targeted it. After deploy: Request Indexing on `/durga-puja-2026`.
 
 ---
 
