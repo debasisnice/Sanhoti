@@ -81,8 +81,11 @@ If any check fails, stop and re-check Steps 2–3 before touching Search Console
 
 ## Step 6 — Bing (fast, feeds other engines + AI answers)
 
-1. https://www.bing.com/webmasters → add/verify `sanhoti.org` (you can import from Search Console).
-2. Submit the same sitemap and use **URL Inspection → Request Indexing** on the three URLs.
+The verification file `BingSiteAuth.xml` is in `frontend/public/`, so it deploys to the site root with Step 1.
+
+1. After deploy, confirm it's live: `curl -s https://www.sanhoti.org/BingSiteAuth.xml` → should return the `<users><user>D36BA51EE0AF60293191FDD59A15A1EF</user></users>` XML.
+2. https://www.bing.com/webmasters → add site `https://www.sanhoti.org` → choose the **XML file** verification method → **Verify** (or simply import from Google Search Console, which is faster).
+3. Submit `https://www.sanhoti.org/sitemap.xml`, then use **URL Inspection → Request Indexing** on the three URLs from Step 5.
 
 ---
 
