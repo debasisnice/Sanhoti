@@ -860,7 +860,7 @@ export default function AdminDurgaPuja() {
               </button>
             </div>
             <p className="text-xs text-gray-500 mb-2">
-              Target can be an anchor (#tickets, #schedule, #sponsor, #volunteer), an internal path
+              Target can be an anchor (#tickets, #schedule, #menu, #sponsor, #volunteer), an internal path
               (/book-your-seat), or a full URL. Leave empty to use the default four buttons.
             </p>
             <div className="space-y-2">
@@ -1400,7 +1400,26 @@ export default function AdminDurgaPuja() {
         </EditorSection>
 
         {/* ---- Section 7: Food ---- */}
-        <EditorSection title="7. Food" sectionKey="food" visible={visible('food')} publicVisible={publicOnSite('food')} onToggle={toggleSection}>
+        <EditorSection title="7. Food (Menu section)" sectionKey="food" visible={visible('food')} publicVisible={publicOnSite('food')} onToggle={toggleSection}>
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-primary-600"
+              checked={visible('menuButton')}
+              onChange={e => toggleSection('menuButton', e.target.checked)}
+            />
+            Show the &ldquo;Menu&rdquo; button in the page hero (scrolls to the Menu section)
+          </label>
+          <p className="text-xs text-gray-500 -mt-2">
+            The hero button is hidden when this Menu section is off or has no content yet.{' '}
+            <span
+              className={
+                publicOnSite('menuButton') ? 'text-green-700 font-medium' : 'text-amber-600'
+              }
+            >
+              {publicOnSite('menuButton') ? 'Menu button is live on site.' : 'Menu button not on site yet.'}
+            </span>
+          </p>
           <div>
             <FieldLabel>Intro</FieldLabel>
             <textarea className={INPUT_CLS} rows={2} value={food.intro ?? ''} onChange={e => patchObj('food', { intro: e.target.value })} />

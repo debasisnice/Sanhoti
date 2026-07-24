@@ -885,6 +885,8 @@ export interface DurgaPujaSectionToggles {
   tickets?: boolean;
   venue?: boolean;
   food?: boolean;
+  /** Hero-only — scrolls to the Menu (food) section; no standalone public block. */
+  menuButton?: boolean;
   puja?: boolean;
   kids?: boolean;
   sponsorship?: boolean;

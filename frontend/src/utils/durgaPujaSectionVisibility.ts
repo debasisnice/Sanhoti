@@ -30,11 +30,16 @@ export function isDurgaPujaSectionPublic(
 ): boolean {
   const { content, durgaPujaSubEvents = [] } = ctx;
 
-  // Volunteer & Sponsorship have no standalone public section — their toggles only
-  // control the hero "Volunteer" / "Become a Sponsor" buttons. Treat them as
-  // "live on site" (green) exactly when the toggle is checked.
+  // Volunteer, Sponsorship, and Menu have no standalone public section — their
+  // toggles only control hero buttons. Treat them as "live on site" (green)
+  // when the toggle is checked (Menu also requires food content to render).
   if (key === 'volunteer' || key === 'sponsorship') {
     return sectionEnabled(content, key);
+  }
+  if (key === 'menuButton') {
+    if (!sectionEnabled(content, key)) return false;
+    const food = content.food;
+    return Boolean(food && (food.intro || (food.meals && food.meals.length) || food.vegetarian));
   }
 
   if (!sectionEnabled(content, key)) return false;

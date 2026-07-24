@@ -696,6 +696,7 @@ export default function DurgaPuja() {
       : [
           { label: 'Buy Tickets', href: '#tickets', style: 'primary' as const },
           { label: 'View Schedule', href: '#schedule', style: 'secondary' as const },
+          { label: 'Menu', href: '#menu', style: 'secondary' as const },
           { label: 'Become a Sponsor', href: '#sponsor', style: 'secondary' as const },
           { label: 'Volunteer', href: '#volunteer', style: 'secondary' as const },
         ]
@@ -738,6 +739,12 @@ export default function DurgaPuja() {
   // configured link, defaulting to /contact when none is set.
   const volunteerButtonOn = show('volunteer');
   const sponsorButtonOn = show('sponsorship');
+  const foodSectionVisible = Boolean(
+    show('food') &&
+      food &&
+      (food.intro || (food.meals && food.meals.length) || food.vegetarian)
+  );
+  const menuButtonOn = show('menuButton');
   // Sponsor button: an admin-set override URL (e.g. a Google Form) wins; otherwise it
   // opens the year's sponsorship prospectus page (PDF + Contact Us).
   const sponsorHref = content.sponsorship?.buttonUrl
@@ -888,26 +895,32 @@ export default function DurgaPuja() {
 
               <div className="mt-8 flex flex-wrap justify-center gap-3">
                 {ctaButtons
-                  // Volunteer & Sponsor CTAs are gated by their admin toggles. Volunteer
-                  // needs a Google Form URL to appear; Sponsor always has a target
-                  // (defaults to /contact).
+                  // Volunteer, Sponsor, and Menu CTAs are gated by admin toggles.
+                  // Volunteer needs a Google Form URL; Menu needs food content on the page.
                   .filter(cta => {
                     const h = (cta.href || '').trim().toLowerCase();
                     const isVolunteer = h === '#volunteer' || /volunteer/i.test(cta.label || '');
                     const isSponsor = h === '#sponsor' || /sponsor/i.test(cta.label || '');
+                    const isMenu =
+                      h === '#menu' || h === '#food' || /^menu$/i.test((cta.label || '').trim());
                     if (isVolunteer) return volunteerButtonOn && Boolean(volunteer?.formUrl);
                     if (isSponsor) return sponsorButtonOn;
+                    if (isMenu) return menuButtonOn && foodSectionVisible;
                     return true;
                   })
                   .map((cta, i) => {
                     const h = (cta.href || '').trim().toLowerCase();
                     const isVolunteer = h === '#volunteer' || /volunteer/i.test(cta.label || '');
                     const isSponsor = h === '#sponsor' || /sponsor/i.test(cta.label || '');
+                    const isMenu =
+                      h === '#menu' || h === '#food' || /^menu$/i.test((cta.label || '').trim());
                     const href = isVolunteer
                       ? normalizeUrl(volunteer?.formUrl)
                       : isSponsor
                         ? sponsorHref
-                        : normalizeUrl(cta.href);
+                        : isMenu
+                          ? '#menu'
+                          : normalizeUrl(cta.href);
                     return (
                       <SmartButton key={i} href={href} variant={cta.style === 'secondary' ? 'secondary' : 'primary'}>
                         {cta.label}
@@ -1439,9 +1452,9 @@ export default function DurgaPuja() {
           )}
 
         {/* ---- Section 7: Food ---- */}
-        {show('food') && food && (food.intro || (food.meals && food.meals.length) || food.vegetarian) && (
+        {foodSectionVisible && food && (
           <div className="mb-10">
-            <SectionHeading id="food">Food</SectionHeading>
+            <SectionHeading id="menu">Menu</SectionHeading>
             <div className={cardCls}>
               {food.intro && <p className="text-gray-700 mb-4">{food.intro}</p>}
               {food.meals && food.meals.length > 0 && (
