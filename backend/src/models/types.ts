@@ -670,11 +670,22 @@ export interface DurgaPujaScheduleItem {
   description?: string;
 }
 
+/** A labelled, colorable group within a schedule day (mirrors DurgaPujaMealCategory). */
+export interface DurgaPujaScheduleGroup {
+  label: string;
+  items: string[];
+  /** Optional hex color applied to the label & dots on the public page. */
+  color?: string;
+}
+
 /** One day of the three-day schedule (Section 3). */
 export interface DurgaPujaScheduleDay {
   dayLabel: string;
   date?: string;
-  items: DurgaPujaScheduleItem[];
+  /** @deprecated Legacy time-based entries; new content uses groups. */
+  items?: DurgaPujaScheduleItem[];
+  /** Menu-style groups: labelled, colorable lists of activities. */
+  groups?: DurgaPujaScheduleGroup[];
 }
 
 /** A social / streaming link for a featured artist (Section 4). */

@@ -537,34 +537,6 @@ export default function AdminDurgaPuja() {
       return { ...c, [objKey]: obj };
     });
 
-  // Schedule day-item helpers (array within an array)
-  const updateScheduleItem = (di: number, ii: number, patch: Record<string, unknown>) =>
-    setContent(c => {
-      if (!c) return c;
-      const days = [...(c.scheduleDays ?? [])];
-      const day = { ...days[di] };
-      const items = [...(day.items ?? [])];
-      items[ii] = { ...items[ii], ...patch };
-      day.items = items;
-      days[di] = day;
-      return { ...c, scheduleDays: days };
-    });
-  const addScheduleItem = (di: number) =>
-    setContent(c => {
-      if (!c) return c;
-      const days = [...(c.scheduleDays ?? [])];
-      const day = { ...days[di], items: [...(days[di].items ?? []), { time: '', title: '', description: '' }] };
-      days[di] = day;
-      return { ...c, scheduleDays: days };
-    });
-  const removeScheduleItem = (di: number, ii: number) =>
-    setContent(c => {
-      if (!c) return c;
-      const days = [...(c.scheduleDays ?? [])];
-      const day = { ...days[di], items: (days[di].items ?? []).filter((_, i) => i !== ii) };
-      days[di] = day;
-      return { ...c, scheduleDays: days };
-    });
 
   // FAQ + ticket link helpers (existing)
   const setFaq = (index: number, patch: Partial<DurgaPujaFaq>) =>
@@ -906,30 +878,86 @@ export default function AdminDurgaPuja() {
 
         {/* ---- Section 3: Schedule ---- */}
         <EditorSection title="3. Three-day schedule" sectionKey="schedule" visible={visible('schedule')} publicVisible={publicOnSite('schedule')} onToggle={toggleSection}>
-          <div className="space-y-4">
+          <p className="text-xs text-gray-500 mb-2">
+            Each day (e.g. “Friday | Oct-09”) becomes a card on the public page. Add groups like
+            “Morning”, “Evening”, or “Cultural Program”, pick a color, and list the activities under each.
+          </p>
+          <div className="space-y-3">
             {arr('scheduleDays').map((day: any, di: number) => (
               <div key={di} className="border border-gray-200 rounded-lg p-3 space-y-2">
-                <div className="flex gap-2 items-center">
-                  <input className={`${INPUT_CLS} flex-1`} value={day.dayLabel ?? ''} placeholder="Friday, October 9" onChange={e => updateItem('scheduleDays', di, { dayLabel: e.target.value })} />
+                <div className="flex flex-wrap gap-2 items-center">
+                  <input className={`${INPUT_CLS} flex-1 min-w-[8rem]`} value={day.dayLabel ?? ''} placeholder="Friday | Oct-09" onChange={e => updateItem('scheduleDays', di, { dayLabel: e.target.value })} />
+                  <input className="border border-gray-300 rounded-lg px-2 py-2 text-sm w-44" value={day.date ?? ''} placeholder="6:30 PM – 10:00 PM" onChange={e => updateItem('scheduleDays', di, { date: e.target.value })} />
                   <button type="button" onClick={() => removeItem('scheduleDays', di)} className="text-red-500 hover:text-red-700 p-1" aria-label="Remove day"><Trash2 className="w-4 h-4" /></button>
                 </div>
-                <div className="space-y-2 pl-3 border-l-2 border-gray-100">
-                  {(day.items ?? []).map((item: any, ii: number) => (
-                    <div key={ii} className="flex flex-wrap gap-2 items-start">
-                      <input className="border border-gray-300 rounded-lg px-2 py-2 text-sm w-28" value={item.time ?? ''} placeholder="6:00 PM" onChange={e => updateScheduleItem(di, ii, { time: e.target.value })} />
-                      <div className="flex-1 min-w-[10rem] space-y-1">
-                        <input className={INPUT_CLS} value={item.title ?? ''} placeholder="Opening ceremony" onChange={e => updateScheduleItem(di, ii, { title: e.target.value })} />
-                        <input className={INPUT_CLS} value={item.description ?? ''} placeholder="Optional detail" onChange={e => updateScheduleItem(di, ii, { description: e.target.value })} />
-                      </div>
-                      <button type="button" onClick={() => removeScheduleItem(di, ii)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
+                {(() => {
+                  const groups: { label: string; items: string[]; color?: string }[] = Array.isArray(day.groups) ? day.groups : [];
+                  const setGroups = (next: { label: string; items: string[]; color?: string }[]) =>
+                    updateItem('scheduleDays', di, { groups: next });
+                  return (
+                    <div className="space-y-2 pt-1">
+                      {groups.map((g, gi) => (
+                        <div key={gi} className="border border-gray-100 rounded-lg p-2 bg-gray-50 space-y-2">
+                          <div className="flex gap-2 items-center">
+                            <input
+                              className={`${INPUT_CLS} flex-1 min-w-0`}
+                              value={g.label ?? ''}
+                              placeholder="Group — e.g. Morning, Evening, Cultural Program"
+                              onChange={e =>
+                                setGroups(groups.map((x, k) => (k === gi ? { ...x, label: e.target.value } : x)))
+                              }
+                            />
+                            <span
+                              className="w-5 h-5 rounded-full border border-gray-300 flex-shrink-0"
+                              style={{ backgroundColor: g.color || '#9ca3af' }}
+                              title="Group color"
+                            />
+                            <select
+                              className="border border-gray-300 rounded-lg px-2 py-2 text-sm shrink-0"
+                              value={g.color ?? ''}
+                              onChange={e =>
+                                setGroups(
+                                  groups.map((x, k) => (k === gi ? { ...x, color: e.target.value || undefined } : x))
+                                )
+                              }
+                            >
+                              <option value="">Default</option>
+                              {MENU_CATEGORY_COLORS.map(c => (
+                                <option key={c.value} value={c.value}>
+                                  {c.name}
+                                </option>
+                              ))}
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => setGroups(groups.filter((_, k) => k !== gi))}
+                              className="text-red-500 hover:text-red-700 p-1"
+                              aria-label="Remove group"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <StringListEditor
+                            value={g.items}
+                            placeholder="Activity — e.g. Pushpanjali"
+                            onChange={items => setGroups(groups.map((x, k) => (k === gi ? { ...x, items } : x)))}
+                          />
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => setGroups([...groups, { label: '', items: [] }])}
+                        className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"
+                      >
+                        <Plus className="w-4 h-4" /> Add group
+                      </button>
                     </div>
-                  ))}
-                  <button type="button" onClick={() => addScheduleItem(di)} className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"><Plus className="w-4 h-4" /> Add item</button>
-                </div>
+                  );
+                })()}
               </div>
             ))}
           </div>
-          <button type="button" onClick={() => addItem('scheduleDays', { dayLabel: '', items: [] })} className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"><Plus className="w-4 h-4" /> Add day</button>
+          <button type="button" onClick={() => addItem('scheduleDays', { dayLabel: '', groups: [] })} className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"><Plus className="w-4 h-4" /> Add day</button>
           <div>
             <FieldLabel>Schedule note</FieldLabel>
             <input className={INPUT_CLS} value={content.scheduleNote ?? ''} placeholder="Schedule may be updated. Please check this page before attending." onChange={e => set('scheduleNote', e.target.value)} />

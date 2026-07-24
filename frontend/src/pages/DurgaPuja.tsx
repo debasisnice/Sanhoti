@@ -10,7 +10,6 @@ import {
   Sparkles,
   Ticket,
   ChevronLeft,
-  Clock,
   Car,
   Baby,
   Store,
@@ -982,33 +981,58 @@ export default function DurgaPuja() {
         {show('schedule') && scheduleDays.length > 0 && (
           <div className="mb-10">
             <SectionHeading id="schedule" kicker="Plan Your Days">Three-Day Schedule</SectionHeading>
-            <div className="space-y-6">
-              {scheduleDays.map((day, di) => (
-                <div key={di} className={cardCls}>
-                  <h3 className="text-xl font-bold text-primary-700 mb-4 flex items-center gap-2">
-                    <Calendar className="w-5 h-5" />
-                    {day.dayLabel}
-                  </h3>
-                  <ul className="space-y-3">
-                    {day.items.map((item, ii) => (
-                      <li key={ii} className="flex gap-4">
-                        {item.time && (
-                          <span className="w-24 flex-shrink-0 text-sm font-semibold text-gray-500 flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" />
-                            {item.time}
-                          </span>
-                        )}
-                        <div>
-                          <p className="font-medium text-gray-900">{item.title}</p>
-                          {item.description && (
-                            <p className="text-sm text-gray-600">{item.description}</p>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
+              {scheduleDays.map((day, di) => {
+                const groups = (day.groups ?? [])
+                  .map(g => ({
+                    label: (g.label ?? '').trim(),
+                    items: (g.items ?? []).map(s => s.trim()).filter(Boolean),
+                    color: (g.color ?? '').trim() || undefined,
+                  }))
+                  .filter(g => g.label || g.items.length > 0);
+                return (
+                  <div key={di} className="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                    <div className="border-b border-gray-300 pb-2 mb-2">
+                      <p className="font-semibold text-gray-900 flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                        {day.dayLabel}
+                      </p>
+                      {day.date && <p className="text-xs text-gray-500 mt-0.5">{day.date}</p>}
+                    </div>
+                    {groups.length > 0 && (
+                      <div className="mt-2 space-y-2">
+                        {groups.map((g, gi) => (
+                          <div key={gi}>
+                            {g.label && (
+                              <p
+                                className="text-sm font-semibold text-primary-700 mb-0.5"
+                                style={g.color ? { color: g.color } : undefined}
+                              >
+                                {g.label}
+                              </p>
+                            )}
+                            {g.items.length > 0 && (
+                              <p className="text-sm leading-snug">
+                                {g.items.map((it, ii) => (
+                                  <span key={ii} className="inline-block mr-2 whitespace-nowrap">
+                                    <span
+                                      className="text-red-500 mr-1"
+                                      style={g.color ? { color: g.color } : undefined}
+                                    >
+                                      •
+                                    </span>
+                                    <span className="text-gray-700">{it}</span>
+                                  </span>
+                                ))}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             <p className="mt-4 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2">
               {content.scheduleNote || 'Schedule may be updated. Please check this page before attending.'}

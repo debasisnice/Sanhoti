@@ -866,10 +866,19 @@ export interface DurgaPujaScheduleItem {
   title: string;
   description?: string;
 }
+export interface DurgaPujaScheduleGroup {
+  label: string;
+  items: string[];
+  /** Optional hex color applied to the label & dots on the public page. */
+  color?: string;
+}
 export interface DurgaPujaScheduleDay {
   dayLabel: string;
   date?: string;
-  items: DurgaPujaScheduleItem[];
+  /** @deprecated Legacy time-based entries; new content uses groups. */
+  items?: DurgaPujaScheduleItem[];
+  /** Menu-style groups: labelled, colorable lists of activities. */
+  groups?: DurgaPujaScheduleGroup[];
 }
 export interface DurgaPujaArtistSocialLink {
   /** Optional display label; if omitted the public page auto-labels from the URL. */
