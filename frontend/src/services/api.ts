@@ -879,6 +879,7 @@ export interface DurgaPujaScheduleDay {
   items?: DurgaPujaScheduleItem[];
   /** Menu-style groups: labelled, colorable lists of activities. */
   groups?: DurgaPujaScheduleGroup[];
+  bgColor?: string;
 }
 export interface DurgaPujaArtistSocialLink {
   /** Optional display label; if omitted the public page auto-labels from the URL. */
@@ -929,6 +930,7 @@ export interface DurgaPujaVenueInfo {
   publicTransit?: string;
   layoutNote?: string;
   venueMapImageUrl?: string;
+  bgColor?: string;
 }
 export interface DurgaPujaMealCategory {
   label: string;
@@ -942,6 +944,7 @@ export interface DurgaPujaMeal {
   hours?: string;
   /** Structured menu: labelled groups (Non-Veg, Veg, Kids…) each with dishes. */
   categories?: DurgaPujaMealCategory[];
+  bgColor?: string;
 }
 export interface DurgaPujaFoodInfo {
   intro?: string;
@@ -1947,6 +1950,23 @@ export const durgaPujaPageAPI = {
 };
 
 // Settings API
+export interface HomePageVideo {
+  url: string;
+  caption?: string;
+  author?: string;
+  buttonLabel?: string;
+  buttonUrl?: string;
+}
+export interface HeroSlotConfig {
+  mode: 'default' | 'video' | 'image' | 'off';
+  videoUrl?: string;
+  imageUrl?: string;
+}
+export interface HeroSlots {
+  left?: HeroSlotConfig;
+  right?: HeroSlotConfig;
+  rightExtra?: HeroSlotConfig;
+}
 export const settingsAPI = {
   getSettings: async (): Promise<any> => {
     const response = await api.get('/settings');
@@ -1996,6 +2016,26 @@ export const settingsAPI = {
   },
   updateHomeHeroBanner: async (message: string): Promise<any> => {
     const response = await api.put('/settings/home-hero-banner', { message });
+    return response.data;
+  },
+  updateHomePageVideos: async (videos: HomePageVideo[]): Promise<any> => {
+    const response = await api.put('/settings/home-videos', { videos });
+    return response.data;
+  },
+  updateHomeSectionOrder: async (order: string[]): Promise<any> => {
+    const response = await api.put('/settings/home-section-order', { order });
+    return response.data;
+  },
+  updateHeroSlots: async (heroSlots: HeroSlots): Promise<any> => {
+    const response = await api.put('/settings/hero-slots', { heroSlots });
+    return response.data;
+  },
+  uploadHeroSlotImage: async (file: File): Promise<{ filename: string; url: string }> => {
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await api.post('/settings/hero-slot-image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
   },
   updateHomeHeroButtons: async (

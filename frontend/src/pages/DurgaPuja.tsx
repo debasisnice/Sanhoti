@@ -10,7 +10,6 @@ import {
   Sparkles,
   Ticket,
   ChevronLeft,
-  Car,
   Baby,
   Store,
   Heart,
@@ -34,6 +33,7 @@ import { getSiteOrigin } from '../utils/eventShareUrl';
 import {
   durgaPujaPageAPI,
   DurgaPujaPageContent,
+  DurgaPujaVenueInfo,
   DurgaPujaArtist,
   DurgaPujaHighlight,
   subEventsAPI,
@@ -409,17 +409,66 @@ function FeaturedArtistsGrid({ artists }: { artists: DurgaPujaArtist[] }) {
   );
 }
 
-function GoogleMapsLink({ url }: { url: string }) {
-  return (
+/** Google Maps link: the explicit URL if set, else a maps search built from the address. */
+function mapsHref(mapsUrl?: string, address?: string): string | undefined {
+  const u = (mapsUrl ?? '').trim();
+  if (u) return u;
+  const a = (address ?? '').trim();
+  return a ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a)}` : undefined;
+}
+
+/** A venue rendered as a menu-style card. The whole card opens Google Maps on click. */
+function VenueCard({
+  title,
+  address,
+  mapsUrl,
+  bgColor,
+  details,
+}: {
+  title: string;
+  address?: string;
+  mapsUrl?: string;
+  bgColor?: string;
+  details: { label: string; value: string }[];
+}) {
+  const href = mapsHref(mapsUrl, address);
+  const style = bgColor ? { backgroundColor: bgColor } : undefined;
+  const cls = 'border border-gray-100 rounded-lg p-4 bg-gray-50';
+  const body = (
+    <>
+      <div className="border-b border-gray-300 pb-2 mb-2">
+        <p className="font-semibold text-gray-900 flex items-center gap-2">
+          <MapPin className="w-4 h-4 text-primary-600 flex-shrink-0" />
+          {title}
+        </p>
+        {address && <p className="text-xs text-gray-500 mt-0.5">{address}</p>}
+      </div>
+      {details.length > 0 && (
+        <div className="space-y-1">
+          {details.map((d, i) => (
+            <p key={i} className="text-sm leading-snug">
+              <span className="font-semibold text-primary-700">{d.label}: </span>
+              <span className="text-gray-700">{d.value}</span>
+            </p>
+          ))}
+        </div>
+      )}
+    </>
+  );
+  return href ? (
     <a
-      href={url}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-1.5 bg-primary-600 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors shrink-0"
+      className={`${cls} block hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer`}
+      style={style}
     >
-      <MapPin className="w-3.5 h-3.5" />
-      Open in Google Maps
+      {body}
     </a>
+  ) : (
+    <div className={cls} style={style}>
+      {body}
+    </div>
   );
 }
 
@@ -727,6 +776,59 @@ export default function DurgaPuja() {
       venue?.venueMapImageUrl
   );
   const showSubEventVenues = venueDefaultsOn && subEvents.some(se => se.location);
+
+  // Unified list of venue cards (main venue + additional venues + sub-event venues).
+  type VenueDetail = { label: string; value: string };
+  const venueDetailsOf = (v: DurgaPujaVenueInfo): VenueDetail[] =>
+    (
+      [
+        ['Parking lot', v.parkingLot],
+        ['Parking', v.parkingCost],
+        ['Accessible parking', v.accessibleParking],
+        ['Recommended entrance', v.recommendedEntrance],
+        ['Public transit', v.publicTransit],
+      ] as [string, string | undefined][]
+    )
+      .filter(([, val]) => (val ?? '').trim())
+      .map(([label, val]) => ({ label, value: (val ?? '').trim() }));
+
+  const venueCards: {
+    title: string;
+    address?: string;
+    mapsUrl?: string;
+    bgColor?: string;
+    details: VenueDetail[];
+  }[] = [];
+  if (mainVenueHasDetails) {
+    venueCards.push({
+      title: mainVenueName || 'Venue',
+      address: venue?.streetAddress,
+      mapsUrl: venue?.mapsUrl,
+      bgColor: venue?.bgColor,
+      details: venue ? venueDetailsOf(venue) : [],
+    });
+  }
+  additionalVenues.forEach(v => {
+    venueCards.push({
+      title: v.buildingName || v.name || 'Venue',
+      address: v.streetAddress,
+      mapsUrl: v.mapsUrl,
+      bgColor: v.bgColor,
+      details: venueDetailsOf(v),
+    });
+  });
+  if (showSubEventVenues) {
+    subEvents
+      .filter(se => se.location)
+      .forEach(se =>
+        venueCards.push({
+          title: se.sub_event_name,
+          address: se.location,
+          details: [],
+        })
+      );
+  }
+
   const food = content.food;
   const puja = content.puja;
   const kids = content.kids;
@@ -741,7 +843,7 @@ export default function DurgaPuja() {
   const foodSectionVisible = Boolean(
     show('food') &&
       food &&
-      (food.intro || (food.meals && food.meals.length) || food.vegetarian)
+      (food.intro || (food.meals && food.meals.length) || (food.photos && food.photos.length))
   );
   const menuButtonOn = show('menuButton');
   // Sponsor button: an admin-set override URL (e.g. a Google Form) wins; otherwise it
@@ -981,6 +1083,7 @@ export default function DurgaPuja() {
         {show('schedule') && scheduleDays.length > 0 && (
           <div className="mb-10">
             <SectionHeading id="schedule" kicker="Plan Your Days">Three-Day Schedule</SectionHeading>
+            <div className={cardCls}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
               {scheduleDays.map((day, di) => {
                 const groups = (day.groups ?? [])
@@ -991,7 +1094,11 @@ export default function DurgaPuja() {
                   }))
                   .filter(g => g.label || g.items.length > 0);
                 return (
-                  <div key={di} className="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                  <div
+                    key={di}
+                    className="border border-gray-100 rounded-lg p-4 bg-gray-50"
+                    style={day.bgColor ? { backgroundColor: day.bgColor } : undefined}
+                  >
                     <div className="border-b border-gray-300 pb-2 mb-2">
                       <p className="font-semibold text-gray-900 flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-primary-600 flex-shrink-0" />
@@ -1033,6 +1140,7 @@ export default function DurgaPuja() {
                   </div>
                 );
               })}
+            </div>
             </div>
             <p className="mt-4 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2">
               {content.scheduleNote || 'Schedule may be updated. Please check this page before attending.'}
@@ -1353,127 +1461,26 @@ export default function DurgaPuja() {
           </div>
         )}
 
-        {/* ---- Section 6: Venue & parking (single card) ---- */}
-        {show('venue') &&
-          (mainVenueHasDetails || additionalVenues.length > 0 || showSubEventVenues) && (
-            <div className="mb-10">
-              <SectionHeading id="venue">Venue &amp; Parking</SectionHeading>
-              <div className={cardCls}>
-                {/* Main event venue */}
-                {mainVenueHasDetails && (
-                  <>
-                    {mainVenueName && (
-                      <p className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-primary-600" />
-                        {mainVenueName}
-                      </p>
-                    )}
-                    {(venue?.streetAddress || venue?.mapsUrl) && (
-                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2">
-                        {venue?.streetAddress && (
-                          <p className="text-gray-700">{venue.streetAddress}</p>
-                        )}
-                        {venue?.mapsUrl && <GoogleMapsLink url={venue.mapsUrl} />}
-                      </div>
-                    )}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm mt-4">
-                      {([
-                        ['Parking lot', venue?.parkingLot, MapPin],
-                        ['Parking', venue?.parkingCost, Car],
-                        ['Accessible parking', venue?.accessibleParking, Car],
-                        ['Recommended entrance', venue?.recommendedEntrance, MapPin],
-                        ['Public transit', venue?.publicTransit, MapPin],
-                      ] as [string, string | undefined, React.ComponentType<{ className?: string }>][])
-                        .filter(([, v]) => v)
-                        .map(([label, value, Icon]) => (
-                          <div key={label} className="flex items-start gap-2">
-                            <Icon className="w-4 h-4 text-primary-600 mt-0.5 flex-shrink-0" />
-                            <span>
-                              <span className="font-semibold text-gray-700">{label}:</span>{' '}
-                              <span className="text-gray-600">{value}</span>
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                    {venue?.layoutNote && <p className="text-gray-700 mt-4">{venue.layoutNote}</p>}
-                    {venue?.venueMapImageUrl && (
-                      <img
-                        src={venue.venueMapImageUrl}
-                        alt="Venue map"
-                        className="w-full max-h-[28rem] object-contain rounded-lg border border-gray-200 mt-5 bg-white"
-                        loading="lazy"
-                      />
-                    )}
-                  </>
-                )}
-
-                {/* Additional venues — same card, divided */}
-                {additionalVenues.map((v, i) => (
-                  <div key={i} className="mt-5 border-t border-gray-100 pt-4">
-                    {v.name && <h3 className="text-lg font-bold text-primary-700 mb-2">{v.name}</h3>}
-                    <p className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                      <MapPin className="w-5 h-5 text-primary-600" />
-                      {v.buildingName || v.name || 'Venue'}
-                    </p>
-                    {(v.streetAddress || v.mapsUrl) && (
-                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2">
-                        {v.streetAddress && <p className="text-gray-700">{v.streetAddress}</p>}
-                        {v.mapsUrl && <GoogleMapsLink url={v.mapsUrl} />}
-                      </div>
-                    )}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm mt-4">
-                      {([
-                        ['Parking lot', v.parkingLot, MapPin],
-                        ['Parking', v.parkingCost, Car],
-                        ['Accessible parking', v.accessibleParking, Car],
-                        ['Recommended entrance', v.recommendedEntrance, MapPin],
-                        ['Public transit', v.publicTransit, MapPin],
-                      ] as [string, string | undefined, React.ComponentType<{ className?: string }>][])
-                        .filter(([, val]) => val)
-                        .map(([label, val, Icon]) => (
-                          <div key={label} className="flex items-start gap-2">
-                            <Icon className="w-4 h-4 text-primary-600 mt-0.5 flex-shrink-0" />
-                            <span>
-                              <span className="font-semibold text-gray-700">{label}:</span>{' '}
-                              <span className="text-gray-600">{val}</span>
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                    {v.layoutNote && <p className="text-gray-700 mt-4">{v.layoutNote}</p>}
-                    {v.venueMapImageUrl && (
-                      <img
-                        src={v.venueMapImageUrl}
-                        alt={`${v.name || 'Venue'} map`}
-                        className="w-full max-h-[28rem] object-contain rounded-lg border border-gray-200 mt-5 bg-white"
-                        loading="lazy"
-                      />
-                    )}
-                  </div>
+        {/* ---- Section 6: Venue & parking ---- */}
+        {show('venue') && venueCards.length > 0 && (
+          <div className="mb-10">
+            <SectionHeading id="venue">Venue &amp; Parking</SectionHeading>
+            <div className={cardCls}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
+                {venueCards.map((vc, i) => (
+                  <VenueCard
+                    key={i}
+                    title={vc.title}
+                    address={vc.address}
+                    mapsUrl={vc.mapsUrl}
+                    bgColor={vc.bgColor}
+                    details={vc.details}
+                  />
                 ))}
-
-                {/* Sub-event venues — same card */}
-                {showSubEventVenues && (
-                  <div className="mt-5 border-t border-gray-100 pt-4">
-                    <p className="font-semibold text-gray-900 mb-2">Sub-event venues</p>
-                    <ul className="space-y-1.5 text-sm">
-                      {subEvents
-                        .filter(se => se.location)
-                        .map(se => (
-                          <li key={se.sub_event_id} className="flex items-start gap-2">
-                            <MapPin className="w-4 h-4 text-primary-600 mt-0.5 flex-shrink-0" />
-                            <span>
-                              <span className="font-medium text-gray-800">{se.sub_event_name}:</span>{' '}
-                              <span className="text-gray-600">{se.location}</span>
-                            </span>
-                          </li>
-                        ))}
-                    </ul>
-                  </div>
-                )}
               </div>
             </div>
-          )}
+          </div>
+        )}
 
         {/* ---- Section 7: Food ---- */}
         {foodSectionVisible && food && (
@@ -1492,7 +1499,11 @@ export default function DurgaPuja() {
                       }))
                       .filter(c => c.label || c.items.length > 0);
                     return (
-                      <div key={i} className="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                      <div
+                        key={i}
+                        className="border border-gray-100 rounded-lg p-4 bg-gray-50"
+                        style={m.bgColor ? { backgroundColor: m.bgColor } : undefined}
+                      >
                         <div className="border-b border-gray-300 pb-2 mb-2">
                           <p className="font-semibold text-gray-900 flex items-center gap-2">
                             <Utensils className="w-4 h-4 text-primary-600 flex-shrink-0" />
@@ -1536,22 +1547,6 @@ export default function DurgaPuja() {
                     );
                   })}
                 </div>
-              )}
-              <div className="space-y-1 text-sm">
-                {food.vegetarian && (
-                  <p><span className="font-semibold text-gray-700">Vegetarian:</span> <span className="text-gray-600">{food.vegetarian}</span></p>
-                )}
-                {food.kidsMenu && (
-                  <p><span className="font-semibold text-gray-700">Kids' menu:</span> <span className="text-gray-600">{food.kidsMenu}</span></p>
-                )}
-                {food.tokenProcess && (
-                  <p><span className="font-semibold text-gray-700">Meal tokens:</span> <span className="text-gray-600">{food.tokenProcess}</span></p>
-                )}
-              </div>
-              {food.allergyNotice && (
-                <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 mt-4">
-                  {food.allergyNotice}
-                </p>
               )}
               {food.photos && food.photos.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-5">

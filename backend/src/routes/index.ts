@@ -163,6 +163,7 @@ router.get('/sponsors/images/:filename', bindController(sponsorController, 'getI
 // Homepage Images - Public routes
 router.get('/homepage/images', bindController(homePageController, 'getImages'));
 router.get('/homepage/images/:filename', bindController(homePageController, 'getImage'));
+router.get('/settings/hero-slot-image/:filename', bindController(settingsController, 'getHeroSlotImage'));
 
 // Board Members - Public routes
 router.get('/boardmembers/images', bindController(boardMembersController, 'getImages'));
@@ -889,6 +890,27 @@ router.put('/settings/home-hero-banner',
   requireAdmin,
   auditLog('UPDATE', 'home_hero_banner'),
   bindController(settingsController, 'updateHomeHeroBanner')
+);
+router.put('/settings/home-videos',
+  requireAdmin,
+  auditLog('UPDATE', 'home_videos'),
+  bindController(settingsController, 'updateHomePageVideos')
+);
+router.put('/settings/home-section-order',
+  requireAdmin,
+  auditLog('UPDATE', 'home_section_order'),
+  bindController(settingsController, 'updateHomeSectionOrder')
+);
+router.put('/settings/hero-slots',
+  requireAdmin,
+  auditLog('UPDATE', 'hero_slots'),
+  bindController(settingsController, 'updateHeroSlots')
+);
+router.post('/settings/hero-slot-image',
+  requireAdmin,
+  auditLog('UPLOAD', 'hero_slot_image'),
+  settingsController.heroSlotImageUpload(),
+  bindController(settingsController, 'uploadHeroSlotImage')
 );
 router.put('/settings/home-hero-buttons',
   requireAdmin,

@@ -71,6 +71,7 @@ docs/AWS_ACCOUNT_INFO.md
 backend/data/Events_Flyers/
 backend/data/HomePage_Images/
 backend/data/DurgaPuja_Page/
+backend/data/Hero_Slots/
 
 # Local data backups
 backend/data-local-backup-*/

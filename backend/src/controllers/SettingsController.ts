@@ -1,11 +1,41 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
+import multer from 'multer';
+import { join, resolve } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import { existsSync, mkdirSync } from 'fs';
+import { safeServedFilename } from '../utils/safeFile.js';
 import {
+  HeroSlotConfig,
+  HeroSlots,
   HomeHeroButtonsVisibility,
   HomePageStatements,
   HomeStatementTabsVisibility,
 } from '../models/types.js';
 import { SettingsService } from '../services/SettingsService.js';
+
+const __heroDirname = dirname(fileURLToPath(import.meta.url));
+const heroSlotsDir = join(__heroDirname, '../../data/Hero_Slots');
+if (!existsSync(heroSlotsDir)) {
+  mkdirSync(heroSlotsDir, { recursive: true });
+}
+const heroImageStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, heroSlotsDir),
+  filename: (_req, file, cb) => {
+    const sanitized = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    cb(null, `${Date.now()}-${sanitized}`);
+  },
+});
+const heroImageUpload = multer({
+  storage: heroImageStorage,
+  limits: { fileSize: 20 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = /jpeg|jpg|png|gif|webp/;
+    if (allowed.test(file.originalname.toLowerCase()) && allowed.test(file.mimetype)) cb(null, true);
+    else cb(new Error('Only image files are allowed (jpeg, jpg, png, gif, webp)'));
+  },
+});
 
 const HERO_BUTTON_KEYS: (keyof HomeHeroButtonsVisibility)[] = [
   'facebook',
@@ -265,6 +295,157 @@ export class SettingsController {
     } catch (error: any) {
       console.error('Error updating home hero banner:', error);
       res.status(500).json({ error: 'Failed to update home hero banner', details: error.message });
+    }
+  }
+
+  async updateHomePageVideos(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { videos } = req.body ?? {};
+      if (!Array.isArray(videos)) {
+        res.status(400).json({ error: 'videos must be an array' });
+        return;
+      }
+
+      const asString = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
+
+      // Normalize each entry to { url, buttonLabel?, buttonUrl? }. Legacy entries
+      // may be plain strings (URL only). Drop entries without a URL; a button is
+      // only kept when it has both a label and a link. Cap the count.
+      const clean = videos
+        .map((v: unknown) => {
+          if (typeof v === 'string') return { url: v.trim() };
+          if (v && typeof v === 'object') {
+            const o = v as {
+              url?: unknown;
+              caption?: unknown;
+              author?: unknown;
+              buttonLabel?: unknown;
+              buttonUrl?: unknown;
+            };
+            return {
+              url: asString(o.url),
+              caption: asString(o.caption),
+              author: asString(o.author),
+              buttonLabel: asString(o.buttonLabel),
+              buttonUrl: asString(o.buttonUrl),
+            };
+          }
+          return { url: '', caption: '', author: '' };
+        })
+        .filter((v) => v.url.length > 0)
+        .map((v) => ({
+          url: v.url,
+          ...('caption' in v && v.caption ? { caption: (v.caption as string).slice(0, 400) } : {}),
+          ...('author' in v && v.author ? { author: (v.author as string).slice(0, 120) } : {}),
+          ...('buttonLabel' in v && v.buttonLabel && 'buttonUrl' in v && v.buttonUrl
+            ? { buttonLabel: v.buttonLabel, buttonUrl: v.buttonUrl }
+            : {}),
+        }))
+        .slice(0, 12);
+
+      const settings = await this.settingsService.updateHomePageVideos(clean);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error updating home page videos:', error);
+      res.status(500).json({ error: 'Failed to update home page videos', details: error.message });
+    }
+  }
+
+  async updateHomeSectionOrder(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { order } = req.body ?? {};
+      if (!Array.isArray(order) || order.some((k) => typeof k !== 'string')) {
+        res.status(400).json({ error: 'order must be an array of strings' });
+        return;
+      }
+
+      // Trim, drop empties/dupes, cap length.
+      const seen = new Set<string>();
+      const clean = order
+        .map((k: string) => k.trim())
+        .filter((k: string) => k.length > 0 && !seen.has(k) && (seen.add(k), true))
+        .slice(0, 20);
+
+      const settings = await this.settingsService.updateHomeSectionOrder(clean);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error updating home section order:', error);
+      res.status(500).json({ error: 'Failed to update home section order', details: error.message });
+    }
+  }
+
+  async updateHeroSlots(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const body = (req.body?.heroSlots ?? req.body ?? {}) as Record<string, unknown>;
+      const modes = new Set(['default', 'video', 'image', 'off']);
+
+      const parseSlot = (raw: unknown): HeroSlotConfig | undefined => {
+        if (!raw || typeof raw !== 'object') return undefined;
+        const o = raw as { mode?: unknown; videoUrl?: unknown; imageUrl?: unknown };
+        const mode = typeof o.mode === 'string' && modes.has(o.mode) ? (o.mode as HeroSlotConfig['mode']) : 'default';
+        const videoUrl = typeof o.videoUrl === 'string' ? o.videoUrl.trim() : '';
+        const imageUrl = typeof o.imageUrl === 'string' ? o.imageUrl.trim() : '';
+        return {
+          mode,
+          ...(mode === 'video' && videoUrl ? { videoUrl } : {}),
+          ...(mode === 'image' && imageUrl ? { imageUrl } : {}),
+        };
+      };
+
+      const heroSlots: HeroSlots = {};
+      const left = parseSlot((body as { left?: unknown }).left);
+      const right = parseSlot((body as { right?: unknown }).right);
+      const rightExtra = parseSlot((body as { rightExtra?: unknown }).rightExtra);
+      if (left) heroSlots.left = left;
+      if (right) heroSlots.right = right;
+      if (rightExtra) heroSlots.rightExtra = rightExtra;
+
+      const settings = await this.settingsService.updateHeroSlots(heroSlots);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error updating hero slots:', error);
+      res.status(500).json({ error: 'Failed to update hero slots', details: error.message });
+    }
+  }
+
+  /** Multer middleware for a single hero-slot image upload. */
+  heroSlotImageUpload() {
+    return heroImageUpload.single('image');
+  }
+
+  async uploadHeroSlotImage(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const file = (req as unknown as { file?: { filename: string } }).file;
+      if (!file) {
+        res.status(400).json({ error: 'No image uploaded' });
+        return;
+      }
+      res.json({
+        filename: file.filename,
+        url: `/api/settings/hero-slot-image/${encodeURIComponent(file.filename)}`,
+      });
+    } catch (error: any) {
+      console.error('Error uploading hero slot image:', error);
+      res.status(500).json({ error: 'Failed to upload image', details: error.message });
+    }
+  }
+
+  async getHeroSlotImage(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const filename = safeServedFilename(req.params.filename);
+      if (!filename) {
+        res.status(400).json({ error: 'Invalid filename' });
+        return;
+      }
+      const absolutePath = resolve(join(heroSlotsDir, filename));
+      if (!absolutePath.startsWith(resolve(heroSlotsDir)) || !existsSync(absolutePath)) {
+        res.status(404).json({ error: 'Image not found' });
+        return;
+      }
+      res.sendFile(absolutePath);
+    } catch (error: any) {
+      console.error('Error serving hero slot image:', error);
+      res.status(500).json({ error: 'Failed to serve image' });
     }
   }
 

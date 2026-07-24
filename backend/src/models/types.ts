@@ -686,6 +686,8 @@ export interface DurgaPujaScheduleDay {
   items?: DurgaPujaScheduleItem[];
   /** Menu-style groups: labelled, colorable lists of activities. */
   groups?: DurgaPujaScheduleGroup[];
+  /** Optional light background color (hex) for this day card on the public page. */
+  bgColor?: string;
 }
 
 /** A social / streaming link for a featured artist (Section 4). */
@@ -748,6 +750,8 @@ export interface DurgaPujaVenueInfo {
   publicTransit?: string;
   layoutNote?: string;
   venueMapImageUrl?: string;
+  /** Optional light background color (hex) for this venue card on the public page. */
+  bgColor?: string;
 }
 
 /** A single meal listing (Section 7). */
@@ -765,6 +769,8 @@ export interface DurgaPujaMeal {
   hours?: string;
   /** Structured menu: one or more labelled groups, each with a list of dishes. */
   categories?: DurgaPujaMealCategory[];
+  /** Optional light background color (hex) for this meal card on the public page. */
+  bgColor?: string;
 }
 
 /** Food information (Section 7). */
@@ -1068,5 +1074,41 @@ export interface Settings {
   homeHeroBannerMessage?: string;
   /** Per-button visibility for the home page hero buttons; omitted or true = show. */
   homeHeroButtons?: HomeHeroButtonsVisibility;
+  /** Videos shown in a section below "About Us" on the home page. */
+  homePageVideos?: HomePageVideo[];
+  /** Order of the reorderable home page content sections (e.g. ["charity","highlights","about","offer"]). */
+  homeSectionOrder?: string[];
+  /** Per-slot configuration for the two hero cards (left = event, right = charity). */
+  heroSlots?: HeroSlots;
   updated_at: string;
+}
+
+/** One hero card slot: show its default content, a Highlights video, an uploaded image, or hide it. */
+export interface HeroSlotConfig {
+  mode: 'default' | 'video' | 'image' | 'off';
+  /** Highlights video URL to show when mode === 'video'. */
+  videoUrl?: string;
+  /** Uploaded image URL to show when mode === 'image'. */
+  imageUrl?: string;
+}
+
+export interface HeroSlots {
+  left?: HeroSlotConfig;
+  right?: HeroSlotConfig;
+  /** Optional extra video shown below the right card (beside it on mobile). */
+  rightExtra?: HeroSlotConfig;
+}
+
+/** One video (with an optional call-to-action button) in the home page Videos section. */
+export interface HomePageVideo {
+  /** YouTube (or other) video URL to embed. */
+  url: string;
+  /** Optional caption / testimonial shown below the video (1–2 lines). */
+  caption?: string;
+  /** Optional name of the person who gave the caption / comment. */
+  author?: string;
+  /** Optional button label shown under the video. */
+  buttonLabel?: string;
+  /** Optional URL the button opens. */
+  buttonUrl?: string;
 }

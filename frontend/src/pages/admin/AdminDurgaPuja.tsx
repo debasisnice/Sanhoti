@@ -17,6 +17,19 @@ import { isDurgaPujaSectionPublic } from '../../utils/durgaPujaSectionVisibility
 const INPUT_CLS =
   'w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500';
 
+/** Light background colors an admin can assign to a card (meal / schedule day / venue). */
+const CARD_BG_COLORS: { name: string; value: string }[] = [
+  { name: 'Red', value: '#fef2f2' },
+  { name: 'Orange', value: '#fff7ed' },
+  { name: 'Amber', value: '#fffbeb' },
+  { name: 'Yellow', value: '#fefce8' },
+  { name: 'Green', value: '#f0fdf4' },
+  { name: 'Teal', value: '#f0fdfa' },
+  { name: 'Blue', value: '#eff6ff' },
+  { name: 'Purple', value: '#faf5ff' },
+  { name: 'Pink', value: '#fdf2f8' },
+];
+
 /** Curated, readable colors an admin can assign to a menu category (label + dots). */
 const MENU_CATEGORY_COLORS: { name: string; value: string }[] = [
   { name: 'Red', value: '#dc2626' },
@@ -28,6 +41,37 @@ const MENU_CATEGORY_COLORS: { name: string; value: string }[] = [
   { name: 'Pink', value: '#db2777' },
   { name: 'Amber', value: '#d97706' },
 ];
+
+/** Reusable light-background color picker for a card (meal / schedule day / venue). */
+function CardBgColorField({
+  value,
+  onChange,
+}: {
+  value?: string;
+  onChange: (v: string | undefined) => void;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs font-medium text-gray-600">Card color</span>
+      <span
+        className="w-5 h-5 rounded border border-gray-300 flex-shrink-0"
+        style={{ backgroundColor: value || '#ffffff' }}
+      />
+      <select
+        className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm"
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value || undefined)}
+      >
+        <option value="">Default</option>
+        {CARD_BG_COLORS.map((c) => (
+          <option key={c.value} value={c.value}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
 
 /** Recommended volunteer categories (also used as Google Form checkbox options). */
 const DEFAULT_VOLUNTEER_CATEGORIES = [
@@ -619,7 +663,6 @@ export default function AdminDurgaPuja() {
   const publicOnSite = (key: keyof DurgaPujaSectionToggles) =>
     isDurgaPujaSectionPublic(key, { content, durgaPujaSubEvents: durgaPujaVisibleSubEvents });
   const ticketing = content.ticketing ?? {};
-  const venue = content.venue ?? {};
   const food = content.food ?? {};
   const puja = content.puja ?? {};
   const kids = content.kids ?? {};
@@ -890,6 +933,7 @@ export default function AdminDurgaPuja() {
                   <input className="border border-gray-300 rounded-lg px-2 py-2 text-sm w-44" value={day.date ?? ''} placeholder="6:30 PM – 10:00 PM" onChange={e => updateItem('scheduleDays', di, { date: e.target.value })} />
                   <button type="button" onClick={() => removeItem('scheduleDays', di)} className="text-red-500 hover:text-red-700 p-1" aria-label="Remove day"><Trash2 className="w-4 h-4" /></button>
                 </div>
+                <CardBgColorField value={day.bgColor} onChange={v => updateItem('scheduleDays', di, { bgColor: v })} />
                 {(() => {
                   const groups: { label: string; items: string[]; color?: string }[] = Array.isArray(day.groups) ? day.groups : [];
                   const setGroups = (next: { label: string; items: string[]; color?: string }[]) =>
@@ -1331,29 +1375,6 @@ export default function AdminDurgaPuja() {
               section toggle above to hide the whole section).
             </span>
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {([
-              ['buildingName', 'Building / gym name (optional override)'],
-              ['streetAddress', 'Full street address (optional)'],
-              ['mapsUrl', 'Google Maps URL'],
-              ['parkingLot', 'Parking lot number'],
-              ['parkingCost', 'Parking cost / free-parking info'],
-              ['accessibleParking', 'Accessible parking details'],
-              ['recommendedEntrance', 'Recommended entrance'],
-              ['publicTransit', 'Public transportation info'],
-            ] as [string, string][]).map(([key, label]) => (
-              <div key={key}>
-                <FieldLabel>{label}</FieldLabel>
-                <input className={INPUT_CLS} value={(venue as any)[key] ?? ''} onChange={e => patchObj('venue', { [key]: e.target.value })} />
-              </div>
-            ))}
-          </div>
-          <div>
-            <FieldLabel>Layout note (where worship, food, stalls, outdoor activities are)</FieldLabel>
-            <textarea className={INPUT_CLS} rows={2} value={venue.layoutNote ?? ''} onChange={e => patchObj('venue', { layoutNote: e.target.value })} />
-          </div>
-          <AssetImageField year={editYear} category="venue" value={venue.venueMapImageUrl} onChange={url => patchObj('venue', { venueMapImageUrl: url })} label="Venue map image" />
-
           <div className="border-t border-gray-100 pt-4">
             <div className="flex items-center justify-between mb-1">
               <FieldLabel>Additional venues</FieldLabel>
@@ -1388,6 +1409,7 @@ export default function AdminDurgaPuja() {
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
+                  <CardBgColorField value={v.bgColor} onChange={val => updateItem('venues', i, { bgColor: val })} />
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {([
                       ['buildingName', 'Building / gym name'],
@@ -1470,6 +1492,7 @@ export default function AdminDurgaPuja() {
                     <input className="border border-gray-300 rounded-lg px-2 py-2 text-sm w-40" value={m.hours ?? ''} placeholder="7:00–9:00 PM" onChange={e => updateNestedItem('food', 'meals', i, { hours: e.target.value })} />
                     <button type="button" onClick={() => removeNestedItem('food', 'meals', i)} className="text-red-500 hover:text-red-700 p-1" aria-label="Remove meal"><Trash2 className="w-4 h-4" /></button>
                   </div>
+                  <CardBgColorField value={m.bgColor} onChange={v => updateNestedItem('food', 'meals', i, { bgColor: v })} />
                   <input className={INPUT_CLS} value={m.description ?? ''} placeholder="Optional detail shown under the meal title" onChange={e => updateNestedItem('food', 'meals', i, { description: e.target.value })} />
                   {(() => {
                     const cats: { label: string; items: string[]; color?: string }[] = Array.isArray(m.categories) ? m.categories : [];
@@ -1540,19 +1563,6 @@ export default function AdminDurgaPuja() {
                 </div>
               ))}
             </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {([
-              ['vegetarian', 'Vegetarian options'],
-              ['kidsMenu', "Kids' menu"],
-              ['tokenProcess', 'Food-token / meal-ticket process'],
-              ['allergyNotice', 'Food-allergy notice'],
-            ] as [string, string][]).map(([key, label]) => (
-              <div key={key}>
-                <FieldLabel>{label}</FieldLabel>
-                <input className={INPUT_CLS} value={(food as any)[key] ?? ''} onChange={e => patchObj('food', { [key]: e.target.value })} />
-              </div>
-            ))}
           </div>
           <div>
             <FieldLabel>Food photos</FieldLabel>

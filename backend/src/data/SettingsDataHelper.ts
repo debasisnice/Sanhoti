@@ -1,7 +1,9 @@
 import { DatabaseHelper } from './DatabaseHelper.js';
 import {
+  HeroSlots,
   HomeHeroButtonsVisibility,
   HomePageStatements,
+  HomePageVideo,
   HomeStatementTabsVisibility,
   Settings,
 } from '../models/types.js';
@@ -218,6 +220,54 @@ export class SettingsDataHelper extends DatabaseHelper {
     const updated: Settings = {
       ...current,
       homeHeroBannerMessage: message,
+      updated_at: new Date().toISOString(),
+    };
+
+    this.writeFile(this.filename, [updated]);
+    return updated;
+  }
+
+  async updateHomePageVideos(videos: HomePageVideo[]): Promise<Settings> {
+    let current = await this.get();
+    if (!current) {
+      current = this.getDefaultSettings();
+    }
+
+    const updated: Settings = {
+      ...current,
+      homePageVideos: videos,
+      updated_at: new Date().toISOString(),
+    };
+
+    this.writeFile(this.filename, [updated]);
+    return updated;
+  }
+
+  async updateHomeSectionOrder(order: string[]): Promise<Settings> {
+    let current = await this.get();
+    if (!current) {
+      current = this.getDefaultSettings();
+    }
+
+    const updated: Settings = {
+      ...current,
+      homeSectionOrder: order,
+      updated_at: new Date().toISOString(),
+    };
+
+    this.writeFile(this.filename, [updated]);
+    return updated;
+  }
+
+  async updateHeroSlots(heroSlots: HeroSlots): Promise<Settings> {
+    let current = await this.get();
+    if (!current) {
+      current = this.getDefaultSettings();
+    }
+
+    const updated: Settings = {
+      ...current,
+      heroSlots,
       updated_at: new Date().toISOString(),
     };
 

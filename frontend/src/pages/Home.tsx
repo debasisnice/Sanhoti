@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import type { SyntheticEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Users, Image, BookOpen, ArrowRight, Eye, Star, MapPin, Share2, Target } from 'lucide-react';
-import { eventsAPI, homepageAPI, settingsAPI, subEventsAPI } from '../services/api';
+import { Calendar, Users, Image, BookOpen, ArrowRight, Eye, Star, MapPin, Share2, Target, Play } from 'lucide-react';
+import { eventsAPI, homepageAPI, settingsAPI, subEventsAPI, durgaPujaPageAPI } from '../services/api';
+import type { HomePageVideo, HeroSlots, DurgaPujaMeal } from '../services/api';
 import { Event, SubEvent } from '../types';
 import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime } from '../utils/dateUtils';
 import { getEffectiveEventType } from '../utils/eventType';
@@ -15,6 +16,8 @@ import { getCanonicalEventIdForShare } from '../utils/eventShareUrl';
 import { QRCodeSVG } from 'qrcode.react';
 import Seo from '../components/Seo';
 import { getEventDetailPath } from '../utils/eventSlug';
+import { toVideoEmbedUrl, youtubeThumbnailUrl } from '../utils/videoEmbedUrl';
+import { resolveHomeSectionOrder } from '../constants/homeSections';
 
 type AboutStatementTabKey = 'about' | 'vision' | 'mission' | 'purpose';
 
@@ -75,6 +78,107 @@ function buildCharitySlideSchedule(
   return steps;
 }
 
+/**
+ * A hero-sized card that shows a YouTube poster with a play button and swaps to
+ * the embedded player on click (click-to-play — no autoplaying iframe in the hero).
+ */
+function HeroVideoCard({ url, label }: { url: string; label?: string }) {
+  const [playing, setPlaying] = useState(false);
+  const embed = toVideoEmbedUrl(url);
+  const thumb = youtubeThumbnailUrl(url);
+  const cardCls =
+    'relative rounded-lg shadow-xl w-32 md:w-80 lg:w-96 overflow-hidden aspect-[3/4] md:aspect-[3/3.5] border-2 md:border-4 border-yellow-400 bg-black';
+
+  if (playing && embed) {
+    return (
+      <div className={cardCls}>
+        <iframe
+          src={`${embed}${embed.includes('?') ? '&' : '?'}autoplay=1`}
+          title={label || 'Video'}
+          className="w-full h-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setPlaying(true)}
+      className={`${cardCls} group cursor-pointer block`}
+      aria-label={label ? `Play ${label}` : 'Play video'}
+    >
+      {thumb ? (
+        <img src={thumb} alt={label || 'Video'} className="w-full h-full object-cover" loading="lazy" />
+      ) : (
+        <div className="w-full h-full bg-gradient-to-br from-primary-400 to-primary-600" />
+      )}
+      <span className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors">
+        <span className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-red-600/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+          <Play className="w-6 h-6 md:w-8 md:h-8 text-white fill-white ml-0.5" />
+        </span>
+      </span>
+      {label && (
+        <span className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-left text-white text-xs md:text-sm font-medium">
+          {label}
+        </span>
+      )}
+    </button>
+  );
+}
+
+/** An uploaded image shown in a hero-sized card. */
+function HeroImageCard({ url, alt }: { url: string; alt?: string }) {
+  return (
+    <div className="relative rounded-lg shadow-xl w-32 md:w-80 lg:w-96 overflow-hidden aspect-[3/4] md:aspect-[3/3.5] border-2 md:border-4 border-yellow-400 bg-black">
+      <img src={url} alt={alt || ''} className="w-full h-full object-cover" loading="lazy" />
+    </div>
+  );
+}
+
+/** Compact current-year Durga Puja food menu, sized like the hero cards. */
+function DurgaPujaMenuCard({ year, meals }: { year: number; meals: DurgaPujaMeal[] }) {
+  return (
+    <Link to="/durga-puja" className="block w-32 md:w-80 lg:w-96">
+      <div className="flex flex-col aspect-[3/4] md:aspect-[3/3.5] rounded-lg shadow-xl border-2 md:border-4 border-yellow-400 overflow-hidden bg-gradient-to-br from-red-900/85 to-red-800/85 backdrop-blur-sm text-white hover:shadow-2xl transition-shadow">
+        <div className="shrink-0 px-2 md:px-3 py-1.5 md:py-2 border-b border-yellow-400/40">
+          <p className="font-bold text-[11px] md:text-base text-yellow-200 leading-tight">
+            Durga Puja {year} Menu
+          </p>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto p-2 md:p-3 space-y-1.5 md:space-y-2">
+          {meals.map((m, i) => {
+            const cats = (m.categories ?? [])
+              .map((c) => ({
+                label: (c.label ?? '').trim(),
+                items: (c.items ?? []).map((s) => s.trim()).filter(Boolean),
+              }))
+              .filter((c) => c.label || c.items.length > 0);
+            return (
+              <div key={i}>
+                <p className="font-semibold text-yellow-100 text-[10px] md:text-sm leading-tight">
+                  {m.name}
+                </p>
+                {cats.map((cat, ci) => (
+                  <p key={ci} className="text-gray-100 text-[9px] md:text-xs leading-snug">
+                    {cat.label && <span className="font-medium text-yellow-200">{cat.label}: </span>}
+                    {cat.items.join(', ')}
+                  </p>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+        <div className="shrink-0 px-2 md:px-3 py-1.5 border-t border-yellow-400/40 text-center">
+          <span className="text-[10px] md:text-sm font-semibold text-yellow-200">View full menu →</span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default function Home() {
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [priorityEvent, setPriorityEvent] = useState<Event | null>(null);
@@ -111,6 +215,10 @@ export default function Home() {
     purpose: true,
   });
   const [heroBannerText, setHeroBannerText] = useState<string | null>(null);
+  const [homePageVideos, setHomePageVideos] = useState<HomePageVideo[]>([]);
+  const [homeSectionOrder, setHomeSectionOrder] = useState<string[]>(() => resolveHomeSectionOrder());
+  const [heroSlots, setHeroSlots] = useState<HeroSlots>({});
+  const [durgaMenu, setDurgaMenu] = useState<{ year: number; meals: DurgaPujaMeal[] } | null>(null);
   const [heroButtonsVisible, setHeroButtonsVisible] = useState({
     facebook: true,
     whatsapp: true,
@@ -334,6 +442,27 @@ export default function Home() {
             (settings as { homeHeroBannerMessage?: string }).homeHeroBannerMessage
           )
         );
+        const videos = (settings as { homePageVideos?: (string | HomePageVideo)[] }).homePageVideos;
+        setHomePageVideos(
+          Array.isArray(videos)
+            ? videos
+                .map((v) => (typeof v === 'string' ? { url: v } : v))
+                .filter((v) => (v.url ?? '').trim())
+            : []
+        );
+        setHomeSectionOrder(
+          resolveHomeSectionOrder((settings as { homeSectionOrder?: string[] }).homeSectionOrder)
+        );
+        setHeroSlots((settings as { heroSlots?: HeroSlots }).heroSlots ?? {});
+        try {
+          const dp = await durgaPujaPageAPI.getActive();
+          const meals = (dp?.content?.food?.meals ?? []).filter(
+            (m) => (m?.name ?? '').trim() || (m?.categories ?? []).length > 0
+          );
+          setDurgaMenu(meals.length ? { year: dp.year, meals } : null);
+        } catch {
+          setDurgaMenu(null);
+        }
         const hb = (settings as {
           homeHeroButtons?: Record<string, boolean | undefined>;
         }).homeHeroButtons;
@@ -496,15 +625,31 @@ export default function Home() {
     },
   ];
 
+  // 1-based flex order for the reorderable sections; hero stays first (0) and
+  // the CTA stays last (999). Order is driven by admin Settings → Home Page.
+  const orderOf = (key: string) => homeSectionOrder.indexOf(key) + 1;
+
+  // Hero card slot config (left = priority event, right = charity). Default = show default content.
+  const leftSlot = heroSlots.left ?? { mode: 'default' as const };
+  const rightSlot = heroSlots.right ?? { mode: 'default' as const };
+  const rightExtraSlot = heroSlots.rightExtra ?? { mode: 'default' as const };
+  const heroVideoLabel = (videoUrl?: string) => {
+    const v = homePageVideos.find((x) => x.url === videoUrl);
+    return v?.caption?.trim() || v?.author?.trim() || undefined;
+  };
+
   return (
-    <div className="overflow-hidden">
+    <div className="overflow-hidden flex flex-col">
       <Seo
         title="Sanhoti — Bengali Association of Orange County, CA | Durga Puja & Cultural Events"
         description="Sanhoti is a Bengali association serving Orange County and Southern California, CA — cultural events, Durga Puja, Poila Boishakh, charity programs, and community for Bengali & Indian families in Rancho Santa Margarita, Orange County, and throughout SoCal."
         path="/"
       />
       {/* Hero Section */}
-      <section className="relative min-h-screen md:min-h-[120vh] flex items-center justify-center text-white overflow-hidden">
+      <section
+        style={{ order: 0 }}
+        className="relative min-h-screen md:min-h-[145vh] flex items-center justify-center text-white overflow-hidden"
+      >
         {/* Background Slideshow */}
         <div className="absolute inset-0 z-0">
           {/* Fallback gradient background if no images load */}
@@ -610,14 +755,14 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
-                className="flex flex-col md:flex-row gap-1.5 md:gap-2 w-fit flex-shrink-0 md:col-start-1 md:row-start-2"
+                className="flex flex-col md:flex-row md:flex-wrap md:justify-end gap-1.5 md:gap-2 w-fit md:w-auto md:max-w-md flex-shrink-0 md:col-start-2 md:row-start-1 md:self-center"
               >
                 {heroButtonsVisible.facebook && (
                   <a
                     href={facebookLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-blue-400 text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-blue-500 transition-all transform hover:scale-105 shadow-lg text-center whitespace-nowrap"
+                    className="bg-blue-400 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md font-semibold text-[11px] md:text-sm hover:bg-blue-500 transition-all transform hover:scale-105 shadow-lg text-center whitespace-nowrap"
                   >
                     Join our Facebook Page
                   </a>
@@ -627,7 +772,7 @@ export default function Home() {
                     href={whatsappLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-green-400 text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-green-500 transition-all transform hover:scale-105 shadow-lg text-center whitespace-nowrap"
+                    className="bg-green-400 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md font-semibold text-[11px] md:text-sm hover:bg-green-500 transition-all transform hover:scale-105 shadow-lg text-center whitespace-nowrap"
                   >
                     Join us in WhatsApp
                   </a>
@@ -635,7 +780,7 @@ export default function Home() {
                 {heroButtonsVisible.viewEvents && (
                   <Link
                     to="/events"
-                    className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap w-[11rem] md:w-auto"
+                    className="bg-transparent border-2 border-white text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md font-semibold text-[11px] md:text-sm hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap w-[11rem] md:w-auto"
                   >
                     View Events
                   </Link>
@@ -643,9 +788,17 @@ export default function Home() {
                 {heroButtonsVisible.durgaPuja && (
                   <Link
                     to="/durga-puja"
-                    className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap w-[11rem] md:w-auto"
+                    className="bg-transparent border-2 border-white text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md font-semibold text-[11px] md:text-sm hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap w-[11rem] md:w-auto"
                   >
                     Durga Puja
+                  </Link>
+                )}
+                {heroButtonsVisible.viewCharityEvents && (
+                  <Link
+                    to="/events?type=Charity"
+                    className="bg-transparent border-2 border-white text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md font-semibold text-[11px] md:text-sm hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap w-[11rem] md:w-auto"
+                  >
+                    View Charity Events
                   </Link>
                 )}
               </motion.div>
@@ -670,12 +823,21 @@ export default function Home() {
               ) : null}
             </div>
 
-            {/* Priority Event Card */}
-            {priorityEvent && priorityEventImage && (() => {
+            {/* Priority Event slot (left): default event card, a video, an image, or off */}
+            {leftSlot.mode === 'off' ? null : leftSlot.mode === 'video' && leftSlot.videoUrl ? (
+              <div className="w-fit md:col-start-1 md:row-start-2 md:row-span-2">
+                <HeroVideoCard url={leftSlot.videoUrl} label={heroVideoLabel(leftSlot.videoUrl)} />
+              </div>
+            ) : leftSlot.mode === 'image' && leftSlot.imageUrl ? (
+              <div className="w-fit md:col-start-1 md:row-start-2 md:row-span-2">
+                <HeroImageCard url={leftSlot.imageUrl} alt="Sanhoti" />
+              </div>
+            ) : (
+              priorityEvent && priorityEventImage && (() => {
               const eventId = getCanonicalEventIdForShare(priorityEvent);
               return (
-                <div className="w-fit md:col-start-1 md:row-start-3">
-                  <Link to={getEventDetailPath(priorityEvent, eventId)} className="w-fit block">
+                <div className="w-fit md:col-start-1 md:row-start-2 md:row-span-2 flex flex-row items-start gap-2 md:gap-4">
+                  <Link to={getEventDetailPath(priorityEvent, eventId)} className="w-fit block flex-shrink-0">
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -690,9 +852,9 @@ export default function Home() {
                     </motion.div>
                   </Link>
 
-                  {/* Sub-Events below Priority Event Card */}
+                  {/* Sub-Events to the RIGHT of the Priority Event Card (mobile + desktop) */}
                   {priorityEventSubEvents.length > 0 && (
-                    <div className="mt-4 space-y-3 w-32 md:w-80 lg:w-96">
+                    <div className="space-y-2 w-32 md:w-56 lg:w-64">
                       {priorityEventSubEvents.map((subEvent) => {
                         const subEventId = subEvent.sub_event_id;
                         const parentEventId = getCanonicalEventIdForShare(priorityEvent);
@@ -702,10 +864,23 @@ export default function Home() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 1 }}
-                            className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg shadow-lg p-2.5 border-2 border-yellow-300 hover:border-yellow-400 transition-all"
+                            className="relative bg-gradient-to-br from-yellow-50/50 to-yellow-100/50 backdrop-blur-sm rounded-lg shadow-lg p-1.5 md:p-2.5 border-2 border-yellow-400 hover:scale-[1.03] transition-all"
                           >
-                            <div className="flex flex-col gap-1.5">
-                              <div className="flex items-center justify-between gap-2 flex-wrap">
+                            {/* Pulsing glow to make the card eye-catching (slow enough to be safe). */}
+                            <motion.span
+                              aria-hidden
+                              className="pointer-events-none absolute -inset-px rounded-lg"
+                              animate={{
+                                boxShadow: [
+                                  '0 0 0px 0px rgba(234,179,8,0)',
+                                  '0 0 12px 3px rgba(234,179,8,0.9)',
+                                  '0 0 0px 0px rgba(234,179,8,0)',
+                                ],
+                              }}
+                              transition={{ duration: 1.3, repeat: Infinity, ease: 'easeInOut' }}
+                            />
+                            <div className="relative flex flex-col gap-0.5 md:gap-1">
+                              <div className="flex items-center justify-between gap-1 md:gap-2 flex-wrap">
                                 <Link
                                   to={getEventDetailPath(priorityEvent, parentEventId)}
                                   className="flex-1 font-semibold text-gray-900 text-xs md:text-sm hover:text-primary-600 transition-colors"
@@ -716,7 +891,7 @@ export default function Home() {
                                   {subEvent.rsvp_enabled && (
                                     <button
                                       onClick={(e) => shareSubEventRSVP(subEvent, subEventId, e)}
-                                      className="p-1.5 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                                      className="p-1 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
                                       title="Share RSVP link"
                                     >
                                       <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
@@ -729,7 +904,7 @@ export default function Home() {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         onClick={(e) => e.stopPropagation()}
-                                        className="bg-primary-600 hover:bg-primary-700 text-white text-xs md:text-sm font-semibold px-3 md:px-4 py-0.5 md:py-1 rounded transition-colors whitespace-nowrap"
+                                        className="bg-primary-600 hover:bg-primary-700 text-white text-[11px] md:text-sm font-semibold px-2 md:px-3 py-0.5 rounded transition-colors whitespace-nowrap"
                                       >
                                         RSVP
                                       </a>
@@ -737,14 +912,12 @@ export default function Home() {
                                       <Link
                                         to={`/sub-events/${subEventId}/rsvp`}
                                         onClick={(e) => e.stopPropagation()}
-                                        className="bg-primary-600 hover:bg-primary-700 text-white text-xs md:text-sm font-semibold px-3 md:px-4 py-0.5 md:py-1 rounded transition-colors whitespace-nowrap"
+                                        className="bg-primary-600 hover:bg-primary-700 text-white text-[11px] md:text-sm font-semibold px-2 md:px-3 py-0.5 rounded transition-colors whitespace-nowrap"
                                       >
                                         RSVP
                                       </Link>
                                     )
-                                  ) : (
-                                    <div className="w-[60px] h-[1.5rem]"></div>
-                                  )}
+                                  ) : null}
                                 </div>
                               </div>
                               {subEvent.sub_event_start_dt && (
@@ -761,52 +934,69 @@ export default function Home() {
                   )}
                 </div>
               );
-            })()}
+              })()
+            )}
           </div>
 
-          {/* Right-side Charity Events Card - Fade slideshow of charity event images */}
+          {/* Right-side cards: main card (charity / video / hidden) plus an optional extra
+              Highlights video. On mobile they sit side by side; on desktop the extra stacks
+              below the main card. */}
+          {(rightSlot.mode !== 'off' ||
+            (rightExtraSlot.mode === 'video' && rightExtraSlot.videoUrl) ||
+            (rightExtraSlot.mode === 'image' && rightExtraSlot.imageUrl) ||
+            (rightExtraSlot.mode === 'default' && durgaMenu)) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
-            className="w-full md:w-fit flex-shrink-0 flex flex-col items-start md:items-end gap-3 md:gap-4 md:col-start-2 md:row-start-2 md:row-span-2 md:self-start"
+            className="w-full md:w-fit flex-shrink-0 flex flex-row md:flex-col items-start md:items-end gap-2 md:gap-4 md:col-start-2 md:row-start-2 md:row-span-2 md:self-start md:justify-self-end"
           >
-            {heroButtonsVisible.viewCharityEvents && (
-              <Link
-                to="/events?type=Charity"
-                className="bg-transparent border-2 border-white text-white px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg font-semibold text-xs md:text-base hover:bg-white hover:text-primary-600 transition-all transform hover:scale-105 text-center whitespace-nowrap w-[11rem] md:w-auto"
-              >
-                View Charity Events
-              </Link>
-            )}
-            <Link to="/events?type=Charity" className="block w-fit">
-              <div className="relative rounded-lg shadow-xl w-32 md:w-80 lg:w-96 overflow-hidden aspect-[3/4] md:aspect-[3/3.5] border-2 md:border-4 border-yellow-400 cursor-pointer hover:shadow-2xl transition-shadow">
-                {charityEventImages.length > 0 ? (
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={charityCardSlideIndex}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.8 }}
-                      className="absolute inset-0"
-                      style={{
-                        backgroundImage: `url(${charityEventImages[charityCardSlideIndex]})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                      }}
-                    />
-                  </AnimatePresence>
-                ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center p-4">
-                    <span className="text-white font-bold text-center text-sm md:text-lg">
-                      Charity Events
-                    </span>
+            {rightSlot.mode !== 'off' &&
+              (rightSlot.mode === 'video' && rightSlot.videoUrl ? (
+                <HeroVideoCard url={rightSlot.videoUrl} label={heroVideoLabel(rightSlot.videoUrl)} />
+              ) : rightSlot.mode === 'image' && rightSlot.imageUrl ? (
+                <HeroImageCard url={rightSlot.imageUrl} alt="Sanhoti" />
+              ) : (
+                <Link to="/events?type=Charity" className="block w-fit">
+                  <div className="relative rounded-lg shadow-xl w-32 md:w-80 lg:w-96 overflow-hidden aspect-[3/4] md:aspect-[3/3.5] border-2 md:border-4 border-yellow-400 cursor-pointer hover:shadow-2xl transition-shadow">
+                    {charityEventImages.length > 0 ? (
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={charityCardSlideIndex}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.8 }}
+                          className="absolute inset-0"
+                          style={{
+                            backgroundImage: `url(${charityEventImages[charityCardSlideIndex]})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                          }}
+                        />
+                      </AnimatePresence>
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center p-4">
+                        <span className="text-white font-bold text-center text-sm md:text-lg">
+                          Charity Events
+                        </span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </Link>
+                </Link>
+              ))}
+            {rightExtraSlot.mode === 'video' && rightExtraSlot.videoUrl ? (
+              <HeroVideoCard
+                url={rightExtraSlot.videoUrl}
+                label={heroVideoLabel(rightExtraSlot.videoUrl)}
+              />
+            ) : rightExtraSlot.mode === 'image' && rightExtraSlot.imageUrl ? (
+              <HeroImageCard url={rightExtraSlot.imageUrl} alt="Sanhoti" />
+            ) : rightExtraSlot.mode === 'default' && durgaMenu ? (
+              <DurgaPujaMenuCard year={durgaMenu.year} meals={durgaMenu.meals} />
+            ) : null}
           </motion.div>
+          )}
         </motion.div>
         
 
@@ -829,7 +1019,7 @@ export default function Home() {
 
       {/* About Us Section - Moved from About page */}
       {visibleAboutTabKeys.length > 0 && (
-      <section className="py-20 bg-amber-50">
+      <section style={{ order: orderOf('about') }} className="py-20 bg-amber-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -940,9 +1130,97 @@ export default function Home() {
       </section>
       )}
 
+      {/* Videos section (below About Us): YouTube links managed in admin Settings → Home Page */}
+      {homePageVideos.length > 0 && (
+        <section style={{ order: orderOf('highlights') }} className="py-20 bg-amber-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-10"
+            >
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">Highlights</h2>
+            </motion.div>
+            <div className="flex flex-wrap justify-center gap-6">
+              {homePageVideos.map((v, i) => {
+                const url = v.url;
+                const embed = toVideoEmbedUrl(url);
+                // Vertical Shorts get a portrait frame; regular videos stay 16:9.
+                const isShort = /\/shorts\//i.test(url);
+                const hasButton = Boolean(v.buttonLabel?.trim() && v.buttonUrl?.trim());
+                return (
+                  <div
+                    key={i}
+                    className={`group flex flex-col bg-white rounded-2xl shadow-md hover:shadow-xl overflow-hidden border border-yellow-200/70 transition-all duration-300 hover:-translate-y-1 w-full ${
+                      isShort ? 'sm:w-[300px]' : 'sm:w-[380px]'
+                    }`}
+                  >
+                    {/* flex-1 + justify-center vertically centers the video so, when the
+                        card is stretched to match a taller Short in the same row, the
+                        blank space is split evenly above and below. */}
+                    <div className="flex-1 flex flex-col justify-center">
+                      {embed ? (
+                        <div className={`w-full ${isShort ? 'aspect-[9/16]' : 'aspect-video'} bg-black`}>
+                          <iframe
+                            src={embed}
+                            title={`Sanhoti video ${i + 1}`}
+                            className="w-full h-full"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                          />
+                        </div>
+                      ) : (
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`w-full flex items-center justify-center gap-2 bg-gray-900 text-white font-medium ${
+                            isShort ? 'aspect-[9/16]' : 'aspect-video'
+                          }`}
+                        >
+                          <Eye className="w-5 h-5" /> Watch video
+                        </a>
+                      )}
+                    </div>
+                    {(v.caption?.trim() || v.author?.trim()) && (
+                      <div className="px-4 pt-4">
+                        {v.caption?.trim() && (
+                          <p className="text-sm text-gray-700 italic leading-snug text-center">
+                            “{v.caption.trim()}”
+                          </p>
+                        )}
+                        {v.author?.trim() && (
+                          <p className="mt-1 text-sm font-semibold text-primary-700 text-center">
+                            — {v.author.trim()}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {hasButton && (
+                      <div className="p-4 text-center border-t border-gray-100">
+                        <a
+                          href={v.buttonUrl!.trim()}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center w-full px-5 py-2.5 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+                        >
+                          {v.buttonLabel!.trim()}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Charity Events section (below About Us): priority charity + upcoming charity */}
       {showCharityEventsSection && (
-        <section className="py-20 bg-amber-50">
+        <section style={{ order: orderOf('charity') }} className="py-20 bg-amber-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -1353,7 +1631,7 @@ export default function Home() {
       )}
 
       {/* Features Section - What We Offer */}
-      <section className="py-20 bg-amber-50">
+      <section style={{ order: orderOf('offer') }} className="py-20 bg-amber-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1405,7 +1683,10 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-primary-600 to-primary-700 text-white">
+      <section
+        style={{ order: 999 }}
+        className="py-20 bg-gradient-to-r from-primary-600 to-primary-700 text-white"
+      >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}

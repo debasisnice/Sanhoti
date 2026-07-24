@@ -1,7 +1,9 @@
 import { SettingsDataHelper } from '../data/SettingsDataHelper.js';
 import {
+  HeroSlots,
   HomeHeroButtonsVisibility,
   HomePageStatements,
+  HomePageVideo,
   HomeStatementTabsVisibility,
   Settings,
 } from '../models/types.js';
@@ -93,6 +95,18 @@ export class SettingsService {
 
   async updateHomeHeroBanner(message: string): Promise<Settings> {
     return this.settingsDataHelper.updateHomeHeroBanner(message);
+  }
+
+  async updateHomePageVideos(videos: HomePageVideo[]): Promise<Settings> {
+    return this.settingsDataHelper.updateHomePageVideos(videos);
+  }
+
+  async updateHomeSectionOrder(order: string[]): Promise<Settings> {
+    return this.settingsDataHelper.updateHomeSectionOrder(order);
+  }
+
+  async updateHeroSlots(heroSlots: HeroSlots): Promise<Settings> {
+    return this.settingsDataHelper.updateHeroSlots(heroSlots);
   }
 
   async updateHomeHeroButtons(patch: Partial<HomeHeroButtonsVisibility>): Promise<Settings> {

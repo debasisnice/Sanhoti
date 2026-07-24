@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Settings, Users, Award, Home, Upload, Trash2, X, UserCircle, QrCode, BookOpen } from 'lucide-react';
 import { settingsAPI, usersAPI, sponsorsAPI, homepageAPI, boardMembersAPI, paymentQRAPI, durgaPujaPageAPI } from '../../services/api';
+import type { HomePageVideo, HeroSlots, HeroSlotConfig } from '../../services/api';
+import { HOME_SECTION_LABELS, resolveHomeSectionOrder } from '../../constants/homeSections';
 import toast from 'react-hot-toast';
 import { convertPSTToLocal } from '../../utils/dateUtils';
 import { DEFAULT_HOME_STATEMENTS, DEFAULT_HOME_HERO_BANNER_MESSAGE } from '../../constants/homePageStatements';
@@ -102,6 +104,49 @@ interface BoardMemberImage {
   url: string;
 }
 
+/** Small uploader used by hero-slot "Image" mode. Uploads immediately, then the
+ *  parent stores the returned URL on the slot (persisted on "Save hero cards"). */
+function HeroSlotImageUpload({
+  imageUrl,
+  saving,
+  setSaving,
+  onUploaded,
+}: {
+  imageUrl?: string;
+  saving: boolean;
+  setSaving: (v: boolean) => void;
+  onUploaded: (url: string) => void;
+}) {
+  return (
+    <div className="space-y-1">
+      {imageUrl && (
+        <img src={imageUrl} alt="" className="h-20 rounded border border-gray-200 object-cover" />
+      )}
+      <input
+        type="file"
+        accept="image/*"
+        disabled={saving}
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          try {
+            setSaving(true);
+            const { url } = await settingsAPI.uploadHeroSlotImage(file);
+            onUploaded(url);
+            toast.success('Image uploaded — remember to Save hero cards');
+          } catch (err: any) {
+            toast.error(err?.response?.data?.error || 'Failed to upload image');
+          } finally {
+            setSaving(false);
+          }
+        }}
+        className="block text-sm"
+      />
+      <p className="text-xs text-gray-400">Recommended: a portrait (3:4) image.</p>
+    </div>
+  );
+}
+
 export default function AdminSettings() {
   const [activeTab, setActiveTab] = useState<TabType>('navbar');
   const [settings, setSettings] = useState<SettingsData | null>(null);
@@ -136,6 +181,9 @@ export default function AdminSettings() {
     purpose: true,
   });
   const [homeHeroBannerMessage, setHomeHeroBannerMessage] = useState('');
+  const [homePageVideos, setHomePageVideos] = useState<HomePageVideo[]>([]);
+  const [homeSectionOrder, setHomeSectionOrder] = useState<string[]>(() => resolveHomeSectionOrder());
+  const [heroSlots, setHeroSlots] = useState<HeroSlots>({});
   const [heroButtonsVisible, setHeroButtonsVisible] = useState<HomeHeroButtonsState>({
     facebook: true,
     whatsapp: true,
@@ -202,6 +250,16 @@ export default function AdminSettings() {
       });
       const heroRaw = (data as { homeHeroBannerMessage?: string }).homeHeroBannerMessage;
       setHomeHeroBannerMessage(heroRaw ?? '');
+      const videosRaw = (data as { homePageVideos?: (string | HomePageVideo)[] }).homePageVideos;
+      setHomePageVideos(
+        Array.isArray(videosRaw)
+          ? videosRaw.map((v) => (typeof v === 'string' ? { url: v } : { ...v }))
+          : []
+      );
+      setHomeSectionOrder(
+        resolveHomeSectionOrder((data as { homeSectionOrder?: string[] }).homeSectionOrder)
+      );
+      setHeroSlots((data as { heroSlots?: HeroSlots }).heroSlots ?? {});
       const hb = (data as { homeHeroButtons?: Record<string, boolean | undefined> }).homeHeroButtons;
       setHeroButtonsVisible({
         facebook: hb?.facebook !== false,
@@ -1650,6 +1708,346 @@ export default function AdminSettings() {
                 >
                   {saving ? 'Saving...' : 'Save hero banner'}
                 </button>
+              </div>
+
+              {/* Hero Cards */}
+              <div className="mb-4 sm:mb-8 px-2 py-3 sm:p-6 bg-white rounded-lg border border-gray-200">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">Hero cards</h3>
+                <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4 leading-snug">
+                  The hero has two cards. Each can show its default content, a Highlights video
+                  (click-to-play), or be hidden. Pick a video from the “Home page videos” list below.
+                </p>
+                <div className="space-y-3">
+                  {([
+                    ['left', 'Left card — Priority Event'],
+                    ['right', 'Right card — Charity Events'],
+                  ] as const).map(([slotKey, label]) => {
+                    const slot: HeroSlotConfig = heroSlots[slotKey] ?? { mode: 'default' };
+                    const setSlot = (patch: Partial<HeroSlotConfig>) =>
+                      setHeroSlots({
+                        ...heroSlots,
+                        [slotKey]: { mode: slot.mode, videoUrl: slot.videoUrl, ...patch },
+                      });
+                    return (
+                      <div key={slotKey} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                        <p className="font-medium text-gray-800 text-sm">{label}</p>
+                        <select
+                          value={slot.mode}
+                          onChange={(e) => setSlot({ mode: e.target.value as HeroSlotConfig['mode'] })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-sm"
+                        >
+                          <option value="default">Default content</option>
+                          <option value="video">Highlights video</option>
+                          <option value="image">Uploaded image</option>
+                          <option value="off">Hidden</option>
+                        </select>
+                        {slot.mode === 'video' &&
+                          (homePageVideos.length === 0 ? (
+                            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                              Add a video in “Home page videos” below first.
+                            </p>
+                          ) : (
+                            <select
+                              value={slot.videoUrl ?? ''}
+                              onChange={(e) => setSlot({ videoUrl: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-sm"
+                            >
+                              <option value="">Select a video…</option>
+                              {homePageVideos.map((v, i) => (
+                                <option key={i} value={v.url}>
+                                  {v.caption?.trim() || v.author?.trim() || v.url}
+                                </option>
+                              ))}
+                            </select>
+                          ))}
+                        {slot.mode === 'image' && (
+                          <HeroSlotImageUpload
+                            imageUrl={slot.imageUrl}
+                            saving={saving}
+                            setSaving={setSaving}
+                            onUploaded={(url) => setSlot({ imageUrl: url })}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                  {/* Right bottom card: default = current-year Durga Puja menu, a video, or hidden. */}
+                  {(() => {
+                    const slot: HeroSlotConfig = heroSlots.rightExtra ?? { mode: 'default' };
+                    const setSlot = (patch: Partial<HeroSlotConfig>) =>
+                      setHeroSlots({
+                        ...heroSlots,
+                        rightExtra: { mode: slot.mode, videoUrl: slot.videoUrl, ...patch },
+                      });
+                    return (
+                      <div className="border border-gray-200 rounded-lg p-3 space-y-2">
+                        <p className="font-medium text-gray-800 text-sm">
+                          Right bottom card — below the right card (beside it on mobile)
+                        </p>
+                        <select
+                          value={slot.mode}
+                          onChange={(e) => setSlot({ mode: e.target.value as HeroSlotConfig['mode'] })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-sm"
+                        >
+                          <option value="default">Current year Durga Puja menu</option>
+                          <option value="video">Highlights video</option>
+                          <option value="image">Uploaded image</option>
+                          <option value="off">Hidden</option>
+                        </select>
+                        {slot.mode === 'video' &&
+                          (homePageVideos.length === 0 ? (
+                            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                              Add a video in “Home page videos” below first.
+                            </p>
+                          ) : (
+                            <select
+                              value={slot.videoUrl ?? ''}
+                              onChange={(e) => setSlot({ videoUrl: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-sm"
+                            >
+                              <option value="">Select a video…</option>
+                              {homePageVideos.map((v, i) => (
+                                <option key={i} value={v.url}>
+                                  {v.caption?.trim() || v.author?.trim() || v.url}
+                                </option>
+                              ))}
+                            </select>
+                          ))}
+                        {slot.mode === 'image' && (
+                          <HeroSlotImageUpload
+                            imageUrl={slot.imageUrl}
+                            saving={saving}
+                            setSaving={setSaving}
+                            onUploaded={(url) => setSlot({ imageUrl: url })}
+                          />
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      setSaving(true);
+                      await settingsAPI.updateHeroSlots(heroSlots);
+                      toast.success('Hero cards saved');
+                      await fetchSettings();
+                    } catch (error: any) {
+                      toast.error(error.response?.data?.error || 'Failed to save hero cards');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
+                  disabled={saving}
+                  className="mt-2 sm:mt-4 px-2.5 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? 'Saving...' : 'Save hero cards'}
+                </button>
+              </div>
+
+              {/* Section Order */}
+              <div className="mb-4 sm:mb-8 px-2 py-3 sm:p-6 bg-white rounded-lg border border-gray-200">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">Section order</h3>
+                <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4 leading-snug">
+                  Reorder the home page content sections by priority — move a section up when it's
+                  its time of year (e.g. bring Charity Events or Highlights to the top). The hero
+                  banner (top) and the closing call-to-action (bottom) always stay in place.
+                </p>
+                <div className="space-y-2">
+                  {homeSectionOrder.map((key, i) => (
+                    <div
+                      key={key}
+                      className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
+                    >
+                      <span className="font-medium text-gray-800">
+                        {i + 1}. {HOME_SECTION_LABELS[key] ?? key}
+                      </span>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          disabled={i === 0}
+                          onClick={() => {
+                            const next = [...homeSectionOrder];
+                            [next[i - 1], next[i]] = [next[i], next[i - 1]];
+                            setHomeSectionOrder(next);
+                          }}
+                          className="px-2 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                          aria-label={`Move ${HOME_SECTION_LABELS[key] ?? key} up`}
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          disabled={i === homeSectionOrder.length - 1}
+                          onClick={() => {
+                            const next = [...homeSectionOrder];
+                            [next[i + 1], next[i]] = [next[i], next[i + 1]];
+                            setHomeSectionOrder(next);
+                          }}
+                          className="px-2 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                          aria-label={`Move ${HOME_SECTION_LABELS[key] ?? key} down`}
+                        >
+                          ↓
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      setSaving(true);
+                      await settingsAPI.updateHomeSectionOrder(homeSectionOrder);
+                      toast.success('Section order saved');
+                      await fetchSettings();
+                    } catch (error: any) {
+                      toast.error(error.response?.data?.error || 'Failed to save section order');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
+                  disabled={saving}
+                  className="mt-2 sm:mt-4 px-2.5 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? 'Saving...' : 'Save order'}
+                </button>
+              </div>
+
+              {/* Home Page Videos Section */}
+              <div className="mb-4 sm:mb-8 px-2 py-3 sm:p-6 bg-white rounded-lg border border-gray-200">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">Home page videos</h3>
+                <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4 leading-snug">
+                  YouTube video links shown in a section below “About Us” on the home page. Paste a
+                  full YouTube URL (e.g. https://www.youtube.com/watch?v=… or https://youtu.be/…).
+                  Leave empty to hide the section.
+                </p>
+                <div className="space-y-3">
+                  {homePageVideos.map((v, i) => (
+                    <div key={i} className="border border-gray-200 rounded-lg p-2 sm:p-3 space-y-2">
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="text"
+                          value={v.url ?? ''}
+                          placeholder="Video URL — https://www.youtube.com/watch?v=…"
+                          onChange={(e) =>
+                            setHomePageVideos(
+                              homePageVideos.map((x, k) => (k === i ? { ...x, url: e.target.value } : x))
+                            )
+                          }
+                          className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setHomePageVideos(homePageVideos.filter((_, k) => k !== i))}
+                          className="text-red-500 hover:text-red-700 p-1"
+                          aria-label="Remove video"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <textarea
+                        value={v.caption ?? ''}
+                        placeholder="Caption / comment (optional) — e.g. a 1–2 line testimonial shown below the video"
+                        rows={2}
+                        onChange={(e) =>
+                          setHomePageVideos(
+                            homePageVideos.map((x, k) => (k === i ? { ...x, caption: e.target.value } : x))
+                          )
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-sm"
+                      />
+                      <input
+                        type="text"
+                        value={v.author ?? ''}
+                        placeholder="Comment by (optional) — name of the person who gave the comment"
+                        onChange={(e) =>
+                          setHomePageVideos(
+                            homePageVideos.map((x, k) => (k === i ? { ...x, author: e.target.value } : x))
+                          )
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-sm"
+                      />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input
+                          type="text"
+                          value={v.buttonLabel ?? ''}
+                          placeholder="Button label (optional) — e.g. Buy Tickets"
+                          onChange={(e) =>
+                            setHomePageVideos(
+                              homePageVideos.map((x, k) =>
+                                k === i ? { ...x, buttonLabel: e.target.value } : x
+                              )
+                            )
+                          }
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-sm"
+                        />
+                        <input
+                          type="text"
+                          value={v.buttonUrl ?? ''}
+                          placeholder="Button link (optional) — https://…"
+                          onChange={(e) =>
+                            setHomePageVideos(
+                              homePageVideos.map((x, k) =>
+                                k === i ? { ...x, buttonUrl: e.target.value } : x
+                              )
+                            )
+                          }
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-sm"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-400">
+                        The button shows under the video only when both a label and a link are set.
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setHomePageVideos([...homePageVideos, { url: '' }])}
+                  className="mt-2 text-primary-600 text-sm font-medium hover:text-primary-700"
+                >
+                  + Add video
+                </button>
+                <div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        setSaving(true);
+                        const clean = homePageVideos
+                          .map((v) => ({
+                            url: (v.url ?? '').trim(),
+                            caption: (v.caption ?? '').trim(),
+                            author: (v.author ?? '').trim(),
+                            buttonLabel: (v.buttonLabel ?? '').trim(),
+                            buttonUrl: (v.buttonUrl ?? '').trim(),
+                          }))
+                          .filter((v) => v.url.length > 0)
+                          .map((v) => ({
+                            url: v.url,
+                            ...(v.caption ? { caption: v.caption } : {}),
+                            ...(v.author ? { author: v.author } : {}),
+                            ...(v.buttonLabel && v.buttonUrl
+                              ? { buttonLabel: v.buttonLabel, buttonUrl: v.buttonUrl }
+                              : {}),
+                          }));
+                        await settingsAPI.updateHomePageVideos(clean);
+                        toast.success('Home page videos saved');
+                        await fetchSettings();
+                      } catch (error: any) {
+                        toast.error(error.response?.data?.error || 'Failed to save videos');
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
+                    disabled={saving}
+                    className="mt-2 sm:mt-4 px-2.5 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {saving ? 'Saving...' : 'Save videos'}
+                  </button>
+                </div>
               </div>
 
               {/* Hero Buttons Visibility Section */}
