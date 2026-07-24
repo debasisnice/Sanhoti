@@ -740,10 +740,20 @@ export interface DurgaPujaVenueInfo {
 }
 
 /** A single meal listing (Section 7). */
+/** A labelled menu group within a meal (e.g. "Non-Veg Item", "Veg Item", "Kids Meal"). */
+export interface DurgaPujaMealCategory {
+  label: string;
+  items: string[];
+  /** Optional hex color (e.g. "#dc2626") applied to the label & dots on the public page. */
+  color?: string;
+}
+
 export interface DurgaPujaMeal {
   name: string;
   description?: string;
   hours?: string;
+  /** Structured menu: one or more labelled groups, each with a list of dishes. */
+  categories?: DurgaPujaMealCategory[];
 }
 
 /** Food information (Section 7). */

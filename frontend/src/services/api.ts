@@ -921,10 +921,18 @@ export interface DurgaPujaVenueInfo {
   layoutNote?: string;
   venueMapImageUrl?: string;
 }
+export interface DurgaPujaMealCategory {
+  label: string;
+  items: string[];
+  /** Optional hex color applied to the label & dots on the public page. */
+  color?: string;
+}
 export interface DurgaPujaMeal {
   name: string;
   description?: string;
   hours?: string;
+  /** Structured menu: labelled groups (Non-Veg, Veg, Kids…) each with dishes. */
+  categories?: DurgaPujaMealCategory[];
 }
 export interface DurgaPujaFoodInfo {
   intro?: string;

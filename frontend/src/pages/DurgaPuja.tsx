@@ -1445,17 +1445,59 @@ export default function DurgaPuja() {
             <div className={cardCls}>
               {food.intro && <p className="text-gray-700 mb-4">{food.intro}</p>}
               {food.meals && food.meals.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                  {food.meals.map((m, i) => (
-                    <div key={i} className="border border-gray-100 rounded-lg p-4 bg-gray-50">
-                      <p className="font-semibold text-gray-900 flex items-center gap-2">
-                        <Utensils className="w-4 h-4 text-primary-600" />
-                        {m.name}
-                      </p>
-                      {m.hours && <p className="text-xs text-gray-500 mt-0.5">{m.hours}</p>}
-                      {m.description && <p className="text-sm text-gray-600 mt-1">{m.description}</p>}
-                    </div>
-                  ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 items-stretch">
+                  {food.meals.map((m, i) => {
+                    const categories = (m.categories ?? [])
+                      .map(c => ({
+                        label: (c.label ?? '').trim(),
+                        items: (c.items ?? []).map(s => s.trim()).filter(Boolean),
+                        color: (c.color ?? '').trim() || undefined,
+                      }))
+                      .filter(c => c.label || c.items.length > 0);
+                    return (
+                      <div key={i} className="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                        <div className="border-b border-gray-300 pb-2 mb-2">
+                          <p className="font-semibold text-gray-900 flex items-center gap-2">
+                            <Utensils className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                            {m.name}
+                          </p>
+                          {m.hours && <p className="text-xs text-gray-500 mt-0.5">{m.hours}</p>}
+                        </div>
+                        {m.description && <p className="text-sm text-gray-600 mt-0.5 mb-2">{m.description}</p>}
+                        {categories.length > 0 && (
+                          <div className="mt-2 space-y-1.5">
+                            {categories.map((cat, ci) => (
+                              <div key={ci}>
+                                {cat.label && (
+                                  <p
+                                    className="text-sm font-semibold text-primary-700 mb-0.5"
+                                    style={cat.color ? { color: cat.color } : undefined}
+                                  >
+                                    {cat.label}
+                                  </p>
+                                )}
+                                {cat.items.length > 0 && (
+                                  <p className="text-sm leading-snug">
+                                    {cat.items.map((it, ii) => (
+                                      <span key={ii} className="inline-block mr-2 whitespace-nowrap">
+                                        <span
+                                          className="text-red-500 mr-1"
+                                          style={cat.color ? { color: cat.color } : undefined}
+                                        >
+                                          •
+                                        </span>
+                                        <span className="text-gray-700">{it}</span>
+                                      </span>
+                                    ))}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               <div className="space-y-1 text-sm">

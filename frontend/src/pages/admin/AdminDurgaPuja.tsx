@@ -17,6 +17,18 @@ import { isDurgaPujaSectionPublic } from '../../utils/durgaPujaSectionVisibility
 const INPUT_CLS =
   'w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500';
 
+/** Curated, readable colors an admin can assign to a menu category (label + dots). */
+const MENU_CATEGORY_COLORS: { name: string; value: string }[] = [
+  { name: 'Red', value: '#dc2626' },
+  { name: 'Green', value: '#16a34a' },
+  { name: 'Orange', value: '#ea580c' },
+  { name: 'Blue', value: '#2563eb' },
+  { name: 'Purple', value: '#7c3aed' },
+  { name: 'Teal', value: '#0d9488' },
+  { name: 'Pink', value: '#db2777' },
+  { name: 'Amber', value: '#d97706' },
+];
+
 /** Recommended volunteer categories (also used as Google Form checkbox options). */
 const DEFAULT_VOLUNTEER_CATEGORIES = [
   'Puja',
@@ -1398,13 +1410,86 @@ export default function AdminDurgaPuja() {
               <FieldLabel>Meals</FieldLabel>
               <button type="button" onClick={() => addNestedItem('food', 'meals', { name: '', hours: '', description: '' })} className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"><Plus className="w-4 h-4" /> Add meal</button>
             </div>
-            <div className="space-y-2">
+            <p className="text-xs text-gray-500 mb-2">
+              Each meal (e.g. “Friday Dinner”) becomes a card on the public page. Add menu
+              categories like “Non-Veg Item”, “Veg Item”, or “Kids Meal”, and list the dishes
+              under each. Leave categories empty to just show the optional detail text.
+            </p>
+            <div className="space-y-3">
               {nestedArr('food', 'meals').map((m: any, i: number) => (
-                <div key={i} className="flex flex-wrap gap-2 items-center">
-                  <input className={`${INPUT_CLS} flex-1 min-w-[8rem]`} value={m.name ?? ''} placeholder="Friday dinner" onChange={e => updateNestedItem('food', 'meals', i, { name: e.target.value })} />
-                  <input className="border border-gray-300 rounded-lg px-2 py-2 text-sm w-40" value={m.hours ?? ''} placeholder="7:00–9:00 PM" onChange={e => updateNestedItem('food', 'meals', i, { hours: e.target.value })} />
-                  <input className={`${INPUT_CLS} flex-1 min-w-[8rem]`} value={m.description ?? ''} placeholder="Optional detail" onChange={e => updateNestedItem('food', 'meals', i, { description: e.target.value })} />
-                  <button type="button" onClick={() => removeNestedItem('food', 'meals', i)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
+                <div key={i} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <input className={`${INPUT_CLS} flex-1 min-w-[8rem]`} value={m.name ?? ''} placeholder="Friday Dinner" onChange={e => updateNestedItem('food', 'meals', i, { name: e.target.value })} />
+                    <input className="border border-gray-300 rounded-lg px-2 py-2 text-sm w-40" value={m.hours ?? ''} placeholder="7:00–9:00 PM" onChange={e => updateNestedItem('food', 'meals', i, { hours: e.target.value })} />
+                    <button type="button" onClick={() => removeNestedItem('food', 'meals', i)} className="text-red-500 hover:text-red-700 p-1" aria-label="Remove meal"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                  <input className={INPUT_CLS} value={m.description ?? ''} placeholder="Optional detail shown under the meal title" onChange={e => updateNestedItem('food', 'meals', i, { description: e.target.value })} />
+                  {(() => {
+                    const cats: { label: string; items: string[]; color?: string }[] = Array.isArray(m.categories) ? m.categories : [];
+                    const setCats = (next: { label: string; items: string[]; color?: string }[]) =>
+                      updateNestedItem('food', 'meals', i, { categories: next });
+                    return (
+                      <div className="space-y-2 pt-1">
+                        {cats.map((cat, ci) => (
+                          <div key={ci} className="border border-gray-100 rounded-lg p-2 bg-gray-50 space-y-2">
+                            <div className="flex gap-2 items-center">
+                              <input
+                                className={`${INPUT_CLS} flex-1 min-w-0`}
+                                value={cat.label ?? ''}
+                                placeholder="Category — e.g. Non-Veg Item, Veg Item, Kids Meal, Snacks"
+                                onChange={e =>
+                                  setCats(cats.map((x, k) => (k === ci ? { ...x, label: e.target.value } : x)))
+                                }
+                              />
+                              <span
+                                className="w-5 h-5 rounded-full border border-gray-300 flex-shrink-0"
+                                style={{ backgroundColor: cat.color || '#9ca3af' }}
+                                title="Category color"
+                              />
+                              <select
+                                className="border border-gray-300 rounded-lg px-2 py-2 text-sm shrink-0"
+                                value={cat.color ?? ''}
+                                onChange={e =>
+                                  setCats(
+                                    cats.map((x, k) =>
+                                      k === ci ? { ...x, color: e.target.value || undefined } : x
+                                    )
+                                  )
+                                }
+                              >
+                                <option value="">Default</option>
+                                {MENU_CATEGORY_COLORS.map(c => (
+                                  <option key={c.value} value={c.value}>
+                                    {c.name}
+                                  </option>
+                                ))}
+                              </select>
+                              <button
+                                type="button"
+                                onClick={() => setCats(cats.filter((_, k) => k !== ci))}
+                                className="text-red-500 hover:text-red-700 p-1"
+                                aria-label="Remove category"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <StringListEditor
+                              value={cat.items}
+                              placeholder="Dish — e.g. Goat Biriyani"
+                              onChange={items => setCats(cats.map((x, k) => (k === ci ? { ...x, items } : x)))}
+                            />
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setCats([...cats, { label: '', items: [] }])}
+                          className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"
+                        >
+                          <Plus className="w-4 h-4" /> Add menu category
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </div>
               ))}
             </div>
