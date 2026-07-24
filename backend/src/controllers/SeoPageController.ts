@@ -463,10 +463,18 @@ ${faqsHtml}
     // "performer" schema; fall back to a generic performer only when none are set.
     const ticketPrice = lowestTicketPrice(c.ticketing);
     const artists = (c.artists ?? []).filter(a => (a?.name ?? '').trim());
-    const artistNames = artists.map(a => a.name.trim());
+    // Social/streaming URLs become schema.org `sameAs` on the artist's Person node,
+    // helping Google associate the performer with their official profiles.
+    const artistSameAs = (a: (typeof artists)[number]): string[] =>
+      (Array.isArray(a.socialLinks) ? a.socialLinks : [])
+        .map(s => (s?.url ?? '').trim())
+        .filter(Boolean);
     const performer =
-      artistNames.length > 0
-        ? artistNames.map(name => ({ '@type': 'Person', name }))
+      artists.length > 0
+        ? artists.map(a => {
+            const sameAs = artistSameAs(a);
+            return { '@type': 'Person', name: a.name.trim(), ...(sameAs.length ? { sameAs } : {}) };
+          })
         : { '@type': 'PerformingGroup', name: 'Visiting Bengali artists and Sanhoti community performers' };
 
     // Each featured artist becomes a nested dated concert (subEvent) so the schema
@@ -486,7 +494,11 @@ ${faqsHtml}
         eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
         eventStatus: 'https://schema.org/EventScheduled',
         organizer: { '@type': 'Organization', name: ORG_NAME, url: ORIGIN },
-        performer: { '@type': 'Person', name },
+        performer: {
+          '@type': 'Person',
+          name,
+          ...(artistSameAs(a).length ? { sameAs: artistSameAs(a) } : {}),
+        },
         location: {
           '@type': 'Place',
           name: c.venueName,

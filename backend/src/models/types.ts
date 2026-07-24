@@ -677,6 +677,13 @@ export interface DurgaPujaScheduleDay {
   items: DurgaPujaScheduleItem[];
 }
 
+/** A social / streaming link for a featured artist (Section 4). */
+export interface DurgaPujaArtistSocialLink {
+  /** Optional display label; if omitted the public page auto-labels from the URL. */
+  label?: string;
+  url: string;
+}
+
 /** A featured artist (Section 4). */
 export interface DurgaPujaArtist {
   name: string;
@@ -688,8 +695,15 @@ export interface DurgaPujaArtist {
   /** When true, the public card links to /sub-events/:subEventId (SEO detail page). */
   linkSubEventPage?: boolean;
   subEventId?: string;
-  /** YouTube or other video URL — embedded on the public artist card when possible. */
+  /**
+   * @deprecated Legacy single video URL. Read via videoUrls (which merges this in
+   * for back-compat); new content should write to videoUrls.
+   */
   videoUrl?: string;
+  /** YouTube/Vimeo or other video URLs — embedded on the public artist card when possible. */
+  videoUrls?: string[];
+  /** Social / streaming links (Instagram, YouTube, Facebook, Spotify, X, website, …). */
+  socialLinks?: DurgaPujaArtistSocialLink[];
 }
 
 /** Structured ticket details (Section 5). */

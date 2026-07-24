@@ -871,6 +871,11 @@ export interface DurgaPujaScheduleDay {
   date?: string;
   items: DurgaPujaScheduleItem[];
 }
+export interface DurgaPujaArtistSocialLink {
+  /** Optional display label; if omitted the public page auto-labels from the URL. */
+  label?: string;
+  url: string;
+}
 export interface DurgaPujaArtist {
   name: string;
   bio?: string;
@@ -881,8 +886,12 @@ export interface DurgaPujaArtist {
   /** When true, the public card links to /sub-events/:subEventId (SEO detail page). */
   linkSubEventPage?: boolean;
   subEventId?: string;
-  /** YouTube or other video URL — embedded on the public artist card when possible. */
+  /** @deprecated Legacy single video URL — read via videoUrls (merges this in). */
   videoUrl?: string;
+  /** YouTube/Vimeo or other video URLs — embedded on the public artist card when possible. */
+  videoUrls?: string[];
+  /** Social / streaming links (Instagram, YouTube, Facebook, Spotify, X, website, …). */
+  socialLinks?: DurgaPujaArtistSocialLink[];
 }
 export interface DurgaPujaTicketing {
   adultPrice?: string;

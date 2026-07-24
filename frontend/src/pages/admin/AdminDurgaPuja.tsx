@@ -940,16 +940,115 @@ export default function AdminDurgaPuja() {
                 <textarea className={INPUT_CLS} rows={2} value={a.bio ?? ''} placeholder="Short biography" onChange={e => updateItem('artists', i, { bio: e.target.value })} />
                 <input className={INPUT_CLS} value={a.ticketInfo ?? ''} placeholder="Included with ticket / separate ticket required" onChange={e => updateItem('artists', i, { ticketInfo: e.target.value })} />
                 <div>
-                  <FieldLabel>Video link (optional)</FieldLabel>
-                  <input
-                    className={INPUT_CLS}
-                    value={a.videoUrl ?? ''}
-                    placeholder="https://www.youtube.com/watch?v=… or youtu.be/…"
-                    onChange={e => updateItem('artists', i, { videoUrl: e.target.value })}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    YouTube and Vimeo links embed on the public page; other URLs show a watch link.
-                  </p>
+                  <FieldLabel>Video links (optional)</FieldLabel>
+                  {(() => {
+                    const vids: string[] = Array.isArray(a.videoUrls)
+                      ? a.videoUrls
+                      : a.videoUrl
+                        ? [a.videoUrl]
+                        : [];
+                    // Writing to videoUrls (and clearing the legacy single field)
+                    // keeps the public page from rendering the same video twice.
+                    const setVids = (next: string[]) =>
+                      updateItem('artists', i, { videoUrls: next, videoUrl: undefined });
+                    return (
+                      <div className="space-y-2">
+                        {vids.map((v, vi) => (
+                          <div key={vi} className="flex gap-2 items-center">
+                            <input
+                              className={`${INPUT_CLS} flex-1`}
+                              value={v}
+                              placeholder="https://www.youtube.com/watch?v=… or youtu.be/…"
+                              onChange={e => {
+                                const next = [...vids];
+                                next[vi] = e.target.value;
+                                setVids(next);
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setVids(vids.filter((_, k) => k !== vi))}
+                              className="text-red-500 hover:text-red-700 p-1"
+                              aria-label="Remove video link"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setVids([...vids, ''])}
+                          className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"
+                        >
+                          <Plus className="w-4 h-4" /> Add video link
+                        </button>
+                        <p className="text-xs text-gray-500">
+                          YouTube and Vimeo links embed on the public page; other URLs show a watch link.
+                        </p>
+                      </div>
+                    );
+                  })()}
+                </div>
+                <div>
+                  <FieldLabel>Social / streaming links (optional)</FieldLabel>
+                  {(() => {
+                    const links = Array.isArray(a.socialLinks) ? a.socialLinks : [];
+                    const setLinks = (next: { label?: string; url: string }[]) =>
+                      updateItem('artists', i, { socialLinks: next });
+                    return (
+                      <div className="space-y-2">
+                        {links.map((s: { label?: string; url: string }, si: number) => (
+                          <div key={si} className="flex gap-2 items-center">
+                            <input
+                              className={`${INPUT_CLS} flex-1`}
+                              value={s.url ?? ''}
+                              placeholder="URL — https://instagram.com/… , spotify.com/… , website"
+                              onChange={e => {
+                                const next = links.map(
+                                  (x: { label?: string; url: string }, k: number) =>
+                                    k === si ? { ...x, url: e.target.value } : x
+                                );
+                                setLinks(next);
+                              }}
+                            />
+                            <input
+                              className={`${INPUT_CLS} w-36`}
+                              value={s.label ?? ''}
+                              placeholder="Label (optional)"
+                              onChange={e => {
+                                const next = links.map(
+                                  (x: { label?: string; url: string }, k: number) =>
+                                    k === si ? { ...x, label: e.target.value } : x
+                                );
+                                setLinks(next);
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setLinks(links.filter((_: unknown, k: number) => k !== si))
+                              }
+                              className="text-red-500 hover:text-red-700 p-1"
+                              aria-label="Remove social link"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setLinks([...links, { url: '' }])}
+                          className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"
+                        >
+                          <Plus className="w-4 h-4" /> Add social link
+                        </button>
+                        <p className="text-xs text-gray-500">
+                          Instagram, YouTube, Facebook, Spotify, X, or website. The icon is detected
+                          automatically; label is optional.
+                        </p>
+                      </div>
+                    );
+                  })()}
                 </div>
                 <AssetImageField year={editYear} category="artists" value={a.imageUrl} onChange={url => updateItem('artists', i, { imageUrl: url })} label="Artist photo" />
                 <div className="border-t border-gray-100 pt-2 space-y-2">

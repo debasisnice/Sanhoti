@@ -25,7 +25,10 @@ import {
   MessageCircle,
   ExternalLink,
   PartyPopper,
+  Globe,
+  Twitter,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import Seo from '../components/Seo';
 import YapsodyEventListEmbed from '../components/YapsodyEventListEmbed';
 import { getSiteOrigin } from '../utils/eventShareUrl';
@@ -148,6 +151,93 @@ function featuredArtistPageHref(artist: DurgaPujaArtist): string | null {
   return `/sub-events/${artist.subEventId.trim()}`;
 }
 
+/** Merge legacy videoUrl + videoUrls into a trimmed, de-duped list. */
+function artistVideoUrls(artist: DurgaPujaArtist): string[] {
+  const list = [
+    ...(Array.isArray(artist.videoUrls) ? artist.videoUrls : []),
+    ...(artist.videoUrl ? [artist.videoUrl] : []),
+  ]
+    .map(v => (v ?? '').trim())
+    .filter(Boolean);
+  return Array.from(new Set(list));
+}
+
+/** True if a string looks like a web URL (with or without scheme). */
+function looksLikeUrl(s: string): boolean {
+  return /^https?:\/\//i.test(s) || /^[\w-]+(\.[\w-]+)+(\/|$|\?)/.test(s);
+}
+
+/** Add https:// to a scheme-less URL so hrefs and new URL() work. */
+function normalizeHref(s: string): string {
+  const t = s.trim();
+  if (!t) return '';
+  if (/^(https?:|mailto:|tel:)/i.test(t)) return t;
+  if (looksLikeUrl(t)) return `https://${t}`;
+  return t;
+}
+
+/** Trimmed social links with a non-empty URL. */
+function artistSocialLinks(artist: DurgaPujaArtist): { label?: string; url: string }[] {
+  return (Array.isArray(artist.socialLinks) ? artist.socialLinks : [])
+    .map(s => {
+      let label = s.label?.trim() || undefined;
+      let url = (s.url ?? '').trim();
+      // Robustness: if the URL box was left empty but the label holds a URL
+      // (a common mix-up), treat the label as the URL.
+      if (!url && label && looksLikeUrl(label)) {
+        url = label;
+        label = undefined;
+      }
+      return { label, url: normalizeHref(url) };
+    })
+    .filter(s => s.url);
+}
+
+/** Pick an icon + default label for a social/streaming URL by its host. */
+function socialLinkMeta(url: string): { Icon: LucideIcon; label: string } {
+  let host = '';
+  try {
+    host = new URL(url).hostname.replace(/^www\./, '').toLowerCase();
+  } catch {
+    host = '';
+  }
+  if (host.includes('instagram.com')) return { Icon: Instagram, label: 'Instagram' };
+  if (host.includes('youtube.com') || host.includes('youtu.be')) return { Icon: Youtube, label: 'YouTube' };
+  if (host.includes('facebook.com') || host.includes('fb.com') || host.includes('fb.me'))
+    return { Icon: Facebook, label: 'Facebook' };
+  if (host.includes('spotify.com')) return { Icon: Music, label: 'Spotify' };
+  if (host.includes('twitter.com') || host === 'x.com' || host.endsWith('.x.com'))
+    return { Icon: Twitter, label: 'X' };
+  return { Icon: Globe, label: 'Website' };
+}
+
+/** Social/streaming icon links shown on an artist card. */
+function ArtistSocialLinks({ artist }: { artist: DurgaPujaArtist }) {
+  const links = artistSocialLinks(artist);
+  if (links.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-2">
+      {links.map((s, i) => {
+        const { Icon, label } = socialLinkMeta(s.url);
+        const text = s.label || label;
+        return (
+          <a
+            key={`${s.url}-${i}`}
+            href={s.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={text}
+            aria-label={`${artist.name} on ${text}`}
+            className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-gray-200 bg-white text-gray-700 hover:border-primary-300 hover:text-primary-700 hover:bg-primary-50 transition-colors"
+          >
+            <Icon className="w-4 h-4" />
+          </a>
+        );
+      })}
+    </div>
+  );
+}
+
 /** Hero / ticket CTAs that should not appear after the celebration has ended. */
 function isTicketRelatedCta(cta: { label?: string; href?: string }): boolean {
   const label = (cta.label ?? '').trim().toLowerCase();
@@ -224,58 +314,82 @@ function FeaturedArtistCard({ artist }: { artist: DurgaPujaArtist }) {
     </>
   );
 
-  if (href) {
-    return (
-      <Link
-        to={href}
-        className={`${ARTIST_CARD_CLS} cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500`}
-      >
-        {body}
-      </Link>
-    );
-  }
+  // Social links are anchors, so they must NOT be nested inside the card's
+  // <Link>. Render the main content (clickable when there's a sub-event page)
+  // and the social row as siblings inside the card container.
+  const socialLinks = artistSocialLinks(artist);
+  const main = href ? (
+    <Link
+      to={href}
+      className="flex flex-col flex-1 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+    >
+      {body}
+    </Link>
+  ) : (
+    <div className="flex flex-col flex-1">{body}</div>
+  );
 
-  return <div className={ARTIST_CARD_CLS}>{body}</div>;
+  return (
+    <div className={ARTIST_CARD_CLS}>
+      {main}
+      {socialLinks.length > 0 && (
+        <div className="px-5 pb-5">
+          <ArtistSocialLinks artist={artist} />
+        </div>
+      )}
+    </div>
+  );
 }
 
 function FeaturedArtistVideoCard({ artist }: { artist: DurgaPujaArtist }) {
-  if (!artist.videoUrl?.trim()) return null;
-  const videoEmbed = toVideoEmbedUrl(artist.videoUrl);
+  const videos = artistVideoUrls(artist);
+  if (videos.length === 0) return null;
 
   return (
     <div className={ARTIST_VIDEO_CARD_CLS}>
       <p className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
         <Youtube className="w-4 h-4 text-primary-600 flex-shrink-0" />
         {artist.name}
-        <span className="font-normal text-gray-500">— performance video</span>
+        <span className="font-normal text-gray-500">
+          — performance {videos.length > 1 ? 'videos' : 'video'}
+        </span>
       </p>
-      {videoEmbed ? (
-        <div className="aspect-video rounded-lg overflow-hidden bg-black border border-gray-200">
-          <iframe
-            src={videoEmbed}
-            title={`${artist.name} video`}
-            className="w-full h-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
-        </div>
-      ) : (
-        <a
-          href={artist.videoUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700"
-        >
-          <Youtube className="w-4 h-4" />
-          Watch video
-        </a>
-      )}
+      <div className="space-y-3">
+        {videos.map((url, i) => {
+          const videoEmbed = toVideoEmbedUrl(url);
+          return videoEmbed ? (
+            <div
+              key={`${url}-${i}`}
+              className="aspect-video rounded-lg overflow-hidden bg-black border border-gray-200"
+            >
+              <iframe
+                src={videoEmbed}
+                title={`${artist.name} video ${i + 1}`}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
+          ) : (
+            <a
+              key={`${url}-${i}`}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700"
+            >
+              <Youtube className="w-4 h-4" />
+              Watch video{videos.length > 1 ? ` ${i + 1}` : ''}
+            </a>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 function FeaturedArtistsGrid({ artists }: { artists: DurgaPujaArtist[] }) {
-  const hasAnyVideo = artists.some(a => a.videoUrl?.trim());
+  const hasAnyVideo = artists.some(a => artistVideoUrls(a).length > 0);
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-stretch">
@@ -287,7 +401,7 @@ function FeaturedArtistsGrid({ artists }: { artists: DurgaPujaArtist[] }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {artists.map((a, i) => (
             <div key={a.subEventId || `${a.name}-${i}-video`}>
-              {a.videoUrl?.trim() ? <FeaturedArtistVideoCard artist={a} /> : null}
+              {artistVideoUrls(a).length > 0 ? <FeaturedArtistVideoCard artist={a} /> : null}
             </div>
           ))}
         </div>
