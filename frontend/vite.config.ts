@@ -105,6 +105,25 @@ export default defineConfig({
             handler: 'NetworkOnly',
           },
           {
+            // Event / sub-event flyer images are keyed by filename and effectively
+            // static. Keep them in their OWN cache (so they can't be evicted by the
+            // 50-entry api-cache) and serve them Stale-While-Revalidate: the image
+            // renders instantly from cache on refresh — never vanishing when the
+            // backend is briefly slow — while refreshing in the background.
+            urlPattern: /\/api\/(events|sub-events)\/[^/]+\/image\/.*/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'event-images-cache',
+              expiration: {
+                maxEntries: 80,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
             urlPattern: /\/api\/.*/i,
             handler: 'NetworkFirst',
             options: {

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { SyntheticEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Users, Image, BookOpen, ArrowRight, Eye, Star, MapPin, Share2, Target } from 'lucide-react';
@@ -25,6 +26,29 @@ const ABOUT_TAB_BUTTON_LABEL: Record<AboutStatementTabKey, string> = {
   mission: 'Mission',
   purpose: 'Purpose',
 };
+
+/**
+ * onError handler for event `<img>`s that retries a few times (with backoff and a
+ * cache-buster) before hiding. Without this, a single transient failure on first
+ * load — common when the small backend instance is cold/slow — permanently hides
+ * the image, so it only appears after a manual refresh.
+ */
+function retryImageOnError(originalSrc: string) {
+  return (e: SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    const tries = Number(img.dataset.retry || '0');
+    if (tries >= 3) {
+      img.style.display = 'none';
+      return;
+    }
+    img.dataset.retry = String(tries + 1);
+    const sep = originalSrc.includes('?') ? '&' : '?';
+    window.setTimeout(() => {
+      img.style.display = '';
+      img.src = `${originalSrc}${sep}retry=${tries + 1}`;
+    }, 600 * (tries + 1));
+  };
+}
 
 /** Charity card: show priority image longer so it is on screen most of the time. */
 const CHARITY_PRIORITY_IMAGE_MS = 14_000;
@@ -965,9 +989,7 @@ export default function Home() {
                               src={eventImage}
                               alt={eventName}
                               className="w-full h-full object-contain"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                              }}
+                              onError={retryImageOnError(eventImage)}
                             />
                           )}
                           <div className="absolute top-4 right-4 bg-yellow-500 rounded-full p-3 shadow-lg">
@@ -1113,9 +1135,7 @@ export default function Home() {
                               src={eventImage}
                               alt={eventName}
                               className="w-full h-full object-contain"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                              }}
+                              onError={retryImageOnError(eventImage)}
                             />
                           ) : null}
                           <div className="absolute top-4 right-4 bg-yellow-500 rounded-full p-3 shadow-lg">
