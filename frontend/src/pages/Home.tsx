@@ -183,7 +183,7 @@ export default function Home() {
           // Fetch the priority event's image and home sub-events concurrently.
           await Promise.all([
             (async () => {
-              if (priority.event_id && priority.event_image_path) {
+              if (priority.event_id) {
                 try {
                   const imageData = await eventsAPI.getImagePublic(priority.event_id);
                   if (imageData) {
@@ -223,7 +223,7 @@ export default function Home() {
         );
         if (priorityCharity) {
           setPriorityCharityEvent(priorityCharity);
-          if (priorityCharity.event_id && priorityCharity.event_image_path) {
+          if (priorityCharity.event_id) {
             try {
               const imageData = await eventsAPI.getImagePublic(priorityCharity.event_id);
               if (imageData) {
@@ -258,7 +258,7 @@ export default function Home() {
         });
         const pairResults = await Promise.all(
           charityEvents.map(async (e) => {
-            if (!(e.event_id && (e as any).event_image_path)) return null;
+            if (!e.event_id) return null;
             try {
               const imageData = await eventsAPI.getImagePublic(e.event_id!);
               const url = imageData ? eventsAPI.getImageUrl(e.event_id!, imageData.filename) : null;

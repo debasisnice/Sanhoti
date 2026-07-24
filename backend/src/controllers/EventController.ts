@@ -3,7 +3,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import { EventService } from '../services/EventService.js';
 import multer from 'multer';
-import { join, resolve } from 'path';
+import { join, resolve, basename } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { existsSync, mkdirSync, renameSync, unlinkSync, readdirSync, readFileSync, statSync } from 'fs';
@@ -409,6 +409,15 @@ export class EventController {
       // Ensure folder exists (safety check)
       if (!existsSync(folderPath!)) {
         mkdirSync(folderPath!, { recursive: true });
+      }
+
+      // Self-heal: keep the event record's event_image_path in sync with the actual
+      // folder. When the folder was located by the `-<eventId>` scan (not the record
+      // field), the field can be empty/stale — which makes the public homepage skip
+      // the image even though it exists. Persist the real folder name here.
+      const actualFolderName = basename(folderPath!);
+      if (event.event_image_path !== actualFolderName) {
+        await this.eventService.updateEvent(eventId, { event_image_path: actualFolderName });
       }
 
       // Delete all existing images in the folder (replace old image)
