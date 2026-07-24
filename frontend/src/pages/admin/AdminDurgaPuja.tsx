@@ -999,8 +999,10 @@ export default function AdminDurgaPuja() {
                       <div className="space-y-2">
                         {links.map((s: { label?: string; url: string }, si: number) => (
                           <div key={si} className="flex gap-2 items-center">
+                            {/* flex-1 + min-w-0 so the URL box fills remaining space
+                                and can shrink without overflowing. */}
                             <input
-                              className={`${INPUT_CLS} flex-1`}
+                              className={`${INPUT_CLS} flex-1 min-w-0`}
                               value={s.url ?? ''}
                               placeholder="URL — https://instagram.com/… , spotify.com/… , website"
                               onChange={e => {
@@ -1011,18 +1013,23 @@ export default function AdminDurgaPuja() {
                                 setLinks(next);
                               }}
                             />
-                            <input
-                              className={`${INPUT_CLS} w-36`}
-                              value={s.label ?? ''}
-                              placeholder="Label (optional)"
-                              onChange={e => {
-                                const next = links.map(
-                                  (x: { label?: string; url: string }, k: number) =>
-                                    k === si ? { ...x, label: e.target.value } : x
-                                );
-                                setLinks(next);
-                              }}
-                            />
+                            {/* Fixed-width wrapper avoids putting a second width class
+                                (w-36) on top of INPUT_CLS's w-full, which conflicted and
+                                resolved differently in dev vs the production build. */}
+                            <div className="w-36 shrink-0">
+                              <input
+                                className={INPUT_CLS}
+                                value={s.label ?? ''}
+                                placeholder="Label (optional)"
+                                onChange={e => {
+                                  const next = links.map(
+                                    (x: { label?: string; url: string }, k: number) =>
+                                      k === si ? { ...x, label: e.target.value } : x
+                                  );
+                                  setLinks(next);
+                                }}
+                              />
+                            </div>
                             <button
                               type="button"
                               onClick={() =>
