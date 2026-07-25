@@ -5,9 +5,12 @@ import { useAuthStore } from './store/authStore';
 import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
 import AuthActivityMonitor from './components/AuthActivityMonitor';
+import WebMcpProvider from './components/WebMcpProvider';
 import Home from './pages/Home';
 import DurgaPujaRedirect from './pages/DurgaPujaRedirect';
 import DurgaPujaYearRoute from './pages/DurgaPujaYearRoute';
+import BengaliConcerts from './pages/BengaliConcerts';
+import Festivals from './pages/Festivals';
 import BookYourSeat from './pages/BookYourSeat';
 import About from './pages/About';
 import Sponsors from './pages/Sponsors';
@@ -55,12 +58,15 @@ function App() {
     >
       <ScrollToTop />
       <AuthActivityMonitor />
+      <WebMcpProvider />
       <Toaster position="top-right" />
       <Layout>
         <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/durga-puja" element={<DurgaPujaRedirect />} />
+          <Route path="/bengali-concerts" element={<BengaliConcerts />} />
+          <Route path="/festivals" element={<Festivals />} />
           <Route path="/book-your-seat" element={<BookYourSeat />} />
           <Route path="/about" element={<About />} />
           <Route path="/sponsors" element={<Sponsors />} />

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://agentskills.io/schema/v0.2.0/index.json",
+  "name": "Sanhoti Bengali Association of Orange County",
+  "description": "Public read-only data and pages for Sanhoti — Bengali cultural events, Durga Puja, and concerts in Orange County, CA.",
+  "skills": [
+    {
+      "name": "sanhoti-events",
+      "type": "documentation",
+      "description": "How to fetch Sanhoti's public events, Durga Puja details, and concerts via the public JSON API.",
+      "url": "https://www.sanhoti.org/.well-known/agent-skills/sanhoti-events.md",
+      "sha256": "a738939bf164ed22754a6a785bf93ccbdacfbeede7e958f18feeeda69e24857e"
+    }
+  ]
+}

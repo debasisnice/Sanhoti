@@ -1,0 +1,40 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://www.sanhoti.org/api",
+      "service-doc": [
+        {
+          "href": "https://www.sanhoti.org/llms.txt",
+          "type": "text/markdown",
+          "title": "Sanhoti agent guide (llms.txt)"
+        },
+        {
+          "href": "https://www.sanhoti.org/.well-known/agent-skills/sanhoti-events.md",
+          "type": "text/markdown",
+          "title": "Public data endpoints"
+        }
+      ],
+      "service-meta": [
+        {
+          "href": "https://www.sanhoti.org/.well-known/agent-skills/index.json",
+          "type": "application/json",
+          "title": "Agent skills index"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://www.sanhoti.org/health",
+          "type": "application/json",
+          "title": "Health check"
+        }
+      ],
+      "describedby": [
+        {
+          "href": "https://www.sanhoti.org/sitemap.xml",
+          "type": "application/xml",
+          "title": "Sitemap"
+        }
+      ]
+    }
+  ]
+}

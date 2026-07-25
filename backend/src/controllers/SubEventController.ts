@@ -97,6 +97,15 @@ export class SubEventController {
     }
   }
 
+  async getPublicSeoSubEvents(_req: Request, res: Response): Promise<void> {
+    try {
+      const subEvents = await this.subEventService.getPublicSeoSubEvents();
+      res.json(subEvents);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch concerts' });
+    }
+  }
+
   async getSubEventsByEventId(req: Request, res: Response): Promise<void> {
     try {
       const { eventId } = req.params;

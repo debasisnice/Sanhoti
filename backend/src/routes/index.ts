@@ -189,6 +189,8 @@ router.post('/booking/checkout-meals', bindController(ticketingController, 'chec
 router.get('/booking/bookings/:id', bindController(ticketingController, 'getBooking'));
 
 // Sub-Events - Public routes (for event detail page) - MUST be before authenticate middleware
+// Static path first so it isn't captured by the `/sub-events/public/:id` param route.
+router.get('/sub-events/public', bindController(subEventController, 'getPublicSeoSubEvents'));
 router.get('/sub-events/event/:eventId', bindController(subEventController, 'getSubEventsByEventId'));
 router.get('/sub-events/public/:id', bindController(subEventController, 'getSubEventByIdPublic'));
 router.get('/sub-events/:id/image/:filename', bindController(subEventController, 'getSubEventImage'));

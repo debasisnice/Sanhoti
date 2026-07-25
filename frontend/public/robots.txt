@@ -9,6 +9,15 @@ Disallow: /login
 Disallow: /register
 Disallow: /api/
 
+# Content usage preferences (contentsignals.org / IETF AIPREF)
+# search: allow indexing for search  |  ai-input: allow use in AI answers/Overviews  |  ai-train: do NOT use for model training
+Content-Signal: search=yes, ai-input=yes, ai-train=no
+
 # Sitemap
 Sitemap: https://www.sanhoti.org/sitemap.xml
+
+# Agent discovery
+# API catalog: https://www.sanhoti.org/.well-known/api-catalog
+# Agent skills: https://www.sanhoti.org/.well-known/agent-skills/index.json
+# Agent guide:  https://www.sanhoti.org/llms.txt
 

@@ -83,6 +83,16 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/festivals" className="hover:text-white transition-colors">
+                  Bengali Festivals
+                </Link>
+              </li>
+              <li>
+                <Link to="/bengali-concerts" className="hover:text-white transition-colors">
+                  Bengali Concerts
+                </Link>
+              </li>
+              <li>
                 <Link to="/become-our-sponsor" className="hover:text-white transition-colors">
                   Become a Sponsor
                 </Link>

@@ -303,6 +303,20 @@ export class EventDataHelper extends DatabaseHelper {
     return null;
   }
 
+  /** First flyer image filename (basename) for this event, or null if none. */
+  async getEventFlyerFilename(eventId: string): Promise<string | null> {
+    const folder = await this.getEventImageFolderPath(eventId);
+    if (!folder) return null;
+    try {
+      const files = readdirSync(folder)
+        .filter((f) => /\.(jpg|jpeg|png|gif|webp)$/i.test(f))
+        .sort();
+      return files.length ? files[0] : null;
+    } catch {
+      return null;
+    }
+  }
+
   /**
    * First image in the event's gallery folder for social previews when no flyer exists.
    * Uses only `photo_gallery_link` so `/api/galleries/:eventId/photos/:filename` can serve the same file.

@@ -1,5 +1,6 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import Seo from '../components/Seo';
 import { motion } from 'framer-motion';
 import { Mail, Lock, User, Phone, UserPlus } from 'lucide-react';
 import { authAPI } from '../services/api';
@@ -58,6 +59,7 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 pb-32 px-4 sm:px-6 lg:px-8">
+      <Seo title="Register | Sanhoti" description="Create a Sanhoti account." path="/register" noindex />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

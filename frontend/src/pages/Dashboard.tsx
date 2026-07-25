@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, Image, BookOpen, User, Key, X, Eye, EyeOff } from 'lucide-react';
+import Seo from '../components/Seo';
 import { useAuthStore } from '../store/authStore';
 import { rsvpAPI, galleriesAPI, magazinesAPI, eventsAPI, authAPI, subEventsAPI } from '../services/api';
 import { RSVP, PhotoGallery, Magazine, Event, SubEvent } from '../types';
@@ -135,6 +136,7 @@ export default function Dashboard() {
 
   return (
     <div className="py-12 pb-32">
+      <Seo title="Dashboard | Sanhoti" description="Your Sanhoti member dashboard." path="/dashboard" noindex />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

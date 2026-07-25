@@ -29,6 +29,11 @@ export class EventService {
     return this.eventDataHelper.findPast();
   }
 
+  /** First flyer image filename for an event (for SEO og:image / Event schema image). */
+  async getEventFlyerFilename(eventId: string): Promise<string | null> {
+    return this.eventDataHelper.getEventFlyerFilename(eventId);
+  }
+
   async getEventById(id: string): Promise<Event | null> {
     const exact = await this.eventDataHelper.findById(id);
     if (exact) return exact;

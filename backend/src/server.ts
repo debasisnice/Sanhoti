@@ -36,6 +36,23 @@ const allowedOrigins = process.env.CORS_ORIGIN
       'http://sanhoti.org'
     ];
 
+// RFC 8288 Link headers for agent discovery — advertise the API catalog, sitemap,
+// and agent guide on every response Express serves (/seo, /sitemap.xml, /api, /og).
+// The static homepage (served by Nginx) gets the same header via the Nginx snippet
+// in deploy/apply-agent-ready-nginx.sh.
+app.use((req, res, next) => {
+  res.setHeader(
+    'Link',
+    [
+      '</.well-known/api-catalog>; rel="api-catalog"',
+      '</sitemap.xml>; rel="sitemap"',
+      '</llms.txt>; rel="service-doc"; type="text/markdown"',
+      '</.well-known/agent-skills/index.json>; rel="service-meta"; type="application/json"',
+    ].join(', ')
+  );
+  next();
+});
+
 // Security Headers Middleware - Improve trust signals and security
 app.use((req, res, next) => {
   // Plain image bytes for social previews — avoid CSP/HSTS noise that some crawlers mishandle

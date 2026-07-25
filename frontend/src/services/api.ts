@@ -263,6 +263,12 @@ export const subEventsAPI = {
     return response.data;
   },
 
+  /** Public: opted-in, active concert/SEO sub-events for the /bengali-concerts hub. */
+  getPublicConcerts: async (): Promise<SubEvent[]> => {
+    const response = await axios.get(`${API_BASE_URL}/sub-events/public`);
+    return response.data;
+  },
+
   getById: async (id: string): Promise<SubEvent> => {
     // Use public endpoint (no auth required) for RSVP page
     const response = await axios.get(`${API_BASE_URL}/sub-events/public/${id}`);

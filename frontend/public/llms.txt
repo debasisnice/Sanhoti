@@ -1,0 +1,25 @@
+# Sanhoti Bengali Association of Orange County
+
+> Sanhoti (সংহতি) is a 501(c)(3) non-profit Bengali cultural association serving Orange County
+> and Southern California, CA. We host Durga Puja, Saraswati Puja, Poila Boishakh (Bengali New
+> Year), Kali Puja, and live Bengali concerts. Based in Rancho Santa Margarita. EIN 39-2903777.
+> Contact: info@sanhoti.org · +1 949-378-6425.
+
+## Key pages
+- [Home](https://www.sanhoti.org/): overview of Sanhoti and upcoming events.
+- [Durga Puja in Orange County](https://www.sanhoti.org/durga-puja): dates, venue, tickets, schedule.
+- [Bengali Festivals](https://www.sanhoti.org/festivals): Durga Puja, Saraswati Puja, Poila Boishakh, Kali Puja.
+- [Bengali Concerts](https://www.sanhoti.org/bengali-concerts): live concert line-up and tickets.
+- [Events](https://www.sanhoti.org/events): all upcoming and recent events.
+- [About](https://www.sanhoti.org/about) · [Contact](https://www.sanhoti.org/contact) · [Donate](https://www.sanhoti.org/donate)
+
+## Public data (no auth)
+- Events: https://www.sanhoti.org/api/events (also /upcoming, /past, /{id})
+- Durga Puja: https://www.sanhoti.org/api/durga-puja-page/active and /{year}
+- Concerts: https://www.sanhoti.org/api/sub-events/public
+- Sitemap: https://www.sanhoti.org/sitemap.xml
+- Full endpoint guide: https://www.sanhoti.org/.well-known/agent-skills/sanhoti-events.md
+
+## Content usage
+- search=yes, ai-input=yes, ai-train=no (see /robots.txt Content-Signal).
+- Pages support `Accept: text/markdown` for a Markdown rendering.

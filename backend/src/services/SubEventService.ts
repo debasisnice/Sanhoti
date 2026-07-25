@@ -23,6 +23,24 @@ export class SubEventService {
     return this.subEventDataHelper.findByEventId(eventId);
   }
 
+  /**
+   * Opted-in, active sub-events that have a dedicated SEO page enabled
+   * (e.g. concerts), sorted soonest-first. Used by the public `/bengali-concerts`
+   * hub page and its crawler prerender. Returns full records — the public
+   * concert fields (name, date, venue, performers, ticket URL) are all safe to
+   * expose since each already has an indexable `/sub-events/:id` page.
+   */
+  async getPublicSeoSubEvents(): Promise<SubEvent[]> {
+    const all = await this.subEventDataHelper.findAll();
+    return all
+      .filter(se => se.seo_page_enabled === true && se.is_active !== false && !!se.sub_event_id)
+      .sort((a, b) => {
+        const ta = a.sub_event_start_dt ? new Date(a.sub_event_start_dt).getTime() : 0;
+        const tb = b.sub_event_start_dt ? new Date(b.sub_event_start_dt).getTime() : 0;
+        return ta - tb;
+      });
+  }
+
   async createSubEvent(data: {
     sub_event_name: string;
     sub_event_start_dt: string;

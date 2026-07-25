@@ -2,6 +2,7 @@ import { useState } from 'react';
 //import { useNavigate, Link } from 'react-router-dom'; //Debasis - commented out to turnoff signup option
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import Seo from '../components/Seo';
 import { motion } from 'framer-motion';
 import { Mail, Lock, LogIn } from 'lucide-react';
 import { authAPI } from '../services/api';
@@ -40,6 +41,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 pb-32 px-4 sm:px-6 lg:px-8">
+      <Seo title="Login | Sanhoti" description="Log in to your Sanhoti account." path="/login" noindex />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
