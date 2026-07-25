@@ -1080,6 +1080,10 @@ export interface Settings {
   homeSectionOrder?: string[];
   /** Per-slot configuration for the two hero cards (left = event, right = charity). */
   heroSlots?: HeroSlots;
+  /** When true, first-time human visitors to the home page are gently auto-forwarded to the Durga Puja page. */
+  durgaPujaMode?: boolean;
+  /** Uploaded navbar logo shown at the red/beige divide while Durga Puja Mode is on. */
+  durgaPujaLogoUrl?: string;
   updated_at: string;
 }
 

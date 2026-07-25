@@ -275,6 +275,38 @@ export class SettingsDataHelper extends DatabaseHelper {
     return updated;
   }
 
+  async updateDurgaPujaMode(enabled: boolean): Promise<Settings> {
+    let current = await this.get();
+    if (!current) {
+      current = this.getDefaultSettings();
+    }
+
+    const updated: Settings = {
+      ...current,
+      durgaPujaMode: enabled,
+      updated_at: new Date().toISOString(),
+    };
+
+    this.writeFile(this.filename, [updated]);
+    return updated;
+  }
+
+  async updateDurgaPujaLogo(url: string): Promise<Settings> {
+    let current = await this.get();
+    if (!current) {
+      current = this.getDefaultSettings();
+    }
+
+    const updated: Settings = {
+      ...current,
+      durgaPujaLogoUrl: url || undefined,
+      updated_at: new Date().toISOString(),
+    };
+
+    this.writeFile(this.filename, [updated]);
+    return updated;
+  }
+
   async updateHomeHeroButtons(patch: Partial<HomeHeroButtonsVisibility>): Promise<Settings> {
     let current = await this.get();
     if (!current) {

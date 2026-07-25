@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none">
+  <defs>
+    <path id="dp-petal" d="M120 6 C130 18 130 34 120 46 C110 34 110 18 120 6 Z" fill="none" stroke="#e8722a" stroke-width="1.6"/>
+  </defs>
+  <!-- Cream background disc -->
+  <circle cx="120" cy="120" r="119" fill="#fdf6e3"/>
+  <!-- Decorative mandala petals -->
+  <g>
+    <use href="#dp-petal"/>
+    <use href="#dp-petal" transform="rotate(30 120 120)"/>
+    <use href="#dp-petal" transform="rotate(60 120 120)"/>
+    <use href="#dp-petal" transform="rotate(90 120 120)"/>
+    <use href="#dp-petal" transform="rotate(120 120 120)"/>
+    <use href="#dp-petal" transform="rotate(150 120 120)"/>
+    <use href="#dp-petal" transform="rotate(180 120 120)"/>
+    <use href="#dp-petal" transform="rotate(210 120 120)"/>
+    <use href="#dp-petal" transform="rotate(240 120 120)"/>
+    <use href="#dp-petal" transform="rotate(270 120 120)"/>
+    <use href="#dp-petal" transform="rotate(300 120 120)"/>
+    <use href="#dp-petal" transform="rotate(330 120 120)"/>
+  </g>
+  <!-- Dotted ring -->
+  <circle cx="120" cy="120" r="98" fill="none" stroke="#e8722a" stroke-width="3" stroke-dasharray="1.5 8" stroke-linecap="round"/>
+  <!-- Face medallion -->
+  <circle cx="120" cy="120" r="92" fill="#fffaf3"/>
+  <circle cx="120" cy="120" r="92" fill="none" stroke="#e8722a" stroke-width="1.5"/>
+  <!-- Trinetra (third eye) -->
+  <path d="M120 44 C133 62 133 84 120 98 C107 84 107 62 120 44 Z" fill="none" stroke="#111111" stroke-width="3.5"/>
+  <circle cx="120" cy="78" r="7" fill="#e11d1d"/>
+  <!-- Bindi between the brows -->
+  <circle cx="120" cy="112" r="5" fill="#e11d1d"/>
+  <!-- Eyebrows -->
+  <path d="M114 132 C96 116 70 114 48 126 C70 120 92 124 110 138 Z" fill="#111111"/>
+  <path d="M126 132 C144 116 170 114 192 126 C170 120 148 124 130 138 Z" fill="#111111"/>
+  <!-- Left eye -->
+  <path d="M52 146 C70 132 96 132 110 146 C96 160 70 162 52 154 Z" fill="#ffffff" stroke="#111111" stroke-width="4"/>
+  <circle cx="82" cy="146" r="10" fill="#111111"/>
+  <circle cx="86" cy="143" r="3" fill="#ffffff"/>
+  <!-- Right eye -->
+  <path d="M188 146 C170 132 144 132 130 146 C144 160 170 162 188 154 Z" fill="#ffffff" stroke="#111111" stroke-width="4"/>
+  <circle cx="158" cy="146" r="10" fill="#111111"/>
+  <circle cx="162" cy="143" r="3" fill="#ffffff"/>
+  <!-- Nose -->
+  <path d="M120 148 C118 160 116 170 122 176" fill="none" stroke="#555555" stroke-width="2"/>
+  <!-- Nose ring (nath) -->
+  <circle cx="146" cy="184" r="22" fill="none" stroke="#f0b400" stroke-width="5"/>
+  <!-- Lips -->
+  <path d="M94 186 C106 196 122 196 132 188 C122 204 102 204 94 192 Z" fill="#e11d1d"/>
+</svg>

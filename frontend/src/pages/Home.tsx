@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { SyntheticEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Users, Image, BookOpen, ArrowRight, Eye, Star, MapPin, Share2, Target, Play } from 'lucide-react';
 import { eventsAPI, homepageAPI, settingsAPI, subEventsAPI, durgaPujaPageAPI } from '../services/api';
@@ -219,6 +219,8 @@ export default function Home() {
   const [homeSectionOrder, setHomeSectionOrder] = useState<string[]>(() => resolveHomeSectionOrder());
   const [heroSlots, setHeroSlots] = useState<HeroSlots>({});
   const [durgaMenu, setDurgaMenu] = useState<{ year: number; meals: DurgaPujaMeal[] } | null>(null);
+  const [durgaPujaMode, setDurgaPujaMode] = useState(false);
+  const navigate = useNavigate();
   const [heroButtonsVisible, setHeroButtonsVisible] = useState({
     facebook: true,
     whatsapp: true,
@@ -454,6 +456,7 @@ export default function Home() {
           resolveHomeSectionOrder((settings as { homeSectionOrder?: string[] }).homeSectionOrder)
         );
         setHeroSlots((settings as { heroSlots?: HeroSlots }).heroSlots ?? {});
+        setDurgaPujaMode((settings as { durgaPujaMode?: boolean }).durgaPujaMode === true);
         try {
           const dp = await durgaPujaPageAPI.getActive();
           const meals = (dp?.content?.food?.meals ?? []).filter(
@@ -480,6 +483,35 @@ export default function Home() {
 
     fetchSocialLinksAndStatements();
   }, []);
+
+  // "Durga Puja Mode": gently forward first-time human visitors from the home page to the
+  // Durga Puja page. SEO-safe by design — this is a client-side, in-app navigation that runs
+  // AFTER the home page has rendered, is skipped for crawlers (so Google still indexes the
+  // home page normally), and only fires once per browsing session so visitors can still reach
+  // the home page manually afterward.
+  useEffect(() => {
+    if (!durgaPujaMode) return;
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent || '' : '';
+    const isBot =
+      /bot|crawl|spider|slurp|mediapartners|facebookexternalhit|whatsapp|telegram|embedly|quora|pinterest|preview|yandex|baidu|archiver/i.test(
+        ua
+      );
+    if (isBot) return;
+    try {
+      if (sessionStorage.getItem('sanhoti_dp_forwarded') === '1') return;
+    } catch {
+      /* sessionStorage may be unavailable (private mode) — just proceed */
+    }
+    const timer = window.setTimeout(() => {
+      try {
+        sessionStorage.setItem('sanhoti_dp_forwarded', '1');
+      } catch {
+        /* ignore */
+      }
+      navigate('/durga-puja', { replace: true });
+    }, 1200);
+    return () => window.clearTimeout(timer);
+  }, [durgaPujaMode, navigate]);
 
   useEffect(() => {
     if (visibleAboutTabKeys.length === 0) return;

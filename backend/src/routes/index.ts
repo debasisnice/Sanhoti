@@ -906,6 +906,16 @@ router.put('/settings/hero-slots',
   auditLog('UPDATE', 'hero_slots'),
   bindController(settingsController, 'updateHeroSlots')
 );
+router.put('/settings/durga-puja-mode',
+  requireAdmin,
+  auditLog('UPDATE', 'durga_puja_mode'),
+  bindController(settingsController, 'updateDurgaPujaMode')
+);
+router.put('/settings/durga-puja-logo',
+  requireAdmin,
+  auditLog('UPDATE', 'durga_puja_logo'),
+  bindController(settingsController, 'updateDurgaPujaLogo')
+);
 router.post('/settings/hero-slot-image',
   requireAdmin,
   auditLog('UPLOAD', 'hero_slot_image'),

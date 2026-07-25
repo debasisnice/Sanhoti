@@ -112,6 +112,8 @@ export default function Navbar() {
     donate: true,
     joinUs: true,
   });
+  const [durgaPujaMode, setDurgaPujaMode] = useState(false);
+  const [durgaPujaLogoUrl, setDurgaPujaLogoUrl] = useState('');
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -122,6 +124,8 @@ export default function Navbar() {
           // was saved (e.g. durgaPuja) default to visible instead of hidden.
           setNavbarSettings(prev => ({ ...prev, ...settings.navbar }));
         }
+        setDurgaPujaMode(settings?.durgaPujaMode === true);
+        setDurgaPujaLogoUrl(settings?.durgaPujaLogoUrl ?? '');
       } catch (error) {
         console.error('Failed to fetch navbar settings:', error);
         // Use default settings on error
@@ -160,6 +164,23 @@ export default function Navbar() {
         <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-primary-600 z-20"></div>
         {/* Left Section - Beige */}
         <div className="bg-amber-50 w-auto max-w-md relative pr-16">
+          {/* Durga Puja Mode logo — sits on the red/beige divide and opens the Durga Puja page. */}
+          {durgaPujaMode && (
+            <Link
+              to="/durga-puja"
+              title="Durga Puja"
+              aria-label="Durga Puja"
+              className="absolute right-0 top-1/2 translate-x-4 sm:translate-x-6 -translate-y-1/2 z-30 hover:scale-110 transition-transform"
+            >
+              <div className="durga-glow h-16 w-16 md:h-20 md:w-20 rounded-full bg-[#fdf6e3] overflow-hidden">
+                <img
+                  src={durgaPujaLogoUrl || '/images/durga-face.svg'}
+                  alt="Durga Puja"
+                  className="w-full h-full object-contain translate-y-1.5"
+                />
+              </div>
+            </Link>
+          )}
           <div className="h-full pl-0.5 sm:pl-2 lg:pl-4 pr-2 sm:pr-4 lg:pr-8 flex items-center space-x-1.5 sm:space-x-3 lg:space-x-4">
             <Link to="/" className="flex items-center hover:opacity-90 transition-opacity">
               <img

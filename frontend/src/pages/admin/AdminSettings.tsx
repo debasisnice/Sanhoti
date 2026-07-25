@@ -184,6 +184,8 @@ export default function AdminSettings() {
   const [homePageVideos, setHomePageVideos] = useState<HomePageVideo[]>([]);
   const [homeSectionOrder, setHomeSectionOrder] = useState<string[]>(() => resolveHomeSectionOrder());
   const [heroSlots, setHeroSlots] = useState<HeroSlots>({});
+  const [durgaPujaMode, setDurgaPujaMode] = useState(false);
+  const [durgaPujaLogoUrl, setDurgaPujaLogoUrl] = useState('');
   const [heroButtonsVisible, setHeroButtonsVisible] = useState<HomeHeroButtonsState>({
     facebook: true,
     whatsapp: true,
@@ -260,6 +262,8 @@ export default function AdminSettings() {
         resolveHomeSectionOrder((data as { homeSectionOrder?: string[] }).homeSectionOrder)
       );
       setHeroSlots((data as { heroSlots?: HeroSlots }).heroSlots ?? {});
+      setDurgaPujaMode((data as { durgaPujaMode?: boolean }).durgaPujaMode === true);
+      setDurgaPujaLogoUrl((data as { durgaPujaLogoUrl?: string }).durgaPujaLogoUrl ?? '');
       const hb = (data as { homeHeroButtons?: Record<string, boolean | undefined> }).homeHeroButtons;
       setHeroButtonsVisible({
         facebook: hb?.facebook !== false,
@@ -1667,6 +1671,111 @@ export default function AdminSettings() {
                 <p className="text-gray-600">
                   Upload and manage homepage images. These images will be stored in the HomePage_Images directory.
                 </p>
+              </div>
+
+              {/* Durga Puja Mode */}
+              <div className="mb-4 sm:mb-8 px-2 py-3 sm:p-6 bg-white rounded-lg border-2 border-amber-300">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
+                      Durga Puja Mode
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-600 leading-snug">
+                      When ON, first-time visitors land on the home page and are then gently forwarded
+                      to the Durga Puja page automatically. It runs only for real visitors (search
+                      engines are skipped, so SEO is unaffected) and only once per visit — visitors can
+                      still open the home page manually afterward. Turn OFF to use the normal home page.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={durgaPujaMode}
+                    disabled={saving}
+                    onClick={async () => {
+                      const next = !durgaPujaMode;
+                      try {
+                        setSaving(true);
+                        await settingsAPI.updateDurgaPujaMode(next);
+                        setDurgaPujaMode(next);
+                        toast.success(next ? 'Durga Puja Mode ON' : 'Durga Puja Mode OFF');
+                      } catch (error: any) {
+                        toast.error(error.response?.data?.error || 'Failed to update Durga Puja Mode');
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
+                    className={`relative inline-flex h-7 w-12 flex-shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
+                      durgaPujaMode ? 'bg-primary-600' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                        durgaPujaMode ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                <div className="mt-4 border-t border-amber-200 pt-3">
+                  <p className="text-sm font-medium text-gray-800 mb-1">Navbar logo</p>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Optional. Upload your own Durga logo (an image you own or are licensed to use) to
+                    show at the red/beige divide in the navbar while Durga Puja Mode is on. If left
+                    empty, a built-in Durga-face icon is used. Uploaded instantly.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={durgaPujaLogoUrl || '/images/durga-face.svg'}
+                      alt="Durga Puja navbar logo"
+                      className="h-16 w-16 object-contain rounded border border-gray-200 bg-amber-50 p-1"
+                    />
+                    <div className="space-y-1">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={saving}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          try {
+                            setSaving(true);
+                            const { url } = await settingsAPI.uploadHeroSlotImage(file);
+                            await settingsAPI.updateDurgaPujaLogo(url);
+                            setDurgaPujaLogoUrl(url);
+                            toast.success('Logo uploaded');
+                          } catch (error: any) {
+                            toast.error(error.response?.data?.error || 'Failed to upload logo');
+                          } finally {
+                            setSaving(false);
+                          }
+                        }}
+                        className="block text-sm"
+                      />
+                      {durgaPujaLogoUrl && (
+                        <button
+                          type="button"
+                          disabled={saving}
+                          onClick={async () => {
+                            try {
+                              setSaving(true);
+                              await settingsAPI.updateDurgaPujaLogo('');
+                              setDurgaPujaLogoUrl('');
+                              toast.success('Reverted to default icon');
+                            } catch (error: any) {
+                              toast.error(error.response?.data?.error || 'Failed to remove logo');
+                            } finally {
+                              setSaving(false);
+                            }
+                          }}
+                          className="text-xs text-red-600 hover:text-red-700"
+                        >
+                          Remove (use default icon)
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="mb-4 sm:mb-8 px-2 py-3 sm:p-6 bg-white rounded-lg border border-gray-200">

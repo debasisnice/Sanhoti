@@ -109,6 +109,14 @@ export class SettingsService {
     return this.settingsDataHelper.updateHeroSlots(heroSlots);
   }
 
+  async updateDurgaPujaMode(enabled: boolean): Promise<Settings> {
+    return this.settingsDataHelper.updateDurgaPujaMode(enabled);
+  }
+
+  async updateDurgaPujaLogo(url: string): Promise<Settings> {
+    return this.settingsDataHelper.updateDurgaPujaLogo(url);
+  }
+
   async updateHomeHeroButtons(patch: Partial<HomeHeroButtonsVisibility>): Promise<Settings> {
     return this.settingsDataHelper.updateHomeHeroButtons(patch);
   }

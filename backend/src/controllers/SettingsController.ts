@@ -408,6 +408,36 @@ export class SettingsController {
     }
   }
 
+  async updateDurgaPujaMode(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { enabled } = req.body ?? {};
+      if (typeof enabled !== 'boolean') {
+        res.status(400).json({ error: 'enabled must be a boolean' });
+        return;
+      }
+      const settings = await this.settingsService.updateDurgaPujaMode(enabled);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error updating Durga Puja mode:', error);
+      res.status(500).json({ error: 'Failed to update Durga Puja mode', details: error.message });
+    }
+  }
+
+  async updateDurgaPujaLogo(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { url } = req.body ?? {};
+      if (typeof url !== 'string') {
+        res.status(400).json({ error: 'url must be a string (empty to clear)' });
+        return;
+      }
+      const settings = await this.settingsService.updateDurgaPujaLogo(url.trim());
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error updating Durga Puja logo:', error);
+      res.status(500).json({ error: 'Failed to update Durga Puja logo', details: error.message });
+    }
+  }
+
   /** Multer middleware for a single hero-slot image upload. */
   heroSlotImageUpload() {
     return heroImageUpload.single('image');

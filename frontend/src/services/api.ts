@@ -2038,6 +2038,14 @@ export const settingsAPI = {
     });
     return response.data;
   },
+  updateDurgaPujaMode: async (enabled: boolean): Promise<any> => {
+    const response = await api.put('/settings/durga-puja-mode', { enabled });
+    return response.data;
+  },
+  updateDurgaPujaLogo: async (url: string): Promise<any> => {
+    const response = await api.put('/settings/durga-puja-logo', { url });
+    return response.data;
+  },
   updateHomeHeroButtons: async (
     buttons: Partial<Record<'facebook' | 'whatsapp' | 'viewEvents' | 'durgaPuja' | 'viewCharityEvents', boolean>>
   ): Promise<any> => {
