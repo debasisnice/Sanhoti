@@ -87,15 +87,28 @@ if 'BEGIN AGENT-READY' in src:
     print('⏭  Agent-ready block already present')
 else:
     servers = [m.start() for m in re.finditer(r'server\s*\{', src)]
-    target = None
-    for s in servers:
+
+    def block_of(s):
         nxt = min([x for x in servers if x > s], default=len(src))
-        block = src[s:nxt]
-        if 'sanhoti.org' in block and ('443' in block or 'ssl' in block) and 'return 301' not in block[:400]:
+        return src[s:nxt]
+
+    target = None
+    # Prefer the block that actually SERVES the SPA (try_files/index.html/location /)
+    # on 443/ssl — not the bare-domain redirect block. Don't use "no return 301"
+    # as a discriminator: the SEO script injects an /index.html 301 into this block.
+    for s in servers:
+        b = block_of(s)
+        if 'sanhoti.org' in b and ('443' in b or 'ssl' in b) and ('try_files' in b or 'index.html' in b or 'location /' in b):
             target = s
             break
     if target is None:
-        print('❌ Could not find the sanhoti :443 server block'); sys.exit(2)
+        for s in servers:
+            b = block_of(s)
+            if 'sanhoti.org' in b and ('try_files' in b or 'index.html' in b):
+                target = s
+                break
+    if target is None:
+        print('❌ Could not find the sanhoti serving server block'); sys.exit(2)
     insert_at = src.index('{', target) + 1
     src = src[:insert_at] + SNIPPET + src[insert_at:]
     print('✅ Inserted agent-ready server snippet')
