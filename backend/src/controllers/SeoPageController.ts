@@ -998,9 +998,31 @@ Poila Boishakh, Bengali concerts, picnics, and charity programs in Orange County
     const path = getEventPath(event, id);
     const pageUrl = `${ORIGIN}${path}`;
     const name = event.event_name || event.title || 'Event';
+    const when = fmtDate(event.event_start_dt || event.date);
+    const loc = (event.location || '').trim();
+    const startIso = event.event_start_dt || event.date;
+    const endIso = event.event_end_dt || startIso;
+    const isPast = endIso ? new Date(endIso).getTime() < Date.now() : false;
+    const tense = isPast ? 'was' : 'is';
+    const typeWord =
+      event.event_type === 'Charity' ? 'charity' : event.event_type === 'Festival' ? 'cultural' : 'community';
+    const rawDesc = stripHtml(event.event_description || event.description, 300);
+
+    // Contextual framing — uses this event's real type/date/location so the added
+    // text is page-specific (not duplicated boilerplate) and lifts thin descriptions
+    // above the "too little content to index" threshold.
+    const framing =
+      `${name} ${tense} a Bengali ${typeWord} event organized by Sanhoti Bengali Association of Orange County` +
+      `${when ? `, held on ${when}` : ''}${loc ? ` at ${loc}` : ''} in Orange County, California. ` +
+      `Sanhoti is a 501(c)(3) non-profit that celebrates Bengali culture across Orange County and Southern ` +
+      `California through Durga Puja, Saraswati Puja, Poila Boishakh (Bengali New Year), Kali Puja, concerts, ` +
+      `picnics, and community programs — open to Bengali and Indian families and everyone in the community.`;
+
+    // Fuller meta description when the admin's text is short.
     const desc =
-      stripHtml(event.event_description || event.description, 300) ||
-      `${name} — Bengali community event with Sanhoti in Orange County, CA.`;
+      rawDesc && rawDesc.length >= 60
+        ? rawDesc
+        : `${rawDesc ? `${rawDesc} — ` : ''}${name}${when ? `, ${when},` : ''} a Bengali ${typeWord} event by Sanhoti in Orange County, CA${loc ? ` at ${loc}` : ''}.`;
 
     // Flyer image → og:image + Event schema `image` (Google Event rich results want an image).
     let imageUrl: string | undefined;
@@ -1011,12 +1033,40 @@ Poila Boishakh, Bengali concerts, picnics, and charity programs in Orange County
       /* image optional */
     }
 
+    // Photo galleries tied to this event — real, unique content (esp. for past events).
+    let galleriesHtml = '';
+    try {
+      const galleries = await this.galleryService.getPublicGalleries();
+      const matched = galleries.filter(g => g.eventId && String(g.eventId) === String(id));
+      if (matched.length > 0) {
+        galleriesHtml =
+          `<h2>Photos from ${esc(name)}</h2>\n<ul>` +
+          matched
+            .map(g => {
+              const count = Array.isArray(g.photos) ? g.photos.length : 0;
+              return `<li><a href="/galleries/${esc(g.id)}">${esc(g.title || 'Photo gallery')}</a>${
+                count ? ` — ${count} photo${count === 1 ? '' : 's'}` : ''
+              }</li>`;
+            })
+            .join('\n') +
+          `</ul>`;
+      }
+    } catch {
+      /* galleries optional */
+    }
+
     const body = `
 <h1>${esc(name)}</h1>
-<p>${esc(fmtDate(event.event_start_dt || event.date))}${event.location ? ` — ${esc(event.location)}` : ''}</p>
+<p>${esc(when)}${loc ? ` — ${esc(loc)}` : ''}</p>
 ${imageUrl ? `<img src="${esc(imageUrl)}" alt="${esc(name)} — Sanhoti event in Orange County">` : ''}
-<p>${esc(stripHtml(event.event_description || event.description, 2000))}</p>
-<p><a href="/events">All Sanhoti events</a> · <a href="/durga-puja">Durga Puja in Orange County</a></p>`;
+${rawDesc ? `<p>${esc(stripHtml(event.event_description || event.description, 2000))}</p>` : ''}
+<h2>About ${esc(name)}</h2>
+<p>${esc(framing)}</p>
+${galleriesHtml}
+<h2>More Sanhoti events in Orange County</h2>
+<p><a href="/events">All Sanhoti events</a> · <a href="/durga-puja">Durga Puja in Orange County</a> ·
+<a href="/festivals">Bengali festivals</a> · <a href="/bengali-concerts">Bengali concerts</a> ·
+<a href="/galleries">Photo galleries</a> · <a href="/contact">Contact us</a></p>`;
     return this.layout({
       title: `${name} | Sanhoti — Bengali Event in Orange County, CA`,
       description: desc,

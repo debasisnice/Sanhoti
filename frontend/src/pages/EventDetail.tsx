@@ -238,6 +238,8 @@ export default function EventDetail() {
   const rsvpEnabled = (event as unknown as { rsvp_enabled?: boolean }).rsvp_enabled;
   const rsvpLink = (event as unknown as { rsvp_link?: string }).rsvp_link;
   const mapsHref = (q: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+  const eventTypeWord =
+    event.event_type === 'Charity' ? 'charity' : event.event_type === 'Festival' ? 'cultural' : 'community';
 
   return (
     <div className="pb-32">
@@ -366,6 +368,14 @@ export default function EventDetail() {
               {eventDescription}
             </p>
           )}
+
+          <p className="mt-4 text-gray-600 leading-relaxed">
+            {detailEventName} {isUpcoming ? 'is' : 'was'} a Bengali {eventTypeWord} event organized by
+            Sanhoti Bengali Association of Orange County{eventLocation ? ` at ${eventLocation}` : ''} in
+            Orange County, California. Sanhoti is a 501(c)(3) non-profit celebrating Bengali culture
+            across Orange County and Southern California through Durga Puja, Saraswati Puja, Poila
+            Boishakh, Kali Puja, concerts, picnics, and community programs — open to everyone.
+          </p>
 
           {/* Key details */}
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
