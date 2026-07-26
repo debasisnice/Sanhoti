@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, ArrowLeft, Bell, Image as ImageIcon, ArrowRight } from 'lucide-react';
@@ -15,6 +15,19 @@ import { seoPlainText } from '../seo/seoUtils';
 import { buildEventJsonLd } from '../seo/eventJsonLd';
 import { getEventPath } from '../utils/eventSlug';
 import { isDurgaPujaEventName, durgaPujaEventYear, durgaPujaPagePath } from '../utils/durgaPuja';
+
+/** Durga-Puja-style section heading with a kicker and accent underline. */
+function SectionHeading({ kicker, children }: { kicker?: string; children: ReactNode }) {
+  return (
+    <div className="mb-5">
+      {kicker && (
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-600 mb-1">{kicker}</p>
+      )}
+      <h2 className="text-2xl font-bold text-gray-900">{children}</h2>
+      <div className="mt-2 h-1 w-12 rounded-full bg-gradient-to-r from-primary-500 to-amber-400" />
+    </div>
+  );
+}
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
@@ -33,7 +46,7 @@ export default function EventDetail() {
         try {
           const fetchedEvent = await eventsAPI.getById(id);
           setEvent(fetchedEvent);
-          
+
           // Fetch event image if event has event_image_path
           if (fetchedEvent.event_id && fetchedEvent.event_image_path) {
             try {
@@ -46,7 +59,7 @@ export default function EventDetail() {
               // Silently fail if no images are found - image is optional
             }
           }
-          
+
           // Fetch sub-events for this event
           if (fetchedEvent.event_id) {
             try {
@@ -60,7 +73,7 @@ export default function EventDetail() {
                   return dateB - dateA; // Descending order (newest first)
                 });
               setSubEvents(sortedSubEvents);
-              
+
               // Fetch images for sub-events
               const imagesMap: Record<string, string> = {};
               for (const subEvent of sortedSubEvents) {
@@ -85,7 +98,7 @@ export default function EventDetail() {
               setSubEvents([]);
             }
           }
-          
+
           // Fetch related notices and galleries
           if (fetchedEvent.event_id) {
             try {
@@ -106,7 +119,7 @@ export default function EventDetail() {
                   return new Date(dateB).getTime() - new Date(dateA).getTime(); // Descending order (newest first)
                 });
               setRelatedNotices(notices);
-              
+
               // Fetch images for notices
               const imagesMap: Record<string, Array<{ filename: string; url: string }>> = {};
               for (const notice of notices) {
@@ -121,7 +134,7 @@ export default function EventDetail() {
                 }
               }
               setNoticeImages(imagesMap);
-              
+
               // Fetch galleries by event (use public endpoint and filter)
               try {
                 const allGalleries = await galleriesAPI.getPublic();
@@ -149,7 +162,7 @@ export default function EventDetail() {
           setLoading(false);
         }
       };
-      
+
       fetchEventAndImage();
     }
   }, [id]);
@@ -208,8 +221,26 @@ export default function EventDetail() {
     : null;
   const detailJsonLd = buildEventJsonLd(event, { pageUrl: detailPageUrl, imageUrl: detailAbsImage });
 
+  // ---- Derived display values ----
+  const eventDescription = event.event_description || event.description || '';
+  const eventDate = event.event_start_dt || event.date || '';
+  const eventLocation = event.location || '';
+  const eventYear = event.year || (eventDate ? new Date(eventDate).getFullYear() : new Date().getFullYear());
+  const heroImg = eventImage || event.photo_gallery_link || event.imageUrl || '';
+  const now = new Date();
+  const eventEndForStatus = event.event_end_dt
+    ? convertPSTToLocal(event.event_end_dt)
+    : eventDate
+      ? convertPSTToLocal(eventDate)
+      : now;
+  const isUpcoming = eventEndForStatus >= now;
+  const calendarUrl = generateCalendarUrl(detailEventName, eventDate, event.event_end_dt, eventLocation, eventDescription);
+  const rsvpEnabled = (event as unknown as { rsvp_enabled?: boolean }).rsvp_enabled;
+  const rsvpLink = (event as unknown as { rsvp_link?: string }).rsvp_link;
+  const mapsHref = (q: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+
   return (
-    <div className="py-12 pb-32">
+    <div className="pb-32">
       <Seo
         title={`${detailEventName} | Sanhoti`}
         description={detailDescription}
@@ -218,319 +249,275 @@ export default function EventDetail() {
         ogImage={detailAbsImage}
         jsonLd={detailJsonLd}
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Link
-          to="/events"
-          className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-6"
+
+      {/* ---- Hero ---- */}
+      <section className="relative overflow-hidden">
+        {heroImg && (
+          <div className="absolute inset-0">
+            <img src={heroImg} alt="" aria-hidden="true" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/55 to-white" />
+          </div>
+        )}
+        <div
+          className={`relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 ${
+            heroImg ? 'text-white' : 'text-gray-900'
+          }`}
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Events
-        </Link>
-
-        {/* Main Event and Sub-Events Container */}
-        <div className={`grid ${subEvents.length > 0 ? 'grid-cols-1 md:grid-cols-3 gap-6' : 'grid-cols-1'}`}>
-          {/* Main Event Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl shadow-2xl overflow-hidden border-4 border-yellow-400 ${subEvents.length > 0 ? 'md:col-span-2' : ''}`}
+          <Link
+            to="/events"
+            className={`inline-flex items-center mb-6 transition-colors ${
+              heroImg ? 'text-white/90 hover:text-white' : 'text-primary-600 hover:text-primary-700'
+            }`}
           >
-          {(() => {
-            const eventId = getCanonicalEventIdForShare(event, id);
-            const eventName = event.event_name || event.title || 'Untitled Event';
-            const eventDescription = event.event_description || event.description || '';
-            const eventDate = event.event_start_dt || event.date || '';
-            const eventLocation = event.location || '';
-            // Use event image from Events_Flyers if available, otherwise use fallback
-            const displayImage = eventImage || event.photo_gallery_link || event.imageUrl;
-            const eventYear = event.year || new Date(eventDate).getFullYear();
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Events
+          </Link>
 
-            return (
-              <>
-                {displayImage && (
-                  <div className="h-64 md:h-96 bg-gradient-to-br from-primary-400 to-primary-600 relative overflow-hidden flex items-center justify-center">
-                    <img
-                      src={displayImage}
-                      alt={eventName}
-                      className="w-full h-full object-contain"
-                      onError={(e) => {
-                        // If image fails to load, hide it and show gradient background
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  </div>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <span
+              className={`inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] px-3 py-1 rounded-full ${
+                heroImg ? 'bg-white/15 text-white' : 'bg-primary-100 text-primary-700'
+              }`}
+            >
+              {eventYear}
+              {event.event_type ? ` · ${event.event_type}` : ''}
+            </span>
+
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mt-4 mb-4">{detailEventName}</h1>
+
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              {eventDate &&
+                (isUpcoming ? (
+                  <a
+                    href={calendarUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`inline-flex items-center gap-2 font-semibold ${
+                      heroImg ? 'text-yellow-200 hover:text-yellow-100' : 'text-primary-700 hover:text-primary-800'
+                    }`}
+                  >
+                    <Calendar className="w-5 h-5" /> {formatDateWithTime(eventDate)}
+                  </a>
+                ) : (
+                  <span
+                    className={`inline-flex items-center gap-2 font-semibold ${
+                      heroImg ? 'text-yellow-100' : 'text-primary-700'
+                    }`}
+                  >
+                    <Calendar className="w-5 h-5" /> {formatDateWithTime(eventDate)}
+                  </span>
+                ))}
+              {eventLocation && (
+                <a
+                  href={mapsHref(eventLocation)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`inline-flex items-center gap-2 ${
+                    heroImg ? 'text-gray-100 hover:text-white' : 'text-gray-700 hover:text-primary-700'
+                  }`}
+                >
+                  <MapPin className="w-5 h-5" /> {eventLocation}
+                </a>
+              )}
+            </div>
+
+            {eventDate && isUpcoming && (
+              <p className={`mt-2 text-sm ${heroImg ? 'text-gray-200' : 'text-gray-500'}`}>
+                <a href={calendarUrl} target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
+                  Add to Calendar
+                </a>
+              </p>
+            )}
+
+            <div className="mt-6">
+              <EventShareButtons eventId={detailEventId} eventName={detailEventName} />
+            </div>
+
+            {isUpcoming && rsvpEnabled && (
+              <div className="mt-8">
+                {rsvpLink ? (
+                  <a
+                    href={rsvpLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors shadow-lg"
+                  >
+                    RSVP for This Event
+                  </a>
+                ) : (
+                  <Link
+                    to={`/events/${detailEventId}/rsvp`}
+                    className="inline-flex items-center gap-2 bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors shadow-lg"
+                  >
+                    RSVP for This Event
+                  </Link>
                 )}
-
-                <div className="p-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-medium">
-                      {eventYear}
-                    </span>
-                  </div>
-
-                  <h1 className="text-4xl font-bold text-gray-900 mb-4">{eventName}</h1>
-
-                  <EventShareButtons eventId={eventId} eventName={eventName} className="mb-6" />
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                    <div className="flex items-center text-gray-700">
-                      <Calendar className="w-5 h-5 mr-3 text-primary-600" />
-                      <div>
-                        <p className="text-sm text-gray-500">Start Date</p>
-                        {(() => {
-                          const now = new Date();
-                          const eventEndDate = event.event_end_dt ? convertPSTToLocal(event.event_end_dt) : convertPSTToLocal(eventDate);
-                          const isUpcoming = eventEndDate >= now;
-                          
-                          if (isUpcoming) {
-                            const eventName = event.event_name || event.title || 'Untitled Event';
-                            const eventDescription = event.event_description || event.description || '';
-                            const eventLocation = event.location || '';
-                            const calendarUrl = generateCalendarUrl(
-                              eventName,
-                              eventDate,
-                              event.event_end_dt,
-                              eventLocation,
-                              eventDescription
-                            );
-                            return (
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <a
-                                  href={calendarUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="font-semibold underline hover:text-primary-600 cursor-pointer transition-colors"
-                                >
-                                  {formatDateWithTime(eventDate)}
-                                </a>
-                                <span className="text-sm text-gray-400">•</span>
-                                <a
-                                  href={calendarUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-sm text-primary-600 underline hover:text-primary-700 cursor-pointer transition-colors"
-                                >
-                                  Add to Calendar
-                                </a>
-                              </div>
-                            );
-                          }
-                          return <p className="font-semibold">{formatDateWithTime(eventDate)}</p>;
-                        })()}
-                      </div>
-                    </div>
-                    {event.event_end_dt && (
-                      <div className="flex items-center text-gray-700">
-                        <Calendar className="w-5 h-5 mr-3 text-primary-600" />
-                        <div>
-                          <p className="text-sm text-gray-500">End Date</p>
-                          <p className="font-semibold">{formatDateWithTime(event.event_end_dt)}</p>
-                        </div>
-                      </div>
-                    )}
-                    {eventLocation && (
-                      <div className="flex items-center text-gray-700">
-                        <MapPin className="w-5 h-5 mr-3 text-primary-600" />
-                        <div>
-                          <p className="text-sm text-gray-500">Location</p>
-                          <a
-                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(eventLocation)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-semibold underline hover:text-primary-600 cursor-pointer transition-colors"
-                          >
-                            {eventLocation}
-                          </a>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="prose max-w-none mb-8">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Event</h2>
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                      {eventDescription}
-                    </p>
-                  </div>
-
-                  {/* Only show RSVP option for upcoming events when RSVP is enabled */}
-                  {(() => {
-                    const now = new Date();
-                    const eventEndDate = event.event_end_dt 
-                      ? convertPSTToLocal(event.event_end_dt) 
-                      : convertPSTToLocal(eventDate);
-                    const isPastEvent = eventEndDate < now;
-                    const rsvpEnabled = (event as any).rsvp_enabled;
-                    const rsvpLink = (event as any).rsvp_link;
-                    
-                    if (!isPastEvent && rsvpEnabled) {
-                      if (rsvpLink) {
-                        return (
-                          <div className="flex flex-col items-center">
-                            <a
-                              href={rsvpLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-block bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
-                            >
-                              RSVP for This Event
-                            </a>
-                            <div className="mt-4 flex flex-col items-center">
-                              <QRCodeSVG 
-                                value={rsvpLink} 
-                                size={150}
-                                level="M"
-                                includeMargin={true}
-                                className="bg-white p-2 rounded-lg"
-                              />
-                              <p className="text-sm text-gray-600 mt-2">Scan to RSVP</p>
-                            </div>
-                          </div>
-                        );
-                      } else {
-                        return (
-                          <Link
-                            to={`/events/${eventId}/rsvp`}
-                            className="inline-block bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
-                          >
-                            RSVP for This Event
-                          </Link>
-                        );
-                      }
-                    }
-                    return null;
-                  })()}
-                </div>
-              </>
-            );
-          })()}
+              </div>
+            )}
           </motion.div>
+        </div>
+      </section>
 
-          {/* Sub-Events Cards (Desktop: Right side, Mobile: Below) */}
-          {subEvents.length > 0 && (
-            <div className="space-y-4 md:col-span-1">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4 md:hidden">Sub Events</h2>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
+        {/* ---- About ---- */}
+        <div className="mb-12">
+          <SectionHeading kicker="About">About This Event</SectionHeading>
+          {eventDescription && (
+            <p className="text-lg text-gray-700 leading-relaxed whitespace-pre-line border-l-4 border-primary-500 pl-4">
+              {eventDescription}
+            </p>
+          )}
+
+          {/* Key details */}
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {eventDate && (
+              <div className="flex items-start gap-3 bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                <Calendar className="w-5 h-5 text-primary-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs text-gray-500">Date &amp; time</p>
+                  <p className="font-semibold text-gray-900">
+                    {formatDateWithTime(eventDate)}
+                    {event.event_end_dt ? ` – ${formatDateWithTime(event.event_end_dt)}` : ''}
+                  </p>
+                </div>
+              </div>
+            )}
+            {eventLocation && (
+              <div className="flex items-start gap-3 bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                <MapPin className="w-5 h-5 text-primary-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs text-gray-500">Location</p>
+                  <a
+                    href={mapsHref(eventLocation)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-gray-900 underline hover:text-primary-600"
+                  >
+                    {eventLocation}
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Full flyer (object-contain so details baked into the image stay readable) */}
+          {heroImg && (
+            <figure className="mt-6 rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-sm">
+              <img
+                src={heroImg}
+                alt={detailEventName}
+                className="w-full h-auto object-contain max-h-[680px] mx-auto"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </figure>
+          )}
+
+          {/* RSVP QR for external link */}
+          {isUpcoming && rsvpEnabled && rsvpLink && (
+            <div className="mt-8 flex flex-col items-center">
+              <QRCodeSVG
+                value={rsvpLink}
+                size={150}
+                level="M"
+                includeMargin={true}
+                className="bg-white p-2 rounded-lg border border-gray-200"
+              />
+              <p className="text-sm text-gray-600 mt-2">Scan to RSVP</p>
+            </div>
+          )}
+        </div>
+
+        {/* ---- Sub-Events ---- */}
+        {subEvents.length > 0 && (
+          <div className="mb-12">
+            <SectionHeading kicker="Programs">Sub-Events</SectionHeading>
+            <div className="grid gap-6 md:grid-cols-2">
               {subEvents.map((subEvent, index) => {
                 const subEventImage = subEventImages[subEvent.sub_event_id];
+                const subEnd = subEvent.sub_event_end_dt
+                  ? convertPSTToLocal(subEvent.sub_event_end_dt)
+                  : convertPSTToLocal(subEvent.sub_event_start_dt);
+                const subUpcoming = subEnd >= new Date();
                 return (
                   <motion.div
                     key={subEvent.sub_event_id}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl shadow-2xl overflow-hidden border-4 border-yellow-400"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.05 }}
+                    className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 flex flex-col"
                   >
-                    <div className="h-48 bg-gradient-to-br from-primary-400 to-primary-600 relative overflow-hidden flex items-center justify-center gap-4 p-4">
-                      {subEventImage && (
-                        <div className="flex-1 h-full flex items-center justify-center">
-                          <img
-                            src={subEventImage}
-                            alt={subEvent.sub_event_name}
-                            className="max-w-full max-h-full object-contain"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold text-gray-900 mb-3">{subEvent.sub_event_name}</h3>
-                      <div className="space-y-2 mb-3">
-                        <div className="flex flex-row gap-4 items-start">
-                          <div className="flex items-center text-gray-700">
-                            <Calendar className="w-4 h-4 mr-2 text-primary-600" />
-                            <div>
-                              <p className="text-xs text-gray-500">Start Date</p>
-                              <p className="font-semibold text-sm">{formatDateWithTime(subEvent.sub_event_start_dt)}</p>
-                            </div>
-                          </div>
-                          {subEvent.sub_event_end_dt && (
-                            <div className="flex items-center text-gray-700">
-                              <Calendar className="w-4 h-4 mr-2 text-primary-600" />
-                              <div>
-                                <p className="text-xs text-gray-500">End Date</p>
-                                <p className="font-semibold text-sm">{formatDateWithTime(subEvent.sub_event_end_dt)}</p>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                    {subEventImage && (
+                      <div className="h-48 bg-gray-50 flex items-center justify-center p-3">
+                        <img
+                          src={subEventImage}
+                          alt={subEvent.sub_event_name}
+                          className="max-w-full max-h-full object-contain"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div className="p-6 flex flex-col flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">{subEvent.sub_event_name}</h3>
+                      <div className="space-y-1 text-sm text-gray-600 mb-3">
+                        <p className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-primary-600 shrink-0" />{' '}
+                          {formatDateWithTime(subEvent.sub_event_start_dt)}
+                          {subEvent.sub_event_end_dt ? ` – ${formatDateWithTime(subEvent.sub_event_end_dt)}` : ''}
+                        </p>
                         {subEvent.location && (
-                          <div className="flex items-center text-gray-700">
-                            <MapPin className="w-4 h-4 mr-2 text-primary-600" />
-                            <div>
-                              <p className="text-xs text-gray-500">Location</p>
-                              <a
-                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(subEvent.location)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-semibold text-sm underline hover:text-primary-600 cursor-pointer transition-colors"
-                              >
-                                {subEvent.location}
-                              </a>
-                            </div>
-                          </div>
+                          <p className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-primary-600 shrink-0" />
+                            <a
+                              href={mapsHref(subEvent.location)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="underline hover:text-primary-600"
+                            >
+                              {subEvent.location}
+                            </a>
+                          </p>
                         )}
                       </div>
                       {subEvent.event_description && (
-                        <div className="prose max-w-none mb-4">
-                          <p className="text-gray-700 leading-relaxed whitespace-pre-line text-xs">
-                            {subEvent.event_description}
-                          </p>
+                        <p className="text-gray-700 text-sm whitespace-pre-line mb-4">{subEvent.event_description}</p>
+                      )}
+                      {subUpcoming && subEvent.rsvp_enabled && (
+                        <div className="mt-auto pt-2">
+                          {subEvent.rsvp_link ? (
+                            <a
+                              href={subEvent.rsvp_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-700 transition-colors text-sm"
+                            >
+                              RSVP for This Sub-Event
+                            </a>
+                          ) : (
+                            <Link
+                              to={`/sub-events/${subEvent.sub_event_id}/rsvp`}
+                              className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-700 transition-colors text-sm"
+                            >
+                              RSVP for This Sub-Event
+                            </Link>
+                          )}
                         </div>
                       )}
-                      {(() => {
-                        const now = new Date();
-                        const subEventEndDate = subEvent.sub_event_end_dt 
-                          ? convertPSTToLocal(subEvent.sub_event_end_dt) 
-                          : convertPSTToLocal(subEvent.sub_event_start_dt);
-                        const isPastSubEvent = subEventEndDate < now;
-                        
-                        if (!subEvent.rsvp_enabled || isPastSubEvent) return null;
-                        
-                        if (subEvent.rsvp_link) {
-                          // External RSVP link
-                          return (
-                            <div className="mt-4">
-                              <a
-                                href={subEvent.rsvp_link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-700 transition-colors text-sm"
-                              >
-                                RSVP for This Sub-Event
-                              </a>
-                            </div>
-                          );
-                        } else {
-                          // Internal RSVP - use sub-events route
-                          return (
-                            <div className="mt-4">
-                              <Link
-                                to={`/sub-events/${subEvent.sub_event_id}/rsvp`}
-                                className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-700 transition-colors text-sm"
-                              >
-                                RSVP for This Sub-Event
-                              </Link>
-                            </div>
-                          );
-                        }
-                      })()}
                     </div>
                   </motion.div>
                 );
               })}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Related Notices */}
+        {/* ---- Related Notices ---- */}
         {relatedNotices.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-              <Bell className="w-8 h-8 text-primary-600" />
-              Related Notices
-            </h2>
+          <div className="mb-12">
+            <SectionHeading kicker="Updates">Related Notices</SectionHeading>
             <div className="space-y-6">
               {relatedNotices.map((notice, index) => {
                 const noticeId = notice.notice_id || notice.id;
@@ -538,31 +525,41 @@ export default function EventDetail() {
                 const noticeBody = notice.notice_body || notice.content || '';
                 const createdAt = notice.created_at || notice.createdAt || '';
                 const images = noticeId ? noticeImages[noticeId] || [] : [];
-                
+
                 return (
                   <motion.div
                     key={noticeId}
                     initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl shadow-2xl overflow-hidden border-4 border-yellow-400 p-6"
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.05 }}
+                    className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
                   >
                     <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center gap-3">
                         <Bell className="w-6 h-6 text-primary-600" />
-                        <h3 className="text-2xl font-bold text-gray-900">{noticeName}</h3>
+                        <h3 className="text-xl font-bold text-gray-900">{noticeName}</h3>
                       </div>
                       <div className="text-sm text-gray-500">
                         Posted on {createdAt ? format(convertPSTToLocal(createdAt), 'MMMM dd, yyyy') : ''}
                       </div>
                     </div>
-                    <div className="prose max-w-none mb-4">
-                      <p className="text-gray-700 whitespace-pre-line">{noticeBody}</p>
-                    </div>
+                    <p className="text-gray-700 whitespace-pre-line mb-4">{noticeBody}</p>
                     {images.length > 0 && (
-                      <div className={`grid ${images.length === 1 ? 'grid-cols-1' : images.length === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-3'} gap-6`}>
+                      <div
+                        className={`grid ${
+                          images.length === 1
+                            ? 'grid-cols-1'
+                            : images.length === 2
+                              ? 'grid-cols-1 md:grid-cols-2'
+                              : 'grid-cols-1 md:grid-cols-3'
+                        } gap-6`}
+                      >
                         {images.map((image, imgIndex) => (
-                          <div key={imgIndex} className="w-full overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                          <div
+                            key={imgIndex}
+                            className="w-full overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                          >
                             <img
                               src={image.url}
                               alt={`${noticeName} - Image ${imgIndex + 1}`}
@@ -583,29 +580,27 @@ export default function EventDetail() {
           </div>
         )}
 
-        {/* Related Galleries */}
+        {/* ---- Related Galleries ---- */}
         {relatedGalleries.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-              <ImageIcon className="w-8 h-8 text-primary-600" />
-              Related Photo Galleries
-            </h2>
+          <div>
+            <SectionHeading kicker="Photos">Related Photo Galleries</SectionHeading>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {relatedGalleries
-                .filter(gallery => gallery && gallery.id) // Filter out invalid galleries
+                .filter(gallery => gallery && gallery.id)
                 .map((gallery, index) => {
                   const photos = gallery.photos || [];
                   const firstPhoto = photos.length > 0 ? photos[0] : null;
                   const imageUrl = firstPhoto?.thumbnailUrl || firstPhoto?.url || '';
                   const title = gallery.title || 'Untitled Gallery';
-                  
+
                   return (
                     <motion.div
                       key={gallery.id}
                       initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-2"
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.05 }}
+                      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-1"
                     >
                       <Link to={`/galleries/${gallery.id}`}>
                         <div className="relative h-48 bg-gradient-to-br from-primary-400 to-primary-600">
@@ -628,7 +623,7 @@ export default function EventDetail() {
                         <div className="p-6">
                           <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
                           {gallery.description && (
-                            <p className="text-gray-600 text-sm mb-4 line-clamp-2">{gallery.description}</p>
+                            <p className="text-gray-600 text-sm mb-4">{gallery.description}</p>
                           )}
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-500">
@@ -648,4 +643,3 @@ export default function EventDetail() {
     </div>
   );
 }
-

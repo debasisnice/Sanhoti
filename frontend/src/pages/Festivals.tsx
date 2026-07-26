@@ -203,34 +203,40 @@ export default function Festivals() {
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col border border-gray-100 hover:shadow-xl transition-shadow"
+        className="group relative rounded-2xl shadow-lg overflow-hidden min-h-[500px] flex flex-col justify-end hover:shadow-xl transition-shadow"
       >
-        <div className="relative h-44">
-          {img ? (
-            <img
-              src={img}
-              alt={`${f.name} in Orange County — Sanhoti`}
-              className="w-full h-44 object-cover"
-              loading="lazy"
-            />
-          ) : (
-            <div className="w-full h-44 bg-gradient-to-br from-primary-500 to-primary-800 flex items-center justify-center">
-              <Sparkles className="w-12 h-12 text-white/80" />
-            </div>
-          )}
-          {next && (
-            <span className="absolute top-3 left-3 bg-primary-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
-              Next: {fmtDate(next.event_start_dt)}
-            </span>
-          )}
-        </div>
-        <div className="p-6 flex flex-col flex-1">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
-            <Link to={primaryHref} className="hover:text-primary-600">
+        {/* Full-card background image */}
+        {img ? (
+          <img
+            src={img}
+            alt={`${f.name} in Orange County — Sanhoti`}
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-primary-800 flex items-center justify-center">
+            <Sparkles className="w-20 h-20 text-white/30" />
+          </div>
+        )}
+
+        {/* Soft bottom scrim: darkens only the lower part so the image stays visible up top */}
+        <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none" />
+
+        {/* Badge */}
+        {next && (
+          <span className="absolute top-4 left-4 z-10 bg-primary-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
+            Next: {fmtDate(next.event_start_dt)}
+          </span>
+        )}
+
+        {/* Text with a shadow so it stays clear over the image without hiding it */}
+        <div className="relative z-10 p-6 text-white [text-shadow:_0_1px_4px_rgb(0_0_0_/_0.85)]">
+          <h2 className="text-xl font-bold mb-2">
+            <Link to={primaryHref} className="text-white hover:underline">
               {f.name}
             </Link>
           </h2>
-          <p className="text-gray-600 mb-4">{f.blurb}</p>
+          <p className="text-white/80 mb-4">{f.blurb}</p>
 
           {list.length > 0 && (
             <ul className="space-y-2 mb-4">
@@ -238,11 +244,11 @@ export default function Festivals() {
                 <li key={e.event_id} className="text-sm">
                   <Link
                     to={getEventDetailPath(e, e.event_id)}
-                    className="font-medium text-gray-900 hover:text-primary-600"
+                    className="font-medium text-white hover:underline"
                   >
                     {e.event_name}
                   </Link>
-                  <span className="block text-gray-500 flex flex-wrap items-center gap-x-3">
+                  <span className="block text-white/70 flex flex-wrap items-center gap-x-3">
                     {e.event_start_dt && (
                       <span className="inline-flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5" /> {fmtDate(e.event_start_dt)}
@@ -261,7 +267,7 @@ export default function Festivals() {
 
           <Link
             to={primaryHref}
-            className="mt-auto inline-flex items-center gap-1 text-primary-600 font-medium hover:underline"
+            className="inline-flex items-center gap-1 text-white font-medium hover:underline"
           >
             {f.key === 'durga-puja' ? 'Durga Puja page' : featured ? 'View event' : 'See events'}{' '}
             <ArrowRight className="w-4 h-4" />
@@ -305,25 +311,26 @@ export default function Festivals() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col border border-gray-100 hover:shadow-xl transition-shadow"
+            className="group relative rounded-2xl shadow-lg overflow-hidden min-h-[500px] flex flex-col justify-end hover:shadow-xl transition-shadow"
           >
-            <div className="h-44 bg-gradient-to-br from-gray-800 to-primary-800 flex items-center justify-center">
-              <Music className="w-12 h-12 text-white/80" />
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-primary-800 flex items-center justify-center">
+              <Music className="w-20 h-20 text-white/25" />
             </div>
-            <div className="p-6 flex flex-col flex-1">
-              <h2 className="text-xl font-bold text-gray-900 mb-2">
-                <Link to="/bengali-concerts" className="hover:text-primary-600">
+            <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none" />
+            <div className="relative z-10 p-6 text-white [text-shadow:_0_1px_4px_rgb(0_0_0_/_0.85)]">
+              <h2 className="text-xl font-bold mb-2">
+                <Link to="/bengali-concerts" className="text-white hover:underline">
                   Bengali Concerts
                 </Link>
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-white/80 mb-4">
                 Live Bengali and Indian music nights with visiting artists — Bollywood, contemporary,
                 and Rabindra Sangeet, most often part of our Durgotsav.
                 {concertCount ? ` ${concertCount} on the calendar.` : ''}
               </p>
               <Link
                 to="/bengali-concerts"
-                className="mt-auto inline-flex items-center gap-1 text-primary-600 font-medium hover:underline"
+                className="inline-flex items-center gap-1 text-white font-medium hover:underline"
               >
                 See all concerts <ArrowRight className="w-4 h-4" />
               </Link>

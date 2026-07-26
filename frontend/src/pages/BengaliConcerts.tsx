@@ -173,41 +173,47 @@ export default function BengaliConcerts() {
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col border border-gray-100 hover:shadow-xl transition-shadow"
+        className="group relative rounded-2xl shadow-lg overflow-hidden min-h-[500px] flex flex-col justify-end hover:shadow-xl transition-shadow"
       >
-        <Link to={`/sub-events/${se.sub_event_id}`} className="block relative">
-          {img ? (
-            <img
-              src={img}
-              alt={`${se.sub_event_name} — Bengali concert in Orange County`}
-              className="w-full h-52 object-cover"
-              loading="lazy"
-            />
-          ) : (
-            <div className="w-full h-52 bg-gradient-to-br from-primary-600 to-primary-800 flex items-center justify-center">
-              <Music className="w-16 h-16 text-white/80" />
-            </div>
-          )}
-          <span
-            className={`absolute top-3 left-3 text-xs font-semibold px-3 py-1 rounded-full ${
-              isPast ? 'bg-gray-800/80 text-white' : 'bg-primary-600 text-white'
-            }`}
-          >
-            {isPast ? 'Past concert' : 'Upcoming'}
-          </span>
-        </Link>
-        <div className="p-6 flex flex-col flex-1">
-          <h3 className="text-xl font-bold text-gray-900 mb-1">
-            <Link to={`/sub-events/${se.sub_event_id}`} className="hover:text-primary-600">
+        {/* Full-card background image */}
+        {img ? (
+          <img
+            src={img}
+            alt={`${se.sub_event_name} — Bengali concert in Orange County`}
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-primary-600 to-primary-800 flex items-center justify-center">
+            <Music className="w-20 h-20 text-white/30" />
+          </div>
+        )}
+
+        {/* Soft bottom scrim: darkens only the lower part so the image stays visible up top */}
+        <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none" />
+
+        {/* Badge */}
+        <span
+          className={`absolute top-4 left-4 z-10 text-xs font-semibold px-3 py-1 rounded-full ${
+            isPast ? 'bg-gray-900/80 text-white' : 'bg-primary-600 text-white'
+          }`}
+        >
+          {isPast ? 'Past concert' : 'Upcoming'}
+        </span>
+
+        {/* Text with a shadow so it stays clear over the image without hiding it */}
+        <div className="relative z-10 p-6 text-white [text-shadow:_0_1px_4px_rgb(0_0_0_/_0.85)]">
+          <h3 className="text-xl font-bold mb-1">
+            <Link to={`/sub-events/${se.sub_event_id}`} className="text-white hover:underline">
               {se.sub_event_name}
             </Link>
           </h3>
           {se.performers && (
-            <p className="flex items-center gap-2 text-primary-700 font-medium mb-2">
-              <Mic2 className="w-4 h-4" /> {se.performers}
+            <p className="flex items-center gap-2 text-white/90 font-medium mb-2">
+              <Mic2 className="w-4 h-4 shrink-0" /> {se.performers}
             </p>
           )}
-          <div className="text-gray-600 space-y-1 text-sm mb-3">
+          <div className="text-white/80 space-y-1 text-sm mb-3">
             {se.sub_event_start_dt && (
               <p className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 shrink-0" /> {fmtDateTime(se.sub_event_start_dt)}
@@ -220,12 +226,12 @@ export default function BengaliConcerts() {
             )}
           </div>
           {se.event_description && (
-            <p className="text-gray-600 text-sm mb-4">{stripHtml(se.event_description)}</p>
+            <p className="text-white/80 text-sm mb-4">{stripHtml(se.event_description, 140)}</p>
           )}
-          <div className="mt-auto flex flex-wrap items-center gap-3 pt-2">
+          <div className="flex flex-wrap items-center gap-3 pt-1">
             <Link
               to={`/sub-events/${se.sub_event_id}`}
-              className="inline-flex items-center gap-1 text-primary-600 font-medium hover:underline"
+              className="inline-flex items-center gap-1 font-medium text-white hover:underline"
             >
               Details <ArrowRight className="w-4 h-4" />
             </Link>
