@@ -1,4 +1,4 @@
-# Agent Authentication — Sanhoti Bengali Association of Orange County
+# auth.md — Sanhoti Bengali Association of Orange County
 
 Sanhoti's public data API is **read-only and requires no authentication**. AI agents can call
 these endpoints directly with an HTTP `GET` — no API key, token, registration, or OAuth flow:
