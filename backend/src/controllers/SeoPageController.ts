@@ -14,6 +14,10 @@ const ORG_NAME = 'Sanhoti Bengali Association of Orange County';
 const ORG_ADDRESS = '23 Calle Alamitos, Rancho Santa Margarita, CA 92688';
 const ORG_PHONE = '+1-949-378-6425';
 const ORG_EMAIL = 'info@sanhoti.org';
+// Stable node identifiers so every page's JSON-LD @graph references one Organization
+// and one WebSite entity instead of repeating disconnected copies.
+const ORG_ID = `${ORIGIN}/#organization`;
+const WEBSITE_ID = `${ORIGIN}/#website`;
 
 function esc(s: string | undefined | null): string {
   return String(s ?? '')
@@ -235,11 +239,69 @@ export class SeoPageController {
     jsonLd?: Record<string, unknown>[];
     ogType?: string;
     ogImage?: string;
+    /** Optional richer breadcrumb trail; otherwise a Home → page trail is auto-built. */
+    breadcrumb?: { name: string; path: string }[];
   }): string {
     const canonical = `${ORIGIN}${opts.path === '/' ? '/' : opts.path}`;
-    const jsonLdBlocks = (opts.jsonLd ?? [])
-      .map(o => `<script type="application/ld+json">${JSON.stringify(o)}</script>`)
-      .join('\n');
+    const primaryImage = opts.ogImage || `${ORIGIN}/images/logo.png`;
+
+    // Breadcrumb — use the page's own trail, else auto Home → <page>.
+    const crumbs =
+      opts.breadcrumb ??
+      (opts.path === '/'
+        ? []
+        : [
+            { name: 'Home', path: '/' },
+            { name: opts.title.split('|')[0].split('—')[0].trim() || opts.title, path: opts.path },
+          ]);
+    const breadcrumbNode =
+      crumbs.length > 0
+        ? {
+            '@type': 'BreadcrumbList',
+            '@id': `${canonical}#breadcrumb`,
+            itemListElement: crumbs.map((c, i) => ({
+              '@type': 'ListItem',
+              position: i + 1,
+              name: c.name,
+              item: `${ORIGIN}${c.path === '/' ? '/' : c.path}`,
+            })),
+          }
+        : null;
+
+    const webPageNode: Record<string, unknown> = {
+      '@type': 'WebPage',
+      '@id': `${canonical}#webpage`,
+      url: canonical,
+      name: opts.title,
+      description: opts.description,
+      isPartOf: { '@id': WEBSITE_ID },
+      about: { '@id': ORG_ID },
+      inLanguage: 'en-US',
+      primaryImageOfPage: { '@type': 'ImageObject', url: primaryImage },
+      dateModified: new Date().toISOString(),
+      ...(breadcrumbNode ? { breadcrumb: { '@id': `${canonical}#breadcrumb` } } : {}),
+    };
+
+    // Single connected @graph: Organization + WebSite + WebPage + Breadcrumb + page nodes.
+    // Callers may still pass the Organization node — dedupe it by @id — and every member
+    // node drops its own @context (the graph provides it once).
+    const stripCtx = (o: Record<string, unknown>): Record<string, unknown> => {
+      const clone = { ...o };
+      delete clone['@context'];
+      return clone;
+    };
+    const pageNodes = (opts.jsonLd ?? []).filter(n => n['@id'] !== ORG_ID).map(stripCtx);
+    const graph = [
+      stripCtx(this.orgJsonLd()),
+      this.websiteNode(),
+      webPageNode,
+      ...(breadcrumbNode ? [breadcrumbNode] : []),
+      ...pageNodes,
+    ];
+    const jsonLdBlocks = `<script type="application/ld+json">${JSON.stringify({
+      '@context': 'https://schema.org',
+      '@graph': graph,
+    })}</script>`;
     return `<!doctype html>
 <html lang="en">
 <head>
@@ -281,15 +343,33 @@ ${opts.body}
 </html>`;
   }
 
+  private websiteNode(): Record<string, unknown> {
+    return {
+      '@type': 'WebSite',
+      '@id': WEBSITE_ID,
+      url: ORIGIN,
+      name: ORG_NAME,
+      alternateName: 'Sanhoti',
+      publisher: { '@id': ORG_ID },
+      inLanguage: ['en-US', 'bn'],
+    };
+  }
+
   private orgJsonLd(): Record<string, unknown> {
     return {
       '@context': 'https://schema.org',
       '@type': 'NonprofitOrganization',
-      '@id': `${ORIGIN}/#organization`,
+      '@id': ORG_ID,
       name: ORG_NAME,
       alternateName: ['Sanhoti', 'Sanhoti Bengali Association of Southern California'],
       url: ORIGIN,
-      logo: `${ORIGIN}/images/logo.png`,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${ORIGIN}/favicon-512x512.png`,
+        width: 512,
+        height: 512,
+      },
+      image: `${ORIGIN}/images/logo.png`,
       email: ORG_EMAIL,
       telephone: ORG_PHONE,
       taxID: '39-2903777',
@@ -323,6 +403,8 @@ ${opts.body}
         postalCode: '92688',
         addressCountry: 'US',
       },
+      geo: { '@type': 'GeoCoordinates', latitude: '33.6411', longitude: '-117.6000' },
+      hasMap: 'https://www.google.com/maps/search/?api=1&query=23+Calle+Alamitos,+Rancho+Santa+Margarita,+CA+92688',
       areaServed: ['Orange County, California', 'Southern California'],
     };
   }
@@ -340,7 +422,7 @@ ${opts.body}
       ...(imageUrl ? { image: [imageUrl] } : {}),
       eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
       eventStatus: 'https://schema.org/EventScheduled',
-      organizer: { '@type': 'Organization', name: ORG_NAME, url: ORIGIN },
+      organizer: { '@id': ORG_ID },
       location: {
         '@type': 'Place',
         name: loc || 'Orange County, California',
@@ -1074,28 +1156,13 @@ ${galleriesHtml}
       body,
       ogType: 'article',
       ogImage: imageUrl,
-      jsonLd: [
-        this.eventJsonLd(event, pageUrl, imageUrl),
-        this.breadcrumbJsonLd([
-          { name: 'Home', path: '/' },
-          { name: 'Events', path: '/events' },
-          { name, path },
-        ]),
+      breadcrumb: [
+        { name: 'Home', path: '/' },
+        { name: 'Events', path: '/events' },
+        { name, path },
       ],
+      jsonLd: [this.eventJsonLd(event, pageUrl, imageUrl)],
     });
-  }
-
-  private breadcrumbJsonLd(items: { name: string; path: string }[]): Record<string, unknown> {
-    return {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: items.map((it, i) => ({
-        '@type': 'ListItem',
-        position: i + 1,
-        name: it.name,
-        item: `${ORIGIN}${it.path === '/' ? '/' : it.path}`,
-      })),
-    };
   }
 
   /** Dedicated crawlable page for an opted-in sub-event (e.g. a concert). */
