@@ -14,6 +14,7 @@ Sanhoti's public data. Content usage policy: **search=yes, ai-input=yes, ai-trai
 | Markdown for Agents | `Accept: text/markdown` → Markdown of any `/seo` page (+ `x-markdown-tokens`) | `SeoPageController.renderPage` + Nginx rewrite |
 | llms.txt | Agent-facing site guide | `frontend/public/llms.txt` |
 | WebMCP | `navigator.modelContext` tools (search events, concerts, Durga Puja) — feature-detected | `frontend/src/components/WebMcpProvider.tsx` |
+| auth.md | Honest agent-auth doc: public API needs no auth; no OAuth/registration | `frontend/public/auth.md` |
 
 ## Deploy (two steps)
 
@@ -39,17 +40,27 @@ curl -s -H "Accept: text/markdown" https://www.sanhoti.org/durga-puja -o /dev/nu
 
 ## DNS-AID (do this in Cloudflare — not code)
 
-DNS-based agent discovery uses SVCB/HTTPS records under `_agents.sanhoti.org`, signed with DNSSEC.
-Sanhoti has no agent API endpoint to advertise yet, so this is **optional**; add it only if/when you
-expose one. Example records (Cloudflare DNS → add record → type HTTPS):
+DNS-based agent discovery advertises the site's agent entrypoint (our `/.well-known/api-catalog`)
+via an SVCB/HTTPS record under `_agents.sanhoti.org`, in a zone signed with DNSSEC.
 
+**Step 1 — add the HTTPS record.** Cloudflare dashboard → `sanhoti.org` → DNS → Records → Add record:
+- **Type:** `HTTPS`
+- **Name:** `_index._agents`
+- **Priority (SvcPriority):** `1`
+- **Target (TargetName):** `www.sanhoti.org`
+- **Value / params:** `alpn="h2"` and, if the UI allows a custom/`endpoint` param, `endpoint="https://www.sanhoti.org/.well-known/api-catalog"`
+
+Zone-file equivalent (if you manage DNS elsewhere):
 ```
-; advertise the site's agent entrypoint
-_index._agents.sanhoti.org.  3600  IN  HTTPS  1 . ( alpn="h2" endpoint="https://www.sanhoti.org/.well-known/api-catalog" )
+_index._agents.sanhoti.org. 3600 IN HTTPS 1 www.sanhoti.org. alpn="h2" endpoint="https://www.sanhoti.org/.well-known/api-catalog"
 ```
 
-Then enable **DNSSEC** in Cloudflare (DNS → Settings → Enable DNSSEC) so validating resolvers get
-authenticated answers. Spec: draft-mozleywilliams-dnsop-dnsaid; RFC 9460 (SVCB/HTTPS).
+**Step 2 — enable DNSSEC.** Cloudflare → DNS → Settings → **Enable DNSSEC**, then add the DS record it
+gives you at your domain registrar. This is what makes validating resolvers return authenticated data.
+
+Spec: draft-mozleywilliams-dnsop-dnsaid; RFC 9460 (SVCB/HTTPS). Note: SVCB/`HTTPS` record support and
+custom params vary by DNS provider UI — if Cloudflare's form doesn't expose the `endpoint` param, the
+record still advertises the entrypoint host via `TargetName` + `alpn`.
 
 ## Intentionally NOT implemented (would be false metadata)
 

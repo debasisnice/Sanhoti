@@ -114,17 +114,23 @@ else:
     print('✅ Inserted agent-ready server snippet')
 
 # 2. markdown rewrite inside the SPA "location / { ... try_files ... index.html }"
+# Insert right after the opening brace of the location / block that serves the SPA.
+# (A simple lookahead fails because the SEO script already nested an `if { }` block
+# before try_files, so we scan a window instead of forbidding `}`.)
 if 'Agent markdown negotiation' in src:
     print('⏭  Markdown negotiation already present')
 else:
-    def add_md(m):
-        return m.group(0) + '\n' + MD_REWRITE
-    new, n = re.subn(r'location\s+/\s*\{(?=[^}]*try_files[^}]*index\.html)', add_md, src)
-    if n == 0:
+    inserted = False
+    for m in re.finditer(r'location\s+/\s*\{', src):
+        start = m.end()
+        window = src[start:start + 600]
+        if 'try_files' in window and 'index.html' in window:
+            src = src[:start] + '\n' + MD_REWRITE + src[start:]
+            inserted = True
+            print('✅ Inserted markdown negotiation into the SPA location / block')
+            break
+    if not inserted:
         print('⚠️  Could not find SPA location / block for markdown rewrite (skipped)')
-    else:
-        src = new
-        print(f'✅ Inserted markdown negotiation into {n} location block(s)')
 
 if src != orig:
     open(path, 'w').write(src)
