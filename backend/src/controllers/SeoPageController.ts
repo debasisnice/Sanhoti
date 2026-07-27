@@ -1255,7 +1255,7 @@ ${leadershipHtml}
 <h2>${esc(c.ctaTitle)}</h2>
 <p>${esc(c.ctaText)}</p>
 <p>Contact: <a href="mailto:${esc(c.contactEmail)}">${esc(c.contactEmail)}</a> · ${esc(c.contactPhone)}</p>
-<p><a href="/become-our-sponsor">Sponsorship prospectus</a> · <a href="/donate">Donate</a> · <a href="/contact">Contact us</a></p>`;
+<p><a href="/donate">Donate</a> · <a href="/contact">Contact us</a></p>`;
 
     return this.layout({
       title: `Corporate Partnerships & CSR | Sanhoti Bengali Association, Orange County, CA`,

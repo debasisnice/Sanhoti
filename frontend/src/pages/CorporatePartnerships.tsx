@@ -150,12 +150,6 @@ export default function CorporatePartnerships() {
             >
               <Mail className="w-5 h-5" /> Become a partner
             </a>
-            <Link
-              to="/become-our-sponsor"
-              className="inline-flex items-center gap-2 bg-white/10 border border-white/40 px-6 py-3 rounded-lg font-semibold hover:bg-white/20 transition-colors"
-            >
-              Sponsorship prospectus
-            </Link>
           </div>
         </div>
       </section>
