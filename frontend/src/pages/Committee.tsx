@@ -87,6 +87,8 @@ export default function Committee() {
                     src={member.image}
                     alt={[member.firstName, member.lastName].filter(Boolean).join(' ') || member.role}
                     className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                    decoding="async"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';

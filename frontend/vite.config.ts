@@ -145,6 +145,26 @@ export default defineConfig({
       }
     })
   ],
+  build: {
+    // Split large third-party libraries into their own cacheable chunks so the
+    // initial route ships less JS (better LCP/INP) and vendor code is cached
+    // across deploys. pdfjs/react-pdf are already route-lazy; keep them isolated.
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (!id.includes('node_modules')) return undefined;
+          if (/[\\/]react(-dom|-router[^/]*)?[\\/]/.test(id)) return 'react-vendor';
+          if (id.includes('framer-motion')) return 'framer-motion';
+          if (id.includes('pdfjs-dist') || id.includes('react-pdf')) return 'pdf';
+          if (id.includes('date-fns')) return 'date-fns';
+          if (id.includes('lucide-react')) return 'icons';
+          if (id.includes('html5-qrcode') || id.includes('qrcode.react')) return 'qrcode';
+          return 'vendor';
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

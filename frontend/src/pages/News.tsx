@@ -83,6 +83,8 @@ export default function NewsPage() {
               src={imageUrl}
               alt={newsItem.title}
               className="w-full h-auto object-contain max-h-[600px] mx-auto rounded-lg"
+              loading="lazy"
+              decoding="async"
             />
           </div>
         );
@@ -94,6 +96,8 @@ export default function NewsPage() {
               src={newsItem.media_url}
               alt={newsItem.title}
               className="w-full h-auto object-contain max-h-[600px] mx-auto rounded-lg"
+              loading="lazy"
+              decoding="async"
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none';
               }}

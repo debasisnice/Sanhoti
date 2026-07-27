@@ -271,6 +271,8 @@ export default function Sponsors() {
                               src={card.image.url}
                               alt={card.image.filename}
                               className="w-full h-full object-contain p-6"
+                              loading="lazy"
+                              decoding="async"
                               onError={(e) => {
                                 console.error('Failed to load sponsor image:', card.image.url);
                                 (e.target as HTMLImageElement).style.display = 'none';

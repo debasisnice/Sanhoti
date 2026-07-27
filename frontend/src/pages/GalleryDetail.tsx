@@ -222,6 +222,8 @@ export default function GalleryDetail() {
                       src={photo.thumbnailUrl || photo.url}
                       alt={`Photo ${index + 1}`}
                       className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                      loading="lazy"
+                      decoding="async"
                     />
                   )}
                   {photo.type === 'video' && (

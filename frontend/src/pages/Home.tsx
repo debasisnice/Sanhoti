@@ -111,7 +111,7 @@ function HeroVideoCard({ url, label }: { url: string; label?: string }) {
       aria-label={label ? `Play ${label}` : 'Play video'}
     >
       {thumb ? (
-        <img src={thumb} alt={label || 'Video'} className="w-full h-full object-cover" loading="lazy" />
+        <img src={thumb} alt={label || 'Video'} className="w-full h-full object-cover" decoding="async" />
       ) : (
         <div className="w-full h-full bg-gradient-to-br from-primary-400 to-primary-600" />
       )}
@@ -133,7 +133,7 @@ function HeroVideoCard({ url, label }: { url: string; label?: string }) {
 function HeroImageCard({ url, alt }: { url: string; alt?: string }) {
   return (
     <div className="relative rounded-lg shadow-xl w-32 md:w-80 lg:w-96 overflow-hidden aspect-[3/4] md:aspect-[3/3.5] border-2 md:border-4 border-yellow-400 bg-black">
-      <img src={url} alt={alt || ''} className="w-full h-full object-cover" loading="lazy" />
+      <img src={url} alt={alt || ''} className="w-full h-full object-cover" decoding="async" />
     </div>
   );
 }
