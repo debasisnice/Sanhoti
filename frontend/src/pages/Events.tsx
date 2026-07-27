@@ -343,6 +343,15 @@ export default function Events() {
     [filteredEvents, nowTs]
   );
 
+  // "Next" = earliest not-yet-started event; upcoming grid still uses end-date filter above.
+  const nextEvent = useMemo(
+    () =>
+      upcomingEvents.find(
+        e => new Date(e.event_start_dt || e.date || 0).getTime() >= nowTs
+      ),
+    [upcomingEvents, nowTs]
+  );
+
   // Hero backdrop: event flyers first (prioritized), then public gallery photos to
   // fill so the hero never looks empty when there are few events. Randomized.
   const mosaicImages = useMemo(() => {
@@ -467,9 +476,9 @@ export default function Events() {
             <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-sm">
               <span className="bg-white/15 backdrop-blur-sm rounded-full px-3 py-1">{upcomingEvents.length} upcoming</span>
               <span className="bg-white/15 backdrop-blur-sm rounded-full px-3 py-1">{filteredEvents.length} total</span>
-              {upcomingEvents[0] && (
+              {nextEvent && (
                 <span className="bg-primary-600 rounded-full px-3 py-1 font-medium">
-                  Next: {formatDateWithTime(upcomingEvents[0].event_start_dt || upcomingEvents[0].date || '')}
+                  Next: {formatDateWithTime(nextEvent.event_start_dt || nextEvent.date || '')}
                 </span>
               )}
             </div>

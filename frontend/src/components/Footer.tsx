@@ -99,7 +99,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link to="/corporate-partnerships" className="hover:text-white transition-colors">
-                  Corporate Partnerships
+                  Corporate Partnerships & CSR
                 </Link>
               </li>
               <li>
