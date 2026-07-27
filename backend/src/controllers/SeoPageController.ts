@@ -256,9 +256,9 @@ export class SeoPageController {
       else if (path === '/festivals') html = await this.festivalsPage();
       else if (path === '/corporate-partnerships') html = await this.corporatePartnershipsPage();
       else if (path === '/events') html = await this.eventsPage(typeof req.query.type === 'string' ? req.query.type : undefined);
-      else if (eventMatch) html = (await this.eventPage(decodeURIComponent(eventMatch[1]))) ?? this.notFound(res);
-      else if (subEventMatch) html = (await this.subEventPage(decodeURIComponent(subEventMatch[1]))) ?? this.notFound(res);
-      else if (galleryMatch) html = (await this.galleryPage(decodeURIComponent(galleryMatch[1]))) ?? this.notFound(res);
+      else if (eventMatch) html = (await this.eventPage(decodeURIComponent(eventMatch[1]))) ?? this.notFound(res, path);
+      else if (subEventMatch) html = (await this.subEventPage(decodeURIComponent(subEventMatch[1]))) ?? this.notFound(res, path);
+      else if (galleryMatch) html = (await this.galleryPage(decodeURIComponent(galleryMatch[1]))) ?? this.notFound(res, path);
       else html = this.staticPage(path);
 
       if (!res.headersSent) {
@@ -293,6 +293,7 @@ export class SeoPageController {
     jsonLd?: Record<string, unknown>[];
     ogType?: string;
     ogImage?: string;
+    noindex?: boolean;
     /** Optional richer breadcrumb trail; otherwise a Home → page trail is auto-built. */
     breadcrumb?: { name: string; path: string }[];
   }): string {
@@ -367,7 +368,7 @@ export class SeoPageController {
 <title>${esc(opts.title)}</title>
 <meta name="description" content="${esc(opts.description)}">
 <link rel="canonical" href="${esc(canonical)}">
-<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="robots" content="${opts.noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1'}">
 <meta property="og:type" content="${esc(opts.ogType || 'website')}">
 <meta property="og:title" content="${esc(opts.title)}">
 <meta property="og:description" content="${esc(opts.description)}">
@@ -1729,12 +1730,13 @@ See the <a href="/durga-puja">Durga Puja page</a> for dates, venue, and tickets.
     return this.layout({ ...page, path, jsonLd: [this.orgJsonLd()] });
   }
 
-  private notFound(res: Response): string {
+  private notFound(res: Response, path: string): string {
     res.status(404);
     return this.layout({
       title: 'Event not found | Sanhoti',
       description: 'This event could not be found. Browse current Sanhoti events in Orange County, CA.',
-      path: '/events',
+      path,
+      noindex: true,
       body: `<h1>Event not found</h1><p><a href="/events">Browse all Sanhoti events</a></p>`,
     });
   }

@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useEffect, useState, type ReactNode } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -39,10 +40,14 @@ export default function EventDetail() {
   const [relatedGalleries, setRelatedGalleries] = useState<PhotoGallery[]>([]);
   const [noticeImages, setNoticeImages] = useState<Record<string, Array<{ filename: string; url: string }>>>({});
   const [loading, setLoading] = useState(true);
+  const [eventMissing, setEventMissing] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
     if (id) {
       const fetchEventAndImage = async () => {
+        setEventMissing(false);
+        setFetchError(false);
         try {
           const fetchedEvent = await eventsAPI.getById(id);
           setEvent(fetchedEvent);
@@ -157,7 +162,12 @@ export default function EventDetail() {
           }
         } catch (err) {
           console.error(err);
-          toast.error('Failed to load event');
+          if (axios.isAxiosError(err) && err.response?.status === 404) {
+            setEventMissing(true);
+          } else {
+            setFetchError(true);
+            toast.error('Failed to load event');
+          }
         } finally {
           setLoading(false);
         }
@@ -187,13 +197,13 @@ export default function EventDetail() {
     );
   }
 
-  if (!event) {
+  if (!loading && eventMissing) {
     return (
       <>
         <Seo
           title="Event not found | Sanhoti"
           description="This event could not be found. Browse current events at Sanhoti in Orange County, CA."
-          path="/events"
+          path={id ? `/events/${id}` : '/events'}
           noindex
         />
         <div className="min-h-screen flex items-center justify-center">
@@ -206,6 +216,39 @@ export default function EventDetail() {
         </div>
       </>
     );
+  }
+
+  if (!loading && fetchError) {
+    return (
+      <>
+        <Seo
+          title="Event | Sanhoti"
+          description="Sanhoti Bengali Association event in Orange County, CA."
+          path={id ? `/events/${id}` : '/events'}
+          ogType="article"
+        />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Could not load this event</h2>
+            <button
+              type="button"
+              onClick={() => {
+                setLoading(true);
+                setFetchError(false);
+                window.location.reload();
+              }}
+              className="text-primary-600 hover:text-primary-700"
+            >
+              Try again
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (!event) {
+    return null;
   }
 
   const detailEventId = getCanonicalEventIdForShare(event, id);

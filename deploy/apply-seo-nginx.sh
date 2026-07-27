@@ -50,10 +50,9 @@ restore() {
   nginx -t && systemctl reload nginx || true
 }
 
-# ---------- 1. bot map (http context via conf.d) ----------
+# ---------- 1. bot map (http context via conf.d) — always sync so new crawlers get added ----------
 MAP_CONF="/etc/nginx/conf.d/seo-bot-map.conf"
-if [ ! -f "$MAP_CONF" ]; then
-  cat > "$MAP_CONF" <<'EOF'
+cat > "$MAP_CONF" <<'EOF'
 # Search/AI crawlers that should receive server-rendered HTML (/seo/*).
 # Social preview bots (facebookexternalhit, whatsapp, twitterbot) are NOT here —
 # they are handled by the app's /og/ routes.
@@ -62,10 +61,7 @@ map $http_user_agent $is_seo_bot {
     ~*(googlebot|google-inspectiontool|googleother|storebot-google|mediapartners-google|google-safety|bingbot|slurp|duckduckbot|baiduspider|yandex(bot)?|applebot|petalbot|gptbot|oai-searchbot|perplexitybot|claudebot|amazonbot|ecosia|qwantbot|seznambot|ia_archiver) 1;
 }
 EOF
-  echo "✅ Created $MAP_CONF"
-else
-  echo "⏭  $MAP_CONF already exists"
-fi
+echo "✅ Synced $MAP_CONF"
 
 # ---------- 2. server-block snippets ----------
 python3 - "$SITE_CONF" "$BACKEND" <<'PYEOF'
@@ -215,6 +211,9 @@ curl -sk https://www.sanhoti.org/sitemap.xml | grep -q "durga-puja" && echo "OK 
 echo -n "  bot gets rendered HTML: "
 curl -sk -A "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" \
   https://www.sanhoti.org/durga-puja | grep -q "<h1>Durga Puja" && echo "OK" || echo "CHECK MANUALLY (is the new backend deployed?)"
+echo -n "  GSC Inspection Tool:  "
+curl -sk -A "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Mobile Safari/537.36 (compatible; Google-InspectionTool/1.0)" \
+  https://www.sanhoti.org/events | grep -q 'rel="canonical" href="https://www.sanhoti.org/events"' && echo "OK" || echo "CHECK MANUALLY"
 echo -n "  humans get the SPA:     "
 curl -sk https://www.sanhoti.org/durga-puja | grep -q 'id="root"' && echo "OK" || echo "CHECK MANUALLY"
 echo ""
