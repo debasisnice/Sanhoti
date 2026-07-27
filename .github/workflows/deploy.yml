@@ -147,14 +147,36 @@ jobs:
           
           chmod +x /tmp/deploy.sh
           
+          ssh_opts=(-i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=30 -o ServerAliveInterval=15)
+          
+          # GitHub-hosted runners reach EC2 over the public internet; transient
+          # SSH timeouts happen occasionally — retry before failing the deploy.
+          with_ssh_retry() {
+            local attempt max=3 delay=20
+            for attempt in 1 2 3; do
+              if "$@"; then
+                return 0
+              fi
+              if [ "$attempt" -lt "$max" ]; then
+                echo "⚠️  SSH attempt $attempt/$max failed — retrying in ${delay}s..."
+                sleep "$delay"
+              fi
+            done
+            echo "❌ SSH failed after $max attempts."
+            echo "   Check: EC2 instance running, security group allows SSH (port 22) from 0.0.0.0/0,"
+            echo "   EC2_HOST secret matches the instance public IP, and ~/.ssh/authorized_keys has the deploy key."
+            echo "   See docs/FIX_SSH_TIMEOUT_NOW.md and docs/TROUBLESHOOT_CICD.md"
+            return 1
+          }
+          
           echo "Copying deployment script to EC2..."
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 /tmp/deploy.sh "${EC2_USER}@${EC2_HOST}:/tmp/deploy.sh"
+          with_ssh_retry scp "${ssh_opts[@]}" /tmp/deploy.sh "${EC2_USER}@${EC2_HOST}:/tmp/deploy.sh"
           
           echo "Executing deployment script on EC2..."
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${EC2_USER}@${EC2_HOST}" 'bash /tmp/deploy.sh'
+          with_ssh_retry ssh "${ssh_opts[@]}" "${EC2_USER}@${EC2_HOST}" 'bash /tmp/deploy.sh'
           
           echo "Cleaning up deployment script..."
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${EC2_USER}@${EC2_HOST}" 'rm -f /tmp/deploy.sh'
+          with_ssh_retry ssh "${ssh_opts[@]}" "${EC2_USER}@${EC2_HOST}" 'rm -f /tmp/deploy.sh'
           rm -f /tmp/deploy.sh
 
       - name: Verify deployment
@@ -163,7 +185,7 @@ jobs:
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
           echo "🔍 Verifying deployment..."
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${EC2_USER}@${EC2_HOST}" << 'VERIFY_SCRIPT'
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=30 "${EC2_USER}@${EC2_HOST}" << 'VERIFY_SCRIPT'
             echo "Checking backend status..."
             
             # Check if backend is running
