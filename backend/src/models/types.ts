@@ -48,6 +48,20 @@ export interface Event {
   event_image_path?: string; // Folder path for event flyer/image in Events_Flyers
   rsvp_link?: string; // Optional external RSVP link
   rsvp_enabled?: boolean; // If true, show RSVP option for this event
+  // ---- Structured venue for SEO (schema.org Place/PostalAddress) ----
+  venue_name?: string; // e.g. "Estancia High School"
+  venue_street?: string; // streetAddress, e.g. "2323 Placentia Ave"
+  venue_city?: string; // addressLocality, e.g. "Costa Mesa"
+  venue_region?: string; // addressRegion, e.g. "CA"
+  venue_postal?: string; // postalCode
+  // ---- Ticketing for SEO (schema.org offers) ----
+  ticket_url?: string; // Where to buy/register (offer url)
+  ticket_price?: string; // Numeric string; blank = treated as free
+  ticket_currency?: string; // default 'USD'
+  // ---- Status + performers (schema.org eventStatus / performer) ----
+  event_status?: 'Scheduled' | 'Cancelled' | 'Postponed' | 'Rescheduled';
+  performers?: string; // Comma-separated performer name(s)
+  performer_type?: 'Person' | 'MusicGroup';
   is_active: boolean;
   is_priority?: boolean;
   /**
@@ -1044,6 +1058,7 @@ export interface Settings {
     home: boolean;
     durgaPuja: boolean;
     sponsors: boolean;
+    corporatePartnerships: boolean;
     events: boolean;
     noticeBoard: boolean;
     galleries: boolean;
@@ -1084,7 +1099,28 @@ export interface Settings {
   durgaPujaMode?: boolean;
   /** Uploaded navbar logo shown at the red/beige divide while Durga Puja Mode is on. */
   durgaPujaLogoUrl?: string;
+  /** Editable content for the public /corporate-partnerships page. */
+  corporatePartnerships?: CorporatePartnershipsContent;
   updated_at: string;
+}
+
+/** Admin-editable content for the /corporate-partnerships page. */
+export interface CorporatePartnershipsContent {
+  heroTitle?: string;
+  heroSubtitle?: string;
+  whyPartnerTitle?: string;
+  whyPartner?: { title: string; text: string }[];
+  impactTitle?: string;
+  impactIntro?: string;
+  impact?: { tag: string; name: string; meta: string; text: string }[];
+  waysTitle?: string;
+  waysToGive?: string[];
+  csrNote?: string;
+  leadershipTitle?: string;
+  ctaTitle?: string;
+  ctaText?: string;
+  contactEmail?: string;
+  contactPhone?: string;
 }
 
 /** One hero card slot: show its default content, a Highlights video, an uploaded image, or hide it. */

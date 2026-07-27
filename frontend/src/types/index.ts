@@ -26,6 +26,24 @@ export interface User {
   updatedAt: string;
 }
 
+export interface CorporatePartnershipsContent {
+  heroTitle?: string;
+  heroSubtitle?: string;
+  whyPartnerTitle?: string;
+  whyPartner?: { title: string; text: string }[];
+  impactTitle?: string;
+  impactIntro?: string;
+  impact?: { tag: string; name: string; meta: string; text: string }[];
+  waysTitle?: string;
+  waysToGive?: string[];
+  csrNote?: string;
+  leadershipTitle?: string;
+  ctaTitle?: string;
+  ctaText?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+}
+
 export interface Event {
   // New schema fields
   event_id: string;
@@ -45,6 +63,18 @@ export interface Event {
   event_image_path?: string; // Folder path for event flyer/image in Events_Flyers
   rsvp_link?: string; // Optional external RSVP link
   rsvp_enabled?: boolean; // If true, show RSVP option for this event
+  // Structured venue (SEO) + ticketing (SEO offers)
+  venue_name?: string;
+  venue_street?: string;
+  venue_city?: string;
+  venue_region?: string;
+  venue_postal?: string;
+  ticket_url?: string;
+  ticket_price?: string;
+  ticket_currency?: string;
+  event_status?: 'Scheduled' | 'Cancelled' | 'Postponed' | 'Rescheduled';
+  performers?: string;
+  performer_type?: 'Person' | 'MusicGroup';
   // Legacy fields for backward compatibility
   id?: string;
   title?: string;

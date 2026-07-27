@@ -28,6 +28,17 @@ interface Event {
   created_at: string;
   updated_at: string;
   photo_gallery_link?: string;
+  venue_name?: string;
+  venue_street?: string;
+  venue_city?: string;
+  venue_region?: string;
+  venue_postal?: string;
+  ticket_url?: string;
+  ticket_price?: string;
+  ticket_currency?: string;
+  event_status?: 'Scheduled' | 'Cancelled' | 'Postponed' | 'Rescheduled';
+  performers?: string;
+  performer_type?: 'Person' | 'MusicGroup';
 }
 
 interface EventForm {
@@ -42,6 +53,18 @@ interface EventForm {
   is_active_durga_puja_event?: boolean;
   rsvp_enabled: boolean;
   rsvp_link?: string;
+  // Structured venue + ticketing (improve Google SEO / event rich results)
+  venue_name?: string;
+  venue_street?: string;
+  venue_city?: string;
+  venue_region?: string;
+  venue_postal?: string;
+  ticket_url?: string;
+  ticket_price?: string;
+  ticket_currency?: string;
+  event_status?: 'Scheduled' | 'Cancelled' | 'Postponed' | 'Rescheduled';
+  performers?: string;
+  performer_type?: 'Person' | 'MusicGroup';
 }
 
 interface EventImage {
@@ -106,6 +129,17 @@ export default function AdminEvents() {
     is_active_durga_puja_event: false,
     rsvp_enabled: false,
     rsvp_link: '',
+    venue_name: '',
+    venue_street: '',
+    venue_city: '',
+    venue_region: 'CA',
+    venue_postal: '',
+    ticket_url: '',
+    ticket_price: '',
+    ticket_currency: 'USD',
+    event_status: 'Scheduled',
+    performers: '',
+    performer_type: 'Person',
   });
   const [eventStartTime, setEventStartTime] = useState('');
   const [eventEndTime, setEventEndTime] = useState('');
@@ -260,6 +294,17 @@ export default function AdminEvents() {
         is_active_durga_puja_event: Boolean(formDataWithPST.is_active_durga_puja_event),
         rsvp_enabled: Boolean(formDataWithPST.rsvp_enabled),
         rsvp_link: (formDataWithPST.rsvp_link ?? '').trim(),
+        venue_name: (formDataWithPST.venue_name ?? '').trim(),
+        venue_street: (formDataWithPST.venue_street ?? '').trim(),
+        venue_city: (formDataWithPST.venue_city ?? '').trim(),
+        venue_region: (formDataWithPST.venue_region ?? '').trim(),
+        venue_postal: (formDataWithPST.venue_postal ?? '').trim(),
+        ticket_url: (formDataWithPST.ticket_url ?? '').trim(),
+        ticket_price: (formDataWithPST.ticket_price ?? '').trim(),
+        ticket_currency: (formDataWithPST.ticket_currency ?? 'USD').trim(),
+        event_status: formDataWithPST.event_status ?? 'Scheduled',
+        performers: (formDataWithPST.performers ?? '').trim(),
+        performer_type: formDataWithPST.performer_type ?? 'Person',
       };
 
       let savedEvent: Event;
@@ -312,8 +357,19 @@ export default function AdminEvents() {
       is_active_durga_puja_event: event.is_active_durga_puja_event || false,
       rsvp_enabled: (event as any).rsvp_enabled ?? false,
       rsvp_link: (event as any).rsvp_link || '',
+      venue_name: event.venue_name || '',
+      venue_street: event.venue_street || '',
+      venue_city: event.venue_city || '',
+      venue_region: event.venue_region || 'CA',
+      venue_postal: event.venue_postal || '',
+      ticket_url: event.ticket_url || '',
+      ticket_price: event.ticket_price || '',
+      ticket_currency: event.ticket_currency || 'USD',
+      event_status: event.event_status || 'Scheduled',
+      performers: event.performers || '',
+      performer_type: event.performer_type || 'Person',
     });
-    
+
     // Set the time fields
     setEventStartTime(startDateTime.time);
     setEventEndTime(endDateTime.time);
@@ -624,6 +680,17 @@ export default function AdminEvents() {
       is_active_durga_puja_event: false,
       rsvp_enabled: false,
       rsvp_link: '',
+      venue_name: '',
+      venue_street: '',
+      venue_city: '',
+      venue_region: 'CA',
+      venue_postal: '',
+      ticket_url: '',
+      ticket_price: '',
+      ticket_currency: 'USD',
+      event_status: 'Scheduled',
+      performers: '',
+      performer_type: 'Person',
     });
     setEventStartTime('');
     setEventEndTime('');
@@ -880,6 +947,155 @@ export default function AdminEvents() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Enter event location"
                   />
+                </div>
+
+                {/* ---- Venue & tickets: power Google's Event rich results ---- */}
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-4">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">Venue &amp; tickets (for Google SEO)</p>
+                    <p className="text-xs text-gray-500">
+                      Filling these lets Google show your event with its exact venue, map, and price. A city
+                      + venue name is the biggest win; a ticket price enables the price in search results.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Venue name</label>
+                      <input
+                        type="text"
+                        value={formData.venue_name}
+                        onChange={(e) => setFormData({ ...formData, venue_name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                        placeholder="e.g. Estancia High School"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Street address</label>
+                      <input
+                        type="text"
+                        value={formData.venue_street}
+                        onChange={(e) => setFormData({ ...formData, venue_street: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                        placeholder="e.g. 2323 Placentia Ave"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">City</label>
+                      <input
+                        type="text"
+                        value={formData.venue_city}
+                        onChange={(e) => setFormData({ ...formData, venue_city: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                        placeholder="e.g. Costa Mesa"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">State/Region</label>
+                        <input
+                          type="text"
+                          value={formData.venue_region}
+                          onChange={(e) => setFormData({ ...formData, venue_region: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                          placeholder="CA"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">ZIP</label>
+                        <input
+                          type="text"
+                          value={formData.venue_postal}
+                          onChange={(e) => setFormData({ ...formData, venue_postal: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                          placeholder="92627"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="sm:col-span-1">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Ticket URL</label>
+                      <input
+                        type="text"
+                        value={formData.ticket_url}
+                        onChange={(e) => setFormData({ ...formData, ticket_url: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                        placeholder="https://…"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Ticket price (from)</label>
+                      <input
+                        type="text"
+                        value={formData.ticket_price}
+                        onChange={(e) => setFormData({ ...formData, ticket_price: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                        placeholder="e.g. 40 (blank = free)"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Currency</label>
+                      <input
+                        type="text"
+                        value={formData.ticket_currency}
+                        onChange={(e) => setFormData({ ...formData, ticket_currency: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                        placeholder="USD"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Event status</label>
+                      <select
+                        value={formData.event_status}
+                        onChange={(e) => setFormData({ ...formData, event_status: e.target.value as EventForm['event_status'] })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 bg-white"
+                      >
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="Postponed">Postponed</option>
+                        <option value="Rescheduled">Rescheduled</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Performer name(s)</label>
+                      <input
+                        type="text"
+                        value={formData.performers}
+                        onChange={(e) => setFormData({ ...formData, performers: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                        placeholder="Comma-separated (optional)"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Performer type</label>
+                      <select
+                        value={formData.performer_type}
+                        onChange={(e) => setFormData({ ...formData, performer_type: e.target.value as EventForm['performer_type'] })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 bg-white"
+                      >
+                        <option value="Person">Person / solo</option>
+                        <option value="MusicGroup">Band / group</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* SEO completeness nudge — non-blocking guidance */}
+                  {(() => {
+                    const tips: string[] = [];
+                    const hasExistingImage = !!(editingEvent && eventImages[editingEvent.event_id]?.length);
+                    if (!selectedImage && !hasExistingImage) tips.push('add a flyer/image');
+                    if (!(formData.venue_name || formData.venue_city)) tips.push('add a venue name or city');
+                    if ((formData.event_description || '').trim().length < 50) tips.push('write a longer description (50+ chars)');
+                    if (formData.ticket_url && !formData.ticket_price) tips.push('add a ticket price');
+                    if (tips.length === 0) return null;
+                    return (
+                      <div className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                        <span className="font-semibold">Boost Google visibility:</span> {tips.join(' · ')}. These are optional but help this event show richer in search.
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="flex items-center space-x-2">

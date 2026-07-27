@@ -138,6 +138,13 @@ ${durgaYears
   </url>
 
   <url>
+    <loc>${baseUrl}/corporate-partnerships</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
     <loc>${baseUrl}/committee</loc>
     <lastmod>${currentDate}</lastmod>
     <changefreq>monthly</changefreq>

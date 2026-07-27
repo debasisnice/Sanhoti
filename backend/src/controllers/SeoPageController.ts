@@ -3,6 +3,9 @@ import { EventService } from '../services/EventService.js';
 import { DurgaPujaPageService } from '../services/DurgaPujaPageService.js';
 import { SubEventService } from '../services/SubEventService.js';
 import { GalleryService } from '../services/GalleryService.js';
+import { SettingsService } from '../services/SettingsService.js';
+import { AuthService } from '../services/AuthService.js';
+import type { CorporatePartnershipsContent } from '../models/types.js';
 import { getEventPath, getEventDetailPath } from '../utils/slug.js';
 import { durgaPujaPagePath, parseDurgaPujaPageYear, isDurgaPujaEventName, durgaPujaEventYear } from '../utils/durgaPuja.js';
 import { durgaPujaPageImageExists } from '../data/DurgaPujaPageDataHelper.js';
@@ -18,6 +21,40 @@ const ORG_EMAIL = 'info@sanhoti.org';
 // and one WebSite entity instead of repeating disconnected copies.
 const ORG_ID = `${ORIGIN}/#organization`;
 const WEBSITE_ID = `${ORIGIN}/#website`;
+
+/** Default Corporate Partnerships content (admin overrides via /admin/settings). */
+const DEFAULT_CORP: Required<CorporatePartnershipsContent> = {
+  heroTitle: 'Corporate Partnerships & CSR',
+  heroSubtitle: 'Invest in Bengali culture, diversity, and community across Orange County & SoCal',
+  whyPartnerTitle: 'Why Partner With Sanhoti',
+  whyPartner: [
+    { title: 'Advance Diversity & Inclusion', text: 'Sanhoti builds bridges across Bengali, broader Indian, and non-Indian communities, creating shared cultural experiences open to all backgrounds, races, and religions.' },
+    { title: 'Invest in the Next Generation', text: 'Our year-round programming gives children and young adults hands-on exposure to Bengali language, literature, and music — supporting cultural literacy and identity.' },
+    { title: 'Support Arts & Heritage', text: 'From Durga Puja and Saraswati Puja to Poila Boishakh, Sanhoti sustains centuries-old traditions and makes them accessible to wider Southern California.' },
+    { title: 'Strengthen Local Community Ties', text: 'Sanhoti brings together families across Rancho Santa Margarita, Irvine, Tustin, Mission Viejo, and greater Orange County/SoCal, fostering regional civic connection.' },
+  ],
+  impactTitle: 'Community & Charitable Impact',
+  impactIntro: 'Beyond cultural programming, Sanhoti members show up for causes across Orange County — giving companies a concrete way to co-sponsor volunteer days or fundraising drives alongside us, not just cultural festivals.',
+  impact: [
+    { tag: 'Hunger Relief', name: 'Walk with Second Harvest 2026', meta: 'Second Harvest Food Bank of Orange County · Tanaka Farms, Irvine', text: "Sanhoti fields a team for Second Harvest's annual community fundraising walk, supporting food-insecurity relief for Orange County families." },
+    { tag: 'Domestic Violence Support', name: "Sanhoti Charity Event at Laura's House (2025)", meta: "Laura's House · Orange County", text: "A Sanhoti-organized charity event supporting Laura's House, an Orange County nonprofit providing shelter, therapy, legal advocacy, and prevention education for survivors of domestic violence." },
+    { tag: 'Domestic Violence Support', name: "Sanhoti Charity Event at Laura's House (2026)", meta: "Laura's House · Orange County", text: "A continuation of Sanhoti's partnership with Laura's House, extending support to survivors of domestic violence in the local community." },
+  ],
+  waysTitle: 'Ways to Give or Partner',
+  waysToGive: [
+    'Corporate sponsorship of flagship events (Durga Puja, Saraswati Puja, Poila Boishakh, cultural concerts)',
+    'Matching gift programs for employee donations',
+    'In-kind support (venue space, catering, printing, A/V equipment, volunteer time)',
+    'Employee volunteer days at Sanhoti events and community programs',
+    'Multi-year partnership commitments for long-term cultural and educational programming',
+  ],
+  csrNote: 'Sanhoti is a registered 501(c)(3) nonprofit (EIN 39-2903777). Every corporate contribution is tax-deductible, and many employers match employee gifts dollar-for-dollar — check with your HR or CSR team.',
+  leadershipTitle: 'Leadership',
+  ctaTitle: 'Get Involved',
+  ctaText: "To discuss a sponsorship, matching gift, or corporate partnership, reach out — we're happy to provide our EIN, tax-exemption letter, and program details for your company's CSR review process.",
+  contactEmail: 'sanhoti.ec@gmail.com',
+  contactPhone: '+1 949-378-6425',
+};
 
 function esc(s: string | undefined | null): string {
   return String(s ?? '')
@@ -137,6 +174,18 @@ function lowestTicketPrice(t?: {
   return nums.length ? String(Math.min(...nums)) : undefined;
 }
 
+/**
+ * Lowest numeric price from a free-text ticket-price field. Handles single values
+ * ("60"), currency-prefixed ("$50"), and multi-tier strings ("80,60,40" -> "40")
+ * so schema.org Offer.price is always a valid single number.
+ */
+function firstNumericPrice(raw: string | undefined | null): string | undefined {
+  const nums = (String(raw ?? '').match(/\d+(\.\d+)?/g) || [])
+    .map(Number)
+    .filter(n => Number.isFinite(n) && n > 0);
+  return nums.length ? String(Math.min(...nums)) : undefined;
+}
+
 /** Add whole hours to an ISO datetime, preserving its numeric timezone offset. */
 function addHoursToIso(iso: string | undefined, hours: number): string | undefined {
   if (!iso) return undefined;
@@ -178,12 +227,16 @@ export class SeoPageController {
   private durgaPujaPageService: DurgaPujaPageService;
   private subEventService: SubEventService;
   private galleryService: GalleryService;
+  private settingsService: SettingsService;
+  private authService: AuthService;
 
   constructor() {
     this.eventService = new EventService();
     this.durgaPujaPageService = new DurgaPujaPageService();
     this.subEventService = new SubEventService();
     this.galleryService = new GalleryService();
+    this.settingsService = new SettingsService();
+    this.authService = new AuthService();
   }
 
   async renderPage(req: Request, res: Response): Promise<void> {
@@ -201,7 +254,8 @@ export class SeoPageController {
       else if (durgaYear) html = await this.durgaPujaPage(durgaYear);
       else if (path === '/bengali-concerts') html = await this.bengaliConcertsPage();
       else if (path === '/festivals') html = await this.festivalsPage();
-      else if (path === '/events') html = await this.eventsPage();
+      else if (path === '/corporate-partnerships') html = await this.corporatePartnershipsPage();
+      else if (path === '/events') html = await this.eventsPage(typeof req.query.type === 'string' ? req.query.type : undefined);
       else if (eventMatch) html = (await this.eventPage(decodeURIComponent(eventMatch[1]))) ?? this.notFound(res);
       else if (subEventMatch) html = (await this.subEventPage(decodeURIComponent(subEventMatch[1]))) ?? this.notFound(res);
       else if (galleryMatch) html = (await this.galleryPage(decodeURIComponent(galleryMatch[1]))) ?? this.notFound(res);
@@ -329,7 +383,7 @@ ${jsonLdBlocks}
 <a href="/">Home</a> · <a href="/durga-puja">Durga Puja</a> · <a href="/festivals">Festivals</a> ·
 <a href="/bengali-concerts">Concerts</a> · <a href="/events">Events</a> · <a href="/about">About</a> ·
 <a href="/galleries">Galleries</a> · <a href="/magazines">Magazines</a> · <a href="/donate">Donate</a> ·
-<a href="/contact">Contact</a>
+<a href="/corporate-partnerships">Corporate Partnerships</a> · <a href="/contact">Contact</a>
 </nav>
 </header>
 <main>
@@ -411,25 +465,86 @@ ${opts.body}
 
   private eventJsonLd(event: Event, pageUrl: string, imageUrl?: string): Record<string, unknown> {
     const loc = (event.location || '').trim();
+    const name = event.event_name || event.title || 'Event';
+    const start = event.event_start_dt || event.date || undefined;
+
+    // Prefer the admin's structured venue fields; fall back to the free-text location.
+    const venueName = (event.venue_name || '').trim();
+    const venueCity = (event.venue_city || '').trim();
+    const hasStructuredVenue = !!(venueName || venueCity || event.venue_street || event.venue_postal);
+    const place = hasStructuredVenue
+      ? {
+          '@type': 'Place',
+          name: venueName || loc || `${venueCity || 'Orange County'}, California`,
+          address: {
+            '@type': 'PostalAddress',
+            ...(event.venue_street ? { streetAddress: event.venue_street } : {}),
+            ...(venueCity ? { addressLocality: venueCity } : {}),
+            addressRegion: (event.venue_region || 'CA').trim() || 'CA',
+            ...(event.venue_postal ? { postalCode: event.venue_postal } : {}),
+            addressCountry: 'US',
+          },
+        }
+      : {
+          '@type': 'Place',
+          name: loc || 'Orange County, California',
+          address: loc
+            ? { '@type': 'PostalAddress', streetAddress: loc, addressRegion: 'CA', addressCountry: 'US' }
+            : { '@type': 'PostalAddress', addressRegion: 'CA', addressCountry: 'US' },
+        };
+
+    // Offer from the admin's ticket fields; otherwise mark the event free.
+    const price = firstNumericPrice(event.ticket_price);
+    const offerFragment =
+      event.ticket_url && price
+        ? {
+            offers: {
+              '@type': 'Offer',
+              url: event.ticket_url,
+              price,
+              priceCurrency: (event.ticket_currency || 'USD').trim() || 'USD',
+              availability: 'https://schema.org/InStock',
+              ...(start ? { validFrom: start } : {}),
+            },
+          }
+        : event.ticket_url
+          ? {} // ticket link with no price entered — shown on page; omit price-less Offer
+          : { isAccessibleForFree: true };
+
+    const statusMap: Record<string, string> = {
+      Scheduled: 'https://schema.org/EventScheduled',
+      Cancelled: 'https://schema.org/EventCancelled',
+      Postponed: 'https://schema.org/EventPostponed',
+      Rescheduled: 'https://schema.org/EventRescheduled',
+    };
+    const eventStatus = statusMap[event.event_status || 'Scheduled'] || 'https://schema.org/EventScheduled';
+    const performerNames = (event.performers || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+    const performerType = event.performer_type === 'MusicGroup' ? 'MusicGroup' : 'Person';
+
+    // Google Event guidelines want image, description, and endDate — always provide
+    // them (fall back to the org logo, a generated description, and the start time).
     return {
       '@context': 'https://schema.org',
       '@type': 'Event',
-      name: event.event_name || event.title || 'Event',
+      name,
       url: pageUrl,
-      startDate: event.event_start_dt || event.date || undefined,
-      endDate: event.event_end_dt || undefined,
-      description: stripHtml(event.event_description || event.description, 500) || undefined,
-      ...(imageUrl ? { image: [imageUrl] } : {}),
+      startDate: start,
+      endDate: event.event_end_dt || start,
+      description:
+        stripHtml(event.event_description || event.description, 500) ||
+        `${name} — a Bengali community event hosted by Sanhoti Bengali Association${venueName || loc ? ` at ${venueName || loc}` : ''} in Orange County, California.`,
+      image: [imageUrl || `${ORIGIN}/images/logo.png`],
       eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-      eventStatus: 'https://schema.org/EventScheduled',
+      eventStatus,
       organizer: { '@id': ORG_ID },
-      location: {
-        '@type': 'Place',
-        name: loc || 'Orange County, California',
-        address: loc
-          ? { '@type': 'PostalAddress', streetAddress: loc, addressRegion: 'CA', addressCountry: 'US' }
-          : { '@type': 'PostalAddress', addressRegion: 'CA', addressCountry: 'US' },
-      },
+      ...(performerNames.length
+        ? { performer: performerNames.map(n => ({ '@type': performerType, name: n })) }
+        : {}),
+      ...offerFragment,
+      location: place,
     };
   }
 
@@ -657,16 +772,19 @@ ${faqsHtml}
       const start = parseArtistDateTime(a.dateTime, c.year);
       const end = addHoursToIso(start, 3);
       const imageUrl = (a.imageUrl ?? '').trim();
+      const artistImg = imageUrl
+        ? [imageUrl.startsWith('http') ? imageUrl : `${ORIGIN}${imageUrl}`]
+        : [`${ORIGIN}/images/logo.png`];
       const node: Record<string, unknown> = {
         '@type': 'MusicEvent',
         name: a.performanceType?.trim()
           ? `${name} — ${a.performanceType.trim()}`
           : `${name} — Live at Sanhoti Durga Puja ${year}`,
         ...(start ? { startDate: start } : {}),
-        ...(end ? { endDate: end } : {}),
+        ...(end || start ? { endDate: end || start } : {}),
         eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
         eventStatus: 'https://schema.org/EventScheduled',
-        organizer: { '@type': 'Organization', name: ORG_NAME, url: ORIGIN },
+        organizer: { '@id': ORG_ID },
         performer: {
           '@type': 'Person',
           name,
@@ -682,15 +800,20 @@ ${faqsHtml}
             addressCountry: 'US',
           },
         },
-        ...(a.bio?.trim() ? { description: stripHtml(a.bio, 300) } : {}),
-        ...(imageUrl ? { image: [imageUrl.startsWith('http') ? imageUrl : `${ORIGIN}${imageUrl}`] } : {}),
-        ...(ticketLinks.length > 0
+        description: a.bio?.trim()
+          ? stripHtml(a.bio, 300)
+          : `${name} performs live at Sanhoti Durga Puja ${year} in Orange County, California.`,
+        image: artistImg,
+        // Only emit an Offer when we have a real price; otherwise the ticket link
+        // stays in the page body (a price-less Offer just triggers a schema warning).
+        ...(ticketLinks.length > 0 && ticketPrice
           ? {
               offers: {
                 '@type': 'Offer',
                 url: ticketLinks[0].url,
+                price: ticketPrice,
+                priceCurrency: 'USD',
                 availability: 'https://schema.org/InStock',
-                ...(ticketPrice ? { price: ticketPrice, priceCurrency: 'USD' } : {}),
                 ...(start ? { validFrom: start } : c.startDate ? { validFrom: c.startDate } : {}),
               },
             }
@@ -720,17 +843,26 @@ ${faqsHtml}
           organizer: { '@type': 'Organization', name: ORG_NAME, url: ORIGIN },
           performer,
           ...(subEventNodes.length > 0 ? { subEvent: subEventNodes } : {}),
-          offers:
-            ticketLinks.length > 0
-              ? ticketLinks.map(t => ({
-                  '@type': 'Offer',
-                  name: t.label,
-                  url: t.url,
-                  availability: 'https://schema.org/InStock',
-                  ...(ticketPrice ? { price: ticketPrice, priceCurrency: 'USD' } : {}),
-                  ...(c.startDate ? { validFrom: c.startDate } : {}),
-                }))
-              : {
+          // Ticketed with known price -> priced Offers. Ticketed but no price entered
+          // -> omit Offers (the Yapsody link is in the page body; a price-less Offer
+          // only trips a schema warning). No tickets -> free event.
+          ...(ticketLinks.length > 0
+            ? ticketPrice
+              ? {
+                  offers: ticketLinks.map(t => ({
+                    '@type': 'Offer',
+                    name: t.label,
+                    url: t.url,
+                    availability: 'https://schema.org/InStock',
+                    price: ticketPrice,
+                    priceCurrency: 'USD',
+                    ...(c.startDate ? { validFrom: c.startDate } : {}),
+                  })),
+                }
+              : {}
+            : {
+                isAccessibleForFree: true,
+                offers: {
                   '@type': 'Offer',
                   url: `${ORIGIN}${pagePath}`,
                   price: '0',
@@ -738,13 +870,13 @@ ${faqsHtml}
                   availability: 'https://schema.org/InStock',
                   ...(c.startDate ? { validFrom: c.startDate } : {}),
                 },
+              }),
           location: {
             '@type': 'Place',
             name: c.venueName,
             address: { '@type': 'PostalAddress', addressLocality: c.venueCity, addressRegion: 'CA', addressCountry: 'US' },
           },
           description: `Three-day Durga Puja celebration in Orange County, California: puja and pushpanjali, dhunuchi naach, sindoor khela, Bengali food, and evening cultural concerts.`,
-          ...(ticketLinks.length > 0 ? {} : { isAccessibleForFree: true }),
         },
         {
           '@context': 'https://schema.org',
@@ -828,57 +960,75 @@ and cultural evenings across Orange County and SoCal.</p>
 <p><a href="/durga-puja">Durga Puja in Orange County</a> · <a href="/festivals">Bengali festivals</a> ·
 <a href="/events">All events</a> · <a href="/contact">Contact us</a></p>`;
 
-    const listNodes = concerts.map((se, i) => {
-      const perfNames = (se.performers || '')
-        .split(',')
-        .map(s => s.trim())
-        .filter(Boolean);
-      const type = se.seo_event_type === 'MusicEvent' ? 'MusicEvent' : 'Event';
-      const node: Record<string, unknown> = {
-        '@type': 'ListItem',
-        position: i + 1,
-        item: {
-          '@type': type,
-          name: se.sub_event_name,
-          url: `${ORIGIN}/sub-events/${se.sub_event_id}`,
-          ...(se.sub_event_start_dt ? { startDate: se.sub_event_start_dt } : {}),
-          eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-          eventStatus: 'https://schema.org/EventScheduled',
-          organizer: { '@type': 'Organization', name: ORG_NAME, url: ORIGIN },
-          location: {
-            '@type': 'Place',
-            name: se.venue_name || se.venue_city || 'Orange County, California',
-            address: {
-              '@type': 'PostalAddress',
-              ...(se.venue_city ? { addressLocality: se.venue_city } : {}),
-              addressRegion: se.venue_region || 'CA',
-              addressCountry: 'US',
+    const listNodes = await Promise.all(
+      concerts.map(async (se, i) => {
+        const perfNames = (se.performers || '')
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean);
+        const type = se.seo_event_type === 'MusicEvent' ? 'MusicEvent' : 'Event';
+        // Resolve a real image (fall back to logo) so every list item has one.
+        let img = `${ORIGIN}/images/logo.png`;
+        try {
+          const paths = await this.subEventService.getSubEventImages(se.sub_event_id);
+          if (paths.length > 0) {
+            img = `${ORIGIN}/api/sub-events/${se.sub_event_id}/image/${encodeURIComponent(basename(paths[0]))}`;
+          }
+        } catch {
+          /* image optional */
+        }
+        const price = firstNumericPrice(se.ticket_price);
+        const desc =
+          stripHtml(se.event_description, 300) ||
+          `${se.sub_event_name}${perfNames.length ? ` featuring ${perfNames.join(', ')}` : ''} — a live Bengali concert by Sanhoti in ${se.venue_city || 'Orange County'}, CA.`;
+        const node: Record<string, unknown> = {
+          '@type': 'ListItem',
+          position: i + 1,
+          item: {
+            '@type': type,
+            name: se.sub_event_name,
+            url: `${ORIGIN}/sub-events/${se.sub_event_id}`,
+            ...(se.sub_event_start_dt ? { startDate: se.sub_event_start_dt } : {}),
+            endDate: se.sub_event_end_dt || se.sub_event_start_dt || undefined,
+            description: desc,
+            image: [img],
+            eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+            eventStatus: 'https://schema.org/EventScheduled',
+            organizer: { '@id': ORG_ID },
+            location: {
+              '@type': 'Place',
+              name: se.venue_name || se.venue_city || 'Orange County, California',
+              address: {
+                '@type': 'PostalAddress',
+                ...(se.venue_city ? { addressLocality: se.venue_city } : {}),
+                addressRegion: se.venue_region || 'CA',
+                addressCountry: 'US',
+              },
             },
+            ...(perfNames.length
+              ? {
+                  performer: perfNames.map(n => ({
+                    '@type': se.performer_type === 'MusicGroup' ? 'MusicGroup' : 'Person',
+                    name: n,
+                  })),
+                }
+              : {}),
+            ...(se.ticket_url && price
+              ? {
+                  offers: {
+                    '@type': 'Offer',
+                    url: se.ticket_url,
+                    availability: 'https://schema.org/InStock',
+                    price,
+                    priceCurrency: se.ticket_currency || 'USD',
+                  },
+                }
+              : {}),
           },
-          ...(perfNames.length
-            ? {
-                performer: perfNames.map(n => ({
-                  '@type': se.performer_type === 'MusicGroup' ? 'MusicGroup' : 'Person',
-                  name: n,
-                })),
-              }
-            : {}),
-          ...(se.ticket_url
-            ? {
-                offers: {
-                  '@type': 'Offer',
-                  url: se.ticket_url,
-                  availability: 'https://schema.org/InStock',
-                  ...(se.ticket_price
-                    ? { price: se.ticket_price, priceCurrency: se.ticket_currency || 'USD' }
-                    : {}),
-                },
-              }
-            : {}),
-        },
-      };
-      return node;
-    });
+        };
+        return node;
+      })
+    );
 
     return this.layout({
       title: 'Bengali Concerts in Orange County & Southern California | Sanhoti — Live Indian Music',
@@ -1051,22 +1201,158 @@ ${concertsCard}</ul>
     });
   }
 
-  private async eventsPage(): Promise<string> {
+  /** Evergreen /corporate-partnerships page (admin-editable via settings). */
+  private async corporatePartnershipsPage(): Promise<string> {
+    let saved: CorporatePartnershipsContent | undefined;
+    try {
+      saved = (await this.settingsService.getSettings())?.corporatePartnerships;
+    } catch {
+      /* fall back to defaults */
+    }
+    const c = { ...DEFAULT_CORP, ...(saved || {}) };
+    const arr = <T,>(v: T[] | undefined, fb: T[]) => (Array.isArray(v) && v.length ? v : fb);
+    const whyPartner = arr(c.whyPartner, DEFAULT_CORP.whyPartner);
+    const impact = arr(c.impact, DEFAULT_CORP.impact);
+    const waysToGive = arr(c.waysToGive, DEFAULT_CORP.waysToGive);
+
+    let leadershipHtml = '';
+    try {
+      const committeeMembers = await this.authService.getCommitteeMembers();
+      if (committeeMembers.length > 0) {
+        leadershipHtml =
+          `<h2>${esc(c.leadershipTitle)}</h2>\n<ul>` +
+          committeeMembers
+            .map(m => {
+              const name = [m.firstName, m.lastName].filter(Boolean).join(' ').trim();
+              return `<li><strong>${esc(name || m.role)}</strong>${name ? ` — ${esc(m.role)}` : ''}</li>`;
+            })
+            .join('\n') +
+          `</ul>\n<p><a href="/committee">Full committee page</a></p>`;
+      }
+    } catch {
+      /* optional */
+    }
+
+    const body = `
+<h1>${esc(c.heroTitle)} — Sanhoti Bengali Association of Orange County</h1>
+<p>${esc(c.heroSubtitle)}</p>
+
+<h2>${esc(c.whyPartnerTitle)}</h2>
+<ul>${whyPartner.map(w => `<li><strong>${esc(w.title)}</strong> — ${esc(w.text)}</li>`).join('\n')}</ul>
+
+<h2>${esc(c.impactTitle)}</h2>
+<p>${esc(c.impactIntro)}</p>
+<ul>${impact
+      .map(i => `<li><strong>${esc(i.name)}</strong>${i.meta ? ` — ${esc(i.meta)}` : ''}${i.tag ? ` (${esc(i.tag)})` : ''}: ${esc(i.text)}</li>`)
+      .join('\n')}</ul>
+
+<h2>${esc(c.waysTitle)}</h2>
+<ul>${waysToGive.map(w => `<li>${esc(w)}</li>`).join('\n')}</ul>
+<p>${esc(c.csrNote)}</p>
+
+${leadershipHtml}
+
+<h2>${esc(c.ctaTitle)}</h2>
+<p>${esc(c.ctaText)}</p>
+<p>Contact: <a href="mailto:${esc(c.contactEmail)}">${esc(c.contactEmail)}</a> · ${esc(c.contactPhone)}</p>
+<p><a href="/become-our-sponsor">Sponsorship prospectus</a> · <a href="/donate">Donate</a> · <a href="/contact">Contact us</a></p>`;
+
+    return this.layout({
+      title: `Corporate Partnerships & CSR | Sanhoti Bengali Association, Orange County, CA`,
+      description:
+        'Partner with Sanhoti, a 501(c)(3) Bengali cultural association serving Orange County and Southern California, through corporate sponsorship, matching gifts, and CSR giving.',
+      path: '/corporate-partnerships',
+      body,
+      breadcrumb: [
+        { name: 'Home', path: '/' },
+        { name: 'Corporate Partnerships', path: '/corporate-partnerships' },
+      ],
+      jsonLd: [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'ItemList',
+          name: c.waysTitle,
+          itemListElement: waysToGive.map((w, i) => ({ '@type': 'ListItem', position: i + 1, name: w })),
+        },
+      ],
+    });
+  }
+
+  private async eventsPage(typeRaw?: string): Promise<string> {
+    const type =
+      typeRaw === 'Festival' || typeRaw === 'Charity' || typeRaw === 'Other' ? typeRaw : undefined;
     let events: Event[] = [];
     try { events = await this.eventService.getActiveEvents(); } catch { /* render without events */ }
+    if (type) events = events.filter(e => (e.event_type || 'Festival') === type);
+
+    const heading =
+      type === 'Festival'
+        ? 'Bengali Festivals in Orange County'
+        : type === 'Charity'
+          ? 'Charity & Community Events in Orange County'
+          : type === 'Other'
+            ? 'Community Events & Gatherings in Orange County'
+            : 'Bengali Events in Orange County';
+    const intro =
+      type === 'Charity'
+        ? 'Charity drives and community-service events from Sanhoti Bengali Association in Orange County, CA — coming together to give back across Southern California.'
+        : type === 'Other'
+          ? 'Picnics, socials, and community programs from Sanhoti Bengali Association in Orange County, CA.'
+          : type === 'Festival'
+            ? 'Bengali festivals with Sanhoti in Orange County, CA — Durga Puja, Saraswati Puja, Poila Boishakh, Kali Puja, and more.'
+            : 'Upcoming and recent events from Sanhoti Bengali Association: Durga Puja, Saraswati Puja, Poila Boishakh, Bengali concerts, picnics, and charity programs in Orange County, CA.';
+    const path = type ? `/events?type=${type}` : '/events';
+    // Festival filter consolidates onto the dedicated /festivals hub; others self-canonical.
+    const canonicalPath = type === 'Festival' ? '/festivals' : path;
+
     const body = `
-<h1>Bengali Events in Orange County — Sanhoti</h1>
-<p>Upcoming and recent events from Sanhoti Bengali Association: Durga Puja, Saraswati Puja,
-Poila Boishakh, Bengali concerts, picnics, and charity programs in Orange County, CA.</p>
+<h1>${esc(heading)} — Sanhoti</h1>
+<p>${esc(intro)}</p>
 <ul>${this.eventListItems(events)}</ul>
-<p><a href="/durga-puja">Durga Puja in Orange County</a></p>`;
+<p><a href="/durga-puja">Durga Puja in Orange County</a> · <a href="/festivals">Bengali festivals</a> ·
+<a href="/bengali-concerts">Bengali concerts</a></p>`;
+
+    // ItemList of full Event nodes (built from admin fields) so the list page carries
+    // valid structured data, plus a breadcrumb.
+    const listItems = await Promise.all(
+      events.map(async (e, i) => {
+        const id = e.event_id || e.id || '';
+        let imageUrl: string | undefined;
+        try {
+          const filename = await this.eventService.getEventFlyerFilename(id);
+          if (filename) imageUrl = `${ORIGIN}/api/events/${id}/image/${encodeURIComponent(filename)}`;
+        } catch {
+          /* image optional */
+        }
+        const { ['@context']: _omit, ...eventNode } = this.eventJsonLd(
+          e,
+          `${ORIGIN}${getEventDetailPath(e, id)}`,
+          imageUrl
+        );
+        return {
+          '@type': 'ListItem',
+          position: i + 1,
+          name: e.event_name || e.title || 'Event',
+          item: eventNode,
+        };
+      })
+    );
+
+    const breadcrumb: { name: string; path: string }[] = [
+      { name: 'Home', path: '/' },
+      { name: 'Events', path: '/events' },
+    ];
+    if (type) breadcrumb.push({ name: heading.replace(' in Orange County', ''), path: canonicalPath });
+
     return this.layout({
-      title: 'Bengali Events in Orange County, CA | Sanhoti — Festivals, Concerts & Community',
-      description:
-        'Upcoming Bengali events in Orange County: Durga Puja, Saraswati Puja, Poila Boishakh, concerts, and community gatherings hosted by Sanhoti Bengali Association.',
-      path: '/events',
+      title: `${heading}, CA | Sanhoti Bengali Association`,
+      description: intro,
+      path: canonicalPath,
       body,
-      jsonLd: [this.orgJsonLd()],
+      breadcrumb,
+      jsonLd: listItems.length
+        ? [{ '@context': 'https://schema.org', '@type': 'ItemList', name: heading, itemListElement: listItems }]
+        : [],
     });
   }
 
@@ -1222,16 +1508,17 @@ ${ticketHtml}
 <p><a href="/durga-puja">Sanhoti Durga Puja in Orange County</a> · <a href="/events">All Sanhoti events</a> ·
 <a href="/contact">Contact us</a></p>`;
 
+    const sePrice = firstNumericPrice(se.ticket_price);
     const eventJsonLd: Record<string, unknown> = {
       '@context': 'https://schema.org',
       '@type': type,
       name,
       url: pageUrl,
       startDate: se.sub_event_start_dt || undefined,
-      endDate: se.sub_event_end_dt || undefined,
+      endDate: se.sub_event_end_dt || se.sub_event_start_dt || undefined,
       eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
       eventStatus: 'https://schema.org/EventScheduled',
-      organizer: { '@type': 'Organization', name: ORG_NAME, url: ORIGIN },
+      organizer: { '@id': ORG_ID },
       location: {
         '@type': 'Place',
         name: se.venue_name || se.location || `${areaPhrase}, California`,
@@ -1245,23 +1532,24 @@ ${ticketHtml}
         },
       },
       description,
-      ...(imageUrl ? { image: [imageUrl] } : {}),
+      image: [imageUrl || `${ORIGIN}/images/logo.png`],
       ...(performerNames.length
         ? { performer: performerNames.map(n => ({ '@type': performerType, name: n })) }
         : {}),
-      ...(se.ticket_url
+      ...(se.ticket_url && sePrice
         ? {
             offers: {
               '@type': 'Offer',
               url: se.ticket_url,
-              ...(se.ticket_price
-                ? { price: se.ticket_price, priceCurrency: se.ticket_currency || 'USD' }
-                : {}),
+              price: sePrice,
+              priceCurrency: se.ticket_currency || 'USD',
               availability: 'https://schema.org/InStock',
               ...(se.sub_event_start_dt ? { validFrom: se.sub_event_start_dt } : {}),
             },
           }
-        : { isAccessibleForFree: true }),
+        : se.ticket_url
+          ? {} // ticket link shown in the page body; omit a price-less Offer node
+          : { isAccessibleForFree: true }),
     };
 
     return this.layout({

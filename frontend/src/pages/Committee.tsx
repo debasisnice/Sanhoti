@@ -1,42 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Phone, Mail, Users } from 'lucide-react';
-import { committeeAPI, boardMembersAPI, settingsAPI } from '../services/api';
+import { settingsAPI } from '../services/api';
+import { fetchCommitteeMembers, type CommitteeMemberDisplay } from '../utils/fetchCommitteeMembers';
 import Seo from '../components/Seo';
 
-interface CommitteeMember {
-  role: string;
-  image: string;
-  alt: string;
-  firstName?: string;
-  lastName?: string;
-}
-
-const committeeMembersConfig: Omit<CommitteeMember, 'firstName' | 'lastName'>[] = [
-  {
-    role: 'President',
-    image: '',
-    alt: 'President',
-  },
-  {
-    role: 'Secretary',
-    image: '',
-    alt: 'Secretary',
-  },
-  {
-    role: 'Treasurer',
-    image: '',
-    alt: 'Treasurer',
-  },
-  {
-    role: 'Cultural Director',
-    image: '',
-    alt: 'Cultural Director',
-  },
-];
-
 export default function Committee() {
-  const [committeeMembers, setCommitteeMembers] = useState<CommitteeMember[]>(committeeMembersConfig);
+  const [committeeMembers, setCommitteeMembers] = useState<CommitteeMemberDisplay[]>([]);
   const [committeeYear, setCommitteeYear] = useState<string>('2025');
 
   useEffect(() => {
@@ -46,7 +16,6 @@ export default function Committee() {
         setCommitteeYear(settings.committeeYear || '2025');
       } catch (error) {
         console.error('Failed to fetch committee year:', error);
-        // Keep default value on error
       }
     };
 
@@ -54,50 +23,13 @@ export default function Committee() {
   }, []);
 
   useEffect(() => {
-    const fetchCommitteeMembers = async () => {
-      try {
-        // Fetch member names and images in parallel
-        const [members, boardMemberImages] = await Promise.all([
-          committeeAPI.getMembers(),
-          boardMembersAPI.getImages(),
-        ]);
-        
-        // Create a map of role to member data
-        const membersMap = new Map<string, { firstName: string; lastName: string }>();
-        members.forEach((member: any) => {
-          membersMap.set(member.role, {
-            firstName: member.firstName || member.first_name || '',
-            lastName: member.lastName || member.last_name || '',
-          });
-        });
-
-        // Create a map of role to image URL
-        const imagesMap = new Map<string, string>();
-        boardMemberImages.forEach((img: any) => {
-          imagesMap.set(img.postName, img.url);
-        });
-
-        // Merge the fetched names and images with the configuration
-        const updatedMembers = committeeMembersConfig.map(config => {
-          const memberData = membersMap.get(config.role);
-          const imageUrl = imagesMap.get(config.role) || '';
-          return {
-            ...config,
-            image: imageUrl,
-            firstName: memberData?.firstName || '',
-            lastName: memberData?.lastName || '',
-          };
-        });
-
-        setCommitteeMembers(updatedMembers);
-      } catch (error) {
+    fetchCommitteeMembers()
+      .then(setCommitteeMembers)
+      .catch(error => {
         console.error('Failed to fetch committee members:', error);
-        // Keep default configuration on error
-      }
-    };
-
-    fetchCommitteeMembers();
+      });
   }, []);
+
   return (
     <div className="py-12 pb-32">
       <Seo
@@ -153,7 +85,7 @@ export default function Committee() {
                 {member.image ? (
                   <img
                     src={member.image}
-                    alt={member.alt}
+                    alt={[member.firstName, member.lastName].filter(Boolean).join(' ') || member.role}
                     className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-300"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
@@ -182,4 +114,3 @@ export default function Committee() {
     </div>
   );
 }
-

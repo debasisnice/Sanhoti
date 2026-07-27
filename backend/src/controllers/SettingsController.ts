@@ -152,6 +152,21 @@ export class SettingsController {
     }
   }
 
+  async updateCorporatePartnerships(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const content = req.body?.corporatePartnerships ?? req.body;
+      if (!content || typeof content !== 'object' || Array.isArray(content)) {
+        res.status(400).json({ error: 'Invalid corporate partnerships content' });
+        return;
+      }
+      const settings = await this.settingsService.updateCorporatePartnerships(content);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error updating corporate partnerships:', error);
+      res.status(500).json({ error: 'Failed to update corporate partnerships', details: error.message });
+    }
+  }
+
   async updateYoutubeChannelUrl(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { youtubeChannelUrl } = req.body ?? {};

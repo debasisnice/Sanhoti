@@ -21,6 +21,7 @@ import Events from './pages/Events';
 import EventDetail from './pages/EventDetail';
 import SubEventDetail from './pages/SubEventDetail';
 import SponsorshipProspectus from './pages/SponsorshipProspectus';
+import CorporatePartnerships from './pages/CorporatePartnerships';
 import RSVP from './pages/RSVP';
 import Notices from './pages/Notices';
 import Galleries from './pages/Galleries';
@@ -79,6 +80,7 @@ function App() {
           <Route path="/sub-events/:id/rsvp" element={<RSVP />} />
           <Route path="/sub-events/:id" element={<SubEventDetail />} />
           <Route path="/become-our-sponsor" element={<SponsorshipProspectus />} />
+          <Route path="/corporate-partnerships" element={<CorporatePartnerships />} />
           <Route path="/notices" element={<Notices />} />
           <Route path="/galleries" element={<Galleries />} />
           <Route path="/galleries/:id" element={<GalleryDetail />} />

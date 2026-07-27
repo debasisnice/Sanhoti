@@ -66,6 +66,10 @@ export class SettingsService {
     return this.settingsDataHelper.updateSocialLinks(facebookLink, whatsappLink, instagramLink);
   }
 
+  async updateCorporatePartnerships(content: Settings['corporatePartnerships']): Promise<Settings> {
+    return this.settingsDataHelper.updateCorporatePartnerships(content);
+  }
+
   async updateYoutubeChannelUrl(youtubeChannelUrl: string): Promise<Settings> {
     return this.settingsDataHelper.updateYoutubeChannelUrl(youtubeChannelUrl);
   }

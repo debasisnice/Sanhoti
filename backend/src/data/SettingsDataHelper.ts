@@ -73,6 +73,20 @@ export class SettingsDataHelper extends DatabaseHelper {
     return updated;
   }
 
+  async updateCorporatePartnerships(content: Settings['corporatePartnerships']): Promise<Settings> {
+    let current = await this.get();
+    if (!current) {
+      current = this.getDefaultSettings();
+    }
+    const updated: Settings = {
+      ...current,
+      corporatePartnerships: content,
+      updated_at: new Date().toISOString(),
+    };
+    this.writeFile(this.filename, [updated]);
+    return updated;
+  }
+
   async updateStripeDonation(config: {
     showStripeDonateButton: boolean;
     stripeBuyButtonId: string;
@@ -329,6 +343,7 @@ export class SettingsDataHelper extends DatabaseHelper {
         home: true,
         durgaPuja: true,
         sponsors: true,
+        corporatePartnerships: true,
         events: true,
         noticeBoard: true,
         galleries: true,

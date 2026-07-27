@@ -210,7 +210,7 @@ export class EventController {
         return;
       }
 
-      const { event_name, event_start_dt, event_end_dt, year, event_description, event_type, rsvp_enabled, location, photo_gallery_link, is_priority, rsvp_link, is_active_durga_puja_event } = req.body;
+      const { event_name, event_start_dt, event_end_dt, year, event_description, event_type, rsvp_enabled, location, photo_gallery_link, is_priority, rsvp_link, is_active_durga_puja_event, venue_name, venue_street, venue_city, venue_region, venue_postal, ticket_url, ticket_price, ticket_currency, event_status, performers, performer_type } = req.body;
 
       if (!event_name || !event_start_dt || !event_end_dt || !year || !event_description) {
         res.status(400).json({ error: 'Missing required fields: event_name, event_start_dt, event_end_dt, year, and event_description are required' });
@@ -230,6 +230,17 @@ export class EventController {
         is_priority,
         rsvp_link,
         is_active_durga_puja_event,
+        venue_name,
+        venue_street,
+        venue_city,
+        venue_region,
+        venue_postal,
+        ticket_url,
+        ticket_price,
+        ticket_currency,
+        event_status,
+        performers,
+        performer_type,
       });
 
       res.status(201).json(event);

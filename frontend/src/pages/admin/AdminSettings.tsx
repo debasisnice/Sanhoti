@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Users, Award, Home, Upload, Trash2, X, UserCircle, QrCode, BookOpen } from 'lucide-react';
+import { Settings, Users, Award, Home, Upload, Trash2, X, UserCircle, QrCode, BookOpen, Building2, Plus } from 'lucide-react';
 import { settingsAPI, usersAPI, sponsorsAPI, homepageAPI, boardMembersAPI, paymentQRAPI, durgaPujaPageAPI } from '../../services/api';
 import type { HomePageVideo, HeroSlots, HeroSlotConfig } from '../../services/api';
 import { HOME_SECTION_LABELS, resolveHomeSectionOrder } from '../../constants/homeSections';
+import { DEFAULT_CORPORATE_PARTNERSHIPS } from '../CorporatePartnerships';
+import type { CorporatePartnershipsContent } from '../../types';
 import toast from 'react-hot-toast';
 import { convertPSTToLocal } from '../../utils/dateUtils';
 import { DEFAULT_HOME_STATEMENTS, DEFAULT_HOME_HERO_BANNER_MESSAGE } from '../../constants/homePageStatements';
@@ -13,6 +15,7 @@ interface NavbarSettings {
   home: boolean;
   durgaPuja: boolean;
   sponsors: boolean;
+  corporatePartnerships: boolean;
   events: boolean;
   noticeBoard: boolean;
   galleries: boolean;
@@ -54,6 +57,7 @@ const menuItemLabels: Record<keyof NavbarSettings, string> = {
   home: 'Home',
   durgaPuja: 'Durga Puja',
   sponsors: 'Sponsors',
+  corporatePartnerships: 'Corporate Partnerships',
   events: 'Events',
   noticeBoard: 'Notice Board',
   galleries: 'Galleries',
@@ -66,7 +70,7 @@ const menuItemLabels: Record<keyof NavbarSettings, string> = {
   joinUs: 'Join Us',
 };
 
-type TabType = 'navbar' | 'users' | 'sponsors' | 'homepage' | 'statements' | 'boardmembers' | 'paymentqr';
+type TabType = 'navbar' | 'users' | 'sponsors' | 'homepage' | 'statements' | 'corporate' | 'boardmembers' | 'paymentqr';
 
 type HeroButtonKey = 'facebook' | 'whatsapp' | 'viewEvents' | 'durgaPuja' | 'viewCharityEvents';
 type HomeHeroButtonsState = Record<HeroButtonKey, boolean>;
@@ -186,6 +190,7 @@ export default function AdminSettings() {
   const [heroSlots, setHeroSlots] = useState<HeroSlots>({});
   const [durgaPujaMode, setDurgaPujaMode] = useState(false);
   const [durgaPujaLogoUrl, setDurgaPujaLogoUrl] = useState('');
+  const [corpContent, setCorpContent] = useState<Required<CorporatePartnershipsContent>>(DEFAULT_CORPORATE_PARTNERSHIPS);
   const [heroButtonsVisible, setHeroButtonsVisible] = useState<HomeHeroButtonsState>({
     facebook: true,
     whatsapp: true,
@@ -264,6 +269,17 @@ export default function AdminSettings() {
       setHeroSlots((data as { heroSlots?: HeroSlots }).heroSlots ?? {});
       setDurgaPujaMode((data as { durgaPujaMode?: boolean }).durgaPujaMode === true);
       setDurgaPujaLogoUrl((data as { durgaPujaLogoUrl?: string }).durgaPujaLogoUrl ?? '');
+      const corpRaw = (data as { corporatePartnerships?: CorporatePartnershipsContent }).corporatePartnerships;
+      if (corpRaw) {
+        const nonEmpty = <T,>(v: T[] | undefined, fb: T[]) => (Array.isArray(v) && v.length ? v : fb);
+        setCorpContent({
+          ...DEFAULT_CORPORATE_PARTNERSHIPS,
+          ...corpRaw,
+          whyPartner: nonEmpty(corpRaw.whyPartner, DEFAULT_CORPORATE_PARTNERSHIPS.whyPartner),
+          impact: nonEmpty(corpRaw.impact, DEFAULT_CORPORATE_PARTNERSHIPS.impact),
+          waysToGive: nonEmpty(corpRaw.waysToGive, DEFAULT_CORPORATE_PARTNERSHIPS.waysToGive),
+        });
+      }
       const hb = (data as { homeHeroButtons?: Record<string, boolean | undefined> }).homeHeroButtons;
       setHeroButtonsVisible({
         facebook: hb?.facebook !== false,
@@ -876,6 +892,19 @@ export default function AdminSettings() {
               <div className="flex items-center gap-2">
                 <BookOpen className="w-5 h-5" />
                 <span>Statements</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('corporate')}
+              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'corporate'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Building2 className="w-5 h-5" />
+                <span>Corporate Partnerships</span>
               </div>
             </button>
             <button
@@ -2364,6 +2393,345 @@ export default function AdminSettings() {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {activeTab === 'corporate' && (
+            <div className="space-y-8">
+              <div>
+                <p className="text-gray-600 mb-2">
+                  Edit the public{' '}
+                  <a href="/corporate-partnerships" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">
+                    /corporate-partnerships
+                  </a>{' '}
+                  page. Crawlers receive a server-rendered version with the same content.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Hero title</label>
+                  <input
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    value={corpContent.heroTitle}
+                    onChange={e => setCorpContent({ ...corpContent, heroTitle: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Hero subtitle</label>
+                  <input
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    value={corpContent.heroSubtitle}
+                    onChange={e => setCorpContent({ ...corpContent, heroSubtitle: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">{corpContent.whyPartnerTitle}</label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCorpContent({
+                        ...corpContent,
+                        whyPartner: [...corpContent.whyPartner, { title: '', text: '' }],
+                      })
+                    }
+                    className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"
+                  >
+                    <Plus className="w-4 h-4" /> Add reason
+                  </button>
+                </div>
+                <input
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-3"
+                  value={corpContent.whyPartnerTitle}
+                  onChange={e => setCorpContent({ ...corpContent, whyPartnerTitle: e.target.value })}
+                  placeholder="Section heading"
+                />
+                <div className="space-y-3">
+                  {corpContent.whyPartner.map((w, i) => (
+                    <div key={i} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                      <div className="flex gap-2">
+                        <input
+                          className="flex-1 border border-gray-300 rounded-lg px-3 py-2"
+                          value={w.title}
+                          placeholder="Title"
+                          onChange={e =>
+                            setCorpContent({
+                              ...corpContent,
+                              whyPartner: corpContent.whyPartner.map((x, k) =>
+                                k === i ? { ...x, title: e.target.value } : x
+                              ),
+                            })
+                          }
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCorpContent({
+                              ...corpContent,
+                              whyPartner: corpContent.whyPartner.filter((_, k) => k !== i),
+                            })
+                          }
+                          className="text-red-500 hover:text-red-700 p-1"
+                          aria-label="Remove reason"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <textarea
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                        rows={2}
+                        value={w.text}
+                        placeholder="Description"
+                        onChange={e =>
+                          setCorpContent({
+                            ...corpContent,
+                            whyPartner: corpContent.whyPartner.map((x, k) =>
+                              k === i ? { ...x, text: e.target.value } : x
+                            ),
+                          })
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Impact section title</label>
+                <input
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-3"
+                  value={corpContent.impactTitle}
+                  onChange={e => setCorpContent({ ...corpContent, impactTitle: e.target.value })}
+                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Impact intro</label>
+                <textarea
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-3"
+                  rows={3}
+                  value={corpContent.impactIntro}
+                  onChange={e => setCorpContent({ ...corpContent, impactIntro: e.target.value })}
+                />
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">Impact stories</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCorpContent({
+                        ...corpContent,
+                        impact: [...corpContent.impact, { tag: '', name: '', meta: '', text: '' }],
+                      })
+                    }
+                    className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"
+                  >
+                    <Plus className="w-4 h-4" /> Add story
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {corpContent.impact.map((item, i) => (
+                    <div key={i} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                      <div className="flex gap-2">
+                        <input
+                          className="flex-1 border border-gray-300 rounded-lg px-3 py-2"
+                          value={item.tag}
+                          placeholder="Tag (e.g. Hunger Relief)"
+                          onChange={e =>
+                            setCorpContent({
+                              ...corpContent,
+                              impact: corpContent.impact.map((x, k) =>
+                                k === i ? { ...x, tag: e.target.value } : x
+                              ),
+                            })
+                          }
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCorpContent({
+                              ...corpContent,
+                              impact: corpContent.impact.filter((_, k) => k !== i),
+                            })
+                          }
+                          className="text-red-500 hover:text-red-700 p-1"
+                          aria-label="Remove story"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <input
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                        value={item.name}
+                        placeholder="Event / program name"
+                        onChange={e =>
+                          setCorpContent({
+                            ...corpContent,
+                            impact: corpContent.impact.map((x, k) =>
+                              k === i ? { ...x, name: e.target.value } : x
+                            ),
+                          })
+                        }
+                      />
+                      <input
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                        value={item.meta}
+                        placeholder="Partner · location"
+                        onChange={e =>
+                          setCorpContent({
+                            ...corpContent,
+                            impact: corpContent.impact.map((x, k) =>
+                              k === i ? { ...x, meta: e.target.value } : x
+                            ),
+                          })
+                        }
+                      />
+                      <textarea
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                        rows={2}
+                        value={item.text}
+                        placeholder="Description"
+                        onChange={e =>
+                          setCorpContent({
+                            ...corpContent,
+                            impact: corpContent.impact.map((x, k) =>
+                              k === i ? { ...x, text: e.target.value } : x
+                            ),
+                          })
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Ways to give — section title</label>
+                <input
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-3"
+                  value={corpContent.waysTitle}
+                  onChange={e => setCorpContent({ ...corpContent, waysTitle: e.target.value })}
+                />
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">Ways to give (bullets)</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCorpContent({ ...corpContent, waysToGive: [...corpContent.waysToGive, ''] })
+                    }
+                    className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium"
+                  >
+                    <Plus className="w-4 h-4" /> Add bullet
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {corpContent.waysToGive.map((w, i) => (
+                    <div key={i} className="flex gap-2">
+                      <input
+                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2"
+                        value={w}
+                        onChange={e =>
+                          setCorpContent({
+                            ...corpContent,
+                            waysToGive: corpContent.waysToGive.map((x, k) => (k === i ? e.target.value : x)),
+                          })
+                        }
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCorpContent({
+                            ...corpContent,
+                            waysToGive: corpContent.waysToGive.filter((_, k) => k !== i),
+                          })
+                        }
+                        className="text-red-500 hover:text-red-700 p-1"
+                        aria-label="Remove bullet"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <label className="block text-sm font-medium text-gray-700 mt-4 mb-1">501(c)(3) / CSR note</label>
+                <textarea
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  rows={2}
+                  value={corpContent.csrNote}
+                  onChange={e => setCorpContent({ ...corpContent, csrNote: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Leadership section title</label>
+                <input
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-2"
+                  value={corpContent.leadershipTitle}
+                  onChange={e => setCorpContent({ ...corpContent, leadershipTitle: e.target.value })}
+                />
+                <p className="text-xs text-gray-500">
+                  Names, roles, and photos are loaded automatically from the same source as the{' '}
+                  <a href="/committee" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">
+                    /committee
+                  </a>{' '}
+                  page (user accounts with member type + board member photos in Settings → Board Members).
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">CTA title</label>
+                  <input
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    value={corpContent.ctaTitle}
+                    onChange={e => setCorpContent({ ...corpContent, ctaTitle: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Contact email</label>
+                  <input
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    value={corpContent.contactEmail}
+                    onChange={e => setCorpContent({ ...corpContent, contactEmail: e.target.value })}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">CTA text</label>
+                  <textarea
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    rows={2}
+                    value={corpContent.ctaText}
+                    onChange={e => setCorpContent({ ...corpContent, ctaText: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Contact phone</label>
+                  <input
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    value={corpContent.contactPhone}
+                    onChange={e => setCorpContent({ ...corpContent, contactPhone: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    setSaving(true);
+                    await settingsAPI.updateCorporatePartnerships(corpContent);
+                    toast.success('Corporate Partnerships page saved');
+                    await fetchSettings();
+                  } catch (error: any) {
+                    toast.error(error.response?.data?.error || 'Failed to save');
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? 'Saving…' : 'Save Corporate Partnerships page'}
+              </button>
             </div>
           )}
 

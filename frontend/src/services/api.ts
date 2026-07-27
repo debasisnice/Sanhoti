@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AuthResponse, Event, RSVP, Notice, PhotoGallery, Magazine, Document, SubEvent, AuditLog, News } from '../types';
+import { AuthResponse, Event, RSVP, Notice, PhotoGallery, Magazine, Document, SubEvent, AuditLog, News, CorporatePartnershipsContent } from '../types';
 
 // Use relative path in production (when served by Nginx), absolute URL in development
 // Force relative /api in production to avoid mixed-content, ignore VITE_API_URL there
@@ -156,6 +156,17 @@ export const eventsAPI = {
     photo_gallery_link?: string;
     is_priority?: boolean;
     is_active_durga_puja_event?: boolean;
+    venue_name?: string;
+    venue_street?: string;
+    venue_city?: string;
+    venue_region?: string;
+    venue_postal?: string;
+    ticket_url?: string;
+    ticket_price?: string;
+    ticket_currency?: string;
+    event_status?: 'Scheduled' | 'Cancelled' | 'Postponed' | 'Rescheduled';
+    performers?: string;
+    performer_type?: 'Person' | 'MusicGroup';
   }): Promise<Event> => {
     const response = await api.post('/events', data);
     return response.data;
@@ -175,6 +186,17 @@ export const eventsAPI = {
       is_active?: boolean;
       is_priority?: boolean;
       is_active_durga_puja_event?: boolean;
+      venue_name?: string;
+      venue_street?: string;
+      venue_city?: string;
+      venue_region?: string;
+      venue_postal?: string;
+      ticket_url?: string;
+      ticket_price?: string;
+      ticket_currency?: string;
+      event_status?: 'Scheduled' | 'Cancelled' | 'Postponed' | 'Rescheduled';
+      performers?: string;
+      performer_type?: 'Person' | 'MusicGroup';
   }>): Promise<Event> => {
     const response = await api.put(`/events/${eventId}`, data);
     return response.data;
@@ -1996,6 +2018,10 @@ export const settingsAPI = {
   },
   updateSocialLinks: async (facebookLink: string, whatsappLink: string, instagramLink: string): Promise<any> => {
     const response = await api.put('/settings/social-links', { facebookLink, whatsappLink, instagramLink });
+    return response.data;
+  },
+  updateCorporatePartnerships: async (corporatePartnerships: CorporatePartnershipsContent): Promise<any> => {
+    const response = await api.put('/settings/corporate-partnerships', { corporatePartnerships });
     return response.data;
   },
   updateYoutubeChannelUrl: async (youtubeChannelUrl: string): Promise<any> => {

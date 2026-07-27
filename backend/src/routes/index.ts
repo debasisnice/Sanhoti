@@ -864,6 +864,11 @@ router.put('/settings/social-links',
   auditLog('UPDATE', 'social_links'),
   bindController(settingsController, 'updateSocialLinks')
 );
+router.put('/settings/corporate-partnerships',
+  requireAdmin,
+  auditLog('UPDATE', 'corporate_partnerships'),
+  bindController(settingsController, 'updateCorporatePartnerships')
+);
 router.put('/settings/youtube-channel',
   requireAdmin,
   auditLog('UPDATE', 'youtube_channel'),

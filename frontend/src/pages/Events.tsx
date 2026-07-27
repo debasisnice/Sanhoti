@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, ArrowRight, Star, ChevronLeft, ChevronRight } from 'lucide-react';
-import { eventsAPI } from '../services/api';
+import { eventsAPI, galleriesAPI } from '../services/api';
 import { Event } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime } from '../utils/dateUtils';
@@ -15,6 +15,21 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 import Seo from '../components/Seo';
 import { getEventDetailPath } from '../utils/eventSlug';
+import { getSiteOrigin } from '../utils/eventShareUrl';
+import { buildEventJsonLd } from '../seo/eventJsonLd';
+
+/** Durga-Puja-style section heading with a kicker and accent underline. */
+function SectionHeading({ kicker, children }: { kicker?: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-5">
+      {kicker && (
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-600 mb-1">{kicker}</p>
+      )}
+      <h2 className="text-2xl font-bold text-gray-900">{children}</h2>
+      <div className="mt-2 h-1 w-12 rounded-full bg-gradient-to-r from-primary-500 to-amber-400" />
+    </div>
+  );
+}
 
 export default function Events() {
   const [searchParams] = useSearchParams();
@@ -28,6 +43,9 @@ export default function Events() {
   const [eventImageOrientations, setEventImageOrientations] = useState<Record<string, 'portrait' | 'landscape'>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [expandedYear, setExpandedYear] = useState<string | null>(null);
+  const [galleryPhotos, setGalleryPhotos] = useState<
+    { eventId?: string; galleryId: string; url: string; alt: string }[]
+  >([]);
 
   // Function to detect image orientation
   const detectImageOrientation = (imageUrl: string): Promise<'portrait' | 'landscape'> => {
@@ -98,6 +116,38 @@ export default function Events() {
     };
     
     fetchEventsAndImages();
+  }, []);
+
+  // Public gallery photos — used to fill the hero collage when there are few flyers.
+  useEffect(() => {
+    let cancelled = false;
+    galleriesAPI
+      .getPublic()
+      .then(galleries => {
+        if (cancelled) return;
+        // Keep each photo tagged with its event so the hero can show galleries
+        // that match the current event-type page.
+        const photos = galleries.flatMap(g =>
+          (g.photos || [])
+            .filter(p => p && p.type !== 'video' && (p.thumbnailUrl || p.url))
+            .map(p => ({
+              eventId: g.eventId,
+              galleryId: g.id,
+              url: (p.thumbnailUrl || p.url) as string,
+              // Descriptive, unique alt: photo caption if set, else the gallery title.
+              alt: (p.caption || '').trim()
+                ? (p.caption as string).trim()
+                : `${g.title || 'Sanhoti event'} — photo from a Sanhoti Bengali event in Orange County, CA`,
+            }))
+        );
+        setGalleryPhotos(photos);
+      })
+      .catch(() => {
+        /* galleries optional */
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const scopedPriorityEvent = useMemo(
@@ -252,35 +302,251 @@ export default function Events() {
       ? `Browse ${getEventTypePublicLabel(eventTypeScope).toLowerCase()} from Sanhoti Bengali Association in Orange County & Southern California, CA — dates, locations, and how to join.`
       : 'Browse upcoming and past cultural events from Sanhoti Bengali Association of Orange County & Southern California — festivals, charity programs, and gatherings for the Bengali community.';
 
-  return (
-    <div className="py-12 pb-32">
-      <Seo title={eventsSeoTitle} description={eventsSeoDescription} path="/events" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Calendar className="w-8 h-8 text-primary-600" />
-            <h1 className="text-2xl font-bold text-gray-900">
-              {eventTypeScope === 'Festival' ||
-              eventTypeScope === 'Charity' ||
-              eventTypeScope === 'Other'
-                ? getEventTypePublicLabel(eventTypeScope)
-                : 'Community Events'}
-            </h1>
-          </div>
-          <p className="text-2xl text-gray-600">
-            {eventTypeScope === 'Charity'
-              ? 'Coming together to give back and strengthen humanity'
-              : eventTypeScope === 'Other'
-                ? 'Additional community programs and gatherings'
-                : 'Join us in celebrating Bengali culture and traditions'}
-          </p>
-        </motion.div>
+  const isTypeScoped =
+    eventTypeScope === 'Festival' || eventTypeScope === 'Charity' || eventTypeScope === 'Other';
+  // Festival filter consolidates onto the dedicated /festivals hub (avoids cannibalization);
+  // Charity/Other have no hub, so they stay self-canonical.
+  const canonicalPath =
+    eventTypeScope === 'Festival'
+      ? '/festivals'
+      : isTypeScoped
+        ? `/events?type=${eventTypeScope}`
+        : '/events';
 
-        {/* Priority Event Card */}
+  const heroTitle =
+    eventTypeScope === 'Festival'
+      ? 'Bengali Festivals in Orange County'
+      : eventTypeScope === 'Charity'
+        ? 'Charity & Community Events in Orange County'
+        : eventTypeScope === 'Other'
+          ? 'Community Events & Gatherings in Orange County'
+          : 'Bengali Events in Orange County';
+  const heroSubtitle =
+    eventTypeScope === 'Charity'
+      ? 'Coming together to give back and strengthen our community across Southern California.'
+      : eventTypeScope === 'Other'
+        ? 'Picnics, socials, and community programs from Sanhoti across Orange County & SoCal.'
+        : eventTypeScope === 'Festival'
+          ? 'Durga Puja, Saraswati Puja, Poila Boishakh and more — celebrated with Sanhoti in Orange County & Southern California.'
+          : 'Festivals, concerts, charity drives, and community gatherings from Sanhoti Bengali Association of Orange County.';
+
+  const nowTs = Date.now();
+  const upcomingEvents = useMemo(
+    () =>
+      filteredEvents
+        .filter(e => new Date(e.event_end_dt || e.event_start_dt || e.date || 0).getTime() >= nowTs)
+        .sort(
+          (a, b) =>
+            new Date(a.event_start_dt || a.date || 0).getTime() -
+            new Date(b.event_start_dt || b.date || 0).getTime()
+        ),
+    [filteredEvents, nowTs]
+  );
+
+  // Hero backdrop: event flyers first (prioritized), then public gallery photos to
+  // fill so the hero never looks empty when there are few events. Randomized.
+  const mosaicImages = useMemo(() => {
+    const shuffle = (arr: string[]) => {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    };
+    const flyers = shuffle(
+      Array.from(
+        new Set(filteredEvents.map(e => eventImages[e.event_id || e.id || '']).filter(Boolean) as string[])
+      )
+    );
+    // Gallery filler, scoped to the current type: on a type page only use galleries
+    // whose event is in this type; on /events (no scope) use all public galleries.
+    const scopedIds = new Set(filteredEvents.map(e => e.event_id || e.id || ''));
+    const scopedGallery = isTypeScoped
+      ? galleryPhotos.filter(p => p.eventId && scopedIds.has(p.eventId))
+      : galleryPhotos;
+    const gallery = shuffle(scopedGallery.map(p => p.url));
+    // Flyers take priority; gallery photos fill the remaining slots (deduped).
+    return Array.from(new Set([...flyers, ...gallery])).slice(0, 12);
+  }, [filteredEvents, eventImages, galleryPhotos, isTypeScoped]);
+
+  // Dedicated gallery section: related (type-scoped) gallery photos, randomized.
+  const galleryHighlights = useMemo(() => {
+    const scopedIds = new Set(filteredEvents.map(e => e.event_id || e.id || ''));
+    const pool = isTypeScoped
+      ? galleryPhotos.filter(p => p.eventId && scopedIds.has(p.eventId))
+      : galleryPhotos;
+    const a = [...pool];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a.slice(0, 8);
+  }, [filteredEvents, galleryPhotos, isTypeScoped]);
+
+  const absUrl = (u?: string | null) => (u ? (/^https?:/i.test(u) ? u : `${getSiteOrigin()}${u}`) : null);
+
+  // Structured data built from admin-entered fields: an ItemList of full Event nodes
+  // (venue PostalAddress, offers, status, performer, image) + a BreadcrumbList.
+  const eventsJsonLd = useMemo(() => {
+    const origin = getSiteOrigin();
+    const items = filteredEvents.map((e, i) => {
+      const id = e.event_id || e.id || '';
+      const { ['@context']: _omit, ...eventNode } = buildEventJsonLd(e, {
+        pageUrl: `${origin}${getEventDetailPath(e, id)}`,
+        imageUrl: absUrl(eventImages[id]),
+      });
+      return { '@type': 'ListItem', position: i + 1, name: e.event_name || e.title || 'Event', item: eventNode };
+    });
+    const crumbs: { name: string; path: string }[] = [
+      { name: 'Home', path: '/' },
+      { name: 'Events', path: '/events' },
+    ];
+    if (isTypeScoped) crumbs.push({ name: getEventTypePublicLabel(eventTypeScope), path: canonicalPath });
+    const breadcrumb = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: crumbs.map((c, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: c.name,
+        item: `${origin}${c.path}`,
+      })),
+    };
+    return items.length
+      ? [
+          { '@context': 'https://schema.org', '@type': 'ItemList', name: heroTitle, itemListElement: items },
+          breadcrumb,
+        ]
+      : [breadcrumb];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredEvents, eventImages, heroTitle, eventTypeScope, canonicalPath, isTypeScoped]);
+
+  return (
+    <div className="pb-32">
+      <Seo title={eventsSeoTitle} description={eventsSeoDescription} path={canonicalPath} jsonLd={eventsJsonLd} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* ---- Hero ---- */}
+        <section className="relative overflow-hidden rounded-2xl shadow-lg mb-10 min-h-[480px] flex items-center">
+          {mosaicImages.length > 0 ? (
+            <div className="absolute inset-0 overflow-hidden bg-gradient-to-br from-primary-700 to-gray-900" aria-hidden="true">
+              {/* Masonry collage — each flyer shown in full (no cropping), varied heights */}
+              <div className="columns-2 sm:columns-3 md:columns-4 xl:columns-5 gap-2 p-2">
+                {mosaicImages.map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt=""
+                    className="w-full h-auto mb-2 rounded-md break-inside-avoid"
+                    loading="lazy"
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-600 to-primary-800" aria-hidden="true" />
+          )}
+          <div className="absolute inset-0 bg-black/60" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative w-full px-6 py-14 text-center text-white"
+          >
+            <div className="inline-flex items-center gap-2 justify-center mb-3">
+              <Calendar className="w-6 h-6 text-yellow-300" />
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-200">
+                Sanhoti · Orange County, CA
+              </span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 [text-shadow:_0_1px_6px_rgb(0_0_0_/_0.5)]">
+              {heroTitle}
+            </h1>
+            <p className="text-lg text-white/90 max-w-2xl mx-auto [text-shadow:_0_1px_4px_rgb(0_0_0_/_0.6)]">
+              {heroSubtitle}
+            </p>
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-sm">
+              <span className="bg-white/15 backdrop-blur-sm rounded-full px-3 py-1">{upcomingEvents.length} upcoming</span>
+              <span className="bg-white/15 backdrop-blur-sm rounded-full px-3 py-1">{filteredEvents.length} total</span>
+              {upcomingEvents[0] && (
+                <span className="bg-primary-600 rounded-full px-3 py-1 font-medium">
+                  Next: {formatDateWithTime(upcomingEvents[0].event_start_dt || upcomingEvents[0].date || '')}
+                </span>
+              )}
+            </div>
+            <a
+              href="#all-events"
+              className="inline-flex items-center gap-2 mt-6 bg-white text-primary-800 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+            >
+              Browse all events <ArrowRight className="w-4 h-4" />
+            </a>
+          </motion.div>
+        </section>
+
+        {/* Intro */}
+        <p className="text-lg text-gray-700 leading-relaxed border-l-4 border-primary-500 pl-4 mb-10">
+          {heroSubtitle} Explore what&apos;s coming up below, or browse our full event archive.
+        </p>
+
+        {/* Upcoming events grid */}
+        {upcomingEvents.length > 0 && (
+          <section className="mb-12">
+            <SectionHeading kicker="Don't miss">Upcoming events</SectionHeading>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {upcomingEvents.map((e, i) => {
+                const id = e.event_id || e.id || '';
+                const img = eventImages[id];
+                const date = formatDateWithTime(e.event_start_dt || e.date || '');
+                return (
+                  <motion.div
+                    key={id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.05 }}
+                    className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 flex flex-col"
+                  >
+                    <Link to={getEventDetailPath(e, id)} className="block h-44 bg-gray-50">
+                      {img ? (
+                        <img src={img} alt={e.event_name || e.title || 'Event'} className="w-full h-44 object-cover" loading="lazy" />
+                      ) : (
+                        <div className="w-full h-44 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
+                          <Calendar className="w-10 h-10 text-white/70" />
+                        </div>
+                      )}
+                    </Link>
+                    <div className="p-5 flex flex-col flex-1">
+                      <h3 className="text-lg font-bold text-gray-900 mb-1">
+                        <Link to={getEventDetailPath(e, id)} className="hover:text-primary-600">
+                          {e.event_name || e.title}
+                        </Link>
+                      </h3>
+                      <div className="text-sm text-gray-600 space-y-1 mb-3">
+                        {date && (
+                          <p className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-primary-600 shrink-0" /> {date}
+                          </p>
+                        )}
+                        {e.location && (
+                          <p className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-primary-600 shrink-0" /> {e.location}
+                          </p>
+                        )}
+                      </div>
+                      <Link
+                        to={getEventDetailPath(e, id)}
+                        className="mt-auto inline-flex items-center gap-1 text-primary-600 font-medium hover:underline"
+                      >
+                        Details <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Priority Event Card — superseded by the hero + Upcoming grid above (kept disabled). */}
         {scopedPriorityEvent && (() => {
           const eventId = scopedPriorityEvent.event_id || scopedPriorityEvent.id || '';
           const eventName = scopedPriorityEvent.event_name || scopedPriorityEvent.title || 'Untitled Event';
@@ -298,7 +564,7 @@ export default function Events() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-12"
+              className="hidden"
             >
               <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl shadow-2xl overflow-hidden border-4 border-yellow-400">
                 {/* Portrait Layout: Image on left, details on right */}
@@ -598,12 +864,40 @@ export default function Events() {
           );
         })()}
 
+        {/* Related gallery photos (type-scoped, randomized) */}
+        {galleryHighlights.length > 0 && (
+          <section className="mb-12">
+            <SectionHeading kicker="From our events">Photo gallery</SectionHeading>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {galleryHighlights.map((p, i) => (
+                <Link
+                  key={`${p.galleryId}-${i}`}
+                  to={`/galleries/${p.galleryId}`}
+                  className="group block aspect-square overflow-hidden rounded-xl bg-gray-100 shadow-sm"
+                >
+                  <img
+                    src={p.url}
+                    alt={p.alt}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                </Link>
+              ))}
+            </div>
+            <div className="mt-4 text-center">
+              <Link
+                to="/galleries"
+                className="inline-flex items-center gap-1 text-primary-600 font-medium hover:underline"
+              >
+                See all photo galleries <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </section>
+        )}
+
         {/* All Events Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center gap-3">
-            <Calendar className="w-8 h-8 text-primary-600" />
-            <h2 className="text-2xl font-bold text-gray-900">All Events</h2>
-          </div>
+        <div id="all-events" className="mb-8 scroll-mt-24">
+          <SectionHeading kicker="Full archive">Browse all events</SectionHeading>
         </div>
 
         {/* Events Carousel */}

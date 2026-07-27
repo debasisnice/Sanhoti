@@ -61,6 +61,17 @@ export class EventService {
     is_priority?: boolean;
     rsvp_link?: string;
     is_active_durga_puja_event?: boolean;
+    venue_name?: string;
+    venue_street?: string;
+    venue_city?: string;
+    venue_region?: string;
+    venue_postal?: string;
+    ticket_url?: string;
+    ticket_price?: string;
+    ticket_currency?: string;
+    event_status?: 'Scheduled' | 'Cancelled' | 'Postponed' | 'Rescheduled';
+    performers?: string;
+    performer_type?: 'Person' | 'MusicGroup';
   }): Promise<Event> {
     // Validate that end date is not before start date
     const startDate = new Date(data.event_start_dt);
@@ -101,6 +112,17 @@ export class EventService {
       location: data.location,
       photo_gallery_link: data.photo_gallery_link,
       rsvp_link: data.rsvp_link,
+      venue_name: data.venue_name,
+      venue_street: data.venue_street,
+      venue_city: data.venue_city,
+      venue_region: data.venue_region,
+      venue_postal: data.venue_postal,
+      ticket_url: data.ticket_url,
+      ticket_price: data.ticket_price,
+      ticket_currency: data.ticket_currency,
+      event_status: data.event_status,
+      performers: data.performers,
+      performer_type: data.performer_type,
       is_active: true,
       is_priority: data.is_priority !== undefined ? data.is_priority : false,
       is_active_durga_puja_event: activeDurgaFlag,
