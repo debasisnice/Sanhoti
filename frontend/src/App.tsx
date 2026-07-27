@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
 import Layout from './components/Layout';
@@ -31,6 +31,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import AuthenticatedRedirect from './components/AuthenticatedRedirect';
 
 // Code-split heavy chunks out of the public bundle:
 // - Magazines/Documents pull in pdfjs-dist (~1MB)
@@ -87,8 +88,8 @@ function App() {
           <Route path="/magazines" element={<Magazines />} />
           <Route path="/news" element={<NewsPage />} />
           <Route path="/documents" element={<Documents />} />
-          <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
-          <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" />} />
+          <Route path="/login" element={!isAuthenticated ? <Login /> : <AuthenticatedRedirect />} />
+          <Route path="/register" element={!isAuthenticated ? <Register /> : <AuthenticatedRedirect />} />
           <Route
             path="/dashboard"
             element={

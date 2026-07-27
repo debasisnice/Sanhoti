@@ -1,12 +1,13 @@
 import { useState } from 'react';
 //import { useNavigate, Link } from 'react-router-dom'; //Debasis - commented out to turnoff signup option
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import Seo from '../components/Seo';
 import { motion } from 'framer-motion';
 import { Mail, Lock, LogIn } from 'lucide-react';
 import { authAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
+import { getPostLoginPath } from '../utils/authRoutes';
 import toast from 'react-hot-toast';
 
 interface LoginForm {
@@ -16,6 +17,7 @@ interface LoginForm {
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { setAuth } = useAuthStore();
   const [loading, setLoading] = useState(false);
 
@@ -31,7 +33,8 @@ export default function Login() {
       const response = await authAPI.login(data.email, data.password);
       setAuth(response.user, response.token);
       toast.success('Login successful!');
-      navigate('/dashboard');
+      const isAdmin = response.user.role === 'admin';
+      navigate(getPostLoginPath(isAdmin, searchParams.get('from')));
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Login failed');
     } finally {

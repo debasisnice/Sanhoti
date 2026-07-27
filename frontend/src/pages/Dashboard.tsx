@@ -136,7 +136,7 @@ export default function Dashboard() {
 
   return (
     <div className="py-12 pb-32">
-      <Seo title="Dashboard | Sanhoti" description="Your Sanhoti member dashboard." path="/dashboard" noindex />
+      <Seo title="My Profile | Sanhoti" description="Your Sanhoti member profile — RSVPs, account details, and password." path="/dashboard" noindex />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -146,10 +146,10 @@ export default function Dashboard() {
           <div className="flex items-center gap-3 mb-2">
             <User className="w-8 h-8 text-primary-600" />
             <h1 className="text-2xl font-bold text-gray-900">
-              Welcome, {user?.firstName}!
+              My Profile
             </h1>
           </div>
-          <p className="text-2xl text-gray-600">Your community dashboard</p>
+          <p className="text-2xl text-gray-600">Welcome, {user?.firstName}!</p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
