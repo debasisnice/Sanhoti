@@ -37,6 +37,22 @@ export default function MenuEditor({ value, onChange, durgaPujaLink, className =
   // Open automatically when a menu already exists, so existing content is visible.
   const [open, setOpen] = useState(meals.length > 0);
 
+  /**
+   * Raw text of the dish field currently being typed into.
+   *
+   * The dish input stores an array but displays a joined string, so without
+   * this it round-trips parse -> serialise on every keystroke and any character
+   * the parser discards becomes impossible to type: a comma leaves an empty
+   * trailing segment that `filter(Boolean)` drops, and a trailing space is
+   * removed by `trim`. Holding the raw text while the field has focus lets the
+   * admin type "Luchi, Alur Dom" normally.
+   *
+   * One entry is enough — only one input can hold focus, and moving focus (or
+   * clicking any button) fires blur first, so the draft is always cleared
+   * before a category or meal can be added or removed underneath it.
+   */
+  const [dishDraft, setDishDraft] = useState<{ key: string; text: string } | null>(null);
+
   const patch = (p: Partial<EventMenu>) => onChange({ ...menu, ...p });
   const setMeals = (next: MenuMeal[]) => patch({ meals: next });
   const updateMeal = (i: number, p: Partial<MenuMeal>) =>
@@ -162,15 +178,27 @@ export default function MenuEditor({ value, onChange, durgaPujaLink, className =
                         <input
                           type="text"
                           className={INPUT}
-                          value={(cat.items ?? []).join(', ')}
-                          onChange={e =>
+                          // Show the raw text while this field is being typed
+                          // into; fall back to the stored array otherwise.
+                          value={
+                            dishDraft?.key === `${mi}:${ci}`
+                              ? dishDraft.text
+                              : (cat.items ?? []).join(', ')
+                          }
+                          onChange={e => {
+                            const raw = e.target.value;
+                            setDishDraft({ key: `${mi}:${ci}`, text: raw });
+                            // The parsed array is still committed on every
+                            // keystroke, so submitting without blurring first
+                            // loses nothing.
                             updateCategory(mi, ci, {
-                              items: e.target.value
+                              items: raw
                                 .split(',')
                                 .map(x => x.trim())
                                 .filter(Boolean),
-                            })
-                          }
+                            });
+                          }}
+                          onBlur={() => setDishDraft(null)}
                           placeholder="Dishes, comma separated — e.g. Goat Biriyani, Butter Naan"
                         />
                         <button

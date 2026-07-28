@@ -431,8 +431,6 @@ export default function EventDetail() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
         {/* ---- About ---- */}
-        <MenuDisplay menu={event.menu} className="mb-12" />
-
         <div className="mb-12">
           <SectionHeading kicker="About">About This Event</SectionHeading>
           {/* Real <p> elements rather than one pre-line block: descriptions are
@@ -560,6 +558,12 @@ export default function EventDetail() {
             </div>
           )}
         </div>
+
+        {/* ---- Food ----
+            After the description: what the event is has to be established
+            before what is served there, for a reader and for a crawler
+            deciding what the page is about. */}
+        <MenuDisplay menu={event.menu} className="mb-12" />
 
         {/* ---- Sub-Events ---- */}
         {subEvents.length > 0 && (

@@ -61,6 +61,7 @@ backend/uploads/
 *.pem
 *.ppk
 docs/AWS_ACCOUNT_INFO.md
+docs/GSC_INDEXING_REQUEST_LIST.md
 # Note: .github/ folder should be tracked (contains workflows)
 
 # Misc
