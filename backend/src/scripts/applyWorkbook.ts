@@ -104,8 +104,21 @@ function applyPatch(
   set('meta_description', patch.meta_description);
 
   if (patch.faqs?.length) {
-    target.faqs = patch.faqs;
-    changes.push(`  ${label} · faqs (${patch.faqs.length})`);
+    // FAQs are rendered on the page *and* emitted as FAQPage structured data,
+    // so an unresolved placeholder here reaches Google. Only event_description
+    // used to be checked, which meant a bracketed FAQ answer was published with
+    // no warning at all.
+    const unresolved = patch.faqs.filter(
+      f => isPlaceholder(f.question) || isPlaceholder(f.answer)
+    );
+    if (unresolved.length) {
+      warnings.push(
+        `${label}: ${unresolved.length} FAQ(s) still contain [placeholders] — SKIPPED, fix before publishing`
+      );
+    } else {
+      target.faqs = patch.faqs;
+      changes.push(`  ${label} · faqs (${patch.faqs.length})`);
+    }
   }
 
   // Corrections: renames, malformed locations, wrong performer types. An empty
@@ -140,8 +153,13 @@ async function main(): Promise<void> {
     existing.roles = a.roles;
     existing.genres = a.genres;
     if (!isPlaceholder(a.origin)) existing.origin = a.origin;
-    existing.short_bio = a.shortBio;
-    existing.bio = a.bio;
+    // A bio is published as the biography of a real, named person. An unresolved
+    // placeholder here would put an internal note on their public page, so these
+    // are skipped rather than written — same rule as origin.
+    if (!isPlaceholder(a.shortBio)) existing.short_bio = a.shortBio;
+    else warnings.push(`artist "${a.name}": short bio still contains [placeholders] — skipped`);
+    if (!isPlaceholder(a.bio)) existing.bio = a.bio;
+    else warnings.push(`artist "${a.name}": bio still contains [placeholders] — skipped`);
     existing.image_alt = a.imageAlt;
     existing.is_featured = a.featured.toLowerCase() === 'yes';
     // Only store a real URL — the workbook uses prose where none exists.
