@@ -80,14 +80,6 @@ SNIPPET = f"""
             return 301 https://www.sanhoti.org/;
         }}
     }}
-    location = /bengali-concerts {{
-        # Renamed to /bollywood-concerts. A permanent redirect is what passes the
-        # old URL's accumulated ranking to the new one — without it the indexed
-        # path 404s and the new page starts from zero. Keep this rule
-        # indefinitely: Google's index and external links will reference the old
-        # path for years.
-        return 301 https://www.sanhoti.org/bollywood-concerts;
-    }}
     location = /sitemap.xml {{
         proxy_pass {backend}/sitemap.xml;
         proxy_set_header Host $host;
@@ -148,6 +140,38 @@ else:
         print('❌ Could not find "location / { ... try_files ... /index.html }"'); sys.exit(2)
     src = new
     print(f'✅ Inserted bot rewrite into {n} location block(s)')
+
+# ---- renamed-URL redirects ----
+#
+# These get their own guard rather than living in SNIPPET. SNIPPET is only
+# inserted when the "BEGIN SEO" marker is absent, so on a server that has
+# already run this script once, anything added there is silently skipped and
+# never reaches nginx. Each redirect must be independently detectable.
+RENAMED_URLS = [
+    # (old path, new path). Keep entries indefinitely — Google's index and
+    # external links reference old paths for years after a rename.
+    ('/bengali-concerts', '/bollywood-concerts'),
+]
+
+for old_path, new_path in RENAMED_URLS:
+    marker = f'location = {old_path} {{'
+    if marker in src:
+        print(f'⏭  Redirect {old_path} already present')
+        continue
+    block = (
+        f'\n    # SEO rename: {old_path} -> {new_path} (managed by this script).\n'
+        f'    # A 301 passes the old URL\'s ranking to the new one; without it the\n'
+        f'    # indexed path 404s and the new page starts from zero.\n'
+        f'    location = {old_path} {{\n'
+        f'        return 301 https://www.sanhoti.org{new_path};\n'
+        f'    }}\n'
+    )
+    anchor = '    # --- BEGIN SEO (managed by deploy/apply-seo-nginx.sh) ---'
+    if anchor in src:
+        src = src.replace(anchor, anchor + block, 1)
+        print(f'✅ Inserted 301 {old_path} -> {new_path}')
+    else:
+        print(f'❌ Could not find the BEGIN SEO anchor to attach {old_path}'); sys.exit(2)
 
 # ---- host canonicalization: everything 301s to https://www.sanhoti.org ----
 
