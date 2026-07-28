@@ -14,6 +14,7 @@
     "add-event-image-path": "tsx src/scripts/addEventImagePath.ts",
     "seed-artists": "tsx src/scripts/seedArtists.ts",
     "seed-event-menus": "tsx src/scripts/seedEventMenus.ts",
+    "seed-lauras-house-blog": "tsx src/scripts/seedLauraHouseBlog.ts",
     "apply-workbook": "tsx src/scripts/applyWorkbook.ts"
   },
   "dependencies": {
