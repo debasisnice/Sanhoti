@@ -91,3 +91,6 @@ backend/data/*.json
 backend/data/_test-pollution-backup/
 backend/data/_workbook-backup/
 backend/data/*.corrupt-*
+
+# Local workbook edit snapshots (canonical file is workbookData.json only).
+backend/src/scripts/workbookData.json.*
