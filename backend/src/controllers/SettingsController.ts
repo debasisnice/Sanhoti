@@ -366,6 +366,24 @@ export class SettingsController {
     }
   }
 
+  async updateHomeHighlightsMode(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { mode } = req.body ?? {};
+      if (mode !== 'videos' && mode !== 'charity_gallery' && mode !== 'durga_puja_gallery') {
+        res.status(400).json({
+          error: 'mode must be "videos", "charity_gallery", or "durga_puja_gallery"',
+        });
+        return;
+      }
+
+      const settings = await this.settingsService.updateHomeHighlightsMode(mode);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error updating home highlights mode:', error);
+      res.status(500).json({ error: 'Failed to update home highlights mode', details: error.message });
+    }
+  }
+
   async updateHomeSectionOrder(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { order } = req.body ?? {};

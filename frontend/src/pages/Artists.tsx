@@ -4,14 +4,15 @@ import { motion } from 'framer-motion';
 import { Mic2, Music, ArrowRight, MapPin } from 'lucide-react';
 import Seo from '../components/Seo';
 import PageHero from '../components/PageHero';
+import PageContent from '../components/PageContent';
 import { artistsAPI } from '../services/api';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import type { Artist } from '../types';
 
 const FAQ: { q: string; a: string }[] = [
   {
-    q: 'Which artists have performed at Sanhoti events in Orange County?',
-    a: 'Sanhoti hosts singers, musicians, and performers from India and the Bengali diaspora — Bollywood and playback singers, Rabindra Sangeet and adhunik artists, classical musicians, and live bands. Each artist has a page listing their Sanhoti performances.',
+    q: 'Which artists perform at Sanhoti events in Orange County?',
+    a: 'Sanhoti presents singers, musicians, and performers from India and the Bengali diaspora — Bollywood and playback singers, Rabindra Sangeet and adhunik artists, classical musicians, and live bands. Each artist page lists upcoming and past Sanhoti performances.',
   },
   {
     q: 'Where do Sanhoti artists perform?',
@@ -75,7 +76,7 @@ export default function Artists() {
       {
         '@context': 'https://schema.org',
         '@type': 'ItemList',
-        name: 'Artists who have performed with Sanhoti in Orange County, California',
+        name: 'Artists & performers at Sanhoti events in Orange County, California',
         numberOfItems: artists.length,
         itemListElement: artists.map((a, i) => ({
           '@type': 'ListItem',
@@ -101,7 +102,7 @@ export default function Artists() {
     <div className="pb-32">
       <Seo
         title="Artists & Performers | Sanhoti Bengali Association of Orange County, CA"
-        description="Singers, musicians, and performers who have appeared at Sanhoti events in Orange County, California — Bollywood, Rabindra Sangeet, and live Bengali concerts across Southern California."
+        description="Singers, musicians, and performers featured at Sanhoti events in Orange County, California — past and upcoming Bollywood, Rabindra Sangeet, and live Bengali concerts across Southern California."
         path="/artists"
         jsonLd={jsonLd}
       />
@@ -109,10 +110,10 @@ export default function Artists() {
       <PageHero
         icon={Mic2}
         title="Sanhoti Artists & Performers — Orange County, California"
-        subtitle="Singers and musicians from India and the Bengali diaspora who have performed at Sanhoti events in Orange County — Bollywood, Rabindra Sangeet, and live concerts across Southern California."
+        subtitle="Singers and musicians from India and the Bengali diaspora that Sanhoti presents in Orange County — past concerts and upcoming Durga Puja performances, from Bollywood playback to Rabindra Sangeet across Southern California."
       />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+      <PageContent>
         {artists.length > 0 && (
           <section className="mb-14">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Featured artists</h2>
@@ -132,7 +133,7 @@ export default function Artists() {
                         src={artistsAPI.getImageUrl(a.artist_id, a.image_path)}
                         alt={
                           a.image_alt ||
-                          `${a.name} — performed with Sanhoti Bengali Association in Orange County, CA`
+                          `${a.name} — artist at Sanhoti Bengali Association in Orange County, CA`
                         }
                         className="w-full h-56 object-cover"
                         width={480}
@@ -221,7 +222,7 @@ export default function Artists() {
             </Link>
           </div>
         </div>
-      </div>
+      </PageContent>
     </div>
   );
 }

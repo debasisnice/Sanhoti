@@ -5,7 +5,7 @@ import { Calendar, MapPin, ArrowRight, Star, ChevronLeft, ChevronRight } from 'l
 import { eventsAPI, galleriesAPI } from '../services/api';
 import { Event } from '../types';
 import { format } from 'date-fns';
-import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime } from '../utils/dateUtils';
+import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime, getEventLifecycleStatus } from '../utils/dateUtils';
 import {
   getEffectiveEventType,
   getEventTypePublicLabel,
@@ -192,9 +192,14 @@ export default function Events() {
     };
   }, [scopedPriorityEvent]);
 
-  // Filter events by type from URL (Festival, Charity, Other, or All)
+  // Filter events by type from URL (Festival, Charity, Workshop, Other, or All)
   const filteredEvents = useMemo(() => {
-    if (eventTypeScope === 'Festival' || eventTypeScope === 'Charity' || eventTypeScope === 'Other') {
+    if (
+      eventTypeScope === 'Festival' ||
+      eventTypeScope === 'Charity' ||
+      eventTypeScope === 'Workshop' ||
+      eventTypeScope === 'Other'
+    ) {
       return allEvents.filter((e) => getEffectiveEventType(e) === eventTypeScope);
     }
     return allEvents;
@@ -294,16 +299,24 @@ export default function Events() {
       ? 'Festival events | Sanhoti'
       : eventTypeScope === 'Charity'
         ? 'Charity events | Sanhoti'
-        : eventTypeScope === 'Other'
-          ? 'Community events | Sanhoti'
-          : 'Community events | Sanhoti';
+        : eventTypeScope === 'Workshop'
+          ? 'Workshops | Sanhoti'
+          : eventTypeScope === 'Other'
+            ? 'Community events | Sanhoti'
+            : 'Community events | Sanhoti';
   const eventsSeoDescription =
-    eventTypeScope === 'Festival' || eventTypeScope === 'Charity' || eventTypeScope === 'Other'
+    eventTypeScope === 'Festival' ||
+    eventTypeScope === 'Charity' ||
+    eventTypeScope === 'Workshop' ||
+    eventTypeScope === 'Other'
       ? `Browse ${getEventTypePublicLabel(eventTypeScope).toLowerCase()} from Sanhoti Bengali Association in Orange County & Southern California, CA — dates, locations, and how to join.`
-      : 'Browse upcoming and past cultural events from Sanhoti Bengali Association of Orange County & Southern California — festivals, charity programs, and gatherings for the Bengali community.';
+      : 'Browse upcoming and past cultural events from Sanhoti Bengali Association of Orange County & Southern California — festivals, charity programs, workshops, and gatherings for the Bengali community.';
 
   const isTypeScoped =
-    eventTypeScope === 'Festival' || eventTypeScope === 'Charity' || eventTypeScope === 'Other';
+    eventTypeScope === 'Festival' ||
+    eventTypeScope === 'Charity' ||
+    eventTypeScope === 'Workshop' ||
+    eventTypeScope === 'Other';
   // Festival filter consolidates onto the dedicated /festivals hub (avoids cannibalization);
   // Charity/Other have no hub, so they stay self-canonical.
   const canonicalPath =
@@ -318,17 +331,21 @@ export default function Events() {
       ? 'Bengali Festivals in Orange County'
       : eventTypeScope === 'Charity'
         ? 'Charity & Community Events in Orange County'
-        : eventTypeScope === 'Other'
-          ? 'Community Events & Gatherings in Orange County'
-          : 'Bengali Events in Orange County';
+        : eventTypeScope === 'Workshop'
+          ? 'Art & Cultural Workshops in Orange County'
+          : eventTypeScope === 'Other'
+            ? 'Community Events & Gatherings in Orange County'
+            : 'Bengali Events in Orange County';
   const heroSubtitle =
     eventTypeScope === 'Charity'
       ? 'Coming together to give back and strengthen our community across Southern California.'
-      : eventTypeScope === 'Other'
-        ? 'Picnics, socials, and community programs from Sanhoti across Orange County & SoCal.'
-        : eventTypeScope === 'Festival'
-          ? 'Durga Puja, Saraswati Puja, Poila Boishakh and more — celebrated with Sanhoti in Orange County & Southern California.'
-          : 'Festivals, concerts, charity drives, and community gatherings from Sanhoti Bengali Association of Orange County.';
+      : eventTypeScope === 'Workshop'
+        ? 'Hands-on programs exploring Indian arts and culture — learn, create, and connect with Sanhoti across Orange County & SoCal.'
+        : eventTypeScope === 'Other'
+          ? 'Picnics, socials, and community programs from Sanhoti across Orange County & SoCal.'
+          : eventTypeScope === 'Festival'
+            ? 'Durga Puja, Saraswati Puja, Poila Boishakh and more — celebrated with Sanhoti in Orange County & Southern California.'
+            : 'Festivals, concerts, charity drives, workshops, and community gatherings from Sanhoti Bengali Association of Orange County.';
 
   const nowTs = Date.now();
   const upcomingEvents = useMemo(
@@ -349,6 +366,11 @@ export default function Events() {
       upcomingEvents.find(
         e => new Date(e.event_start_dt || e.date || 0).getTime() >= nowTs
       ),
+    [upcomingEvents, nowTs]
+  );
+
+  const showInProgressHeading = useMemo(
+    () => upcomingEvents.some((e) => getEventLifecycleStatus(e) === 'in-progress'),
     [upcomingEvents, nowTs]
   );
 
@@ -499,7 +521,9 @@ export default function Events() {
         {/* Upcoming events grid */}
         {upcomingEvents.length > 0 && (
           <section className="mb-12">
-            <SectionHeading kicker="Don't miss">Upcoming events</SectionHeading>
+            <SectionHeading kicker={showInProgressHeading ? 'Now running' : "Don't miss"}>
+              {showInProgressHeading ? 'In progress' : 'Upcoming events'}
+            </SectionHeading>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {upcomingEvents.map((e, i) => {
                 const id = e.event_id || e.id || '';

@@ -37,12 +37,29 @@ describe('EmailService booking confirmation', () => {
       zelle_phone: '949-378-6425',
     });
     expect(html).toContain('QRR6NH035YEA');
-    expect(html).toContain('Subhadeep Live Concert');
+    // Seats are grouped by sub_event_id. This seat has none, so it belongs to
+    // the whole event and is headed "Entire Event" — `map_name` is deliberately
+    // only used as a *sub-event* label (see the map_name fallback test below).
+    expect(html).toContain('Entire Event');
     expect(html).toContain('J21');
     expect(html).toContain('$60.00');
     expect(html).toContain('949-378-6425');
     expect(html).toContain('reservation will lapse');
     expect(html).toContain('Seats reserved!');
+  });
+
+  it('labels a sub-event group with map_name when no sub-event name is known', () => {
+    const html = emailService.generateBookingConfirmationHTML(
+      {
+        ...sampleBooking,
+        seats_detail: [
+          { ...sampleBooking.seats_detail[0], sub_event_id: 'SUB1' },
+        ],
+      },
+      { zelle_phone: '949-378-6425' }
+    );
+    expect(html).toContain('Subhadeep Live Concert');
+    expect(html).not.toContain('Entire Event');
   });
 
   it('includes Zelle QR image placeholder when QR is attached', () => {

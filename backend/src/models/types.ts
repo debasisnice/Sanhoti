@@ -41,7 +41,15 @@ export interface Event {
   event_end_dt: string;
   year: number;
   event_description: string;
-  event_type?: 'Festival' | 'Charity' | 'Other';
+  event_type?: 'Festival' | 'Charity' | 'Workshop' | 'Other';
+  /** Workshop-only: theme or focus area (e.g. Indian painting). */
+  workshop_theme?: string;
+  /** Workshop-only: when the program begins (may differ from event_start_dt). */
+  workshop_program_start_dt?: string;
+  /** Workshop-only: date of the culminating exhibition. */
+  workshop_exhibition_dt?: string;
+  /** Workshop-only: external registration or interest form URL. */
+  workshop_registration_url?: string;
   location?: string;
   photo_gallery_link?: string;
   gallery_is_public?: boolean; // Whether the gallery for this event is public
@@ -174,6 +182,10 @@ export interface News {
 export interface PhotoGallery {
   id: string;
   eventId?: string;
+  /** Parent event name — used for alt text and Durga Puja filtering on the home page. */
+  event_name?: string;
+  /** Parent event type — used for charity gallery filtering on the home page. */
+  event_type?: 'Festival' | 'Charity' | 'Workshop' | 'Other';
   title: string;
   description?: string;
   isPublic: boolean;
@@ -1178,6 +1190,8 @@ export interface Settings {
   homeHeroButtons?: HomeHeroButtonsVisibility;
   /** Videos shown in a section below "About Us" on the home page. */
   homePageVideos?: HomePageVideo[];
+  /** What the home page Highlights section shows: videos or gallery photos. */
+  homeHighlightsMode?: HomeHighlightsMode;
   /** Order of the reorderable home page content sections (e.g. ["charity","highlights","about","offer"]). */
   homeSectionOrder?: string[];
   /** Order of main navbar menu links (excludes Donate / Join Us CTAs). */
@@ -1227,6 +1241,9 @@ export interface HeroSlots {
   /** Optional extra video shown below the right card (beside it on mobile). */
   rightExtra?: HeroSlotConfig;
 }
+
+/** What the home page Highlights section displays. */
+export type HomeHighlightsMode = 'videos' | 'charity_gallery' | 'durga_puja_gallery';
 
 /** One video (with an optional call-to-action button) in the home page Videos section. */
 export interface HomePageVideo {

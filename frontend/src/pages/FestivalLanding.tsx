@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Sparkles } from 'lucide-react';
 import Seo from '../components/Seo';
 import PageHero from '../components/PageHero';
+import PageContent from '../components/PageContent';
 import { eventsAPI } from '../services/api';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import { getEventDetailPath } from '../utils/eventSlug';
 import type { Event } from '../types';
+import { formatEventDate } from '../utils/dateUtils';
 
 export interface FestivalLandingConfig {
   path: string;
@@ -175,18 +177,9 @@ export const FESTIVAL_CONFIGS: Record<string, FestivalLandingConfig> = {
   },
 };
 
-function fmtDate(iso?: string): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('en-US', {
-    weekday: 'short',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    timeZone: 'America/Los_Angeles',
-  });
-}
+/** Event date for display. Date-only values are calendar dates, not instants. */
+const fmtDate = (iso?: string): string =>
+  formatEventDate(iso, { year: 'numeric', month: 'long', day: 'numeric' });
 
 function venueLine(e: Event): string {
   const where = [e.venue_name, e.venue_city && `${e.venue_city}, ${e.venue_region || 'CA'}`]
@@ -315,7 +308,7 @@ export default function FestivalLanding({ config }: { config: FestivalLandingCon
 
       <PageHero icon={Sparkles} title={config.h1} subtitle={config.heroSubtitle} />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+      <PageContent>
         <section className="mb-14">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
             Upcoming {config.shortName} celebrations
@@ -401,7 +394,7 @@ export default function FestivalLanding({ config }: { config: FestivalLandingCon
             </Link>
           </div>
         </div>
-      </div>
+      </PageContent>
     </div>
   );
 }

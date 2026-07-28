@@ -134,6 +134,7 @@ router.get('/news/media/:filename', bindController(newsController, 'serveMedia')
 
 // Galleries - Public routes (specific routes first)
 router.get('/galleries/public', bindController(galleryController, 'getPublicGalleries'));
+router.get('/galleries/public/event/:eventId', bindController(galleryController, 'getPublicGalleryForEvent'));
 router.get('/galleries/public/:id', bindController(galleryController, 'getPublicGalleryById'));
 router.get('/galleries/access-code/:code', bindController(galleryController, 'getGalleryByAccessCode'));
 // Serve individual photo files - public access (optional auth handled in controller)
@@ -998,6 +999,11 @@ router.put('/settings/home-videos',
   requireAdmin,
   auditLog('UPDATE', 'home_videos'),
   bindController(settingsController, 'updateHomePageVideos')
+);
+router.put('/settings/home-highlights-mode',
+  requireAdmin,
+  auditLog('UPDATE', 'home_highlights_mode'),
+  bindController(settingsController, 'updateHomeHighlightsMode')
 );
 router.put('/settings/home-section-order',
   requireAdmin,

@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Calendar, ExternalLink, MapPin, Mic2, Music } from 'lucide-react';
 import Seo from '../components/Seo';
+import PageContent from '../components/PageContent';
 import { artistsAPI } from '../services/api';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import { getEventDetailPath } from '../utils/eventSlug';
 import { toVideoEmbedUrl, youtubeThumbnailUrl } from '../utils/videoEmbedUrl';
 import type { Artist, ArtistAppearance, ArtistAppearances, Event, SubEvent } from '../types';
+import { formatEventDate } from '../utils/dateUtils';
 
 function splitList(value?: string): string[] {
   return String(value ?? '')
@@ -15,20 +17,17 @@ function splitList(value?: string): string[] {
     .filter(Boolean);
 }
 
-function fmtDateTime(iso?: string): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return '';
-  const hasTime = /T\d{2}:\d{2}/.test(iso);
-  return d.toLocaleDateString('en-US', {
+/** Event date for display. Date-only values are calendar dates, not instants. */
+const fmtDateTime = (iso?: string): string =>
+  formatEventDate(iso, {
     weekday: 'short',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-    ...(hasTime ? { hour: 'numeric', minute: '2-digit' } : {}),
-    timeZone: 'America/Los_Angeles',
+    // Honoured only when the stored value actually has a time.
+    hour: 'numeric',
+    minute: '2-digit',
   });
-}
 
 /** Normalize an event or sub-event appearance into one display/schema shape. */
 interface NormalizedAppearance {
@@ -137,6 +136,13 @@ export default function ArtistDetail() {
     );
     const all = [...upcoming, ...past].slice(0, 25);
 
+    const bioFallback =
+      upcoming.length && !past.length
+        ? `${artist.name} is scheduled to perform for Sanhoti Bengali Association of Orange County, California.`
+        : past.length
+          ? `${artist.name} has performed for Sanhoti Bengali Association of Orange County, California.`
+          : `${artist.name} is featured on Sanhoti Bengali Association's artist roster in Orange County, California.`;
+
     const artistNode: Record<string, unknown> = {
       '@type': schemaType,
       '@id': artistId,
@@ -144,10 +150,7 @@ export default function ArtistDetail() {
       ...(alternates.length ? { alternateName: alternates } : {}),
       url: artist.website_url || canonical,
       mainEntityOfPage: canonical,
-      description:
-        artist.short_bio ||
-        artist.bio ||
-        `${artist.name} has performed for Sanhoti Bengali Association of Orange County, California.`,
+      description: artist.short_bio || artist.bio || bioFallback,
       ...(imageUrl ? { image: imageUrl } : {}),
       ...(genres.length ? { genre: genres } : {}),
       ...(sameAs.length ? { sameAs } : {}),
@@ -234,13 +237,13 @@ export default function ArtistDetail() {
       <div className="max-w-3xl mx-auto px-4 py-24 text-center">
         <Seo
           title="Artist not found | Sanhoti Bengali Association of Orange County"
-          description="This artist page could not be found. Browse all artists who have performed with Sanhoti in Orange County, California."
+          description="This artist page could not be found. Browse all artists featured at Sanhoti events in Orange County, California."
           path={`/artists/${slug ?? ''}`}
           noindex
         />
         <h1 className="text-2xl font-bold text-gray-900 mb-3">Artist not found</h1>
         <p className="text-gray-600 mb-6">
-          We couldn't find that artist. Browse everyone who has performed with Sanhoti.
+          We couldn't find that artist. Browse all Sanhoti artists and performers.
         </p>
         <Link
           to="/artists"
@@ -310,7 +313,7 @@ export default function ArtistDetail() {
       />
 
       <section className="bg-gradient-to-br from-primary-700 via-primary-800 to-gray-900 text-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
           <nav aria-label="Breadcrumb" className="text-sm text-white/70 mb-6">
             <Link to="/" className="hover:underline">
               Home
@@ -358,7 +361,7 @@ export default function ArtistDetail() {
         </div>
       </section>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+      <PageContent>
         {artist.bio && artist.bio !== artist.short_bio && (
           <section className="mb-12 bg-white rounded-2xl shadow-lg p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">About {artist.name}</h2>
@@ -473,7 +476,7 @@ export default function ArtistDetail() {
             </Link>
           </div>
         </div>
-      </div>
+      </PageContent>
     </div>
   );
 }

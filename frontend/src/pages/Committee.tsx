@@ -5,6 +5,7 @@ import { settingsAPI } from '../services/api';
 import { fetchCommitteeMembers, type CommitteeMemberDisplay } from '../utils/fetchCommitteeMembers';
 import Seo from '../components/Seo';
 import PageHero from '../components/PageHero';
+import PageContent from '../components/PageContent';
 
 export default function Committee() {
   const [committeeMembers, setCommitteeMembers] = useState<CommitteeMemberDisplay[]>([]);
@@ -43,7 +44,7 @@ export default function Committee() {
         title="Sanhoti Committee & Board — Orange County, California"
         subtitle={`Volunteers who organise every festival, concert, and charity drive Sanhoti holds in Orange County — Executive Committee ${committeeYear}.`}
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <PageContent>
         {/* Contact Information */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-gray-700 mb-12">
             <div className="flex items-center space-x-2">
@@ -101,7 +102,7 @@ export default function Committee() {
             </motion.div>
           ))}
         </div>
-      </div>
+      </PageContent>
     </div>
   );
 }

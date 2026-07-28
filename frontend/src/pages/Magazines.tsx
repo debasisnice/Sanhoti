@@ -8,6 +8,7 @@ import { convertPSTToLocal } from '../utils/dateUtils';
 import PDFThumbnail from '../components/PDFThumbnail';
 import Seo from '../components/Seo';
 import PageHero from '../components/PageHero';
+import PageContent from '../components/PageContent';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -165,7 +166,7 @@ export default function Magazines() {
       title="Sanhoti Magazines & Souvenirs — Orange County, California"
       subtitle="Souvenir magazines collect Bengali writing, poetry, artwork, and children's contributions from our community in Orange County and Southern California."
         />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+      <PageContent>
 
         {loading ? (
           <div className="text-center py-12">
@@ -320,7 +321,7 @@ export default function Magazines() {
             })}
           </div>
         )}
-      </div>
+      </PageContent>
 
       {/* PDF Viewer Modal */}
       <AnimatePresence>

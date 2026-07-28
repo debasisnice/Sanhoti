@@ -4,10 +4,12 @@ import { motion } from 'framer-motion';
 import { Sparkles, Calendar, MapPin, ArrowRight, Music } from 'lucide-react';
 import Seo from '../components/Seo';
 import PageHero from '../components/PageHero';
+import PageContent from '../components/PageContent';
 import { eventsAPI, subEventsAPI } from '../services/api';
 import { getEventDetailPath } from '../utils/eventSlug';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import type { Event } from '../types';
+import { formatEventDate } from '../utils/dateUtils';
 
 /**
  * Evergreen `/festivals` hub — targets "Bengali festivals in Orange County".
@@ -67,17 +69,9 @@ const FESTIVALS: FestivalDef[] = [
   },
 ];
 
-function fmtDate(iso?: string): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    timeZone: 'America/Los_Angeles',
-  });
-}
+/** Event date for display. Date-only values are calendar dates, not instants. */
+const fmtDate = (iso?: string): string =>
+  formatEventDate(iso, { year: 'numeric', month: 'long', day: 'numeric' });
 
 export default function Festivals() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -293,7 +287,7 @@ export default function Festivals() {
         subtitle="Durga Puja, Saraswati Puja, Poila Boishakh, Kali Puja, and live Bengali concerts for families across Orange County and Southern California — open to everyone."
       />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+      <PageContent>
         <div className="grid gap-8 md:grid-cols-2">
           {FESTIVALS.map(renderFestivalCard)}
 
@@ -401,7 +395,7 @@ export default function Festivals() {
             </Link>
           </div>
         </div>
-      </div>
+      </PageContent>
     </div>
   );
 }

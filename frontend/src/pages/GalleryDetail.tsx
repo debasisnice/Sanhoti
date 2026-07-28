@@ -237,9 +237,6 @@ export default function GalleryDetail() {
             <ImageIcon className="w-8 h-8 text-primary-600" />
             <h1 className="text-2xl font-bold text-gray-900">{gallery.title}</h1>
           </div>
-          {gallery.description && (
-            <p className="text-2xl text-gray-600">{gallery.description}</p>
-          )}
         </motion.div>
 
         {gallery.photos.length === 0 ? (
@@ -291,6 +288,20 @@ export default function GalleryDetail() {
               </motion.div>
             ))}
           </div>
+        )}
+
+        {gallery.description && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-12 max-w-3xl"
+          >
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">About this gallery</h2>
+            <div className="text-gray-700 leading-relaxed whitespace-pre-line border-l-4 border-primary-500 pl-4">
+              {gallery.description}
+            </div>
+          </motion.div>
         )}
 
         {/* Photo Modal */}

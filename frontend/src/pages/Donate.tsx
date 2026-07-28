@@ -4,6 +4,7 @@ import { Heart, CreditCard, Mail } from 'lucide-react';
 import { paymentQRAPI, settingsAPI } from '../services/api';
 import Seo from '../components/Seo';
 import PageHero from '../components/PageHero';
+import PageContent from '../components/PageContent';
 import StripeBuyButtonEmbed from '../components/StripeBuyButtonEmbed';
 
 export default function Donate() {
@@ -59,7 +60,7 @@ export default function Donate() {
         title="Donate to Sanhoti — 501(c)(3) Orange County, California"
         subtitle="Your tax-deductible gift funds Durga Puja, cultural programmes, charity drives, and youth education for the Bengali community across Orange County and Southern California."
       />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+      <PageContent>
         <div className="space-y-8">
           {/* Main Donate Section */}
           <motion.div
@@ -259,7 +260,7 @@ export default function Donate() {
             </p>
           </motion.div>
         </div>
-      </div>
+      </PageContent>
     </div>
   );
 }

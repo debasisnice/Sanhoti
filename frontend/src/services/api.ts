@@ -154,7 +154,11 @@ export const eventsAPI = {
     event_end_dt: string;
     year: number;
     event_description: string;
-    event_type?: 'Festival' | 'Charity' | 'Other';
+    event_type?: 'Festival' | 'Charity' | 'Workshop' | 'Other';
+    workshop_theme?: string;
+    workshop_program_start_dt?: string;
+    workshop_exhibition_dt?: string;
+    workshop_registration_url?: string;
     rsvp_enabled?: boolean;
     rsvp_link?: string;
     location?: string;
@@ -183,7 +187,11 @@ export const eventsAPI = {
       event_end_dt: string;
       year: number;
       event_description: string;
-      event_type?: 'Festival' | 'Charity' | 'Other';
+      event_type?: 'Festival' | 'Charity' | 'Workshop' | 'Other';
+      workshop_theme?: string;
+      workshop_program_start_dt?: string;
+      workshop_exhibition_dt?: string;
+      workshop_registration_url?: string;
       rsvp_enabled?: boolean;
       rsvp_link?: string;
       location?: string;
@@ -595,6 +603,11 @@ export const galleriesAPI = {
 
   getPublicById: async (id: string): Promise<PhotoGallery> => {
     const response = await api.get(`/galleries/public/${id}`);
+    return response.data;
+  },
+
+  getPublicForEvent: async (eventId: string): Promise<PhotoGallery> => {
+    const response = await api.get(`/galleries/public/event/${eventId}`);
     return response.data;
   },
 
@@ -1990,6 +2003,7 @@ export interface HomePageVideo {
   buttonLabel?: string;
   buttonUrl?: string;
 }
+export type HomeHighlightsMode = 'videos' | 'charity_gallery' | 'durga_puja_gallery';
 export interface HeroSlotConfig {
   mode: 'default' | 'video' | 'image' | 'off';
   videoUrl?: string;
@@ -2057,6 +2071,10 @@ export const settingsAPI = {
   },
   updateHomePageVideos: async (videos: HomePageVideo[]): Promise<any> => {
     const response = await api.put('/settings/home-videos', { videos });
+    return response.data;
+  },
+  updateHomeHighlightsMode: async (mode: HomeHighlightsMode): Promise<any> => {
+    const response = await api.put('/settings/home-highlights-mode', { mode });
     return response.data;
   },
   updateHomeSectionOrder: async (order: string[]): Promise<any> => {

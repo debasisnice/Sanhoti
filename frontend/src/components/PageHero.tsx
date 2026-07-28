@@ -3,7 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 /**
  * Shared hero for public landing pages.
  *
- * Fixed height, icon left of the h1, one-line title, two-line subtitle, and a
+ * Fixed height, icon left of the h1, one-line title, three-line subtitle, and a
  * Sanhoti logo watermark — keeps /sponsors, /galleries, /charity, etc. visually
  * aligned while preserving location keywords in the visible h1 for SEO.
  */
@@ -16,7 +16,7 @@ export default function PageHero({
   icon: LucideIcon;
   /** Visible h1 — include page topic + Orange County (or SoCal) for SEO. */
   title: string;
-  /** Shown in exactly two lines (line-clamp-2). Write ~2 short sentences. */
+  /** Shown in up to three lines (line-clamp-3). */
   subtitle: string;
   /** Optional content below the title block (keep minimal — height is fixed). */
   children?: React.ReactNode;
@@ -33,7 +33,7 @@ export default function PageHero({
         }}
       />
 
-      <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-[280px] flex flex-col justify-center">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[280px] flex flex-col justify-center">
         <div className="flex items-start gap-3 sm:gap-5 min-w-0">
           <div
             className="shrink-0 flex items-center justify-center w-11 h-11 sm:w-14 sm:h-14 rounded-xl bg-white/10 mt-0.5"
@@ -45,7 +45,7 @@ export default function PageHero({
             <h1 className="text-lg sm:text-2xl lg:text-[1.75rem] font-bold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
               {title}
             </h1>
-            <p className="mt-2 sm:mt-3 text-sm sm:text-base text-white/85 leading-snug line-clamp-2 min-h-[2.75rem] sm:min-h-[3rem] max-w-2xl">
+            <p className="mt-2 sm:mt-3 text-sm sm:text-base text-white/85 leading-snug line-clamp-3 min-h-[4.125rem] sm:min-h-[4.25rem] max-w-2xl">
               {subtitle}
             </p>
           </div>

@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import type { SyntheticEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Users, Image, BookOpen, ArrowRight, Eye, Star, MapPin, Share2, Target, Play } from 'lucide-react';
-import { eventsAPI, homepageAPI, settingsAPI, subEventsAPI, durgaPujaPageAPI } from '../services/api';
-import type { HomePageVideo, HeroSlots, DurgaPujaMeal } from '../services/api';
+import { Calendar, Users, Image, BookOpen, ArrowRight, Eye, Star, MapPin, Share2, Target, Play, HeartHandshake } from 'lucide-react';
+import { eventsAPI, homepageAPI, settingsAPI, subEventsAPI, durgaPujaPageAPI, galleriesAPI } from '../services/api';
+import type { HomePageVideo, HeroSlots, DurgaPujaMeal, HomeHighlightsMode } from '../services/api';
 import { Event, SubEvent } from '../types';
 import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime } from '../utils/dateUtils';
 import { getEffectiveEventType } from '../utils/eventType';
@@ -18,6 +18,13 @@ import Seo from '../components/Seo';
 import { getEventDetailPath } from '../utils/eventSlug';
 import { toVideoEmbedUrl, youtubeThumbnailUrl } from '../utils/videoEmbedUrl';
 import { resolveHomeSectionOrder } from '../constants/homeSections';
+import {
+  DEFAULT_HOME_HIGHLIGHTS_MODE,
+  parseHomeHighlightsMode,
+  pickGalleryHighlightPhotos,
+  type GalleryHighlightPhoto,
+} from '../constants/homeHighlights';
+import type { PhotoGallery } from '../types';
 
 type AboutStatementTabKey = 'about' | 'vision' | 'mission' | 'purpose';
 
@@ -216,6 +223,8 @@ export default function Home() {
   });
   const [heroBannerText, setHeroBannerText] = useState<string | null>(null);
   const [homePageVideos, setHomePageVideos] = useState<HomePageVideo[]>([]);
+  const [highlightsMode, setHighlightsMode] = useState<HomeHighlightsMode>(DEFAULT_HOME_HIGHLIGHTS_MODE);
+  const [publicGalleries, setPublicGalleries] = useState<PhotoGallery[]>([]);
   const [homeSectionOrder, setHomeSectionOrder] = useState<string[]>(() => resolveHomeSectionOrder());
   const [heroSlots, setHeroSlots] = useState<HeroSlots>({});
   const [durgaMenu, setDurgaMenu] = useState<{ year: number; meals: DurgaPujaMeal[] } | null>(null);
@@ -452,6 +461,9 @@ export default function Home() {
                 .filter((v) => (v.url ?? '').trim())
             : []
         );
+        setHighlightsMode(
+          parseHomeHighlightsMode((settings as { homeHighlightsMode?: unknown }).homeHighlightsMode)
+        );
         setHomeSectionOrder(
           resolveHomeSectionOrder((settings as { homeSectionOrder?: string[] }).homeSectionOrder)
         );
@@ -483,6 +495,33 @@ export default function Home() {
 
     fetchSocialLinksAndStatements();
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    galleriesAPI
+      .getPublic()
+      .then(galleries => {
+        if (!cancelled) setPublicGalleries(galleries);
+      })
+      .catch(() => {
+        if (!cancelled) setPublicGalleries([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const galleryHighlightPhotos = useMemo((): GalleryHighlightPhoto[] => {
+    if (highlightsMode === 'charity_gallery' || highlightsMode === 'durga_puja_gallery') {
+      return pickGalleryHighlightPhotos(publicGalleries, highlightsMode, 8);
+    }
+    return [];
+  }, [highlightsMode, publicGalleries]);
+
+  const showHighlightsSection =
+    highlightsMode === 'videos'
+      ? homePageVideos.length > 0
+      : galleryHighlightPhotos.length > 0;
 
   // "Durga Puja Mode": gently forward first-time human visitors from the home page to the
   // Durga Puja page. SEO-safe by design — this is a client-side, in-app navigation that runs
@@ -626,6 +665,13 @@ export default function Home() {
   }, [charityEventImages, priorityCharityImageIndex]);
 
   const features = [
+    {
+      icon: HeartHandshake,
+      title: 'Charity & Giving',
+      description: 'Support hunger relief, domestic violence services, and community welfare across Orange County',
+      link: '/charity',
+      color: 'from-rose-500 to-rose-600',
+    },
     {
       icon: Calendar,
       title: 'Cultural Events',
@@ -1162,8 +1208,8 @@ export default function Home() {
       </section>
       )}
 
-      {/* Videos section (below About Us): YouTube links managed in admin Settings → Home Page */}
-      {homePageVideos.length > 0 && (
+      {/* Highlights section: videos or gallery photos (admin Settings → Home Page) */}
+      {showHighlightsSection && (
         <section style={{ order: orderOf('highlights') }} className="py-20 bg-amber-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
@@ -1174,78 +1220,121 @@ export default function Home() {
               className="text-center mb-10"
             >
               <h2 className="text-4xl font-bold text-gray-900 mb-4">Highlights</h2>
+              {highlightsMode === 'charity_gallery' && (
+                <p className="text-xl text-gray-600">
+                  Moments from our charity events across Orange County
+                </p>
+              )}
+              {highlightsMode === 'durga_puja_gallery' && (
+                <p className="text-xl text-gray-600">
+                  Scenes from Sanhoti Durga Puja celebrations in Southern California
+                </p>
+              )}
             </motion.div>
-            <div className="flex flex-wrap justify-center gap-6">
-              {homePageVideos.map((v, i) => {
-                const url = v.url;
-                const embed = toVideoEmbedUrl(url);
-                // Vertical Shorts get a portrait frame; regular videos stay 16:9.
-                const isShort = /\/shorts\//i.test(url);
-                const hasButton = Boolean(v.buttonLabel?.trim() && v.buttonUrl?.trim());
-                return (
-                  <div
-                    key={i}
-                    className={`group flex flex-col bg-white rounded-2xl shadow-md hover:shadow-xl overflow-hidden border border-yellow-200/70 transition-all duration-300 hover:-translate-y-1 w-full ${
-                      isShort ? 'sm:w-[300px]' : 'sm:w-[380px]'
-                    }`}
-                  >
-                    {/* flex-1 + justify-center vertically centers the video so, when the
-                        card is stretched to match a taller Short in the same row, the
-                        blank space is split evenly above and below. */}
-                    <div className="flex-1 flex flex-col justify-center">
-                      {embed ? (
-                        <div className={`w-full ${isShort ? 'aspect-[9/16]' : 'aspect-video'} bg-black`}>
-                          <iframe
-                            src={embed}
-                            title={`Sanhoti video ${i + 1}`}
-                            className="w-full h-full"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowFullScreen
-                          />
+
+            {highlightsMode === 'videos' ? (
+              <div className="flex flex-wrap justify-center gap-6">
+                {homePageVideos.map((v, i) => {
+                  const url = v.url;
+                  const embed = toVideoEmbedUrl(url);
+                  const isShort = /\/shorts\//i.test(url);
+                  const hasButton = Boolean(v.buttonLabel?.trim() && v.buttonUrl?.trim());
+                  return (
+                    <div
+                      key={i}
+                      className={`group flex flex-col bg-white rounded-2xl shadow-md hover:shadow-xl overflow-hidden border border-yellow-200/70 transition-all duration-300 hover:-translate-y-1 w-full ${
+                        isShort ? 'sm:w-[300px]' : 'sm:w-[380px]'
+                      }`}
+                    >
+                      <div className="flex-1 flex flex-col justify-center">
+                        {embed ? (
+                          <div className={`w-full ${isShort ? 'aspect-[9/16]' : 'aspect-video'} bg-black`}>
+                            <iframe
+                              src={embed}
+                              title={`Sanhoti video ${i + 1}`}
+                              className="w-full h-full"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              allowFullScreen
+                            />
+                          </div>
+                        ) : (
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`w-full flex items-center justify-center gap-2 bg-gray-900 text-white font-medium ${
+                              isShort ? 'aspect-[9/16]' : 'aspect-video'
+                            }`}
+                          >
+                            <Eye className="w-5 h-5" /> Watch video
+                          </a>
+                        )}
+                      </div>
+                      {(v.caption?.trim() || v.author?.trim()) && (
+                        <div className="px-4 pt-4">
+                          {v.caption?.trim() && (
+                            <p className="text-sm text-gray-700 italic leading-snug text-center">
+                              “{v.caption.trim()}”
+                            </p>
+                          )}
+                          {v.author?.trim() && (
+                            <p className="mt-1 text-sm font-semibold text-primary-700 text-center">
+                              — {v.author.trim()}
+                            </p>
+                          )}
                         </div>
-                      ) : (
-                        <a
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`w-full flex items-center justify-center gap-2 bg-gray-900 text-white font-medium ${
-                            isShort ? 'aspect-[9/16]' : 'aspect-video'
-                          }`}
-                        >
-                          <Eye className="w-5 h-5" /> Watch video
-                        </a>
+                      )}
+                      {hasButton && (
+                        <div className="p-4 text-center border-t border-gray-100">
+                          <a
+                            href={v.buttonUrl!.trim()}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center w-full px-5 py-2.5 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+                          >
+                            {v.buttonLabel!.trim()}
+                          </a>
+                        </div>
                       )}
                     </div>
-                    {(v.caption?.trim() || v.author?.trim()) && (
-                      <div className="px-4 pt-4">
-                        {v.caption?.trim() && (
-                          <p className="text-sm text-gray-700 italic leading-snug text-center">
-                            “{v.caption.trim()}”
-                          </p>
-                        )}
-                        {v.author?.trim() && (
-                          <p className="mt-1 text-sm font-semibold text-primary-700 text-center">
-                            — {v.author.trim()}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                    {hasButton && (
-                      <div className="p-4 text-center border-t border-gray-100">
-                        <a
-                          href={v.buttonUrl!.trim()}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center w-full px-5 py-2.5 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors"
-                        >
-                          {v.buttonLabel!.trim()}
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {galleryHighlightPhotos.map((p, i) => (
+                    <Link
+                      key={`${p.galleryId}-${i}`}
+                      to={`/galleries/${p.galleryId}`}
+                      className="group block aspect-square overflow-hidden rounded-xl bg-white shadow-md border border-gray-100 hover:shadow-xl transition-shadow"
+                    >
+                      <img
+                        src={p.url}
+                        alt={p.alt}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    </Link>
+                  ))}
+                </div>
+                <div className="mt-8 text-center">
+                  <Link
+                    to={
+                      highlightsMode === 'charity_gallery'
+                        ? '/events?type=Charity'
+                        : '/durga-puja'
+                    }
+                    className="inline-flex items-center gap-1 text-primary-600 font-medium hover:underline"
+                  >
+                    {highlightsMode === 'charity_gallery'
+                      ? 'See charity events'
+                      : 'Explore Durga Puja'}
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         </section>
       )}
@@ -1293,12 +1382,12 @@ export default function Home() {
                     {isPortrait ? (
                       <div className="flex flex-col md:flex-row">
                         {/* Image Section - Left Side */}
-                        <div className="md:w-1/2 bg-gradient-to-br from-primary-400 to-primary-600 relative overflow-hidden min-h-[400px] md:min-h-[500px] flex items-center justify-center">
+                        <div className="md:w-1/2 relative overflow-hidden min-h-[400px] md:min-h-[500px] bg-gradient-to-br from-primary-400 to-primary-600">
                           {eventImage && (
                             <img
                               src={eventImage}
                               alt={eventName}
-                              className="w-full h-full object-contain"
+                              className="absolute inset-0 w-full h-full object-cover"
                               onError={retryImageOnError(eventImage)}
                             />
                           )}
@@ -1439,12 +1528,12 @@ export default function Home() {
                     ) : (
                       /* Landscape or No Image Layout: Image on top, details on bottom */
                       <>
-                        <div className="h-80 bg-gradient-to-br from-primary-400 to-primary-600 relative overflow-hidden flex items-center justify-center">
+                        <div className="h-80 relative overflow-hidden bg-gradient-to-br from-primary-400 to-primary-600">
                           {eventImage ? (
                             <img
                               src={eventImage}
                               alt={eventName}
-                              className="w-full h-full object-contain"
+                              className="absolute inset-0 w-full h-full object-cover"
                               onError={retryImageOnError(eventImage)}
                             />
                           ) : null}
@@ -1676,7 +1765,7 @@ export default function Home() {
             <p className="text-xl text-gray-600">Everything you need to stay connected with the Bengali community</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.title}

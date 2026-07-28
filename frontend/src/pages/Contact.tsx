@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { useState, useEffect } from 'react';
 import Seo from '../components/Seo';
 import PageHero from '../components/PageHero';
+import PageContent from '../components/PageContent';
 
 interface ContactForm {
   firstName: string;
@@ -94,7 +95,7 @@ export default function Contact() {
         title="Contact Sanhoti — Orange County, California"
         subtitle="Questions about events, tickets, sponsorship, volunteering, or membership? We are happy to hear from Bengali and Indian families across Orange County and Southern California."
       />
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+      <PageContent>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -291,7 +292,7 @@ export default function Contact() {
             </div>
           </form>
         </motion.div>
-      </div>
+      </PageContent>
     </div>
   );
 }

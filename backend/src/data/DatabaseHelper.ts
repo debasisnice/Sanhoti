@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, unlinkSync } from 'fs';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { randomInt } from 'crypto';
@@ -11,7 +11,28 @@ export class DatabaseHelper {
   private dataDir: string;
 
   constructor() {
-    this.dataDir = join(__dirname, '../../data');
+    // `SANHOTI_DATA_DIR` lets the test suite point storage at a throwaway copy.
+    // Without it, running the tests writes to the real backend/data — creating
+    // events, registering users and saving seat maps into live files. Unset in
+    // normal operation, so production behaviour is unchanged.
+    //
+    // The guard below is not paranoia: a `vitest` watcher left running from
+    // before this isolation existed re-ran the suite on file save and wrote 8
+    // events and 8 user accounts into the live data. Because backend/data/*.json
+    // is gitignored, nothing flagged it. Failing loudly beats corrupting records
+    // silently, so under a test runner the override is mandatory.
+    if (process.env.VITEST && !process.env.SANHOTI_DATA_DIR) {
+      throw new Error(
+        'Refusing to use the real data directory under a test runner. ' +
+          'SANHOTI_DATA_DIR is unset — check that vitest.config.ts is loaded and ' +
+          'src/tests/setup.ts ran. If a watcher is running, restart it so it picks ' +
+          'up the config.'
+      );
+    }
+
+    this.dataDir = process.env.SANHOTI_DATA_DIR
+      ? resolve(process.env.SANHOTI_DATA_DIR)
+      : join(__dirname, '../../data');
     this.ensureDataDir();
   }
 

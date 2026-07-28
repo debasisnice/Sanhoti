@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { BookOpen, Calendar, Clock, ArrowRight } from 'lucide-react';
 import Seo from '../components/Seo';
 import PageHero from '../components/PageHero';
+import PageContent from '../components/PageContent';
 import { blogsAPI } from '../services/api';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import type { PublicBlog } from '../types';
@@ -83,7 +84,7 @@ export default function Blogs() {
         subtitle="Event recaps, cultural reflections, charity highlights, and news from Sanhoti Bengali Association across Orange County and Southern California."
       />
 
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <PageContent as="section">
         {loaded && posts.length === 0 && (
           <p className="text-center text-gray-600">No blog posts published yet. Check back soon.</p>
         )}
@@ -149,7 +150,7 @@ export default function Blogs() {
             </article>
           ))}
         </div>
-      </section>
+      </PageContent>
     </div>
   );
 }

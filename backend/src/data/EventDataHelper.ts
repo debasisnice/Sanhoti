@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { assetDir } from '../utils/dataPaths.js';
 
 export class EventDataHelper extends DatabaseHelper {
   private readonly filename = 'events.json';
@@ -15,8 +16,8 @@ export class EventDataHelper extends DatabaseHelper {
     // Get the galleries directory path using the same approach as DatabaseHelper
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
-    this.galleriesDir = join(__dirname, '../../data/Galleries');
-    this.eventsFlyersDir = join(__dirname, '../../data/Events_Flyers');
+    this.galleriesDir = assetDir('Galleries');
+    this.eventsFlyersDir = assetDir('Events_Flyers');
     this.ensureGalleriesDir();
     this.ensureEventsFlyersDir();
   }
@@ -33,9 +34,9 @@ export class EventDataHelper extends DatabaseHelper {
     }
   }
 
-  private effectiveEventType(e: Pick<Event, 'event_type'>): 'Festival' | 'Charity' | 'Other' {
+  private effectiveEventType(e: Pick<Event, 'event_type'>): 'Festival' | 'Charity' | 'Workshop' | 'Other' {
     const t = e.event_type;
-    if (t === 'Festival' || t === 'Charity' || t === 'Other') return t;
+    if (t === 'Festival' || t === 'Charity' || t === 'Workshop' || t === 'Other') return t;
     return 'Festival';
   }
 

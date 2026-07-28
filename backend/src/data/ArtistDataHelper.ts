@@ -3,6 +3,7 @@ import { Artist } from '../models/types.js';
 import { existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { assetDir } from '../utils/dataPaths.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -14,7 +15,7 @@ const __dirname = dirname(__filename);
  */
 export class ArtistDataHelper extends DatabaseHelper {
   private readonly filename = 'artists.json';
-  private readonly artistsDir = join(__dirname, '../../data/Artists');
+  private readonly artistsDir = assetDir('Artists');
 
   constructor() {
     super();

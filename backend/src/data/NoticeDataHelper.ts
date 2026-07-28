@@ -4,13 +4,14 @@ import { existsSync, mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { assetDir } from '../utils/dataPaths.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export class NoticeDataHelper extends DatabaseHelper {
   private readonly filename = 'notices.json';
-  private readonly noticeFlyersDir = join(__dirname, '../../data/Notice_Flyers');
+  private readonly noticeFlyersDir = assetDir('Notice_Flyers');
 
   constructor() {
     super();

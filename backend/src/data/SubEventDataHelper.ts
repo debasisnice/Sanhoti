@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, readdirSync, unlinkSync, statSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { assetDir } from '../utils/dataPaths.js';
 
 export class SubEventDataHelper extends DatabaseHelper {
   private readonly filename = 'subEvents.json';
@@ -15,7 +16,7 @@ export class SubEventDataHelper extends DatabaseHelper {
     super();
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
-    this.eventsFlyersDir = join(__dirname, '../../data/Events_Flyers');
+    this.eventsFlyersDir = assetDir('Events_Flyers');
     this.eventDataHelper = new EventDataHelper();
     this.ensureEventsFlyersDir();
   }

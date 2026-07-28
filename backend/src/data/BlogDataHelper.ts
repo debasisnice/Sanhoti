@@ -3,6 +3,7 @@ import { Blog } from '../models/types.js';
 import { existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { assetDir } from '../utils/dataPaths.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,7 +16,7 @@ const __dirname = dirname(__filename);
  */
 export class BlogDataHelper extends DatabaseHelper {
   private readonly filename = 'blogs.json';
-  private readonly blogsDir = join(__dirname, '../../data/Blogs');
+  private readonly blogsDir = assetDir('Blogs');
 
   constructor() {
     super();

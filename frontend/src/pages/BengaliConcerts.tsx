@@ -4,24 +4,23 @@ import { motion } from 'framer-motion';
 import { Music, Ticket, MapPin, Calendar, Mic2, ArrowRight } from 'lucide-react';
 import Seo from '../components/Seo';
 import PageHero from '../components/PageHero';
+import PageContent from '../components/PageContent';
 import { subEventsAPI } from '../services/api';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import type { SubEvent } from '../types';
+import { formatEventDate } from '../utils/dateUtils';
 
-function fmtDateTime(iso?: string): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return '';
-  const hasTime = /T\d{2}:\d{2}/.test(iso);
-  return d.toLocaleDateString('en-US', {
+/** Event date for display. Date-only values are calendar dates, not instants. */
+const fmtDateTime = (iso?: string): string =>
+  formatEventDate(iso, {
     weekday: 'short',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-    ...(hasTime ? { hour: 'numeric', minute: '2-digit' } : {}),
-    timeZone: 'America/Los_Angeles',
+    // Honoured only when the stored value actually has a time.
+    hour: 'numeric',
+    minute: '2-digit',
   });
-}
 
 function venueLine(se: SubEvent): string {
   const where = [se.venue_name, se.venue_city && `${se.venue_city}, ${se.venue_region || 'CA'}`]
@@ -267,7 +266,7 @@ export default function BengaliConcerts() {
         subtitle="Live Bollywood, contemporary Indian, and Rabindra Sangeet artists at Sanhoti Durga Puja and cultural nights in Costa Mesa — open to music lovers across Southern California."
       />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+      <PageContent>
         {upcoming.length > 0 && (
           <div className="mb-8 -mt-4">
             <a
@@ -363,7 +362,7 @@ export default function BengaliConcerts() {
             </Link>
           </div>
         </div>
-      </div>
+      </PageContent>
     </div>
   );
 }

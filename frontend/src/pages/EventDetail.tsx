@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useEffect, useState, type ReactNode } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, ArrowLeft, Bell, Image as ImageIcon, ArrowRight } from 'lucide-react';
+import { Calendar, MapPin, ArrowLeft, Bell, Image as ImageIcon, ArrowRight, Palette } from 'lucide-react';
 import { eventsAPI, noticesAPI, galleriesAPI, subEventsAPI } from '../services/api';
 import { Event, Notice, PhotoGallery, SubEvent } from '../types';
 import { format } from 'date-fns';
@@ -17,6 +17,7 @@ import { seoPlainText } from '../seo/seoUtils';
 import { buildEventJsonLd } from '../seo/eventJsonLd';
 import { getEventPath } from '../utils/eventSlug';
 import { isDurgaPujaEventName, durgaPujaEventYear, durgaPujaPagePath } from '../utils/durgaPuja';
+import FlyerImage from '../components/FlyerImage';
 
 /** Durga-Puja-style section heading with a kicker and accent underline. */
 function SectionHeading({ kicker, children }: { kicker?: string; children: ReactNode }) {
@@ -141,20 +142,34 @@ export default function EventDetail() {
               }
               setNoticeImages(imagesMap);
 
-              // Fetch galleries by event (use public endpoint and filter)
+              // Event folder gallery (shown on event page even if not on /galleries index)
               try {
-                const allGalleries = await galleriesAPI.getPublic();
-                const galleries = allGalleries.filter(g => {
-                  // Defensive check: ensure both eventId and fetchedEvent.event_id exist
-                  if (!g.eventId || !fetchedEvent.event_id) {
-                    return false;
+                const linked: PhotoGallery[] = [];
+                try {
+                  const eventGallery = await galleriesAPI.getPublicForEvent(fetchedEvent.event_id);
+                  linked.push(eventGallery);
+                } catch {
+                  /* no folder gallery */
+                }
+
+                // Legacy galleries.json entries still listed via public index
+                try {
+                  const allGalleries = await galleriesAPI.getPublic();
+                  for (const g of allGalleries) {
+                    if (
+                      g.eventId &&
+                      String(g.eventId) === String(fetchedEvent.event_id) &&
+                      !linked.some((x) => x.id === g.id)
+                    ) {
+                      linked.push(g);
+                    }
                   }
-                  // Convert both to strings for safe comparison
-                  return String(g.eventId) === String(fetchedEvent.event_id);
-                });
-                setRelatedGalleries(galleries);
-              } catch (error) {
-                // Silently fail if no galleries found
+                } catch {
+                  /* optional */
+                }
+
+                setRelatedGalleries(linked);
+              } catch {
                 setRelatedGalleries([]);
               }
             } catch (error) {
@@ -288,7 +303,14 @@ export default function EventDetail() {
   const rsvpLink = (event as unknown as { rsvp_link?: string }).rsvp_link;
   const mapsHref = (q: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
   const eventTypeWord =
-    event.event_type === 'Charity' ? 'charity' : event.event_type === 'Festival' ? 'cultural' : 'community';
+    event.event_type === 'Charity'
+      ? 'charity'
+      : event.event_type === 'Workshop'
+        ? 'workshop'
+        : event.event_type === 'Festival'
+          ? 'cultural'
+          : 'community';
+  const isWorkshop = event.event_type === 'Workshop';
 
   return (
     <div className="pb-32">
@@ -458,6 +480,37 @@ export default function EventDetail() {
 
           {/* Key details */}
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {isWorkshop && event.workshop_theme && (
+              <div className="flex items-start gap-3 bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                <Palette className="w-5 h-5 text-primary-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs text-gray-500">Workshop theme</p>
+                  <p className="font-semibold text-gray-900">{event.workshop_theme}</p>
+                </div>
+              </div>
+            )}
+            {isWorkshop && event.workshop_program_start_dt && (
+              <div className="flex items-start gap-3 bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                <Calendar className="w-5 h-5 text-primary-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs text-gray-500">Program starts</p>
+                  <p className="font-semibold text-gray-900">
+                    {formatDateWithTime(event.workshop_program_start_dt)}
+                  </p>
+                </div>
+              </div>
+            )}
+            {isWorkshop && event.workshop_exhibition_dt && (
+              <div className="flex items-start gap-3 bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                <Calendar className="w-5 h-5 text-primary-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs text-gray-500">Final exhibition</p>
+                  <p className="font-semibold text-gray-900">
+                    {formatDateWithTime(event.workshop_exhibition_dt)}
+                  </p>
+                </div>
+              </div>
+            )}
             {eventDate && (
               <div className="flex items-start gap-3 bg-white rounded-xl border border-gray-100 shadow-sm p-4">
                 <Calendar className="w-5 h-5 text-primary-600 mt-0.5 shrink-0" />
@@ -488,19 +541,22 @@ export default function EventDetail() {
             )}
           </div>
 
-          {/* Full flyer (object-contain so details baked into the image stay readable) */}
-          {heroImg && (
-            <figure className="mt-6 rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-sm">
-              <img
-                src={heroImg}
-                alt={detailEventName}
-                className="w-full h-auto object-contain max-h-[680px] mx-auto"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            </figure>
+          {isWorkshop && event.workshop_registration_url && (
+            <div className="mt-6">
+              <a
+                href={event.workshop_registration_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors shadow-lg"
+              >
+                Register for this workshop
+              </a>
+            </div>
           )}
+
+          {/* Full flyer. object-contain keeps the text baked into the artwork
+              readable; the blurred backdrop fills the section around it. */}
+          <FlyerImage src={heroImg} alt={detailEventName} maxHeight={680} className="mt-6" />
 
           {/* RSVP QR for external link */}
           {isUpcoming && rsvpEnabled && rsvpLink && (

@@ -1,6 +1,7 @@
 import { GalleryDataHelper } from '../data/GalleryDataHelper.js';
 import { EventDataHelper } from '../data/EventDataHelper.js';
 import { PhotoGallery, Photo, Event } from '../models/types.js';
+import { galleryPhotoCaptionFromFilename } from '../utils/seoGalleryFilename.js';
 import { readdirSync, statSync, unlinkSync, existsSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
@@ -49,7 +50,7 @@ export class GalleryService {
                   id: `photo-${event.event_id}-${index}`,
                   url: `/api/galleries/${event.event_id}/photos/${encodedFile}`,
                   thumbnailUrl: isVideo ? undefined : `/api/galleries/${event.event_id}/photos/${encodedFile}`, // Videos don't have thumbnails yet
-                  caption: file.replace(/\.[^/.]+$/, ''), // Use filename as caption
+                  caption: galleryPhotoCaptionFromFilename(file),
                   uploadedAt: new Date().toISOString(), // Could get from file stats if needed
                   filename: file, // Store original filename for reference
                   type: isVideo ? 'video' as const : 'image' as const,
@@ -64,6 +65,8 @@ export class GalleryService {
         galleries.push({
           id: event.event_id, // Use event_id as gallery ID
           eventId: event.event_id,
+          event_name: event.event_name,
+          event_type: event.event_type,
           title: `${event.event_name} Gallery`,
           description: event.event_description,
           isPublic: true,
@@ -114,7 +117,7 @@ export class GalleryService {
                 id: `photo-${event.event_id}-${index}`,
                 url: `/api/galleries/${event.event_id}/photos/${encodedFile}`,
                 thumbnailUrl: isVideo ? undefined : `/api/galleries/${event.event_id}/photos/${encodedFile}`,
-                caption: file.replace(/\.[^/.]+$/, ''),
+                caption: galleryPhotoCaptionFromFilename(file),
                 uploadedAt: new Date().toISOString(),
                 filename: file, // Store original filename for reference
                 type: isVideo ? 'video' as const : 'image' as const,
@@ -128,6 +131,8 @@ export class GalleryService {
       return {
         id: event.event_id,
         eventId: event.event_id,
+        event_name: event.event_name,
+        event_type: event.event_type,
         title: `${event.event_name} Gallery`,
         description: event.event_description,
         isPublic: event.gallery_is_public ?? false,
@@ -140,6 +145,32 @@ export class GalleryService {
     }
     
     return null;
+  }
+
+  /**
+   * Gallery for an active event's detail page. Unlike getPublicGalleries(), this
+   * returns the event's folder gallery even when gallery_is_public is false —
+   * unpublished only hides from the /galleries index, not the event's own page.
+   */
+  async getGalleryForEventPage(eventId: string): Promise<PhotoGallery | null> {
+    const event = await this.eventDataHelper.findById(eventId);
+    if (!event || event.is_active === false || !event.photo_gallery_link) {
+      return null;
+    }
+    const gallery = await this.getGalleryById(eventId);
+    if (!gallery || gallery.photos.length === 0) {
+      return null;
+    }
+    return gallery;
+  }
+
+  /** Active event whose folder gallery may be viewed publicly (even if unpublished on /galleries). */
+  async getEventForGalleryAccess(eventId: string): Promise<Event | null> {
+    const event = await this.eventDataHelper.findById(eventId);
+    if (!event || event.is_active === false || !event.photo_gallery_link) {
+      return null;
+    }
+    return event;
   }
 
   async getGalleriesByEvent(eventId: string): Promise<PhotoGallery[]> {
@@ -218,7 +249,7 @@ export class GalleryService {
               id: `photo-${eventId}-${index}-${file}`,
               url: `/api/galleries/${eventId}/photos/${encodeURIComponent(file)}`,
               thumbnailUrl: isVideo ? undefined : `/api/galleries/${eventId}/photos/${encodeURIComponent(file)}`,
-              caption: file.replace(/\.[^/.]+$/, ''),
+              caption: galleryPhotoCaptionFromFilename(file),
               uploadedAt: stats.birthtime.toISOString(),
               filename: file, // Store filename for deletion
               type: isVideo ? 'video' as const : 'image' as const,

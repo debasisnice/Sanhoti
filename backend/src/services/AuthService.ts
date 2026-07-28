@@ -3,6 +3,17 @@ import { hashPassword, comparePassword, generateToken } from '../utils/auth.js';
 import { User } from '../models/types.js';
 import { transformUserForFrontend } from '../utils/userTransform.js';
 
+/**
+ * The only committee fields exposed publicly: exactly what the /committee
+ * page renders. Deliberately not derived from `User`, so adding a field to
+ * the user record cannot silently widen a public endpoint.
+ */
+export interface CommitteeMemberPublic {
+  firstName: string;
+  lastName: string;
+  role: string;
+}
+
 export class AuthService {
   private userDataHelper: UserDataHelper;
 
@@ -88,22 +99,34 @@ export class AuthService {
     return transformUserForFrontend(user);
   }
 
-  async getCommitteeMembers(): Promise<any[]> {
+  /**
+   * Committee members for the public /committee page.
+   *
+   * This feeds an unauthenticated endpoint, so it returns only the three fields
+   * the page actually renders. It previously spread the whole user record via
+   * `transformUserForFrontend`, which meant `GET /api/committee` served each
+   * officer's home address, personal email and phone number to anyone who asked
+   * — none of it visible on the page, all of it one curl away.
+   *
+   * Add a field here only if the public page genuinely displays it.
+   */
+  async getCommitteeMembers(): Promise<CommitteeMemberPublic[]> {
     const committeeRoles = ['President', 'Secretary', 'Treasurer', 'Cultural Director'];
-    const committeeMembers = [];
-    
+    const committeeMembers: CommitteeMemberPublic[] = [];
+
     for (const role of committeeRoles) {
       const users = await this.userDataHelper.findByMemberType(role);
       if (users.length > 0) {
         // Take the first active user with this member_type
         const user = users[0];
         committeeMembers.push({
-          ...transformUserForFrontend(user),
-          role: role,
+          firstName: user.first_name ?? '',
+          lastName: user.last_name ?? '',
+          role,
         });
       }
     }
-    
+
     return committeeMembers;
   }
 

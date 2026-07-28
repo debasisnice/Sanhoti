@@ -27,7 +27,7 @@ import Committee from './pages/Committee';
 import Events from './pages/Events';
 import EventDetail from './pages/EventDetail';
 import SubEventDetail from './pages/SubEventDetail';
-import SponsorshipProspectus from './pages/SponsorshipProspectus';
+
 import CorporatePartnerships from './pages/CorporatePartnerships';
 import RSVP from './pages/RSVP';
 import Notices from './pages/Notices';
@@ -43,6 +43,10 @@ import AuthenticatedRedirect from './components/AuthenticatedRedirect';
 // Code-split heavy chunks out of the public bundle:
 // - Magazines/Documents pull in pdfjs-dist (~1MB)
 // - AdminDashboard pulls in all 14 admin pages
+// react-pdf pulls in pdfjs, which is heavy and touches browser-only APIs
+// (DOMMatrix). Loading it lazily keeps it out of the initial bundle and out
+// of every page that does not show a PDF.
+const SponsorshipProspectus = lazy(() => import('./pages/SponsorshipProspectus'));
 const Magazines = lazy(() => import('./pages/Magazines'));
 const Documents = lazy(() => import('./pages/Documents'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));

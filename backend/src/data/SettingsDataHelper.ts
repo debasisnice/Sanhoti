@@ -2,6 +2,7 @@ import { DatabaseHelper } from './DatabaseHelper.js';
 import {
   HeroSlots,
   HomeHeroButtonsVisibility,
+  HomeHighlightsMode,
   HomePageStatements,
   HomePageVideo,
   HomeStatementTabsVisibility,
@@ -258,6 +259,22 @@ export class SettingsDataHelper extends DatabaseHelper {
     const updated: Settings = {
       ...current,
       homePageVideos: videos,
+      updated_at: new Date().toISOString(),
+    };
+
+    this.writeFile(this.filename, [updated]);
+    return updated;
+  }
+
+  async updateHomeHighlightsMode(mode: HomeHighlightsMode): Promise<Settings> {
+    let current = await this.get();
+    if (!current) {
+      current = this.getDefaultSettings();
+    }
+
+    const updated: Settings = {
+      ...current,
+      homeHighlightsMode: mode,
       updated_at: new Date().toISOString(),
     };
 

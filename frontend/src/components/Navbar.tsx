@@ -358,6 +358,13 @@ export default function Navbar() {
                             Charity Events
                           </Link>
                           <Link
+                            to="/events?type=Workshop"
+                            onClick={() => setEventsDropdownOpen(false)}
+                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors text-sm font-medium"
+                          >
+                            Workshops
+                          </Link>
+                          <Link
                             to="/events?type=Other"
                             onClick={() => setEventsDropdownOpen(false)}
                             className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors text-sm font-medium"
@@ -601,6 +608,15 @@ export default function Navbar() {
                           }`}
                         >
                           Charity Events
+                        </Link>
+                        <Link
+                          to="/events?type=Workshop"
+                          onClick={() => setIsOpen(false)}
+                          className={`block text-white hover:text-primary-200 transition-colors text-[15px] ${
+                            location.pathname === '/events' && new URLSearchParams(location.search).get('type') === 'Workshop' ? 'border-b-2 border-white' : ''
+                          }`}
+                        >
+                          Workshops
                         </Link>
                         <Link
                           to="/events?type=Other"

@@ -7,6 +7,7 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import Seo from '../components/Seo';
 import PageHero from '../components/PageHero';
+import PageContent from '../components/PageContent';
 import { durgaPujaPageAPI } from '../services/api';
 import { durgaPujaPagePath } from '../utils/durgaPuja';
 
@@ -151,7 +152,7 @@ export default function SponsorshipProspectus() {
         title={`Become a Sanhoti Sponsor — Orange County, California${year ? ` · ${year}` : ''}`}
         subtitle="Partner with Orange County's largest Bengali celebration — brand visibility, souvenir magazine placement, and tax-deductible support for Sanhoti cultural programming."
       />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <PageContent>
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
           {year && (
             <Link
@@ -214,7 +215,7 @@ export default function SponsorshipProspectus() {
             </Link>
           </div>
         </motion.div>
-      </div>
+      </PageContent>
     </div>
   );
 }

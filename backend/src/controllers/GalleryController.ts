@@ -1,4 +1,5 @@
 import { safeServedFilename } from '../utils/safeFile.js';
+import { buildSeoGalleryFilename } from '../utils/seoGalleryFilename.js';
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import { GalleryService } from '../services/GalleryService.js';
@@ -6,7 +7,7 @@ import multer from 'multer';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { existsSync, mkdirSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync } from 'fs';
 import { EventDataHelper } from '../data/EventDataHelper.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -73,14 +74,32 @@ export class GalleryController {
         res.status(404).json({ error: 'Gallery not found' });
         return;
       }
-      // Only return if it's public
+      // Published galleries, or event-linked folders on active events (event detail / share links)
       if (!gallery.isPublic) {
-        res.status(403).json({ error: 'Gallery is not public' });
-        return;
+        const event = await this.galleryService.getEventForGalleryAccess(id);
+        if (!event) {
+          res.status(403).json({ error: 'Gallery is not public' });
+          return;
+        }
       }
       res.json(gallery);
     } catch (error: any) {
       console.error('Error in getPublicGalleryById:', error);
+      res.status(500).json({ error: 'Failed to fetch gallery', details: error.message });
+    }
+  }
+
+  async getPublicGalleryForEvent(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { eventId } = req.params;
+      const gallery = await this.galleryService.getGalleryForEventPage(eventId);
+      if (!gallery) {
+        res.status(404).json({ error: 'Gallery not found' });
+        return;
+      }
+      res.json(gallery);
+    } catch (error: any) {
+      console.error('Error in getPublicGalleryForEvent:', error);
       res.status(500).json({ error: 'Failed to fetch gallery', details: error.message });
     }
   }
@@ -284,22 +303,45 @@ export class GalleryController {
         mkdirSync(folderPath, { recursive: true });
       }
 
-      // Move files to the correct folder
+      // Move files to the correct folder with SEO-friendly names
       const uploadedFiles: string[] = [];
       const fs = await import('fs/promises');
-      
+      const existingInFolder = existsSync(folderPath)
+        ? readdirSync(folderPath).filter((f) => !f.startsWith('.'))
+        : [];
+
       for (const file of files) {
         try {
-          const destPath = join(folderPath, file.filename);
-          
-          // Check if source file exists
           if (!existsSync(file.path)) {
             console.error(`Source file not found: ${file.path}`);
             continue;
           }
-          
+
+          let seoFilename = buildSeoGalleryFilename({
+            originalName: file.originalname,
+            eventName: event.event_name,
+            year: event.year,
+            existingFilenames: existingInFolder,
+            reservedFilenames: uploadedFiles,
+          });
+          let destPath = join(folderPath, seoFilename);
+
+          // Never overwrite — re-resolve if the target path already exists on disk.
+          while (existsSync(destPath)) {
+            existingInFolder.push(seoFilename);
+            seoFilename = buildSeoGalleryFilename({
+              originalName: file.originalname,
+              eventName: event.event_name,
+              year: event.year,
+              existingFilenames: existingInFolder,
+              reservedFilenames: uploadedFiles,
+            });
+            destPath = join(folderPath, seoFilename);
+          }
+
           await fs.rename(file.path, destPath);
-          uploadedFiles.push(file.filename);
+          uploadedFiles.push(seoFilename);
+          existingInFolder.push(seoFilename);
         } catch (fileError: any) {
           console.error(`Error moving file ${file.filename}:`, fileError);
           // Continue with other files

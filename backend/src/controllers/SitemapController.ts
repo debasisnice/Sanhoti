@@ -52,6 +52,18 @@ interface SitemapEntry {
 const STATIC_ROUTES: Array<Omit<SitemapEntry, 'lastmod'>> = [
   { path: '/', changefreq: 'weekly', priority: '1.0' },
   { path: '/events', changefreq: 'weekly', priority: '0.9' },
+  // Type-filtered event view. Self-canonical with its own h1, title and
+  // description, so listing it matches what the page claims.
+  //
+  // Only Charity is listed, for two different reasons:
+  //   · `?type=Festival` canonicalises to /festivals — a sitemap must never
+  //     advertise a URL whose canonical points elsewhere ("Alternate page with
+  //     proper canonical tag").
+  //   · `?type=Workshop` and `?type=Other` currently hold one event each
+  //     (~100 words). Asking Google to index a one-item list invites
+  //     "Crawled — currently not indexed". They stay crawlable via the nav and
+  //     self-canonical; add them back when each holds three or four events.
+  { path: '/events?type=Charity', changefreq: 'weekly', priority: '0.75' },
   { path: '/durga-puja', changefreq: 'weekly', priority: '0.9' },
   { path: '/festivals', changefreq: 'weekly', priority: '0.8' },
   { path: '/saraswati-puja', changefreq: 'monthly', priority: '0.8' },
@@ -244,7 +256,7 @@ export class SitemapController {
                   title: artist.name,
                   caption:
                     artist.image_alt ||
-                    `${artist.name} — performed with Sanhoti Bengali Association in Orange County, CA`,
+                    `${artist.name} — artist at Sanhoti Bengali Association in Orange County, CA`,
                 },
               ]
             : [],

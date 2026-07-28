@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Heart, HeartHandshake, Building2, Users, Receipt } from 'lucide-react';
 import Seo from '../components/Seo';
 import PageHero from '../components/PageHero';
+import PageContent from '../components/PageContent';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 
 const CAUSES = [
@@ -99,6 +100,7 @@ export default function Charity() {
         '@type': 'NonprofitOrganization',
         '@id': `${origin}/#organization`,
         name: 'Sanhoti Bengali Association of Orange County',
+        legalName: 'Sanhoti Inc',
         url: origin,
         taxID: '39-2903777',
         nonprofitStatus: 'Nonprofit501c3',
@@ -132,7 +134,7 @@ export default function Charity() {
         subtitle="Sanhoti is a 501(c)(3) non-profit in Rancho Santa Margarita supporting hunger relief, domestic violence services, and community welfare across Orange County, California."
       />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+      <PageContent>
         <section className="mb-14">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Our charitable work</h2>
           <div className="grid gap-6 md:grid-cols-3">
@@ -188,7 +190,7 @@ export default function Charity() {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Charity registration details</h2>
           <ul className="text-gray-700 space-y-1">
             <li>
-              <strong>Legal name:</strong> Sanhoti Bengali Association of Orange County
+              <strong>Legal name:</strong> Sanhoti Inc
             </li>
             <li>
               <strong>Status:</strong> Registered 501(c)(3) non-profit
@@ -239,7 +241,7 @@ export default function Charity() {
             </Link>
           </div>
         </div>
-      </div>
+      </PageContent>
     </div>
   );
 }

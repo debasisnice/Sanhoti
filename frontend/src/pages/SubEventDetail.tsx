@@ -8,6 +8,7 @@ import { getSiteOrigin } from '../utils/eventShareUrl';
 import { subEventsAPI } from '../services/api';
 import { SubEvent } from '../types';
 import { formatDateWithTime } from '../utils/dateUtils';
+import FlyerImage from '../components/FlyerImage';
 
 /**
  * Public detail page for a single sub-event at /sub-events/:id.
@@ -192,13 +193,12 @@ export default function SubEventDetail() {
             )}
           </div>
 
-          {banner && (
-            <img
-              src={banner}
-              alt={`${se.sub_event_name}${area ? ` — ${area}` : ''}`}
-              className="w-full max-h-[32rem] object-contain rounded-2xl shadow-lg bg-white mt-6"
-            />
-          )}
+          <FlyerImage
+            src={banner}
+            alt={`${se.sub_event_name}${area ? ` — ${area}` : ''}`}
+            maxHeight={512}
+            className="mt-6 shadow-lg"
+          />
 
           {/* Same treatment as the event page: real paragraphs rather than one
               pre-line block, now that concert descriptions run several paragraphs. */}

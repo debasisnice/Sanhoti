@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Heart, Gift, Users, Mail, Phone, Building2 } from 'lucide-react';
 import Seo from '../components/Seo';
 import PageHero from '../components/PageHero';
+import PageContent, { PAGE_CONTENT_CLASS } from '../components/PageContent';
 import { settingsAPI } from '../services/api';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import { fetchCommitteeMembers, type CommitteeMemberDisplay } from '../utils/fetchCommitteeMembers';
@@ -123,7 +124,7 @@ export default function CorporatePartnerships() {
       />
 
       <div className="bg-gray-50 border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className={`${PAGE_CONTENT_CLASS} py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4`}>
           <nav
             aria-label="Page sections"
             className="inline-flex flex-wrap gap-1 bg-white rounded-full p-1 shadow-sm border border-gray-200"
@@ -153,7 +154,7 @@ export default function CorporatePartnerships() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 space-y-10">
+      <PageContent className="space-y-10">
         {/* Why partner */}
         <section id="why-partner" className="bg-white rounded-2xl shadow-lg p-8 scroll-mt-24">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
@@ -277,7 +278,7 @@ export default function CorporatePartnerships() {
             </a>
           </div>
         </section>
-      </div>
+      </PageContent>
     </div>
   );
 }

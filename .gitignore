@@ -85,3 +85,9 @@ backend/data/*.json
 
 # Word/Office lock files (created while a .docx is open)
 ~$*
+
+# Timestamped data backups (recovery copies, may contain member PII).
+# The *.json rule above does not match these — their suffix is a timestamp.
+backend/data/_test-pollution-backup/
+backend/data/_workbook-backup/
+backend/data/*.corrupt-*

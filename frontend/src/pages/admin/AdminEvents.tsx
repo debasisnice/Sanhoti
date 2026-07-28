@@ -14,7 +14,7 @@ import { SubEvent } from '../../types';
 /** Only events whose name contains "Durga"/"Durgotsav" can be the Active Durga Puja Event. */
 const DURGA_NAME = /durga|durgotsav/i;
 
-const EVENT_TYPE_OPTIONS = ['Festival', 'Charity', 'Other'] as const;
+const EVENT_TYPE_OPTIONS = ['Festival', 'Charity', 'Workshop', 'Other'] as const;
 type EventTypeValue = typeof EVENT_TYPE_OPTIONS[number];
 
 interface Event {
@@ -25,6 +25,10 @@ interface Event {
   year: number;
   event_description: string;
   event_type?: EventTypeValue;
+  workshop_theme?: string;
+  workshop_program_start_dt?: string;
+  workshop_exhibition_dt?: string;
+  workshop_registration_url?: string;
   is_active: boolean;
   is_priority?: boolean;
   is_active_durga_puja_event?: boolean;
@@ -58,6 +62,10 @@ interface EventForm {
   year: number;
   event_description: string;
   event_type: EventTypeValue;
+  workshop_theme?: string;
+  workshop_program_start_dt?: string;
+  workshop_exhibition_dt?: string;
+  workshop_registration_url?: string;
   location: string;
   is_priority?: boolean;
   is_active_durga_puja_event?: boolean;
@@ -87,6 +95,13 @@ interface EventForm {
 interface EventImage {
   filename: string;
   url: string;
+}
+
+/** Collapse whitespace and cap list-table preview length. */
+function truncateTableText(text: string, maxLen = 120): string {
+  const trimmed = text.replace(/\s+/g, ' ').trim();
+  if (trimmed.length <= maxLen) return trimmed;
+  return `${trimmed.slice(0, maxLen).trim()}…`;
 }
 
 export default function AdminEvents() {
@@ -147,6 +162,10 @@ export default function AdminEvents() {
     year: new Date().getFullYear(),
     event_description: '',
     event_type: 'Festival',
+    workshop_theme: '',
+    workshop_program_start_dt: '',
+    workshop_exhibition_dt: '',
+    workshop_registration_url: '',
     location: '',
     is_priority: false,
     is_active_durga_puja_event: false,
@@ -318,6 +337,10 @@ export default function AdminEvents() {
         year: formDataWithPST.year,
         event_description: formDataWithPST.event_description,
         event_type: formDataWithPST.event_type,
+        workshop_theme: (formDataWithPST.workshop_theme ?? '').trim(),
+        workshop_program_start_dt: (formDataWithPST.workshop_program_start_dt ?? '').trim(),
+        workshop_exhibition_dt: (formDataWithPST.workshop_exhibition_dt ?? '').trim(),
+        workshop_registration_url: (formDataWithPST.workshop_registration_url ?? '').trim(),
         location: formDataWithPST.location ?? '',
         is_priority: Boolean(formDataWithPST.is_priority),
         is_active_durga_puja_event: Boolean(formDataWithPST.is_active_durga_puja_event),
@@ -387,6 +410,10 @@ export default function AdminEvents() {
       year: event.year,
       event_description: event.event_description,
       event_type: event.event_type && EVENT_TYPE_OPTIONS.includes(event.event_type as EventTypeValue) ? (event.event_type as EventTypeValue) : 'Festival',
+      workshop_theme: event.workshop_theme || '',
+      workshop_program_start_dt: event.workshop_program_start_dt || '',
+      workshop_exhibition_dt: event.workshop_exhibition_dt || '',
+      workshop_registration_url: event.workshop_registration_url || '',
       location: (event as any).location || '',
       is_priority: event.is_priority || false,
       is_active_durga_puja_event: event.is_active_durga_puja_event || false,
@@ -740,6 +767,10 @@ export default function AdminEvents() {
       year: new Date().getFullYear(),
       event_description: '',
       event_type: 'Festival',
+      workshop_theme: '',
+      workshop_program_start_dt: '',
+      workshop_exhibition_dt: '',
+      workshop_registration_url: '',
       location: '',
       is_priority: false,
       is_active_durga_puja_event: false,
@@ -917,6 +948,66 @@ export default function AdminEvents() {
                     ))}
                   </select>
                 </div>
+
+                {formData.event_type === 'Workshop' && (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-4 space-y-4">
+                    <p className="text-sm font-medium text-amber-900">Workshop details</p>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Workshop Theme
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.workshop_theme ?? ''}
+                        onChange={(e) => setFormData({ ...formData, workshop_theme: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        placeholder="e.g. Indian arts — painting"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Program Start Date
+                        </label>
+                        <input
+                          type="date"
+                          value={formData.workshop_program_start_dt ?? ''}
+                          onChange={(e) =>
+                            setFormData({ ...formData, workshop_program_start_dt: e.target.value })
+                          }
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Final Exhibition Date
+                        </label>
+                        <input
+                          type="date"
+                          value={formData.workshop_exhibition_dt ?? ''}
+                          onChange={(e) =>
+                            setFormData({ ...formData, workshop_exhibition_dt: e.target.value })
+                          }
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Registration URL (optional)
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.workshop_registration_url ?? ''}
+                        onChange={(e) =>
+                          setFormData({ ...formData, workshop_registration_url: e.target.value })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -1389,17 +1480,25 @@ export default function AdminEvents() {
                       key={event.event_id} 
                       className={`hover:bg-gray-50 ${event.is_active ? 'bg-green-50' : ''}`}
                     >
-                      <td className="px-4 py-4 align-top">
+                      <td className="px-4 py-4 align-top max-w-[220px]">
                         <div className="flex items-center gap-2">
-                          <div className="text-sm font-bold text-red-900 break-words">{event.event_name}</div>
+                          <div
+                            className="text-sm font-bold text-red-900 break-words line-clamp-2"
+                            title={event.event_name}
+                          >
+                            {event.event_name}
+                          </div>
                           {event.is_priority && (
                             <Star 
                               className="w-5 h-5 text-yellow-500 fill-yellow-500 flex-shrink-0" 
                             />
                           )}
                         </div>
-                        <div className="text-sm text-gray-500 break-words mt-1">
-                          {event.event_description}
+                        <div
+                          className="text-sm text-gray-500 mt-1 line-clamp-2"
+                          title={event.event_description}
+                        >
+                          {truncateTableText(event.event_description)}
                         </div>
                         <div className="text-xs text-gray-400 mt-1">
                           Year: {event.year}

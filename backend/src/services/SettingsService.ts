@@ -2,6 +2,7 @@ import { SettingsDataHelper } from '../data/SettingsDataHelper.js';
 import {
   HeroSlots,
   HomeHeroButtonsVisibility,
+  HomeHighlightsMode,
   HomePageStatements,
   HomePageVideo,
   HomeStatementTabsVisibility,
@@ -103,6 +104,10 @@ export class SettingsService {
 
   async updateHomePageVideos(videos: HomePageVideo[]): Promise<Settings> {
     return this.settingsDataHelper.updateHomePageVideos(videos);
+  }
+
+  async updateHomeHighlightsMode(mode: HomeHighlightsMode): Promise<Settings> {
+    return this.settingsDataHelper.updateHomeHighlightsMode(mode);
   }
 
   async updateHomeSectionOrder(order: string[]): Promise<Settings> {

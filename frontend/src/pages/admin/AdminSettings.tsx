@@ -2,8 +2,13 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Settings, Users, Award, Home, Upload, Trash2, X, UserCircle, QrCode, BookOpen, Building2, Plus } from 'lucide-react';
 import { settingsAPI, usersAPI, sponsorsAPI, homepageAPI, boardMembersAPI, paymentQRAPI, durgaPujaPageAPI } from '../../services/api';
-import type { HomePageVideo, HeroSlots, HeroSlotConfig } from '../../services/api';
+import type { HomePageVideo, HeroSlots, HeroSlotConfig, HomeHighlightsMode } from '../../services/api';
 import { HOME_SECTION_LABELS, resolveHomeSectionOrder } from '../../constants/homeSections';
+import {
+  DEFAULT_HOME_HIGHLIGHTS_MODE,
+  HOME_HIGHLIGHTS_MODE_OPTIONS,
+  parseHomeHighlightsMode,
+} from '../../constants/homeHighlights';
 import { NAVBAR_MENU_LABELS, resolveNavbarMenuOrder } from '../../constants/navbarMenu';
 import { DEFAULT_CORPORATE_PARTNERSHIPS } from '../CorporatePartnerships';
 import type { CorporatePartnershipsContent } from '../../types';
@@ -191,6 +196,8 @@ export default function AdminSettings() {
   });
   const [homeHeroBannerMessage, setHomeHeroBannerMessage] = useState('');
   const [homePageVideos, setHomePageVideos] = useState<HomePageVideo[]>([]);
+  const [homeHighlightsMode, setHomeHighlightsMode] =
+    useState<HomeHighlightsMode>(DEFAULT_HOME_HIGHLIGHTS_MODE);
   const [homeSectionOrder, setHomeSectionOrder] = useState<string[]>(() => resolveHomeSectionOrder());
   const [navbarMenuOrder, setNavbarMenuOrder] = useState<string[]>(() => resolveNavbarMenuOrder());
   const [heroSlots, setHeroSlots] = useState<HeroSlots>({});
@@ -268,6 +275,9 @@ export default function AdminSettings() {
         Array.isArray(videosRaw)
           ? videosRaw.map((v) => (typeof v === 'string' ? { url: v } : { ...v }))
           : []
+      );
+      setHomeHighlightsMode(
+        parseHomeHighlightsMode((data as { homeHighlightsMode?: unknown }).homeHighlightsMode)
       );
       setHomeSectionOrder(
         resolveHomeSectionOrder((data as { homeSectionOrder?: string[] }).homeSectionOrder)
@@ -2129,13 +2139,68 @@ export default function AdminSettings() {
                 </button>
               </div>
 
+              {/* Highlights section content type */}
+              <div className="mb-4 sm:mb-8 px-2 py-3 sm:p-6 bg-white rounded-lg border border-gray-200">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">
+                  Highlights section
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 leading-snug">
+                  Choose what appears in the home page Highlights section (order controlled above).
+                  Gallery modes pull random photos from published event galleries — charity events
+                  only, or any event whose name includes &ldquo;Durga&rdquo; or &ldquo;Durgotsav&rdquo;.
+                </p>
+                <div className="space-y-2">
+                  {HOME_HIGHLIGHTS_MODE_OPTIONS.map(opt => (
+                    <label
+                      key={opt.value}
+                      className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        homeHighlightsMode === opt.value
+                          ? 'border-primary-500 bg-primary-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="homeHighlightsMode"
+                        value={opt.value}
+                        checked={homeHighlightsMode === opt.value}
+                        onChange={() => setHomeHighlightsMode(opt.value)}
+                        className="mt-1 text-primary-600 focus:ring-primary-500"
+                      />
+                      <span>
+                        <span className="block font-medium text-gray-900">{opt.label}</span>
+                        <span className="block text-xs sm:text-sm text-gray-600">{opt.description}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setSaving(true);
+                    try {
+                      await settingsAPI.updateHomeHighlightsMode(homeHighlightsMode);
+                      toast.success('Highlights section saved');
+                    } catch {
+                      toast.error('Failed to save highlights section');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
+                  disabled={saving}
+                  className="mt-3 sm:mt-4 px-2.5 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? 'Saving...' : 'Save highlights section'}
+                </button>
+              </div>
+
               {/* Home Page Videos Section */}
               <div className="mb-4 sm:mb-8 px-2 py-3 sm:p-6 bg-white rounded-lg border border-gray-200">
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">Home page videos</h3>
                 <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4 leading-snug">
-                  YouTube video links shown in a section below “About Us” on the home page. Paste a
-                  full YouTube URL (e.g. https://www.youtube.com/watch?v=… or https://youtu.be/…).
-                  Leave empty to hide the section.
+                  YouTube video links used when Highlights is set to <strong>Videos</strong> above, and
+                  for hero-card video slots. Paste a full YouTube URL (e.g.
+                  https://www.youtube.com/watch?v=… or https://youtu.be/…).
                 </p>
                 <div className="space-y-3">
                   {homePageVideos.map((v, i) => (

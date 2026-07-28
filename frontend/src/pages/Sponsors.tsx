@@ -4,6 +4,7 @@ import { Award, ChevronLeft, ChevronRight, X, FileText } from 'lucide-react';
 import { sponsorsAPI, durgaPujaPageAPI } from '../services/api';
 import Seo from '../components/Seo';
 import PageHero from '../components/PageHero';
+import PageContent from '../components/PageContent';
 
 interface SponsorImage {
   filename: string;
@@ -147,7 +148,7 @@ export default function Sponsors() {
       title="Sanhoti Sponsors & Partners — Orange County, California"
       subtitle="Our sponsors make Durga Puja, Bengali concerts, and Sanhoti cultural programming in Orange County possible. We are grateful to every business and partner investing in Bengali community life across Southern California."
         />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+      <PageContent>
 
         {loading ? (
           <div className="text-center py-12">
@@ -327,7 +328,7 @@ export default function Sponsors() {
             </a>
           </div>
         )}
-      </div>
+      </PageContent>
 
       {/* Image Popup Modal */}
       <AnimatePresence>

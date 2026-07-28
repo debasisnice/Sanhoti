@@ -54,7 +54,11 @@ export class EventService {
     event_end_dt: string;
     year: number;
     event_description: string;
-    event_type?: 'Festival' | 'Charity' | 'Other';
+    event_type?: 'Festival' | 'Charity' | 'Workshop' | 'Other';
+    workshop_theme?: string;
+    workshop_program_start_dt?: string;
+    workshop_exhibition_dt?: string;
+    workshop_registration_url?: string;
     rsvp_enabled?: boolean;
     location?: string;
     photo_gallery_link?: string;
@@ -103,8 +107,8 @@ export class EventService {
       if (!existing) activeDurgaFlag = true; // first Durga event — must have one active
     }
 
-    const eventType: 'Festival' | 'Charity' | 'Other' =
-      data.event_type && ['Festival', 'Charity', 'Other'].includes(data.event_type)
+    const eventType: 'Festival' | 'Charity' | 'Workshop' | 'Other' =
+      data.event_type && ['Festival', 'Charity', 'Workshop', 'Other'].includes(data.event_type)
         ? data.event_type
         : 'Festival';
 
@@ -115,6 +119,10 @@ export class EventService {
       year: data.year,
       event_description: data.event_description,
       event_type: eventType,
+      workshop_theme: data.workshop_theme,
+      workshop_program_start_dt: data.workshop_program_start_dt,
+      workshop_exhibition_dt: data.workshop_exhibition_dt,
+      workshop_registration_url: data.workshop_registration_url,
       rsvp_enabled: data.rsvp_enabled,
       location: data.location,
       photo_gallery_link: data.photo_gallery_link,
@@ -199,7 +207,7 @@ export class EventService {
     if (toWrite.event_type !== undefined) {
       const et = toWrite.event_type;
       toWrite.event_type =
-        et && ['Festival', 'Charity', 'Other'].includes(et) ? et : 'Festival';
+        et && ['Festival', 'Charity', 'Workshop', 'Other'].includes(et) ? et : 'Festival';
     }
 
     const updated = await this.eventDataHelper.update(eventId, toWrite);

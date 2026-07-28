@@ -52,10 +52,15 @@ export interface Event {
   event_end_dt: string;
   year: number;
   event_description: string;
-  event_type?: 'Festival' | 'Charity' | 'Other';
+  event_type?: 'Festival' | 'Charity' | 'Workshop' | 'Other';
+  /** Workshop-only fields */
+  workshop_theme?: string;
+  workshop_program_start_dt?: string;
+  workshop_exhibition_dt?: string;
+  workshop_registration_url?: string;
   location?: string;
   is_active: boolean;
-  is_priority?: boolean; // At most one per event_type (Festival / Charity / Other)
+  is_priority?: boolean; // At most one per event_type (Festival / Charity / Workshop / Other)
   created_at: string;
   updated_at: string;
   photo_gallery_link?: string;
@@ -201,6 +206,8 @@ export interface Photo {
 export interface PhotoGallery {
   id: string;
   eventId?: string;
+  event_name?: string;
+  event_type?: 'Festival' | 'Charity' | 'Workshop' | 'Other';
   title: string;
   description?: string;
   isPublic: boolean;

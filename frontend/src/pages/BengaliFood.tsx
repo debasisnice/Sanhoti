@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { UtensilsCrossed, Leaf, Fish, Candy, Info } from 'lucide-react';
 import Seo from '../components/Seo';
 import PageHero from '../components/PageHero';
+import PageContent from '../components/PageContent';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import { menusAPI } from '../services/api';
 import type { PublicMenu } from '../services/api';
@@ -135,7 +136,7 @@ export default function BengaliFood() {
         subtitle="Authentic home-style Bengali cooking at Sanhoti events — Durga Puja bhog, Poila Boishakh feasts, and festival meals prepared for the community across Southern California."
       />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+      <PageContent>
         {/* Real menus from every event, newest first with Durga Puja pinned on
             top. Shown above the evergreen sections because specific current
             dishes are what visitors and search engines actually want. */}
@@ -271,7 +272,7 @@ export default function BengaliFood() {
             </Link>
           </div>
         </div>
-      </div>
+      </PageContent>
     </div>
   );
 }

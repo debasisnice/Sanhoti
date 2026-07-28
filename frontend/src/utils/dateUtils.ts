@@ -197,3 +197,91 @@ export function convertLocalToPST(dateInput: Date | string): string {
   return `${pstYear}-${pstMonth}-${pstDay}`;
 }
 
+export const CLUB_TIMEZONE = 'America/Los_Angeles';
+
+const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/** True when the stored value is a bare calendar date with no time component. */
+export function isDateOnly(value: string | undefined | null): boolean {
+  return DATE_ONLY.test(String(value ?? '').trim());
+}
+
+/** True when the stored value carries a usable time of day. */
+export function hasTimeComponent(value: string | undefined | null): boolean {
+  return /T\d{2}:\d{2}/.test(String(value ?? ''));
+}
+
+/**
+ * Format a stored event date for display.
+ *
+ * `events.json` mixes plain calendar dates ("2025-12-06") with full timestamps.
+ * `new Date("2025-12-06")` parses as **UTC midnight**, which in Pacific time is
+ * 4pm on 5 December — so formatting it in the club timezone rendered the
+ * Holiday Party a day early. The rule applied here:
+ *
+ *   · A date-only value is a calendar date, not an instant. It means
+ *     "6 December" and is displayed verbatim, with no timezone maths.
+ *   · A value carrying a time is a real instant, displayed in the club's
+ *     timezone, which is where the event physically happens — so the time
+ *     shown is the time on the door, whatever timezone the reader is in.
+ *
+ * Keep in sync with backend/src/utils/eventDate.ts (`formatEventDate`); both
+ * are verified against the same cases in the tests.
+ */
+export function formatEventDate(
+  value: string | undefined | null,
+  options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' },
+  locale = 'en-US'
+): string {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+
+  const parts = DATE_ONLY.exec(raw);
+  if (parts) {
+    // Anchor at UTC noon and format in UTC. Noon is far enough from either
+    // midnight that no rounding can move the day, so the calendar date that
+    // goes in is exactly the one that comes out. Any time fields the caller
+    // asked for are dropped: this value has no time to show.
+    const { hour: _h, minute: _m, timeStyle: _ts, ...dateOnlyOptions } = options;
+    const d = new Date(Date.UTC(Number(parts[1]), Number(parts[2]) - 1, Number(parts[3]), 12));
+    return d.toLocaleDateString(locale, { ...dateOnlyOptions, timeZone: 'UTC' });
+  }
+
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return raw;
+  return d.toLocaleDateString(locale, { ...options, timeZone: CLUB_TIMEZONE });
+}
+
+export type EventLifecycleStatus = 'upcoming' | 'in-progress' | 'past';
+
+/** Inclusive end-of-day for date-only strings (YYYY-MM-DD). */
+function endOfStoredDay(dateString: string, date: Date): Date {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999);
+    return end;
+  }
+  return date;
+}
+
+/**
+ * Whether an event is upcoming, currently running, or past.
+ * Date-only start/end values are treated as full calendar days in PST.
+ */
+export function getEventLifecycleStatus(event: {
+  event_start_dt?: string;
+  event_end_dt?: string;
+  date?: string;
+}): EventLifecycleStatus {
+  const startRaw = event.event_start_dt || event.date || '';
+  const endRaw = event.event_end_dt || startRaw;
+  if (!startRaw) return 'upcoming';
+
+  const now = new Date();
+  const start = convertPSTToLocal(startRaw);
+  const end = endOfStoredDay(endRaw, convertPSTToLocal(endRaw));
+
+  if (now < start) return 'upcoming';
+  if (now > end) return 'past';
+  return 'in-progress';
+}
