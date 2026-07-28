@@ -1,6 +1,6 @@
 import { GalleryDataHelper } from '../data/GalleryDataHelper.js';
 import { EventDataHelper } from '../data/EventDataHelper.js';
-import { PhotoGallery, Photo, Event } from '../models/types.js';
+import { PhotoGallery, Photo } from '../models/types.js';
 import { galleryPhotoCaptionFromFilename } from '../utils/seoGalleryFilename.js';
 import { readdirSync, statSync, unlinkSync, existsSync } from 'fs';
 import { join } from 'path';
@@ -147,14 +147,15 @@ export class GalleryService {
     return null;
   }
 
-  /**
-   * Gallery for an active event's detail page. Unlike getPublicGalleries(), this
-   * returns the event's folder gallery even when gallery_is_public is false —
-   * unpublished only hides from the /galleries index, not the event's own page.
-   */
+  /** Published folder gallery for an active event (public event/gallery pages only). */
   async getGalleryForEventPage(eventId: string): Promise<PhotoGallery | null> {
     const event = await this.eventDataHelper.findById(eventId);
-    if (!event || event.is_active === false || !event.photo_gallery_link) {
+    if (
+      !event ||
+      event.is_active === false ||
+      !event.photo_gallery_link ||
+      event.gallery_is_public !== true
+    ) {
       return null;
     }
     const gallery = await this.getGalleryById(eventId);
@@ -162,15 +163,6 @@ export class GalleryService {
       return null;
     }
     return gallery;
-  }
-
-  /** Active event whose folder gallery may be viewed publicly (even if unpublished on /galleries). */
-  async getEventForGalleryAccess(eventId: string): Promise<Event | null> {
-    const event = await this.eventDataHelper.findById(eventId);
-    if (!event || event.is_active === false || !event.photo_gallery_link) {
-      return null;
-    }
-    return event;
   }
 
   async getGalleriesByEvent(eventId: string): Promise<PhotoGallery[]> {

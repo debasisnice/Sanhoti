@@ -74,13 +74,9 @@ export class GalleryController {
         res.status(404).json({ error: 'Gallery not found' });
         return;
       }
-      // Published galleries, or event-linked folders on active events (event detail / share links)
       if (!gallery.isPublic) {
-        const event = await this.galleryService.getEventForGalleryAccess(id);
-        if (!event) {
-          res.status(403).json({ error: 'Gallery is not public' });
-          return;
-        }
+        res.status(403).json({ error: 'Gallery is not public' });
+        return;
       }
       res.json(gallery);
     } catch (error: any) {
@@ -410,6 +406,12 @@ export class GalleryController {
       if (!event || !event.photo_gallery_link) {
         console.error(`Event not found: ${eventId}`);
         res.status(404).json({ error: 'Event not found' });
+        return;
+      }
+
+      const isAdmin = req.user?.role === 'admin';
+      if (event.gallery_is_public !== true && !isAdmin) {
+        res.status(403).json({ error: 'Gallery is not public' });
         return;
       }
 

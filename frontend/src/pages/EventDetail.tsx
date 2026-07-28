@@ -142,32 +142,12 @@ export default function EventDetail() {
               }
               setNoticeImages(imagesMap);
 
-              // Event folder gallery (shown on event page even if not on /galleries index)
+              // Published galleries only (same rule as /galleries index)
               try {
-                const linked: PhotoGallery[] = [];
-                try {
-                  const eventGallery = await galleriesAPI.getPublicForEvent(fetchedEvent.event_id);
-                  linked.push(eventGallery);
-                } catch {
-                  /* no folder gallery */
-                }
-
-                // Legacy galleries.json entries still listed via public index
-                try {
-                  const allGalleries = await galleriesAPI.getPublic();
-                  for (const g of allGalleries) {
-                    if (
-                      g.eventId &&
-                      String(g.eventId) === String(fetchedEvent.event_id) &&
-                      !linked.some((x) => x.id === g.id)
-                    ) {
-                      linked.push(g);
-                    }
-                  }
-                } catch {
-                  /* optional */
-                }
-
+                const allGalleries = await galleriesAPI.getPublic();
+                const linked = allGalleries.filter(
+                  (g) => g.eventId && String(g.eventId) === String(fetchedEvent.event_id)
+                );
                 setRelatedGalleries(linked);
               } catch {
                 setRelatedGalleries([]);

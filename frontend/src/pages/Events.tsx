@@ -137,60 +137,22 @@ export default function Events() {
     fetchEventsAndImages();
   }, []);
 
-  // Public gallery photos fill the hero when there are few flyers. On type-scoped
-  // pages (/events?type=Workshop etc.), also pull event-linked folders via
-  // getPublicForEvent so unpublished galleries still appear in the hero.
+  // Public gallery photos — used to fill the hero collage when there are few flyers.
   useEffect(() => {
     let cancelled = false;
-
-    const loadGalleryPhotos = async () => {
-      const publicGalleries = await galleriesAPI.getPublic().catch(() => [] as PhotoGallery[]);
-      if (cancelled) return;
-
-      const photos = publicGalleries.flatMap(galleryToPhotoEntries);
-      const seenUrls = new Set(photos.map((p) => p.url));
-
-      if (isEventsTypeScope(eventTypeScope) && allEvents.length > 0) {
-        const scopedEvents = allEvents.filter(
-          (e) => getEffectiveEventType(e) === eventTypeScope
-        );
-        const publicEventIds = new Set(
-          publicGalleries.map((g) => g.eventId).filter(Boolean) as string[]
-        );
-
-        const extraGalleries = await Promise.all(
-          scopedEvents
-            .filter((e) => {
-              const id = e.event_id || e.id;
-              return id && e.photo_gallery_link && !publicEventIds.has(id);
-            })
-            .map(async (e) => {
-              try {
-                return await galleriesAPI.getPublicForEvent(e.event_id || e.id!);
-              } catch {
-                return null;
-              }
-            })
-        );
-
-        for (const gallery of extraGalleries) {
-          if (!gallery) continue;
-          for (const photo of galleryToPhotoEntries(gallery)) {
-            if (seenUrls.has(photo.url)) continue;
-            seenUrls.add(photo.url);
-            photos.push(photo);
-          }
-        }
-      }
-
-      if (!cancelled) setGalleryPhotos(photos);
-    };
-
-    loadGalleryPhotos();
+    galleriesAPI
+      .getPublic()
+      .then((galleries) => {
+        if (cancelled) return;
+        setGalleryPhotos(galleries.flatMap(galleryToPhotoEntries));
+      })
+      .catch(() => {
+        /* galleries optional */
+      });
     return () => {
       cancelled = true;
     };
-  }, [allEvents, eventTypeScope]);
+  }, []);
 
   const scopedPriorityEvent = useMemo(
     () => getScopedPriorityEvent(allEvents, eventTypeScope),
