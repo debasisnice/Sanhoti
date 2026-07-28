@@ -107,6 +107,12 @@ export class SubEventService {
       ticket_url,
       ticket_price,
       ticket_currency,
+      artist_ids,
+      meta_title,
+      meta_description,
+      image_alt,
+      faqs,
+      menu,
     } = data;
 
     return this.subEventDataHelper.create({
@@ -135,6 +141,12 @@ export class SubEventService {
       ticket_url,
       ticket_price,
       ticket_currency,
+      artist_ids,
+      meta_title,
+      meta_description,
+      image_alt,
+      faqs,
+      menu,
     });
   }
 

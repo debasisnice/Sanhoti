@@ -9,7 +9,14 @@ import type { CorporatePartnershipsContent } from '../models/types.js';
 import { getEventPath, getEventDetailPath } from '../utils/slug.js';
 import { durgaPujaPagePath, parseDurgaPujaPageYear, isDurgaPujaEventName, durgaPujaEventYear } from '../utils/durgaPuja.js';
 import { durgaPujaPageImageExists } from '../data/DurgaPujaPageDataHelper.js';
-import { Event, SubEvent } from '../models/types.js';
+import { ArtistService } from '../services/ArtistService.js';
+import { BlogService, PublicBlog } from '../services/BlogService.js';
+import { MenuService } from '../services/MenuService.js';
+import { NoticeService } from '../services/NoticeService.js';
+import { NewsService } from '../services/NewsService.js';
+import { MagazineService } from '../services/MagazineService.js';
+import { DocumentService } from '../services/DocumentService.js';
+import { Artist, Event, SubEvent, EventMenu } from '../models/types.js';
 import { basename } from 'path';
 
 const ORIGIN = process.env.BASE_URL || 'https://www.sanhoti.org';
@@ -19,6 +26,13 @@ const ORG_PHONE = '+1-949-378-6425';
 const ORG_EMAIL = 'info@sanhoti.org';
 // Stable node identifiers so every page's JSON-LD @graph references one Organization
 // and one WebSite entity instead of repeating disconnected copies.
+/**
+ * An admin description at or above this length is considered enough to carry the
+ * page on its own, so the generic fallback paragraph is suppressed. Roughly two
+ * solid paragraphs.
+ */
+const RICH_DESCRIPTION_CHARS = 300;
+
 const ORG_ID = `${ORIGIN}/#organization`;
 const WEBSITE_ID = `${ORIGIN}/#website`;
 
@@ -54,6 +68,224 @@ const DEFAULT_CORP: Required<CorporatePartnershipsContent> = {
   ctaText: "To discuss a sponsorship, matching gift, or corporate partnership, reach out — we're happy to provide our EIN, tax-exemption letter, and program details for your company's CSR review process.",
   contactEmail: 'sanhoti.ec@gmail.com',
   contactPhone: '+1 949-378-6425',
+};
+
+/**
+ * Routes that genuinely exist but must never be indexed: account pages, the
+ * admin area, and per-event RSVP forms (which are duplicate, thin, and
+ * parameterised).
+ *
+ * These need `noindex` rather than a 404. Returning 404 to a crawler for a page
+ * that serves HTTP 200 to a real visitor is a content mismatch, and these URLs
+ * are also disallowed in robots.txt — so the correct signal is "this exists,
+ * don't index it", not "this doesn't exist".
+ */
+function isNoindexRoute(path: string): boolean {
+  return (
+    /^\/(login|register|dashboard)$/.test(path) ||
+    path === '/admin' ||
+    path.startsWith('/admin/') ||
+    /^\/events\/[^/]+\/rsvp$/.test(path) ||
+    /^\/sub-events\/[^/]+\/rsvp$/.test(path)
+  );
+}
+
+/**
+ * Render an event/sub-event menu as crawlable HTML. The dish names are the
+ * point: specific text like "Goat Biriyani" is what wins long-tail food
+ * searches, and it must be in the prerender or bots never see it.
+ */
+function menuHtml(menu: EventMenu | undefined, heading = 'Food &amp; menu'): string {
+  const meals = (menu?.meals ?? []).filter(m => m?.name?.trim());
+  if (meals.length === 0) return '';
+  const mealsHtml = meals
+    .map(meal => {
+      const cats = (meal.categories ?? []).filter(c => c?.label && (c.items ?? []).length > 0);
+      const catsHtml = cats
+        .map(c => `<li><strong>${esc(c.label)}:</strong> ${esc(c.items.join(', '))}</li>`)
+        .join('\n');
+      return `<li><h3>${esc(meal.name)}${meal.hours ? ` — ${esc(meal.hours)}` : ''}</h3>
+${meal.description ? `<p>${esc(meal.description)}</p>` : ''}
+${catsHtml ? `<ul>${catsHtml}</ul>` : ''}</li>`;
+    })
+    .join('\n');
+  const notes = [
+    menu?.vegetarian ? `<li><strong>Vegetarian:</strong> ${esc(menu.vegetarian)}</li>` : '',
+    menu?.kidsMenu ? `<li><strong>Kids:</strong> ${esc(menu.kidsMenu)}</li>` : '',
+    menu?.allergyNotice ? `<li><strong>Allergies:</strong> ${esc(menu.allergyNotice)}</li>` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+  return `
+<h2>${heading}</h2>
+${menu?.intro ? `<p>${esc(stripHtml(menu.intro, 600))}</p>` : ''}
+<ul>${mealsHtml}</ul>
+${notes ? `<ul>${notes}</ul>` : ''}`;
+}
+
+/**
+ * schema.org Menu node for an event's food. Emitted alongside the Event rather
+ * than nested inside it — schema.org Event has no `hasMenu` property.
+ */
+function menuJsonLd(
+  menu: EventMenu | undefined,
+  opts: { name: string; url: string }
+): Record<string, unknown> | null {
+  const meals = (menu?.meals ?? []).filter(m => m?.name?.trim());
+  if (meals.length === 0) return null;
+  return {
+    '@type': 'Menu',
+    '@id': `${opts.url}#menu`,
+    name: `${opts.name} — menu`,
+    url: opts.url,
+    inLanguage: 'en-US',
+    ...(menu?.intro ? { description: stripHtml(menu.intro, 300) } : {}),
+    hasMenuSection: meals.map(meal => ({
+      '@type': 'MenuSection',
+      name: [meal.name, meal.hours].filter(Boolean).join(' · '),
+      ...(meal.description ? { description: meal.description } : {}),
+      hasMenuSection: (meal.categories ?? [])
+        .filter(c => c?.label && (c.items ?? []).length > 0)
+        .map(c => ({
+          '@type': 'MenuSection',
+          name: c.label,
+          hasMenuItem: c.items.map(item => ({ '@type': 'MenuItem', name: item })),
+        })),
+    })),
+  };
+}
+
+/** One appearance returned by ArtistService.getAppearances. */
+type ArtistAppearanceEntry = { kind: 'event' | 'sub-event'; event: Event | SubEvent };
+
+/**
+ * Dedicated per-festival landing pages. Each Bengali festival previously shared
+ * the single /festivals page, which left no URL able to rank for an individual
+ * festival plus a location ("Saraswati Puja Orange County"). `match` picks the
+ * live events that belong on each page.
+ */
+const FESTIVAL_LANDING: Record<
+  string,
+  {
+    shortName: string;
+    title: string;
+    description: string;
+    h1: string;
+    intro: string;
+    extra: string;
+    match: RegExp;
+    faqs: { q: string; a: string }[];
+  }
+> = {
+  '/saraswati-puja': {
+    shortName: 'Saraswati Puja',
+    title: 'Saraswati Puja in Orange County, CA 2026 | Sanhoti Bengali Association',
+    description:
+      'Saraswati Puja in Orange County, California with Sanhoti — pushpanjali, hatekhori for children, Bengali bhog, and cultural programs open to all families across Southern California.',
+    h1: 'Saraswati Puja in Orange County, California — Sanhoti',
+    intro: `<p>Saraswati Puja — Basant Panchami — honours the goddess of knowledge, music, and the
+arts. Sanhoti celebrates Saraswati Puja every spring in Orange County, California, with
+traditional pushpanjali, <em>hatekhori</em> (a child's first writing ceremony), Bengali bhog,
+and a cultural programme of song, recitation, and dance by our community's children and adults.</p>`,
+    extra: `<h2>What happens at Sanhoti's Saraswati Puja</h2>
+<ul>
+<li><strong>Pushpanjali</strong> — the flower offering, performed together by all attendees.</li>
+<li><strong>Hatekhori</strong> — young children write their first letters, a cherished Bengali rite of passage.</li>
+<li><strong>Bhog</strong> — traditional vegetarian khichuri prasad served to everyone.</li>
+<li><strong>Cultural programme</strong> — Rabindra Sangeet, recitation, dance, and performances by community members.</li>
+<li><strong>Anjali attire</strong> — yellow is traditionally worn for Basant Panchami.</li>
+</ul>`,
+    match: /saraswat(i|ee)|basant\s*panchami|vasant\s*panchami/i,
+    faqs: [
+      {
+        q: 'Where is Saraswati Puja celebrated in Orange County?',
+        a: 'Sanhoti Bengali Association hosts Saraswati Puja in Orange County, California each spring. The venue is announced on our events page ahead of each celebration, and the event is open to all families across Orange County and Southern California.',
+      },
+      {
+        q: 'What is hatekhori?',
+        a: 'Hatekhori is the traditional Bengali ceremony marking a child’s first writing lesson, performed on Saraswati Puja day. A priest guides the child to write their first letters, symbolising the start of their education under the blessing of the goddess of learning.',
+      },
+      {
+        q: 'Do I need a ticket to attend Saraswati Puja?',
+        a: 'Sanhoti’s Saraswati Puja is generally open to the community. Where a ticket or RSVP is required to help us plan food, it is listed on the event page. Check our events page for the current year’s details.',
+      },
+      {
+        q: 'What should I wear to Saraswati Puja?',
+        a: 'Yellow is traditionally worn on Basant Panchami — saris, panjabis, or any yellow outfit. There is no dress requirement, and guests are welcome in whatever they are comfortable in.',
+      },
+    ],
+  },
+  '/poila-boishakh': {
+    shortName: 'Poila Boishakh',
+    title: 'Poila Boishakh (Bengali New Year) in Orange County, CA | Sanhoti',
+    description:
+      'Celebrate Poila Boishakh — Bengali New Year — in Orange County, California with Sanhoti. Bengali food, live music, cultural programs, and community for families across Southern California.',
+    h1: 'Poila Boishakh — Bengali New Year in Orange County, California',
+    intro: `<p>Poila Boishakh (পয়লা বৈশাখ) marks the first day of the Bengali calendar and is the
+biggest secular celebration in the Bengali year. Sanhoti celebrates Poila Boishakh each
+April in Orange County, California with a full Bengali feast, live music, and a cultural
+programme — a warm, family-friendly welcome to the new year for the Bengali and Indian
+community across Southern California.</p>`,
+    extra: `<h2>What happens at Sanhoti's Poila Boishakh</h2>
+<ul>
+<li><strong>Bengali New Year feast</strong> — a full traditional menu, from fish and rice to sweets and mishti doi.</li>
+<li><strong>Live music and cultural programme</strong> — Rabindra Sangeet, adhunik, band performances, dance, and recitation.</li>
+<li><strong>Children's performances</strong> — our youngest community members take the stage.</li>
+<li><strong>Traditional attire</strong> — red-and-white saris and panjabis are customary but entirely optional.</li>
+</ul>`,
+    match: /poila|pohela|pahela|boishakh|baishakh|baisakhi|bengali\s*new\s*year|nobo\s*borsho|noboborsho/i,
+    faqs: [
+      {
+        q: 'When is Poila Boishakh celebrated?',
+        a: 'Poila Boishakh, the Bengali New Year, falls in mid-April each year (usually 14 or 15 April). Sanhoti schedules its Orange County celebration on the nearest weekend so families can attend — exact dates are posted on our events page.',
+      },
+      {
+        q: 'Where can I celebrate Bengali New Year in Orange County?',
+        a: 'Sanhoti Bengali Association hosts a Poila Boishakh celebration in Orange County, California each spring, with Bengali food, live music, and cultural programs. It is open to everyone across Orange County and Southern California.',
+      },
+      {
+        q: 'Is Poila Boishakh a religious festival?',
+        a: 'No. Poila Boishakh is a secular cultural celebration of the Bengali New Year, welcoming people of every background, faith, and nationality.',
+      },
+      {
+        q: 'What food is served at Poila Boishakh?',
+        a: 'A traditional Bengali New Year menu — typically rice and fish dishes, vegetable preparations, and Bengali sweets such as rosogolla and mishti doi. Vegetarian options are always available.',
+      },
+    ],
+  },
+  '/kali-puja': {
+    shortName: 'Kali Puja',
+    title: 'Kali Puja & Diwali in Orange County, CA | Sanhoti Bengali Association',
+    description:
+      'Kali Puja and Diwali in Orange County, California with Sanhoti Bengali Association — evening puja, anjali, Bengali prasad, and cultural programs for families across Southern California.',
+    h1: 'Kali Puja & Diwali in Orange County, California — Sanhoti',
+    intro: `<p>Kali Puja is celebrated on the new-moon night of Kartik, coinciding with Diwali, and
+is one of the most important observances in the Bengali calendar. Sanhoti marks Kali Puja in
+Orange County, California with an evening puja and anjali, traditional prasad, and a cultural
+gathering for Bengali and Indian families across Southern California.</p>`,
+    extra: `<h2>What happens at Sanhoti's Kali Puja</h2>
+<ul>
+<li><strong>Evening puja and anjali</strong> — the traditional night-time worship of Goddess Kali.</li>
+<li><strong>Prasad and Bengali food</strong> — served to all attendees after the puja.</li>
+<li><strong>Diwali celebration</strong> — lights, community gathering, and cultural performances.</li>
+<li><strong>Family friendly</strong> — children and guests of all backgrounds are welcome.</li>
+</ul>`,
+    match: /kali\s*p[ou]{1,2}j[ao]|shyama\s*p[ou]{1,2}j[ao]|diwali|deepavali|dipavali/i,
+    faqs: [
+      {
+        q: 'When is Kali Puja celebrated?',
+        a: 'Kali Puja falls on the new-moon night of the Bengali month of Kartik, the same night as Diwali — usually in late October or November. Sanhoti announces its Orange County celebration date on the events page each year.',
+      },
+      {
+        q: 'How is Kali Puja different from Diwali?',
+        a: 'They fall on the same night. Diwali is the pan-Indian festival of lights; Kali Puja is the Bengali observance in which Goddess Kali is worshipped at night. Bengali communities typically celebrate both together.',
+      },
+      {
+        q: 'Can non-Bengalis attend Sanhoti’s Kali Puja?',
+        a: 'Yes. Sanhoti events are open to everyone regardless of background, faith, or nationality. Guests from across Orange County and Southern California are warmly welcome.',
+      },
+    ],
+  },
 };
 
 function esc(s: string | undefined | null): string {
@@ -229,8 +461,22 @@ export class SeoPageController {
   private galleryService: GalleryService;
   private settingsService: SettingsService;
   private authService: AuthService;
+  private artistService: ArtistService;
+  private blogService: BlogService;
+  private menuService: MenuService;
+  private noticeService: NoticeService;
+  private newsService: NewsService;
+  private magazineService: MagazineService;
+  private documentService: DocumentService;
 
   constructor() {
+    this.artistService = new ArtistService();
+    this.blogService = new BlogService();
+    this.menuService = new MenuService();
+    this.noticeService = new NoticeService();
+    this.newsService = new NewsService();
+    this.magazineService = new MagazineService();
+    this.documentService = new DocumentService();
     this.eventService = new EventService();
     this.durgaPujaPageService = new DurgaPujaPageService();
     this.subEventService = new SubEventService();
@@ -247,6 +493,8 @@ export class SeoPageController {
       const eventMatch = path.match(/^\/events\/([^/]+)$/);
       const subEventMatch = path.match(/^\/sub-events\/([^/]+)$/);
       const galleryMatch = path.match(/^\/galleries\/([^/]+)$/);
+      const artistMatch = path.match(/^\/artists\/([^/]+)$/);
+      const blogMatch = path.match(/^\/blogs\/([^/]+)$/);
       const durgaYear = parseDurgaPujaPageYear(path);
       let html: string;
       if (path === '/') html = await this.homePage();
@@ -256,10 +504,24 @@ export class SeoPageController {
       else if (path === '/festivals') html = await this.festivalsPage();
       else if (path === '/corporate-partnerships') html = await this.corporatePartnershipsPage();
       else if (path === '/events') html = await this.eventsPage(typeof req.query.type === 'string' ? req.query.type : undefined);
+      else if (path === '/artists') html = await this.artistsIndexPage();
+      else if (path === '/blogs') html = await this.blogsIndexPage();
+      else if (path === '/charity') html = await this.charityPage();
+      else if (path === '/bengali-food') html = await this.bengaliFoodPage();
+      else if (FESTIVAL_LANDING[path]) html = await this.festivalLandingPage(path);
+      // Data-backed list pages — render the real records, not a stub.
+      else if (path === '/galleries') html = await this.galleriesIndexPage();
+      else if (path === '/notices') html = await this.noticesPage();
+      else if (path === '/news') html = await this.newsPage();
+      else if (path === '/magazines') html = await this.magazinesPage();
+      else if (path === '/documents') html = await this.documentsPage();
       else if (eventMatch) html = (await this.eventPage(decodeURIComponent(eventMatch[1]))) ?? this.notFound(res, path);
       else if (subEventMatch) html = (await this.subEventPage(decodeURIComponent(subEventMatch[1]))) ?? this.notFound(res, path);
       else if (galleryMatch) html = (await this.galleryPage(decodeURIComponent(galleryMatch[1]))) ?? this.notFound(res, path);
-      else html = this.staticPage(path);
+      else if (artistMatch) html = (await this.artistPage(decodeURIComponent(artistMatch[1]))) ?? this.notFound(res, path);
+      else if (blogMatch) html = (await this.blogPage(decodeURIComponent(blogMatch[1]))) ?? this.notFound(res, path);
+      else if (isNoindexRoute(path)) html = this.noindexPage(path);
+      else html = this.staticPage(path) ?? this.notFound(res, path);
 
       if (!res.headersSent) {
         // Markdown for Agents: serve Markdown when the agent asks for it via the
@@ -610,7 +872,7 @@ Costa Mesa, Irvine, Tustin, Rancho Santa Margarita, Mission Viejo, and across So
           if (paths.length > 0) {
             const filename = basename(paths[0]);
             const url = `${ORIGIN}/api/sub-events/${se.sub_event_id}/image/${encodeURIComponent(filename)}`;
-            banner = `<img src="${esc(url)}" alt="${esc(se.sub_event_name)}">`;
+            banner = `<img src="${esc(url)}" alt="${esc(se.image_alt || `${se.sub_event_name} — Sanhoti Durga Puja, ${se.venue_city || 'Orange County'}, California`)}" loading="lazy">`;
           }
         } catch {
           // banner optional
@@ -737,7 +999,7 @@ ${c.ticketsNote ? `<p>${esc(c.ticketsNote)}</p>` : ''}
 <p>Dates: ${esc(c.datesText)}</p>
 <p>Venue: ${esc(c.venueName)}${c.venueNote ? ` — ${esc(c.venueNote)}` : ''}
 Check our <a href="/events">Events page</a> or join our community for updates.</p>
-${imageUrl ? `<img src="${esc(imageUrl)}" alt="Sanhoti Durga Puja ${year} in Orange County — flyer">` : ''}
+${imageUrl ? `<img src="${esc(imageUrl)}" alt="Sanhoti Durga Puja ${year} celebration flyer — Bengali Durgotsav in Orange County, California">` : ''}
 ${ticketsHtml}
 ${subEventsHtml}
 <h2>What to expect</h2>
@@ -922,7 +1184,7 @@ ${faqsHtml}
           const paths = await this.subEventService.getSubEventImages(se.sub_event_id);
           if (paths.length > 0) {
             const url = `${ORIGIN}/api/sub-events/${se.sub_event_id}/image/${encodeURIComponent(basename(paths[0]))}`;
-            banner = `<img src="${esc(url)}" alt="${esc(se.sub_event_name)} — Bengali concert in Orange County">`;
+            banner = `<img src="${esc(url)}" alt="${esc(se.image_alt || `${se.sub_event_name}${se.performers ? ` featuring ${se.performers}` : ''} — Bengali concert in ${se.venue_city || 'Orange County'}, California`)}" loading="lazy">`;
           }
         } catch {
           /* banner optional */
@@ -1377,9 +1639,14 @@ ${leadershipHtml}
       event.event_type === 'Charity' ? 'charity' : event.event_type === 'Festival' ? 'cultural' : 'community';
     const rawDesc = stripHtml(event.event_description || event.description, 300);
 
-    // Contextual framing — uses this event's real type/date/location so the added
-    // text is page-specific (not duplicated boilerplate) and lifts thin descriptions
-    // above the "too little content to index" threshold.
+    // Fallback framing for thin descriptions only.
+    //
+    // Every event page used to render this paragraph regardless of how much the
+    // admin had written, so 17 event pages shared four near-identical sentences —
+    // duplicate boilerplate that dilutes each page rather than helping it. It now
+    // appears only when the admin's own description is too short to carry the page
+    // (see RICH_DESCRIPTION_CHARS), and disappears the moment real copy is written.
+    const needsFraming = stripHtml(event.event_description || event.description, 5000).length < RICH_DESCRIPTION_CHARS;
     const framing =
       `${name} ${tense} a Bengali ${typeWord} event organized by Sanhoti Bengali Association of Orange County` +
       `${when ? `, held on ${when}` : ''}${loc ? ` at ${loc}` : ''} in Orange County, California. ` +
@@ -1427,20 +1694,28 @@ ${leadershipHtml}
     const body = `
 <h1>${esc(name)}</h1>
 <p>${esc(when)}${loc ? ` — ${esc(loc)}` : ''}</p>
-${imageUrl ? `<img src="${esc(imageUrl)}" alt="${esc(name)} — Sanhoti event in Orange County">` : ''}
+${imageUrl ? `<img src="${esc(imageUrl)}" alt="${esc(event.image_alt || `${name} — Sanhoti event in Orange County, California`)}">` : ''}
 ${rawDesc ? `<p>${esc(stripHtml(event.event_description || event.description, 2000))}</p>` : ''}
-<h2>About ${esc(name)}</h2>
-<p>${esc(framing)}</p>
+${needsFraming ? `<h2>About ${esc(name)}</h2>\n<p>${esc(framing)}</p>` : ''}
 ${galleriesHtml}
 <h2>More Sanhoti events in Orange County</h2>
 <p><a href="/events">All Sanhoti events</a> · <a href="/durga-puja">Durga Puja in Orange County</a> ·
 <a href="/festivals">Bengali festivals</a> · <a href="/bengali-concerts">Bengali concerts</a> ·
 <a href="/galleries">Photo galleries</a> · <a href="/contact">Contact us</a></p>`;
+    // Admin-authored overrides win over the generated title/description; the
+    // admin knows which query this page should answer.
+    const adminFaqs = (event.faqs ?? []).filter(f => f.question?.trim() && f.answer?.trim());
     return this.layout({
-      title: `${name} | Sanhoti — Bengali Event in Orange County, CA`,
-      description: desc,
+      title: event.meta_title?.trim() || `${name} | Sanhoti — Bengali Event in Orange County, CA`,
+      description: event.meta_description?.trim() || desc,
       path,
-      body,
+      body: `${body}${menuHtml(event.menu)}${
+        adminFaqs.length
+          ? `\n<h2>Frequently asked questions</h2>\n<ul>${adminFaqs
+              .map(f => `<li><h3>${esc(f.question)}</h3><p>${esc(f.answer)}</p></li>`)
+              .join('\n')}</ul>`
+          : ''
+      }`,
       ogType: 'article',
       ogImage: imageUrl,
       breadcrumb: [
@@ -1448,7 +1723,16 @@ ${galleriesHtml}
         { name: 'Events', path: '/events' },
         { name, path },
       ],
-      jsonLd: [this.eventJsonLd(event, pageUrl, imageUrl)],
+      jsonLd: [
+        this.eventJsonLd(event, pageUrl, imageUrl),
+        ...(() => {
+          const m = menuJsonLd(event.menu, { name, url: pageUrl });
+          return m ? [m] : [];
+        })(),
+        ...(adminFaqs.length
+          ? [this.faqNode(pageUrl, adminFaqs.map(f => ({ q: f.question, a: f.answer })))]
+          : []),
+      ],
     });
   }
 
@@ -1503,7 +1787,7 @@ ${galleriesHtml}
 <h1>${esc(name)}${area ? ` in ${esc(area)}` : ''}</h1>
 <p>${esc(date)}${venueLine ? ` — ${esc(venueLine)}` : se.location ? ` — ${esc(se.location)}` : ''}</p>
 ${performerNames.length ? `<p>Performing live: ${esc(performerNames.join(', '))}</p>` : ''}
-${imageUrl ? `<img src="${esc(imageUrl)}" alt="${esc(name)}${area ? ` — ${esc(area)}` : ''}">` : ''}
+${imageUrl ? `<img src="${esc(imageUrl)}" alt="${esc(se.image_alt || `${name}${performerNames.length ? ` featuring ${performerNames.join(', ')}` : ''} — Sanhoti${area ? `, ${area}` : ''}, California`)}">` : ''}
 <p>${esc(stripHtml(se.event_description, 2000) || description)}</p>
 ${ticketHtml}
 <p><a href="/durga-puja">Sanhoti Durga Puja in Orange County</a> · <a href="/events">All Sanhoti events</a> ·
@@ -1553,14 +1837,66 @@ ${ticketHtml}
           : { isAccessibleForFree: true }),
     };
 
+    // Link the sub-event to real Artist records where the admin set them, so the
+    // performer node carries sameAs profiles and points at the artist's own page
+    // instead of being a bare name string.
+    let linkedArtists: Artist[] = [];
+    try {
+      linkedArtists = await this.artistService.getArtistsByIds(se.artist_ids);
+    } catch {
+      /* fall back to the free-text performer names already in eventJsonLd */
+    }
+    if (linkedArtists.length > 0) {
+      eventJsonLd.performer = linkedArtists.map(a => ({
+        '@type': a.artist_type === 'MusicGroup' ? 'MusicGroup' : 'Person',
+        '@id': `${ORIGIN}/artists/${a.slug}#artist`,
+        name: a.name,
+        url: `${ORIGIN}/artists/${a.slug}`,
+        ...(a.image_path ? { image: `${ORIGIN}/api/artists/${a.artist_id}/image` } : {}),
+        ...(() => {
+          const sameAs = [a.wikipedia_url, ...(a.social_links ?? []).map(l => l.url)].filter(
+            (u): u is string => !!u && /^https?:\/\//i.test(u)
+          );
+          return sameAs.length ? { sameAs } : {};
+        })(),
+      }));
+    }
+
+    const artistLinksHtml = linkedArtists.length
+      ? `<h2>Performing artists</h2>\n<ul>${linkedArtists
+          .map(a => `<li><a href="/artists/${esc(a.slug)}">${esc(a.name)}</a>${
+            a.short_bio ? ` — ${esc(stripHtml(a.short_bio, 160))}` : ''
+          }</li>`)
+          .join('\n')}</ul>`
+      : '';
+
+    const seFaqs = (se.faqs ?? []).filter(f => f.question?.trim() && f.answer?.trim());
+    const faqHtml = seFaqs.length
+      ? `\n<h2>Frequently asked questions</h2>\n<ul>${seFaqs
+          .map(f => `<li><h3>${esc(f.question)}</h3><p>${esc(f.answer)}</p></li>`)
+          .join('\n')}</ul>`
+      : '';
+
     return this.layout({
-      title: `${name}${area ? ` in ${area}` : ''} | Sanhoti${city ? ` — ${city}, ${region}` : ''}`,
-      description,
+      title:
+        se.meta_title?.trim() ||
+        `${name}${area ? ` in ${area}` : ''} | Sanhoti${city ? ` — ${city}, ${region}` : ''}`,
+      description: se.meta_description?.trim() || description,
       path,
-      body,
+      body: `${body}${menuHtml(se.menu)}${artistLinksHtml}${faqHtml}`,
       ogType: 'article',
       ogImage: imageUrl,
-      jsonLd: [this.orgJsonLd(), eventJsonLd],
+      jsonLd: [
+        this.orgJsonLd(),
+        eventJsonLd,
+        ...(() => {
+          const m = menuJsonLd(se.menu, { name, url: pageUrl });
+          return m ? [m] : [];
+        })(),
+        ...(seFaqs.length
+          ? [this.faqNode(pageUrl, seFaqs.map(f => ({ q: f.question, a: f.answer })))]
+          : []),
+      ],
     });
   }
 
@@ -1617,127 +1953,1205 @@ ${photos.length ? `<p>${photos.length} photo${photos.length === 1 ? '' : 's'} fr
     });
   }
 
-  private staticPage(path: string): string {
+  // ---------------------------------------------------------------- artists
+
+  /**
+   * /artists — the index that gives Google a crawl path to every artist page.
+   * Emitted as an ItemList of Person/MusicGroup so the set is machine-readable.
+   */
+  private async artistsIndexPage(): Promise<string> {
+    let artists: Artist[] = [];
+    try {
+      artists = await this.artistService.getActiveArtists();
+    } catch {
+      /* render the evergreen shell without the list */
+    }
+
+    const cards = artists
+      .map(a => {
+        const img = a.image_path
+          ? `<img src="${esc(`${ORIGIN}/api/artists/${a.artist_id}/image`)}" alt="${esc(
+              a.image_alt || `${a.name} — performed with Sanhoti in Orange County, CA`
+            )}" width="320" height="320" loading="lazy">`
+          : '';
+        const meta = [a.roles, a.genres, a.origin].map(s => (s || '').trim()).filter(Boolean).join(' · ');
+        return `<li>${img}
+<h3><a href="/artists/${esc(a.slug)}">${esc(a.name)}</a></h3>
+${meta ? `<p>${esc(meta)}</p>` : ''}
+${a.short_bio ? `<p>${esc(stripHtml(a.short_bio, 220))}</p>` : ''}</li>`;
+      })
+      .join('\n');
+
+    const body = `
+<h1>Artists Who Have Performed with Sanhoti in Orange County, California</h1>
+<p>Sanhoti brings singers, musicians, and performers from India and the Bengali diaspora
+to Orange County and Southern California — Bollywood and playback singers, Rabindra
+Sangeet and adhunik artists, classical musicians, and live bands. Most perform as part of
+our Durga Puja Durgotsav and cultural evenings in Costa Mesa, minutes from Irvine.</p>
+${
+  cards
+    ? `<h2>Featured artists</h2>\n<ul>${cards}</ul>`
+    : `<p>Our artist line-up for the coming season will be announced soon. See
+<a href="/bengali-concerts">Bengali concerts</a> and <a href="/durga-puja">Durga Puja</a> for the latest.</p>`
+}
+<h2>Booking and press</h2>
+<p>Each artist has a dedicated page listing their Sanhoti performances, dates, and venues.
+For press, artist management, or performance enquiries, <a href="/contact">contact Sanhoti</a>.</p>
+<p><a href="/bengali-concerts">Bengali concerts in Orange County</a> ·
+<a href="/durga-puja">Durga Puja</a> · <a href="/events">All events</a></p>`;
+
+    const itemList = {
+      '@type': 'ItemList',
+      '@id': `${ORIGIN}/artists#list`,
+      name: 'Artists who have performed with Sanhoti in Orange County, California',
+      numberOfItems: artists.length,
+      itemListElement: artists.map((a, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `${ORIGIN}/artists/${a.slug}`,
+        item: {
+          '@type': a.artist_type === 'MusicGroup' ? 'MusicGroup' : 'Person',
+          '@id': `${ORIGIN}/artists/${a.slug}#artist`,
+          name: a.name,
+          url: `${ORIGIN}/artists/${a.slug}`,
+        },
+      })),
+    };
+
+    return this.layout({
+      title: 'Artists & Performers | Sanhoti Bengali Association of Orange County, CA',
+      description:
+        'Singers, musicians, and performers who have appeared at Sanhoti events in Orange County, California — Bollywood, Rabindra Sangeet, and live Bengali concerts across Southern California.',
+      path: '/artists',
+      body,
+      jsonLd: [itemList],
+      breadcrumb: [
+        { name: 'Home', path: '/' },
+        { name: 'Artists', path: '/artists' },
+      ],
+    });
+  }
+
+  /**
+   * /artists/<slug> — the page that makes an artist-name search able to reach
+   * Sanhoti. Carries a full Person/MusicGroup node (alternate spellings,
+   * sameAs profiles, image), the artist's Sanhoti performances as Event nodes
+   * that reference the artist by @id, and VideoObject nodes for any clips.
+   */
+  private async artistPage(slug: string): Promise<string | null> {
+    let artist: Artist | null = null;
+    try {
+      artist = await this.artistService.getArtistBySlug(slug);
+    } catch {
+      return null;
+    }
+    if (!artist || artist.is_active === false) return null;
+
+    const path = `/artists/${artist.slug}`;
+    const canonical = `${ORIGIN}${path}`;
+    const artistId = `${canonical}#artist`;
+    const schemaType = artist.artist_type === 'MusicGroup' ? 'MusicGroup' : 'Person';
+    const imageUrl = artist.image_path ? `${ORIGIN}/api/artists/${artist.artist_id}/image` : undefined;
+
+    const alternates = String(artist.alternate_names ?? '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+    const genres = String(artist.genres ?? '').split(',').map(s => s.trim()).filter(Boolean);
+    const roles = String(artist.roles ?? '').split(',').map(s => s.trim()).filter(Boolean);
+    const sameAs = [
+      artist.wikipedia_url,
+      ...(artist.social_links ?? []).map(l => l.url),
+    ].filter((u): u is string => !!u && /^https?:\/\//i.test(u));
+
+    let appearances: { upcoming: ArtistAppearanceEntry[]; past: ArtistAppearanceEntry[] } = {
+      upcoming: [],
+      past: [],
+    };
+    try {
+      appearances = await this.artistService.getAppearances(artist);
+    } catch {
+      /* the artist page is still worth serving without the appearance list */
+    }
+
+    const describe = (entry: ArtistAppearanceEntry) => {
+      if (entry.kind === 'sub-event') {
+        const se = entry.event as SubEvent;
+        const where = [se.venue_name, se.venue_city && `${se.venue_city}, ${se.venue_region || 'CA'}`]
+          .filter(Boolean)
+          .join(', ');
+        return {
+          name: se.sub_event_name,
+          url: `${ORIGIN}/sub-events/${se.sub_event_id}`,
+          href: `/sub-events/${se.sub_event_id}`,
+          start: se.sub_event_start_dt,
+          end: se.sub_event_end_dt,
+          where: where || se.location || '',
+          venueName: se.venue_name,
+          city: se.venue_city,
+          region: se.venue_region,
+          type: se.seo_event_type === 'MusicEvent' ? 'MusicEvent' : 'Event',
+        };
+      }
+      const e = entry.event as Event;
+      const where = [e.venue_name, e.venue_city && `${e.venue_city}, ${e.venue_region || 'CA'}`]
+        .filter(Boolean)
+        .join(', ');
+      return {
+        name: e.event_name,
+        url: `${ORIGIN}${getEventDetailPath(e, e.event_id)}`,
+        href: getEventDetailPath(e, e.event_id),
+        start: e.event_start_dt,
+        end: e.event_end_dt,
+        where: where || e.location || '',
+        venueName: e.venue_name,
+        city: e.venue_city,
+        region: e.venue_region,
+        type: 'Event',
+      };
+    };
+
+    const listHtml = (entries: ArtistAppearanceEntry[]) =>
+      entries
+        .map(entry => {
+          const d = describe(entry);
+          return `<li><h3><a href="${esc(d.href)}">${esc(d.name)}</a></h3>
+<p>${esc(fmtDate(d.start))}${d.where ? ` — ${esc(d.where)}` : ''}</p></li>`;
+        })
+        .join('\n');
+
+    const upcomingHtml = listHtml(appearances.upcoming);
+    const pastHtml = listHtml(appearances.past);
+
+    const videos = (artist.video_urls ?? []).filter(u => /^https?:\/\//i.test(u));
+    const videosHtml = videos.length
+      ? `<h2>Watch ${esc(artist.name)}</h2>\n<ul>${videos
+          .map(u => `<li><a href="${esc(u)}" rel="noopener noreferrer">${esc(u)}</a></li>`)
+          .join('\n')}</ul>`
+      : '';
+
+    const profilesHtml = sameAs.length
+      ? `<h2>Official profiles</h2>\n<ul>${[
+          ...(artist.wikipedia_url ? [{ label: 'Wikipedia', url: artist.wikipedia_url }] : []),
+          ...(artist.social_links ?? []),
+        ]
+          .filter(l => /^https?:\/\//i.test(l.url))
+          .map(l => `<li><a href="${esc(l.url)}" rel="noopener noreferrer nofollow">${esc(l.label)}</a></li>`)
+          .join('\n')}</ul>`
+      : '';
+
+    const factsHtml = [
+      roles.length ? `<li>Role: ${esc(roles.join(', '))}</li>` : '',
+      genres.length ? `<li>Genres: ${esc(genres.join(', '))}</li>` : '',
+      artist.origin ? `<li>From: ${esc(artist.origin)}</li>` : '',
+      alternates.length ? `<li>Also spelled: ${esc(alternates.join(', '))}</li>` : '',
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    const introFallback = `${artist.name} has performed for Sanhoti Bengali Association of Orange County, California${
+      artist.origin ? `. ${artist.name} is from ${artist.origin}` : ''
+    }.`;
+
+    const body = `
+<h1>${esc(artist.name)} — Live with Sanhoti in Orange County, California</h1>
+${
+  imageUrl
+    ? `<img src="${esc(imageUrl)}" alt="${esc(
+        artist.image_alt || `${artist.name} performing at a Sanhoti event in Orange County, CA`
+      )}" width="640" height="640">`
+    : ''
+}
+<p>${esc(stripHtml(artist.short_bio || artist.bio, 400) || introFallback)}</p>
+${factsHtml ? `<h2>About ${esc(artist.name)}</h2>\n<ul>${factsHtml}</ul>` : ''}
+${artist.bio && artist.bio !== artist.short_bio ? `<p>${esc(stripHtml(artist.bio, 1500))}</p>` : ''}
+${
+  upcomingHtml
+    ? `<h2>Upcoming ${esc(artist.name)} performances with Sanhoti</h2>\n<ul>${upcomingHtml}</ul>`
+    : `<p>No upcoming ${esc(artist.name)} dates are announced right now. See
+<a href="/bengali-concerts">upcoming Bengali concerts in Orange County</a> for the current line-up.</p>`
+}
+${pastHtml ? `<h2>Past performances with Sanhoti</h2>\n<ul>${pastHtml}</ul>` : ''}
+${videosHtml}
+${profilesHtml}
+<h2>About Sanhoti</h2>
+<p>Sanhoti is a 501(c)(3) non-profit Bengali cultural association serving Orange County and
+Southern California. We present Bengali and Indian artists at Durga Puja, Saraswati Puja,
+Poila Boishakh, and standalone concerts in Costa Mesa, Irvine, and across SoCal.</p>
+<p><a href="/artists">All artists</a> · <a href="/bengali-concerts">Bengali concerts</a> ·
+<a href="/durga-puja">Durga Puja in Orange County</a> · <a href="/contact">Contact us</a></p>`;
+
+    const artistNode: Record<string, unknown> = {
+      '@type': schemaType,
+      '@id': artistId,
+      name: artist.name,
+      ...(alternates.length ? { alternateName: alternates } : {}),
+      ...(artist.website_url ? { url: artist.website_url } : { url: canonical }),
+      mainEntityOfPage: canonical,
+      description:
+        stripHtml(artist.short_bio || artist.bio, 400) || introFallback,
+      ...(imageUrl ? { image: imageUrl } : {}),
+      ...(genres.length ? { genre: genres } : {}),
+      ...(sameAs.length ? { sameAs } : {}),
+      ...(schemaType === 'Person'
+        ? {
+            ...(roles.length ? { jobTitle: roles.join(', ') } : {}),
+            ...(artist.origin ? { homeLocation: { '@type': 'Place', name: artist.origin } } : {}),
+          }
+        : {
+            ...(artist.origin ? { foundingLocation: { '@type': 'Place', name: artist.origin } } : {}),
+          }),
+      performerIn: [...appearances.upcoming, ...appearances.past].slice(0, 25).map(entry => {
+        const d = describe(entry);
+        return { '@type': d.type, name: d.name, url: d.url, ...(d.start ? { startDate: d.start } : {}) };
+      }),
+    };
+
+    // Each appearance is also a standalone Event node whose performer points at
+    // the artist node by @id, so the two entities are explicitly linked.
+    const eventNodes = [...appearances.upcoming, ...appearances.past].slice(0, 25).map(entry => {
+      const d = describe(entry);
+      return {
+        '@type': d.type,
+        name: d.name,
+        url: d.url,
+        ...(d.start ? { startDate: d.start } : {}),
+        ...(d.end || d.start ? { endDate: d.end || d.start } : {}),
+        eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+        eventStatus: 'https://schema.org/EventScheduled',
+        organizer: { '@id': ORG_ID },
+        performer: { '@id': artistId },
+        location: {
+          '@type': 'Place',
+          name: d.venueName || d.where || 'Orange County, California',
+          address: {
+            '@type': 'PostalAddress',
+            ...(d.city ? { addressLocality: d.city } : {}),
+            addressRegion: d.region || 'CA',
+            addressCountry: 'US',
+          },
+        },
+      };
+    });
+
+    const videoNodes = videos.map(url => ({
+      '@type': 'VideoObject',
+      name: `${artist.name} — performance video`,
+      description: `Performance video featuring ${artist.name}, presented by ${ORG_NAME}.`,
+      contentUrl: url,
+      embedUrl: url,
+      ...(imageUrl ? { thumbnailUrl: imageUrl } : {}),
+      uploadDate: artist.created_at,
+    }));
+
+    const title =
+      artist.meta_title?.trim() ||
+      `${artist.name} Live in Orange County, CA | Sanhoti Bengali Association`;
+    const description =
+      artist.meta_description?.trim() ||
+      stripHtml(artist.short_bio, 165) ||
+      `${artist.name} performing with Sanhoti Bengali Association in Orange County, California. Concert dates, venue, tickets, and past performances.`;
+
+    return this.layout({
+      title,
+      description,
+      path,
+      body,
+      ogType: 'profile',
+      ...(imageUrl ? { ogImage: imageUrl } : {}),
+      jsonLd: [artistNode, ...eventNodes, ...videoNodes],
+      breadcrumb: [
+        { name: 'Home', path: '/' },
+        { name: 'Artists', path: '/artists' },
+        { name: artist.name, path },
+      ],
+    });
+  }
+
+  // ------------------------------------------------------------------- blogs
+
+  private async blogsIndexPage(): Promise<string> {
+    let posts: PublicBlog[] = [];
+    try {
+      posts = await this.blogService.getPublicBlogs();
+    } catch {
+      /* render shell without list */
+    }
+
+    const cards = posts
+      .map(p => {
+        const img = p.cover_image_url
+          ? `<img src="${esc(`${ORIGIN}${p.cover_image_url}`)}" alt="${esc(p.cover_image_alt)}" width="640" height="400" loading="lazy">`
+          : '';
+        return `<li>${img}
+<h3><a href="${esc(p.path)}">${esc(p.title)}</a></h3>
+<p>${esc(p.excerpt)}</p>
+<p><time datetime="${esc(p.published_at)}">${esc(new Date(p.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Los_Angeles' }))}</time>
+ · ${p.reading_minutes} min read</p></li>`;
+      })
+      .join('\n');
+
+    const body = `
+<h1>Sanhoti Blog — Stories from Our Bengali Community in Orange County</h1>
+<p>Event recaps, cultural reflections, charity highlights, and news from Sanhoti Bengali
+Association of Orange County across Southern California.</p>
+${cards ? `<h2>Recent posts</h2>\n<ul>${cards}</ul>` : '<p>New articles will be published here soon.</p>'}
+<p><a href="/galleries">Photo galleries</a> · <a href="/magazines">Magazines</a> ·
+<a href="/events">Events</a></p>`;
+
+    const itemList = {
+      '@type': 'ItemList',
+      '@id': `${ORIGIN}/blogs#list`,
+      name: 'Sanhoti community blog',
+      numberOfItems: posts.length,
+      itemListElement: posts.map((p, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `${ORIGIN}${p.path}`,
+        item: {
+          '@type': 'BlogPosting',
+          headline: p.title,
+          url: `${ORIGIN}${p.path}`,
+          datePublished: p.published_at,
+        },
+      })),
+    };
+
+    return this.layout({
+      title: 'Blog | Sanhoti Bengali Association of Orange County, CA',
+      description:
+        'Stories, event recaps, and cultural articles from Sanhoti — the Bengali community association serving Orange County and Southern California.',
+      path: '/blogs',
+      body,
+      jsonLd: posts.length ? [itemList] : undefined,
+      breadcrumb: [
+        { name: 'Home', path: '/' },
+        { name: 'Blog', path: '/blogs' },
+      ],
+    });
+  }
+
+  private async blogPage(slug: string): Promise<string | null> {
+    let blog: PublicBlog | null = null;
+    try {
+      blog = await this.blogService.getPublicBlogBySlug(slug);
+    } catch {
+      return null;
+    }
+    if (!blog) return null;
+
+    const path = blog.path;
+    const canonical = `${ORIGIN}${path}`;
+    const imageUrl = blog.cover_image_url ? `${ORIGIN}${blog.cover_image_url}` : undefined;
+    const authorLine = blog.author_name
+      ? `<p>By ${esc(blog.author_name)}${blog.author_contact ? ` · ${esc(blog.author_contact)}` : ''}</p>`
+      : '';
+
+    const body = `
+${imageUrl ? `<img src="${esc(imageUrl)}" alt="${esc(blog.cover_image_alt)}" width="960" height="540">` : ''}
+<h1>${esc(blog.title)}</h1>
+<p><time datetime="${esc(blog.published_at)}">${esc(new Date(blog.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Los_Angeles' }))}</time>
+ · ${blog.reading_minutes} min read</p>
+${authorLine}
+${blog.body_html ?? ''}
+<p><a href="/blogs">All blog posts</a> · <a href="/events">Events</a> · <a href="/contact">Contact Sanhoti</a></p>`;
+
+    const blogNode: Record<string, unknown> = {
+      '@type': 'BlogPosting',
+      headline: blog.title,
+      description: blog.meta_description || blog.excerpt,
+      datePublished: blog.published_at,
+      dateModified: blog.updated_at,
+      url: canonical,
+      mainEntityOfPage: canonical,
+      ...(imageUrl ? { image: imageUrl } : {}),
+      author: blog.author_name
+        ? { '@type': 'Person', name: blog.author_name }
+        : { '@type': 'Organization', name: ORG_NAME },
+      publisher: {
+        '@type': 'Organization',
+        name: ORG_NAME,
+        logo: { '@type': 'ImageObject', url: `${ORIGIN}/images/logo.png` },
+      },
+    };
+
+    return this.layout({
+      title: blog.meta_title || `${blog.title} | Sanhoti Blog — Orange County Bengali Community`,
+      description: blog.meta_description || blog.excerpt,
+      path,
+      body,
+      ...(imageUrl ? { ogImage: imageUrl } : {}),
+      jsonLd: [blogNode],
+      breadcrumb: [
+        { name: 'Home', path: '/' },
+        { name: 'Blog', path: '/blogs' },
+        { name: blog.title, path },
+      ],
+    });
+  }
+
+  // ------------------------------------------------- charity / food / festival
+
+  /** /charity — targets "charitable organization in Orange County". */
+  private async charityPage(): Promise<string> {
+    let corp: CorporatePartnershipsContent | undefined;
+    try {
+      corp = (await this.settingsService.getSettings())?.corporatePartnerships;
+    } catch {
+      /* fall back to the built-in copy */
+    }
+    const impact = (corp?.impact?.length ? corp.impact : DEFAULT_CORP.impact) ?? [];
+
+    const impactHtml = impact
+      .map(
+        i => `<li><h3>${esc(i.name)}</h3>
+${i.meta ? `<p>${esc(i.meta)}</p>` : ''}
+<p>${esc(i.text)}</p></li>`
+      )
+      .join('\n');
+
+    const body = `
+<h1>Sanhoti — A Charitable Non-Profit Organization in Orange County, California</h1>
+<p>Sanhoti is a registered 501(c)(3) charitable organization (EIN 39-2903777) based in
+Rancho Santa Margarita, Orange County, California. Alongside our Bengali cultural
+programming, we raise funds and volunteer for causes that serve Orange County families —
+hunger relief, domestic violence support, and community welfare — and every donation is
+tax-deductible.</p>
+
+<h2>Our charitable work in Orange County</h2>
+${impactHtml ? `<ul>${impactHtml}</ul>` : ''}
+
+<h2>How your donation is used</h2>
+<p>Contributions to Sanhoti fund charity drives and partner non-profits in Orange County,
+free and low-cost community cultural programming, youth and language education for
+Bengali-American children, and scholarships and relief efforts. Sanhoti is volunteer-run,
+so administrative overhead stays low.</p>
+
+<h2>Ways to support</h2>
+<ul>
+<li><a href="/donate">Make a tax-deductible donation</a> — one-time or recurring.</li>
+<li><a href="/become-our-sponsor">Sponsor an event</a> and reach Bengali and Indian families across Southern California.</li>
+<li><a href="/corporate-partnerships">Corporate partnership or CSR programs</a>, including employer matching gifts.</li>
+<li>Volunteer at a Sanhoti event or charity drive — <a href="/contact">get in touch</a>.</li>
+</ul>
+
+<h2>Charity registration details</h2>
+<p>Legal name: ${esc(ORG_NAME)}. Status: 501(c)(3) non-profit. EIN: 39-2903777.
+Address: ${esc(ORG_ADDRESS)}. Contact: ${esc(ORG_EMAIL)} · ${esc(ORG_PHONE)}.
+We are happy to provide our tax-exemption letter for corporate CSR review.</p>
+<p><a href="/about">About Sanhoti</a> · <a href="/donate">Donate</a> ·
+<a href="/events">Our events</a> · <a href="/contact">Contact us</a></p>`;
+
+    const faqs = [
+      {
+        q: 'Is Sanhoti a registered charitable organization in Orange County?',
+        a: 'Yes. Sanhoti Bengali Association of Orange County is a registered 501(c)(3) non-profit charitable organization, EIN 39-2903777, based in Rancho Santa Margarita, California. Donations are tax-deductible to the extent allowed by law.',
+      },
+      {
+        q: 'What causes does Sanhoti support?',
+        a: 'Sanhoti supports hunger relief through Second Harvest Food Bank of Orange County, domestic violence survivor services through Laura’s House, and community welfare and cultural education programs for families across Orange County and Southern California.',
+      },
+      {
+        q: 'Are donations to Sanhoti tax-deductible?',
+        a: 'Yes. Sanhoti is a 501(c)(3) non-profit (EIN 39-2903777), so donations are tax-deductible to the extent allowed by law. Many employers also match employee donations — check with your HR or CSR team.',
+      },
+      {
+        q: 'How can my company partner with Sanhoti on charitable work?',
+        a: 'Companies can co-sponsor charity drives and volunteer days, run matching gift programs, or become an event sponsor. See our corporate partnerships page or contact us at info@sanhoti.org for our EIN and tax-exemption letter.',
+      },
+    ];
+
+    return this.layout({
+      title: 'Charity & Community Service | Sanhoti — 501(c)(3) Non-Profit in Orange County, CA',
+      description:
+        'Sanhoti is a 501(c)(3) charitable organization in Orange County, CA (EIN 39-2903777) supporting hunger relief, domestic violence services, and community programs. Donations are tax-deductible.',
+      path: '/charity',
+      body,
+      jsonLd: [this.faqNode(`${ORIGIN}/charity`, faqs)],
+      breadcrumb: [
+        { name: 'Home', path: '/' },
+        { name: 'Charity', path: '/charity' },
+      ],
+    });
+  }
+
+  /** /bengali-food — food is a genuine differentiator and its own search demand. */
+  private async bengaliFoodPage(): Promise<string> {
+    // Every public menu comes from MenuService — the same source the React page
+    // reads through /api/menus/public. Aggregating separately here is what made
+    // the two surfaces disagree before.
+    let menus: Awaited<ReturnType<MenuService['getPublicMenus']>> = [];
+    let totalMenus = 0;
+    try {
+      // Same cap the React page uses, so the two stay identical as events pile up.
+      menus = await this.menuService.getPublicMenus(MenuService.FOOD_PAGE_LIMIT);
+      totalMenus = await this.menuService.countPublicMenus();
+    } catch {
+      /* the evergreen page below stands on its own */
+    }
+
+    const liveMenuHtml = menus
+      .map(m => {
+        const heading =
+          m.source === 'durga-puja'
+            ? `This year's menu — ${esc(m.title)}`
+            : `${esc(m.title)} — menu`;
+        return `<div>${menuHtml(m.menu, heading)}
+<p><a href="${esc(m.href)}">See ${esc(m.title)}</a></p></div>`;
+      })
+      .join('\n') +
+      (totalMenus > menus.length
+        ? `\n<p>Menus from ${totalMenus - menus.length} more past event${
+            totalMenus - menus.length === 1 ? '' : 's'
+          } are on their own pages — <a href="/events">browse all Sanhoti events</a>.</p>`
+        : '');
+
+    const menuNodes = menus
+      .map(m => menuJsonLd(m.menu, { name: m.title, url: `${ORIGIN}${m.href}` }))
+      .filter((n): n is Record<string, unknown> => !!n);
+
+    const body = `
+<h1>Bengali Food in Orange County — Authentic Home-Style Cooking at Sanhoti Events</h1>
+<p>Food is at the heart of every Bengali celebration, and Sanhoti serves authentic,
+home-style Bengali cooking at our events across Orange County, California. From Durga Puja
+bhog to Poila Boishakh feasts, our meals are prepared for the community by the community —
+a rare chance to eat real Bengali food in Southern California.</p>
+${liveMenuHtml ? `\n<h2>Menus from our events</h2>${liveMenuHtml}` : ''}
+<h2>What we serve year-round</h2>
+<ul>
+<li><strong>Bhog</strong> — the traditional vegetarian offering served after puja: khichuri,
+labra, beguni, chatni, and payesh.</li>
+<li><strong>Fish and meat dishes</strong> — Bengali classics such as maacher jhol, kosha
+mangsho, and fish fry on non-bhog days.</li>
+<li><strong>Street-food favourites</strong> — egg roll, ghugni, phuchka, and chops.</li>
+<li><strong>Sweets</strong> — rosogolla, mishti doi, sandesh, and payesh.</li>
+<li><strong>Vegetarian and kid-friendly options</strong> at every meal service.</li>
+</ul>
+
+<h2>Bhog at Durga Puja</h2>
+<p>During our three-day Durgotsav in Costa Mesa, bhog is served after the morning puja and
+pushpanjali on each day of the celebration. Bhog is included with most Durga Puja passes —
+see the <a href="/durga-puja">Durga Puja page</a> for this year's schedule, menu, and
+ticket options.</p>
+
+<h2>Dietary information</h2>
+<p>Bhog is fully vegetarian and prepared without onion or garlic in keeping with tradition.
+Non-vegetarian dishes are served separately and clearly labelled. If you have an allergy or
+a specific dietary requirement, please <a href="/contact">contact us</a> ahead of the event
+and we will do our best to accommodate you.</p>
+
+<h2>Where to find us</h2>
+<p>Sanhoti food service happens at our events in Orange County — most often in Costa Mesa,
+minutes from Irvine, Tustin, Santa Ana, and Newport Beach. We are not a restaurant; meals
+are served at our festivals and cultural programs, which are open to everyone.</p>
+<p><a href="/durga-puja">Durga Puja in Orange County</a> · <a href="/festivals">Bengali festivals</a> ·
+<a href="/events">Upcoming events</a> · <a href="/contact">Contact us</a></p>`;
+
+    const faqs = [
+      {
+        q: 'Where can I find Bengali food in Orange County?',
+        a: 'Sanhoti serves authentic home-style Bengali food at its cultural events across Orange County, California — including bhog at Durga Puja in Costa Mesa, and full Bengali menus at Poila Boishakh and Saraswati Puja. Events are open to everyone.',
+      },
+      {
+        q: 'What is bhog?',
+        a: 'Bhog is the traditional vegetarian meal offered to the deity during puja and then served to attendees. A Bengali bhog typically includes khichuri, labra, beguni, chatni, and payesh, cooked without onion or garlic.',
+      },
+      {
+        q: 'Is the food at Sanhoti events vegetarian?',
+        a: 'Bhog is fully vegetarian and prepared without onion or garlic. Non-vegetarian Bengali dishes such as fish curry and kosha mangsho are served separately at some events and are clearly labelled.',
+      },
+      {
+        q: 'Is food included with a Durga Puja ticket?',
+        a: 'Bhog is included with most Sanhoti Durga Puja passes. Check the Durga Puja page for the current year’s ticket tiers and exactly which meals each pass includes.',
+      },
+    ];
+
+    return this.layout({
+      title: 'Bengali Food in Orange County, CA | Bhog & Festival Meals — Sanhoti',
+      description:
+        'Authentic Bengali food in Orange County, California — Durga Puja bhog (khichuri, labra, payesh), fish and meat classics, street food, and sweets served at Sanhoti cultural events.',
+      path: '/bengali-food',
+      body,
+      jsonLd: [this.faqNode(`${ORIGIN}/bengali-food`, faqs), ...menuNodes],
+      breadcrumb: [
+        { name: 'Home', path: '/' },
+        { name: 'Bengali Food', path: '/bengali-food' },
+      ],
+    });
+  }
+
+  /**
+   * Dedicated festival landing pages (/saraswati-puja, /poila-boishakh,
+   * /kali-puja). Previously these shared the single /festivals page, so the
+   * site had no URL that could rank for an individual festival plus a location.
+   * Each page links to the matching live event when one exists.
+   */
+  private async festivalLandingPage(path: string): Promise<string> {
+    const cfg = FESTIVAL_LANDING[path];
+    let events: Event[] = [];
+    try {
+      events = await this.eventService.getActiveEvents();
+    } catch {
+      /* the evergreen page stands on its own */
+    }
+
+    const matches = events
+      .filter(e => cfg.match.test(`${e.event_name ?? ''} ${e.event_description ?? ''}`))
+      .sort(
+        (a, b) => new Date(a.event_start_dt || 0).getTime() - new Date(b.event_start_dt || 0).getTime()
+      );
+    const now = Date.now();
+    const upcoming = matches.filter(e => new Date(e.event_start_dt || 0).getTime() >= now);
+    const past = matches.filter(e => new Date(e.event_start_dt || 0).getTime() < now);
+
+    const renderList = (list: Event[]) =>
+      list
+        .map(e => {
+          const where = [e.venue_name, e.venue_city && `${e.venue_city}, ${e.venue_region || 'CA'}`]
+            .filter(Boolean)
+            .join(', ');
+          return `<li><h3><a href="${esc(getEventDetailPath(e, e.event_id))}">${esc(e.event_name)}</a></h3>
+<p>${esc(fmtDate(e.event_start_dt))}${where ? ` — ${esc(where)}` : e.location ? ` — ${esc(e.location)}` : ''}</p>
+${e.event_description ? `<p>${esc(stripHtml(e.event_description, 240))}</p>` : ''}</li>`;
+        })
+        .join('\n');
+
+    const upcomingHtml = renderList(upcoming);
+    const pastHtml = renderList(past);
+
+    const body = `
+<h1>${esc(cfg.h1)}</h1>
+${cfg.intro}
+${
+  upcomingHtml
+    ? `<h2>Upcoming ${esc(cfg.shortName)} celebrations</h2>\n<ul>${upcomingHtml}</ul>`
+    : `<p>Dates for our next ${esc(cfg.shortName)} celebration will be announced soon. See
+<a href="/events">all upcoming Sanhoti events</a> or <a href="/contact">contact us</a> to be notified.</p>`
+}
+${pastHtml ? `<h2>Past ${esc(cfg.shortName)} celebrations</h2>\n<ul>${pastHtml}</ul>` : ''}
+${cfg.extra}
+<h2>Who can attend</h2>
+<p>Everyone is welcome. Sanhoti's ${esc(cfg.shortName)} celebration is open to Bengali,
+Indian, and non-Indian families from across Orange County and Southern California —
+Rancho Santa Margarita, Irvine, Tustin, Costa Mesa, Mission Viejo, Lake Forest,
+Aliso Viejo, and beyond.</p>
+<p><a href="/festivals">All Bengali festivals</a> · <a href="/durga-puja">Durga Puja in Orange County</a> ·
+<a href="/bengali-food">Bengali food</a> · <a href="/events">Upcoming events</a> ·
+<a href="/contact">Contact us</a></p>`;
+
+    return this.layout({
+      title: cfg.title,
+      description: cfg.description,
+      path,
+      body,
+      jsonLd: [this.faqNode(`${ORIGIN}${path}`, cfg.faqs)],
+      breadcrumb: [
+        { name: 'Home', path: '/' },
+        { name: 'Festivals', path: '/festivals' },
+        { name: cfg.shortName, path },
+      ],
+    });
+  }
+
+  // -------------------------------------------------- data-backed list pages
+  //
+  // These previously rendered two hard-coded paragraphs to crawlers while real
+  // users saw the full list, so Googlebot indexed strictly less content than
+  // the site actually has. Each now renders the real records.
+
+  /** /galleries — every public gallery, as a crawlable ItemList with images. */
+  private async galleriesIndexPage(): Promise<string> {
+    let galleries: Awaited<ReturnType<GalleryService['getPublicGalleries']>> = [];
+    try {
+      galleries = await this.galleryService.getPublicGalleries();
+    } catch {
+      /* evergreen copy still renders */
+    }
+
+    const items = galleries
+      .map(g => {
+        const first = g.photos?.[0];
+        const img =
+          first && g.eventId
+            ? `<img src="${esc(
+                `${ORIGIN}/api/galleries/${g.eventId}/photos/${encodeURIComponent(
+                  basename((first as { filename?: string; url?: string }).filename || (first as { url?: string }).url || '')
+                )}`
+              )}" alt="${esc(
+                `${g.title} — Sanhoti Bengali Association event photos, Orange County, CA`
+              )}" width="480" height="320" loading="lazy">`
+            : '';
+        return `<li>${img}
+<h3><a href="/galleries/${esc(g.id)}">${esc(g.title)}</a></h3>
+${g.description ? `<p>${esc(stripHtml(g.description, 200))}</p>` : ''}
+<p>${g.photos?.length ?? 0} photo${(g.photos?.length ?? 0) === 1 ? '' : 's'}${
+          g.event_start_dt ? ` · ${esc(fmtDate(g.event_start_dt))}` : ''
+        }</p></li>`;
+      })
+      .join('\n');
+
+    const body = `
+<h1>Sanhoti Photo Galleries — Bengali Events in Orange County, California</h1>
+<p>Photos from Sanhoti celebrations across Orange County and Southern California — Durga Puja
+Durgotsav, Saraswati Puja, Poila Boishakh, Bengali concerts, picnics, and community
+gatherings. Browse each gallery for images from the day.</p>
+${items ? `<h2>All galleries</h2>\n<ul>${items}</ul>` : `<p>Galleries from our most recent events are being uploaded — check back soon.</p>`}
+<p><a href="/durga-puja">Durga Puja in Orange County</a> · <a href="/festivals">Bengali festivals</a> ·
+<a href="/events">All events</a></p>`;
+
+    const itemList = {
+      '@type': 'ItemList',
+      '@id': `${ORIGIN}/galleries#list`,
+      name: 'Sanhoti photo galleries',
+      numberOfItems: galleries.length,
+      itemListElement: galleries.map((g, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `${ORIGIN}/galleries/${g.id}`,
+        name: g.title,
+      })),
+    };
+
+    return this.layout({
+      title: 'Photo Galleries | Sanhoti Bengali Association of Orange County, CA',
+      description:
+        'Photos from Sanhoti events in Orange County — Durga Puja, Saraswati Puja, Poila Boishakh, Bengali concerts, and community gatherings across Southern California.',
+      path: '/galleries',
+      body,
+      jsonLd: [itemList],
+    });
+  }
+
+  /** /notices — real published notices instead of a placeholder paragraph. */
+  private async noticesPage(): Promise<string> {
+    let notices: Awaited<ReturnType<NoticeService['getPublishedNotices']>> = [];
+    try {
+      notices = await this.noticeService.getPublishedNotices();
+    } catch {
+      /* evergreen copy still renders */
+    }
+
+    const items = notices
+      .map(
+        n => `<li><h3>${esc(n.notice_name)}</h3>
+<p>${esc(stripHtml(n.notice_body, 600))}</p>
+<p>Posted ${esc(fmtDate(n.created_at))}</p></li>`
+      )
+      .join('\n');
+
+    const body = `
+<h1>Sanhoti Notices &amp; Announcements — Orange County, California</h1>
+<p>Community notices from Sanhoti Bengali Association — event dates and ticket releases,
+Durga Puja announcements, volunteer calls, and updates for Bengali families across Orange
+County and Southern California.</p>
+${items ? `<h2>Current notices</h2>\n<ul>${items}</ul>` : `<p>There are no active notices right now. See <a href="/events">upcoming events</a> for what's next.</p>`}
+<p><a href="/events">All events</a> · <a href="/durga-puja">Durga Puja</a> · <a href="/contact">Contact us</a></p>`;
+
+    return this.layout({
+      title: 'Notices & Announcements | Sanhoti Bengali Association of Orange County, CA',
+      description:
+        'Latest notices and announcements from Sanhoti Bengali Association — event dates, tickets, and community updates for Orange County and Southern California.',
+      path: '/notices',
+      body,
+    });
+  }
+
+  /** /news — real published items, each as a schema.org Article. */
+  private async newsPage(): Promise<string> {
+    let news: Awaited<ReturnType<NewsService['getPublishedNews']>> = [];
+    try {
+      news = await this.newsService.getPublishedNews();
+    } catch {
+      /* evergreen copy still renders */
+    }
+
+    const items = news
+      .map(
+        n => `<li><h3>${esc(n.title)}</h3>
+<p>${esc(stripHtml(n.content, 500))}</p>
+<p>${esc(fmtDate(n.created_at))}${
+          n.media_url ? ` · <a href="${esc(n.media_url)}" rel="noopener noreferrer">Read more</a>` : ''
+        }</p></li>`
+      )
+      .join('\n');
+
+    const body = `
+<h1>Sanhoti News &amp; Media — Bengali Community in Orange County, California</h1>
+<p>News, coverage, and updates from Sanhoti Bengali Association — Durga Puja, concerts with
+visiting artists, charity work, and cultural programs across Orange County and Southern
+California.</p>
+${items ? `<h2>Latest news</h2>\n<ul>${items}</ul>` : `<p>No news items are published right now. See our <a href="/events">events</a> and <a href="/galleries">photo galleries</a>.</p>`}
+<p><a href="/events">All events</a> · <a href="/artists">Artists</a> · <a href="/galleries">Galleries</a></p>`;
+
+    const articleNodes = news.slice(0, 20).map(n => ({
+      '@type': 'Article',
+      headline: n.title.slice(0, 110),
+      description: stripHtml(n.content, 250),
+      datePublished: n.created_at,
+      dateModified: n.updated_at || n.created_at,
+      author: { '@id': ORG_ID },
+      publisher: { '@id': ORG_ID },
+      ...(n.media_url ? { url: n.media_url } : {}),
+      isPartOf: { '@id': `${ORIGIN}/news#webpage` },
+    }));
+
+    return this.layout({
+      title: 'News & Media | Sanhoti Bengali Association of Orange County, CA',
+      description:
+        'News and media coverage of Sanhoti Bengali Association — Durga Puja, concerts, charity work, and cultural events in Orange County and Southern California.',
+      path: '/news',
+      body,
+      jsonLd: articleNodes,
+    });
+  }
+
+  /** /magazines — the real souvenir publication list. */
+  private async magazinesPage(): Promise<string> {
+    let magazines: Awaited<ReturnType<MagazineService['getPublicMagazines']>> = [];
+    try {
+      magazines = await this.magazineService.getPublicMagazines();
+    } catch {
+      /* evergreen copy still renders */
+    }
+
+    const items = magazines
+      .map(
+        m => `<li><h3>${esc(m.title)}</h3>
+${m.description ? `<p>${esc(stripHtml(m.description, 300))}</p>` : ''}
+<p>Published ${esc(fmtDate(m.publishDate || m.createdAt))}</p></li>`
+      )
+      .join('\n');
+
+    const body = `
+<h1>Sanhoti Magazines &amp; Durga Puja Souvenirs — Orange County, California</h1>
+<p>Sanhoti's souvenir magazines collect Bengali writing, poetry, artwork, and children's
+contributions from our community in Orange County and Southern California. Each Durga Puja
+edition captures the year's celebrations alongside original literary work in Bengali and
+English.</p>
+${items ? `<h2>Published editions</h2>\n<ul>${items}</ul>` : `<p>Our next souvenir edition is in preparation. <a href="/contact">Contact us</a> to contribute writing or artwork.</p>`}
+<h2>Contribute to the next edition</h2>
+<p>We welcome poems, essays, short stories, artwork, and photography from community members
+of every age. <a href="/contact">Get in touch</a> to submit for the upcoming Durga Puja
+souvenir.</p>
+<p><a href="/durga-puja">Durga Puja in Orange County</a> · <a href="/galleries">Photo galleries</a></p>`;
+
+    return this.layout({
+      title: 'Magazines & Souvenirs | Sanhoti Bengali Association of Orange County, CA',
+      description:
+        "Sanhoti's Bengali magazines and Durga Puja souvenir publications — stories, poems, and art from the Bengali community of Orange County and Southern California.",
+      path: '/magazines',
+      body,
+    });
+  }
+
+  /** /documents — the real public document list. */
+  private async documentsPage(): Promise<string> {
+    let documents: Awaited<ReturnType<DocumentService['getPublicDocuments']>> = [];
+    try {
+      documents = await this.documentService.getPublicDocuments();
+    } catch {
+      /* evergreen copy still renders */
+    }
+
+    const items = documents
+      .map(
+        d => `<li><h3>${esc(d.title)}</h3>
+${d.description ? `<p>${esc(stripHtml(d.description, 300))}</p>` : ''}
+<p>Published ${esc(fmtDate(d.publishDate || d.createdAt))}</p></li>`
+      )
+      .join('\n');
+
+    const body = `
+<h1>Sanhoti Public Documents — 501(c)(3) Non-Profit, Orange County, California</h1>
+<p>Public documents and resources from Sanhoti Bengali Association, a registered 501(c)(3)
+non-profit organization (EIN 39-2903777) based in Rancho Santa Margarita, Orange County,
+California — including bylaws, policies, and community resources.</p>
+${items ? `<h2>Available documents</h2>\n<ul>${items}</ul>` : `<p>No public documents are posted right now. <a href="/contact">Contact us</a> if you need our tax-exemption letter or organizational documents.</p>`}
+<p><a href="/about">About Sanhoti</a> · <a href="/charity">Charitable work</a> ·
+<a href="/committee">Committee &amp; board</a> · <a href="/contact">Contact us</a></p>`;
+
+    return this.layout({
+      title: 'Documents | Sanhoti Bengali Association of Orange County, CA',
+      description:
+        'Public documents from Sanhoti Bengali Association, a 501(c)(3) non-profit (EIN 39-2903777) in Orange County, California — bylaws, policies, and community resources.',
+      path: '/documents',
+      body,
+    });
+  }
+
+  /** schema.org FAQPage node bound to a specific page URL. */
+  private faqNode(pageUrl: string, faqs: { q: string; a: string }[]): Record<string, unknown> {
+    return {
+      '@type': 'FAQPage',
+      '@id': `${pageUrl}#faq`,
+      mainEntity: faqs.map(f => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    };
+  }
+
+  private staticPage(path: string): string | null {
     const pages: Record<string, { title: string; description: string; body: string }> = {
       '/about': {
         title: 'About Sanhoti | Bengali Association of Orange County, CA',
         description:
           'Sanhoti is a 501(c)(3) non-profit Bengali cultural association in Orange County, CA, celebrating Durga Puja, Poila Boishakh, and Bengali heritage across Southern California.',
-        body: `<h1>About Sanhoti</h1>
-<p>Sanhoti (সংহতি — "solidarity") is a non-profit 501(c)(3) cultural and charitable organization
-dedicated to preserving and celebrating Bengali culture in Orange County, California. Established in
-2025 and based in Rancho Santa Margarita, we organize Durga Puja, Saraswati Puja, Poila Boishakh,
-concerts, and charity programs open to families across Southern California.</p>`,
+        body: `<h1>About Sanhoti — Bengali Association of Orange County, California</h1>
+<p>Sanhoti (সংহতি — "solidarity") is a non-profit 501(c)(3) cultural and charitable
+organization dedicated to preserving and celebrating Bengali culture in Orange County,
+California. Established in 2025 and based in Rancho Santa Margarita, we bring together
+Bengali and Indian families from across Southern California — and welcome guests of every
+background.</p>
+
+<h2>What we do</h2>
+<ul>
+<li><strong>Religious and cultural festivals</strong> — <a href="/durga-puja">Durga Puja</a>,
+<a href="/saraswati-puja">Saraswati Puja</a>, <a href="/poila-boishakh">Poila Boishakh</a>,
+and <a href="/kali-puja">Kali Puja</a>, celebrated with full traditional ritual.</li>
+<li><strong>Live concerts</strong> — we bring <a href="/artists">visiting artists</a> from
+India and the diaspora to perform in Orange County.</li>
+<li><strong>Authentic Bengali food</strong> — <a href="/bengali-food">bhog and festival
+meals</a> cooked by the community for the community.</li>
+<li><strong>Charitable work</strong> — <a href="/charity">fundraising and volunteering</a>
+for Orange County causes including hunger relief and domestic violence support.</li>
+<li><strong>Youth and language programs</strong> — helping Bengali-American children stay
+connected to their language, music, and heritage.</li>
+</ul>
+
+<h2>Where we serve</h2>
+<p>Sanhoti is based in Rancho Santa Margarita and holds events across Orange County —
+Costa Mesa, Irvine, Tustin, Mission Viejo, Lake Forest, Aliso Viejo, Santa Ana, and Newport
+Beach — with members joining from throughout Southern California including Los Angeles,
+Riverside, and San Diego counties.</p>
+
+<h2>Organization details</h2>
+<p>Legal name: ${esc(ORG_NAME)}. Status: registered 501(c)(3) non-profit. EIN: 39-2903777.
+Founded: 2025. Address: ${esc(ORG_ADDRESS)}. Email: ${esc(ORG_EMAIL)}. Phone: ${esc(ORG_PHONE)}.</p>
+
+<h2>Get involved</h2>
+<p>Everyone is welcome at Sanhoti events, whether or not you are Bengali. Come to an
+<a href="/events">upcoming event</a>, <a href="/donate">support our work</a>,
+<a href="/become-our-sponsor">sponsor a festival</a>, or <a href="/contact">contact us</a>
+to volunteer.</p>`,
       },
       '/contact': {
         title: 'Contact Sanhoti | Bengali Association of Orange County, CA',
-        description: `Contact Sanhoti Bengali Association of Orange County: ${ORG_EMAIL}, ${ORG_PHONE}, ${ORG_ADDRESS}.`,
-        body: `<h1>Contact Sanhoti</h1>
-<p>Email: ${esc(ORG_EMAIL)}<br>Phone: ${esc(ORG_PHONE)}<br>Address: ${esc(ORG_ADDRESS)}</p>`,
+        description: `Contact Sanhoti Bengali Association of Orange County: ${ORG_EMAIL}, ${ORG_PHONE}, ${ORG_ADDRESS}. Questions about events, tickets, sponsorship, or membership.`,
+        body: `<h1>Contact Sanhoti — Bengali Association of Orange County, California</h1>
+<p>Questions about an event, tickets, sponsorship, volunteering, or joining Sanhoti? We are
+happy to hear from you.</p>
+<h2>Contact details</h2>
+<ul>
+<li>Email: ${esc(ORG_EMAIL)}</li>
+<li>Phone: ${esc(ORG_PHONE)}</li>
+<li>Address: ${esc(ORG_ADDRESS)}</li>
+</ul>
+<h2>What to contact us about</h2>
+<ul>
+<li><strong>Events and tickets</strong> — dates, pricing, seating, and accessibility.</li>
+<li><strong>Sponsorship and corporate partnership</strong> — see
+<a href="/become-our-sponsor">sponsorship packages</a> and
+<a href="/corporate-partnerships">corporate partnerships</a>.</li>
+<li><strong>Artists and press</strong> — performance and media enquiries; see
+<a href="/artists">our artists</a>.</li>
+<li><strong>Volunteering and membership</strong> — join the team behind our festivals.</li>
+<li><strong>Charitable giving</strong> — our EIN and tax-exemption letter for
+<a href="/charity">CSR review</a>.</li>
+</ul>
+<p>Sanhoti is a volunteer-run 501(c)(3) non-profit serving Orange County and Southern
+California. We aim to reply within a few days.</p>`,
       },
       '/donate': {
         title: 'Donate to Sanhoti | 501(c)(3) Bengali Non-Profit in Orange County, CA',
         description:
-          'Support Bengali culture in Orange County. Donations to Sanhoti, a 501(c)(3) non-profit (EIN 39-2903777), fund Durga Puja, cultural programs, and charity work.',
-        body: `<h1>Donate to Sanhoti</h1>
-<p>Sanhoti is a 501(c)(3) non-profit (EIN 39-2903777). Your donation funds Durga Puja and cultural
-celebrations, youth programs, and charitable initiatives in Orange County, California.</p>`,
-      },
-      '/galleries': {
-        title: 'Photo Galleries | Sanhoti Bengali Association of Orange County, CA',
-        description:
-          'Photos from Sanhoti events in Orange County — Durga Puja, Saraswati Puja, Poila Boishakh, concerts, and community gatherings across Southern California.',
-        body: `<h1>Sanhoti Photo Galleries</h1>
-<p>Browse photos from past Sanhoti celebrations in Orange County: Durga Puja Durgotsav, Saraswati Puja,
-Poila Boishakh, Bengali concerts, picnics, and community events across Southern California.</p>
-<p><a href="/durga-puja">Durga Puja in Orange County</a> · <a href="/events">All events</a></p>`,
+          'Support Bengali culture in Orange County. Donations to Sanhoti, a 501(c)(3) non-profit (EIN 39-2903777), fund Durga Puja, cultural programs, and charity work. Tax-deductible.',
+        body: `<h1>Donate to Sanhoti — 501(c)(3) Non-Profit in Orange County, California</h1>
+<p>Sanhoti is a registered 501(c)(3) non-profit organization (EIN 39-2903777). Your donation
+is tax-deductible to the extent allowed by law and goes directly into cultural and
+charitable programming in Orange County, California.</p>
+
+<h2>What your donation funds</h2>
+<ul>
+<li><strong>Durga Puja and festivals</strong> — venue, priest, idol, decorations, and bhog
+for <a href="/durga-puja">Durgotsav</a> and our other celebrations.</li>
+<li><strong>Artists and cultural programs</strong> — bringing
+<a href="/artists">performers from India and the diaspora</a> to Orange County.</li>
+<li><strong>Charitable giving</strong> — <a href="/charity">hunger relief and domestic
+violence support</a> for Orange County families.</li>
+<li><strong>Youth programs</strong> — Bengali language, music, and heritage education for
+children.</li>
+<li><strong>Keeping events affordable</strong> — subsidised and free entry so cost is never
+a barrier.</li>
+</ul>
+
+<h2>Ways to give</h2>
+<ul>
+<li>One-time or recurring online donation.</li>
+<li><strong>Employer matching gifts</strong> — many companies match employee donations
+dollar-for-dollar. Ask your HR or CSR team and use EIN 39-2903777.</li>
+<li><a href="/become-our-sponsor">Event sponsorship</a> for individuals and businesses.</li>
+<li><a href="/corporate-partnerships">Corporate partnership and CSR programs</a>.</li>
+</ul>
+
+<h2>Tax information</h2>
+<p>Sanhoti is a 501(c)(3) tax-exempt organization. EIN: 39-2903777. Registered address:
+${esc(ORG_ADDRESS)}. We can provide a donation receipt and our IRS determination letter on
+request — email ${esc(ORG_EMAIL)}.</p>
+<p><a href="/charity">Our charitable work</a> · <a href="/about">About Sanhoti</a> ·
+<a href="/contact">Contact us</a></p>`,
       },
       '/committee': {
         title: 'Committee & Board | Sanhoti Bengali Association of Orange County, CA',
         description:
-          'Meet the volunteer committee and board of Sanhoti, the Bengali cultural association serving Orange County and Southern California.',
-        body: `<h1>Sanhoti Committee &amp; Board</h1>
-<p>Sanhoti is run by a team of volunteers dedicated to Bengali culture in Orange County, California.
-Our committee organizes Durga Puja, Saraswati Puja, Poila Boishakh, concerts, and charity programs
-for families across Southern California.</p>`,
+          'Meet the volunteer committee and executive board of Sanhoti, the 501(c)(3) Bengali cultural association serving Orange County and Southern California.',
+        body: `<h1>Sanhoti Committee &amp; Executive Board — Orange County, California</h1>
+<p>Sanhoti is entirely volunteer-run. Our executive committee and board members organise
+every festival, concert, and charity drive we hold in Orange County, California — from
+<a href="/durga-puja">Durga Puja</a> and <a href="/saraswati-puja">Saraswati Puja</a> to
+<a href="/bengali-concerts">live concerts</a> and community service.</p>
+
+<h2>How Sanhoti is governed</h2>
+<p>As a registered 501(c)(3) non-profit (EIN 39-2903777), Sanhoti is governed by an elected
+executive committee responsible for programming, finance, and community outreach.
+Sub-committees handle cultural programming, food service, logistics, sponsorship, and
+volunteer coordination for each event.</p>
+
+<h2>Join the team</h2>
+<p>Sanhoti is always looking for volunteers — no committee experience needed. Whether you can
+help with cooking, stage management, decoration, registration, photography, or fundraising,
+<a href="/contact">get in touch</a>.</p>
+<p><a href="/about">About Sanhoti</a> · <a href="/charity">Our charitable work</a> ·
+<a href="/documents">Public documents</a> · <a href="/contact">Contact us</a></p>`,
       },
       '/sponsors': {
         title: 'Sponsors & Partners | Sanhoti Bengali Association of Orange County, CA',
         description:
           'Sanhoti thanks the sponsors and partners who support Bengali cultural events — Durga Puja, concerts, and community programs — in Orange County and Southern California.',
-        body: `<h1>Sanhoti Sponsors &amp; Partners</h1>
-<p>Our sponsors make Durga Puja and Sanhoti's cultural events in Orange County possible. Interested in
-sponsoring? See our <a href="/become-our-sponsor">sponsorship opportunities</a> or
-<a href="/contact">contact us</a>.</p>`,
+        body: `<h1>Sanhoti Sponsors &amp; Partners — Orange County, California</h1>
+<p>Our sponsors make Durga Puja, Bengali concerts, and Sanhoti's cultural programming in
+Orange County possible. We are grateful to the local businesses, professionals, and
+corporate partners who invest in Bengali and Indian community life across Southern
+California.</p>
+
+<h2>Why businesses sponsor Sanhoti</h2>
+<ul>
+<li>Direct visibility with Bengali and Indian families across Orange County and SoCal.</li>
+<li>Presence at multi-day events with sustained foot traffic, including
+<a href="/durga-puja">Durga Puja Durgotsav</a>.</li>
+<li>Association with arts, heritage, and community service.</li>
+<li>Tax-deductible contribution to a registered 501(c)(3) (EIN 39-2903777).</li>
+</ul>
+
+<h2>Become a sponsor</h2>
+<p>Sponsorship tiers range from event-level partnerships to programme listings and banner
+placement. See <a href="/become-our-sponsor">sponsorship opportunities</a>, explore
+<a href="/corporate-partnerships">corporate partnership and CSR options</a>, or
+<a href="/contact">contact us</a> for the current prospectus.</p>`,
       },
       '/become-our-sponsor': {
         title: 'Become a Sponsor | Sanhoti Durga Puja & Bengali Events, Orange County, CA',
         description:
-          'Sponsor Sanhoti Durga Puja and Bengali cultural events in Orange County. Reach Bengali and Indian families across Southern California — download the sponsorship prospectus.',
-        body: `<h1>Become a Sanhoti Sponsor</h1>
-<p>Sponsoring Sanhoti puts your brand in front of Bengali and Indian families across Orange County and
-Southern California at Durga Puja, concerts, and cultural events. <a href="/contact">Contact us</a> for
-the sponsorship prospectus and packages.</p>`,
-      },
-      '/magazines': {
-        title: 'Magazines & Souvenirs | Sanhoti Bengali Association of Orange County, CA',
-        description:
-          "Read Sanhoti's Bengali magazines and Durga Puja souvenir publications — stories, poems, and art from the Bengali community of Orange County and Southern California.",
-        body: `<h1>Sanhoti Magazines &amp; Souvenirs</h1>
-<p>Our Durga Puja souvenir magazines feature Bengali writing, poetry, and art from the community in
-Orange County and Southern California. <a href="/durga-puja">See Durga Puja in Orange County</a>.</p>`,
-      },
-      '/notices': {
-        title: 'Notices & Announcements | Sanhoti Bengali Association of Orange County, CA',
-        description:
-          'Latest notices and announcements from Sanhoti Bengali Association — event dates, tickets, and community updates for Orange County and Southern California.',
-        body: `<h1>Sanhoti Notices &amp; Announcements</h1>
-<p>Community notices and announcements from Sanhoti — Durga Puja dates and tickets, event updates, and
-news for Bengali families in Orange County, California. <a href="/events">See all events</a>.</p>`,
-      },
-      '/news': {
-        title: 'News & Media | Sanhoti Bengali Association of Orange County, CA',
-        description:
-          'News and media coverage of Sanhoti Bengali Association — Durga Puja, concerts, and cultural events in Orange County and Southern California.',
-        body: `<h1>Sanhoti News &amp; Media</h1>
-<p>News and media about Sanhoti's Bengali cultural events in Orange County, California — including Durga
-Puja, concerts, and community programs across Southern California.</p>`,
-      },
-      '/documents': {
-        title: 'Documents | Sanhoti Bengali Association of Orange County, CA',
-        description:
-          'Public documents from Sanhoti Bengali Association, a 501(c)(3) non-profit (EIN 39-2903777) in Orange County, California.',
-        body: `<h1>Sanhoti Documents</h1>
-<p>Public documents and resources from Sanhoti, a 501(c)(3) non-profit Bengali cultural association in
-Orange County, California (EIN 39-2903777).</p>`,
+          'Sponsor Sanhoti Durga Puja and Bengali cultural events in Orange County, CA. Reach Bengali and Indian families across Southern California. Tax-deductible 501(c)(3) sponsorship.',
+        body: `<h1>Become a Sanhoti Sponsor — Durga Puja &amp; Bengali Events in Orange County, CA</h1>
+<p>Sponsoring Sanhoti puts your brand in front of Bengali and Indian families across Orange
+County and Southern California at Durga Puja, live concerts, and cultural festivals — an
+engaged, family-oriented, high-intent local audience that is difficult to reach through
+conventional advertising.</p>
+
+<h2>What sponsorship includes</h2>
+<ul>
+<li><strong>On-site branding</strong> — banners and signage at the venue across all event days.</li>
+<li><strong>Souvenir magazine advertising</strong> — full-page and partial-page placements in
+our <a href="/magazines">Durga Puja souvenir</a>.</li>
+<li><strong>Stage and announcement recognition</strong> during the cultural programme.</li>
+<li><strong>Digital visibility</strong> — listing on our <a href="/sponsors">sponsors page</a>
+and recognition across our social channels.</li>
+<li><strong>Booth or table space</strong> at multi-day events, subject to tier.</li>
+</ul>
+
+<h2>Who sponsors us</h2>
+<p>Local restaurants and grocers, realtors and mortgage brokers, physicians and dentists,
+insurance and financial advisors, law firms, tutoring and enrichment programs, travel
+agencies, and regional corporate partners running CSR and diversity programs.</p>
+
+<h2>Tax-deductible</h2>
+<p>Sanhoti is a registered 501(c)(3) non-profit, EIN 39-2903777, so sponsorship
+contributions are tax-deductible to the extent allowed by law. We provide a receipt and can
+supply our IRS determination letter for your finance team.</p>
+
+<h2>Next steps</h2>
+<p><a href="/contact">Contact us</a> for the current sponsorship prospectus with tier pricing
+and deadlines, or see <a href="/corporate-partnerships">corporate partnerships and CSR</a>
+for larger multi-year and matching-gift arrangements.</p>`,
       },
       '/book-your-seat': {
         title: 'Book Your Seat | Sanhoti Durga Puja, Orange County, CA',
         description:
           'Reserve your seat for Sanhoti Durga Puja and cultural events in Orange County, California. Select seats and complete your booking online.',
-        body: `<h1>Book Your Seat — Sanhoti Durga Puja</h1>
+        body: `<h1>Book Your Seat — Sanhoti Durga Puja, Orange County, California</h1>
 <p>Reserve seats for Sanhoti's Durga Puja and cultural events in Orange County, California.
-See the <a href="/durga-puja">Durga Puja page</a> for dates, venue, and tickets.</p>`,
+Choose your seats from the venue map and complete the booking online.</p>
+<h2>Before you book</h2>
+<ul>
+<li>Check dates, venue, and ticket tiers on the <a href="/durga-puja">Durga Puja page</a>.</li>
+<li>Confirm which meals and <a href="/bengali-food">bhog services</a> your pass includes.</li>
+<li>See the concert line-up and <a href="/artists">performing artists</a>.</li>
+</ul>
+<p>Seats for popular concert evenings sell out — book early. Questions about seating or
+accessibility? <a href="/contact">Contact us</a>.</p>`,
       },
     };
-    const page = pages[path] ?? {
-      title: 'Sanhoti — Bengali Association of Orange County, CA',
-      description:
-        'Sanhoti Bengali Association of Orange County, CA — Durga Puja, Bengali festivals, concerts, and community events across Southern California.',
-      body: `<h1>${esc(ORG_NAME)}</h1>
-<p>Bengali cultural events, Durga Puja, and community programs in Orange County, California.</p>`,
-    };
+
+    const page = pages[path];
+    if (!page) return null;
     return this.layout({ ...page, path, jsonLd: [this.orgJsonLd()] });
   }
 
+  /**
+   * HTTP 200 + `noindex` for pages that exist but should stay out of the index
+   * (login, register, dashboard, admin, RSVP forms). See `isNoindexRoute`.
+   */
+  private noindexPage(path: string): string {
+    return this.layout({
+      title: 'Sanhoti Bengali Association of Orange County, CA',
+      description:
+        'Sanhoti Bengali Association of Orange County, CA — Durga Puja, Bengali festivals, concerts, and community events across Southern California.',
+      path,
+      noindex: true,
+      body: `<h1>${esc(ORG_NAME)}</h1>
+<p>This page is not part of the public site. Browse
+<a href="/events">Sanhoti events</a>, <a href="/durga-puja">Durga Puja in Orange County</a>, or
+<a href="/">the Sanhoti home page</a>.</p>`,
+    });
+  }
+
+  /**
+   * Real HTTP 404 + noindex. Used for unknown paths and for detail routes whose
+   * record does not exist, so crawlers drop the URL instead of indexing a stub.
+   */
   private notFound(res: Response, path: string): string {
     res.status(404);
     return this.layout({
-      title: 'Event not found | Sanhoti',
-      description: 'This event could not be found. Browse current Sanhoti events in Orange County, CA.',
+      title: 'Page not found | Sanhoti Bengali Association of Orange County',
+      description:
+        'This page could not be found. Browse current Sanhoti events, festivals, and galleries in Orange County, CA.',
       path,
       noindex: true,
-      body: `<h1>Event not found</h1><p><a href="/events">Browse all Sanhoti events</a></p>`,
+      body: `<h1>Page not found</h1>
+<p>The page you requested does not exist or has been removed.</p>
+<p>Try one of these instead:</p>
+<ul>
+<li><a href="/">Sanhoti home</a></li>
+<li><a href="/events">All events</a></li>
+<li><a href="/durga-puja">Durga Puja in Orange County</a></li>
+<li><a href="/festivals">Bengali festivals</a></li>
+<li><a href="/bengali-concerts">Bengali concerts</a></li>
+<li><a href="/artists">Artists who have performed with Sanhoti</a></li>
+<li><a href="/galleries">Photo galleries</a></li>
+<li><a href="/contact">Contact us</a></li>
+</ul>`,
     });
   }
 }

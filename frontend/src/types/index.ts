@@ -75,6 +75,15 @@ export interface Event {
   event_status?: 'Scheduled' | 'Cancelled' | 'Postponed' | 'Rescheduled';
   performers?: string;
   performer_type?: 'Person' | 'MusicGroup';
+  /** Artist records featured here — links the event to its /artists page. */
+  artist_ids?: string[];
+  // ---- admin-authored SEO overrides ----
+  meta_title?: string;
+  meta_description?: string;
+  image_alt?: string;
+  faqs?: SeoFaq[];
+  /** Food served at this event (Durga Puja uses the Durga Puja page instead). */
+  menu?: EventMenu;
   // Legacy fields for backward compatibility
   id?: string;
   title?: string;
@@ -121,6 +130,15 @@ export interface SubEvent {
   ticket_url?: string;
   ticket_price?: string;
   ticket_currency?: string;
+  /** Artist records featured here — links the event to its /artists page. */
+  artist_ids?: string[];
+  // ---- admin-authored SEO overrides ----
+  meta_title?: string;
+  meta_description?: string;
+  image_alt?: string;
+  faqs?: SeoFaq[];
+  /** Food served at this sub-event. */
+  menu?: EventMenu;
 }
 
 export type SubEventSeoType =
@@ -271,3 +289,154 @@ export interface AuthResponse {
   token: string;
 }
 
+
+// ============================================================================
+// Artists — dedicated, crawlable /artists/<slug> pages
+// Mirrors backend/src/models/types.ts. Performers used to be a free-text field
+// on an event, which gave search engines nothing to rank when someone searched
+// the artist's name; an Artist record becomes its own indexable entity page.
+// ============================================================================
+
+/** One external profile emitted as schema.org `sameAs`. */
+export interface ArtistLink {
+  label: string;
+  url: string;
+}
+
+export interface Artist {
+  artist_id: string;
+  /** URL slug used at /artists/<slug>. */
+  slug: string;
+  name: string;
+  /** Comma-separated spelling variants, e.g. "Akriti Kakkar, Aakriti Kakar". */
+  alternate_names?: string;
+  artist_type?: 'Person' | 'MusicGroup';
+  short_bio?: string;
+  bio?: string;
+  genres?: string;
+  roles?: string;
+  origin?: string;
+  image_path?: string;
+  image_alt?: string;
+  website_url?: string;
+  wikipedia_url?: string;
+  social_links?: ArtistLink[];
+  video_urls?: string[];
+  meta_title?: string;
+  meta_description?: string;
+  is_active: boolean;
+  is_featured?: boolean;
+  previous_slugs?: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+/** One Sanhoti event or sub-event an artist has performed at. */
+export interface ArtistAppearance {
+  kind: 'event' | 'sub-event';
+  event: Event | SubEvent;
+}
+
+export interface ArtistAppearances {
+  upcoming: ArtistAppearance[];
+  past: ArtistAppearance[];
+}
+
+/** A performer name found on an event that has no Artist record yet. */
+export interface ArtistSuggestion {
+  name: string;
+  proposedSlug: string;
+  sources: Array<{ kind: 'event' | 'sub-event'; id: string; title: string }>;
+  /** Source record types this performer as a band — usually wrong for a soloist. */
+  flaggedAsMusicGroup: boolean;
+}
+
+// ============================================================================
+// Blogs — long-form articles at /blogs/<slug>
+// ============================================================================
+
+export interface Blog {
+  blog_id: string;
+  slug: string;
+  title: string;
+  body: string;
+  excerpt?: string;
+  author_name?: string;
+  author_contact?: string;
+  cover_image_path?: string;
+  cover_image_alt?: string;
+  tags?: string;
+  published_at?: string;
+  meta_title?: string;
+  meta_description?: string;
+  is_published: boolean;
+  is_active: boolean;
+  is_featured?: boolean;
+  previous_slugs?: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+/** Blog as returned by the public API (body pre-rendered to HTML). */
+export interface PublicBlog {
+  blog_id: string;
+  slug: string;
+  title: string;
+  body_html?: string;
+  excerpt: string;
+  author_name?: string;
+  author_contact?: string;
+  cover_image_url?: string;
+  cover_image_alt: string;
+  tags: string[];
+  published_at: string;
+  updated_at: string;
+  reading_minutes: number;
+  meta_title?: string;
+  meta_description?: string;
+  is_featured: boolean;
+  path: string;
+}
+
+/** A labelled group within a meal, e.g. "Veg", "Non-Veg", "Kids Meal". */
+export interface MenuCategory {
+  label: string;
+  items: string[];
+  color?: string;
+}
+
+/** One meal service, e.g. "Saturday Lunch" with its serving hours. */
+export interface MenuMeal {
+  name: string;
+  description?: string;
+  hours?: string;
+  categories?: MenuCategory[];
+  bgColor?: string;
+}
+
+/**
+ * Food served at an event or sub-event. Structurally identical to the Durga
+ * Puja food shape so one editor and one schema builder serve both.
+ */
+export interface EventMenu {
+  intro?: string;
+  meals?: MenuMeal[];
+  vegetarian?: string;
+  kidsMenu?: string;
+  allergyNotice?: string;
+}
+
+/** One question/answer pair emitted as schema.org FAQPage. */
+export interface SeoFaq {
+  question: string;
+  answer: string;
+}
+
+/** Admin-authored SEO overrides shared by events and sub-events. */
+export interface SeoOverrideFields {
+  meta_title?: string;
+  meta_description?: string;
+  image_alt?: string;
+  faqs?: SeoFaq[];
+  artist_ids?: string[];
+}

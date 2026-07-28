@@ -151,7 +151,7 @@ export default function NewsPage() {
           <div className="flex items-center justify-center gap-3 mb-4">
             <Newspaper className="w-8 h-8 text-primary-600" />
             <h1 className="text-2xl font-bold text-gray-900">
-              Media
+              News
             </h1>
           </div>
           <p className="text-2xl text-gray-600">

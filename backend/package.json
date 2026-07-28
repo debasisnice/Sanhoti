@@ -11,7 +11,10 @@
     "populate-gallery-links": "tsx src/scripts/populatePhotoGalleryLinks.ts",
     "add-gallery-is-public": "tsx src/scripts/addGalleryIsPublic.ts",
     "add-event-is-priority": "tsx src/scripts/addEventIsPriority.ts",
-    "add-event-image-path": "tsx src/scripts/addEventImagePath.ts"
+    "add-event-image-path": "tsx src/scripts/addEventImagePath.ts",
+    "seed-artists": "tsx src/scripts/seedArtists.ts",
+    "seed-event-menus": "tsx src/scripts/seedEventMenus.ts",
+    "apply-workbook": "tsx src/scripts/applyWorkbook.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

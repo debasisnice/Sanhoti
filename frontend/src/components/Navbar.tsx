@@ -7,17 +7,22 @@ import { useAuthStore } from '../store/authStore';
 import { authAPI, settingsAPI } from '../services/api';
 import { getEventTypePublicLabel } from '../utils/eventType';
 import { isDurgaPujaPagePath } from '../utils/durgaPuja';
+import { resolveNavbarMenuOrder, MEDIA_SUBMENU } from '../constants/navbarMenu';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [eventsDropdownOpen, setEventsDropdownOpen] = useState(false);
+  const [mediaDropdownOpen, setMediaDropdownOpen] = useState(false);
   const eventsDropdownCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mediaDropdownCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const [eventsDropdownPosition, setEventsDropdownPosition] = useState({ top: 0, left: 0 });
+  const [mediaDropdownPosition, setMediaDropdownPosition] = useState({ top: 0, left: 0 });
   const userMenuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const eventsTriggerRef = useRef<HTMLDivElement>(null);
+  const mediaTriggerRef = useRef<HTMLDivElement>(null);
   const { isAuthenticated, user, logout: logoutStore, isAdmin } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -81,6 +86,29 @@ export default function Navbar() {
     };
   }, [eventsDropdownOpen]);
 
+  useEffect(() => {
+    const updateMediaPosition = () => {
+      if (mediaDropdownOpen && mediaTriggerRef.current) {
+        const rect = mediaTriggerRef.current.getBoundingClientRect();
+        setMediaDropdownPosition({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
+      }
+    };
+
+    if (mediaDropdownOpen) {
+      updateMediaPosition();
+      window.addEventListener('scroll', updateMediaPosition, true);
+      window.addEventListener('resize', updateMediaPosition);
+    }
+
+    return () => {
+      window.removeEventListener('scroll', updateMediaPosition, true);
+      window.removeEventListener('resize', updateMediaPosition);
+    };
+  }, [mediaDropdownOpen]);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -104,8 +132,10 @@ export default function Navbar() {
     corporatePartnerships: true,
     events: true,
     noticeBoard: true,
+    media: true,
     galleries: true,
     magazines: true,
+    blogs: true,
     news: true,
     contactUs: true,
     committee: true,
@@ -115,6 +145,7 @@ export default function Navbar() {
   });
   const [durgaPujaMode, setDurgaPujaMode] = useState(false);
   const [durgaPujaLogoUrl, setDurgaPujaLogoUrl] = useState('');
+  const [navbarMenuOrder, setNavbarMenuOrder] = useState<string[]>(() => resolveNavbarMenuOrder());
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -125,6 +156,7 @@ export default function Navbar() {
           // was saved (e.g. durgaPuja) default to visible instead of hidden.
           setNavbarSettings(prev => ({ ...prev, ...settings.navbar }));
         }
+        setNavbarMenuOrder(resolveNavbarMenuOrder(settings?.navbarMenuOrder));
         setDurgaPujaMode(settings?.durgaPujaMode === true);
         setDurgaPujaLogoUrl(settings?.durgaPujaLogoUrl ?? '');
       } catch (error) {
@@ -142,20 +174,34 @@ export default function Navbar() {
     { path: '/events', label: 'Events', key: 'events' as const },
     { path: '/corporate-partnerships', label: 'Corporate Partnerships', key: 'corporatePartnerships' as const },
     { path: '/notices', label: 'Notice Board', key: 'noticeBoard' as const },
-    { path: '/galleries', label: 'Galleries', key: 'galleries' as const },
-    { path: '/magazines', label: 'Magazines', key: 'magazines' as const },
-    { path: '/news', label: 'Media', key: 'news' as const },
+    { path: '/media', label: 'Media', key: 'media' as const },
+    { path: '/news', label: 'News', key: 'news' as const },
     { path: '/contact', label: 'Contact Us', key: 'contactUs' as const },
     { path: '/committee', label: 'Committee', key: 'committee' as const },
-    { path: '/documents', label: 'Documents', key: 'documents' as const },
   ];
 
-  // Filter nav links based on settings
-  const navLinks = allNavLinks.filter(link => navbarSettings[link.key]);
+  const visibleMediaItems = MEDIA_SUBMENU.filter(
+    item => navbarSettings[item.key as keyof typeof navbarSettings]
+  );
+
+  // Filter nav links based on settings, then apply saved menu order.
+  const navLinks = allNavLinks
+    .filter(link => {
+      if (link.key === 'media') {
+        return navbarSettings.media && visibleMediaItems.length > 0;
+      }
+      return navbarSettings[link.key as keyof typeof navbarSettings];
+    })
+    .sort((a, b) => navbarMenuOrder.indexOf(a.key) - navbarMenuOrder.indexOf(b.key));
 
   const isNavLinkActive = (link: (typeof allNavLinks)[number]) => {
     if (link.path === '/') return location.pathname === '/';
     if (link.key === 'durgaPuja') return isDurgaPujaPagePath(location.pathname);
+    if (link.key === 'media') {
+      return visibleMediaItems.some(
+        item => location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)
+      );
+    }
     return location.pathname === link.path || location.pathname.startsWith(`${link.path}/`);
   };
 
@@ -325,6 +371,76 @@ export default function Navbar() {
                           >
                             All
                           </Link>
+                        </div>,
+                        document.body
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+
+              if (link.key === 'media') {
+                return (
+                  <div key={link.path} className="flex items-center">
+                    {index > 0 && (
+                      <span className="mx-0.5 xl:mx-1 2xl:mx-1.5 font-bold" style={{ color: '#8B0000' }}>|</span>
+                    )}
+                    <div
+                      ref={mediaTriggerRef}
+                      className="relative"
+                      onMouseEnter={() => {
+                        if (mediaDropdownCloseTimeoutRef.current) {
+                          clearTimeout(mediaDropdownCloseTimeoutRef.current);
+                          mediaDropdownCloseTimeoutRef.current = null;
+                        }
+                        setMediaDropdownOpen(true);
+                      }}
+                      onMouseLeave={() => {
+                        mediaDropdownCloseTimeoutRef.current = setTimeout(() => {
+                          setMediaDropdownOpen(false);
+                          mediaDropdownCloseTimeoutRef.current = null;
+                        }, 150);
+                      }}
+                    >
+                      <span
+                        className={`inline-block hover:text-primary-200 transition-colors font-medium whitespace-nowrap text-[12px] lg:text-[13px] xl:text-[14px] 2xl:text-[15px] relative pb-1 cursor-pointer ${
+                          isActive ? 'border-b-2 border-white' : ''
+                        }`}
+                      >
+                        {link.label}
+                        <ChevronDown className={`inline-block w-4 h-4 ml-1 align-middle transition-transform ${mediaDropdownOpen ? 'rotate-180' : ''}`} />
+                      </span>
+                      {typeof window !== 'undefined' && mediaDropdownOpen && createPortal(
+                        <div
+                          className="fixed bg-white rounded-lg shadow-xl py-1 min-w-[160px] border border-gray-200 z-[100]"
+                          style={{
+                            top: `${mediaDropdownPosition.top}px`,
+                            left: `${mediaDropdownPosition.left}px`,
+                          }}
+                          onMouseEnter={() => {
+                            if (mediaDropdownCloseTimeoutRef.current) {
+                              clearTimeout(mediaDropdownCloseTimeoutRef.current);
+                              mediaDropdownCloseTimeoutRef.current = null;
+                            }
+                            setMediaDropdownOpen(true);
+                          }}
+                          onMouseLeave={() => {
+                            mediaDropdownCloseTimeoutRef.current = setTimeout(() => {
+                              setMediaDropdownOpen(false);
+                              mediaDropdownCloseTimeoutRef.current = null;
+                            }, 150);
+                          }}
+                        >
+                          {visibleMediaItems.map(item => (
+                            <Link
+                              key={item.key}
+                              to={item.path}
+                              onClick={() => setMediaDropdownOpen(false)}
+                              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors text-sm font-medium"
+                            >
+                              {item.label}
+                            </Link>
+                          ))}
                         </div>,
                         document.body
                       )}
@@ -504,6 +620,30 @@ export default function Navbar() {
                         >
                           All
                         </Link>
+                      </div>
+                    </div>
+                  );
+                }
+
+                if (link.key === 'media') {
+                  return (
+                    <div key={link.path}>
+                      <div className="text-primary-200 font-medium text-sm mb-1">{link.label}</div>
+                      <div className="pl-3 space-y-1">
+                        {visibleMediaItems.map(item => (
+                          <Link
+                            key={item.key}
+                            to={item.path}
+                            onClick={() => setIsOpen(false)}
+                            className={`block text-white hover:text-primary-200 transition-colors text-[15px] ${
+                              location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)
+                                ? 'border-b-2 border-white'
+                                : ''
+                            }`}
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
                       </div>
                     </div>
                   );

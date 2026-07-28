@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AuthResponse, Event, RSVP, Notice, PhotoGallery, Magazine, Document, SubEvent, AuditLog, News, CorporatePartnershipsContent } from '../types';
+import { AuthResponse, Event, RSVP, Notice, PhotoGallery, Magazine, Document, SubEvent, AuditLog, News, CorporatePartnershipsContent, Artist, ArtistAppearances, ArtistSuggestion, EventMenu, Blog, PublicBlog } from '../types';
 
 // Use relative path in production (when served by Nginx), absolute URL in development
 // Force relative /api in production to avoid mixed-content, ignore VITE_API_URL there
@@ -2058,6 +2058,10 @@ export const settingsAPI = {
     const response = await api.put('/settings/home-section-order', { order });
     return response.data;
   },
+  updateNavbarMenuOrder: async (order: string[]): Promise<any> => {
+    const response = await api.put('/settings/navbar-menu-order', { order });
+    return response.data;
+  },
   updateHeroSlots: async (heroSlots: HeroSlots): Promise<any> => {
     const response = await api.put('/settings/hero-slots', { heroSlots });
     return response.data;
@@ -2140,6 +2144,181 @@ export const usersAPI = {
     await api.delete(`/users/${userId}`);
   },
 };
+
+/**
+ * Artists — back the public /artists and /artists/<slug> pages. Public reads use
+ * bare axios (no auth header) so crawlers and logged-out visitors get the same
+ * response; admin writes go through `api` and carry the JWT.
+ */
+/** One publicly visible menu, from MenuService. */
+export interface PublicMenu {
+  source: 'durga-puja' | 'event' | 'sub-event';
+  id: string;
+  title: string;
+  href: string;
+  when: number;
+  menu: EventMenu;
+}
+
+/**
+ * Menus for /bengali-food. Reads the same aggregation the `/seo` prerender
+ * uses, so browsers and crawlers can never show different food.
+ */
+export const menusAPI = {
+  /**
+   * Capped by the server so the food page cannot grow unbounded. `total` is the
+   * uncapped count, used to link to the rest.
+   */
+  getPublic: async (): Promise<{ menus: PublicMenu[]; total: number }> => {
+    const response = await axios.get(`${API_BASE_URL}/menus/public`);
+    return response.data;
+  },
+};
+
+export const artistsAPI = {
+  /** Public: active artists, featured first, for the /artists index. */
+  getPublic: async (): Promise<Artist[]> => {
+    const response = await axios.get(`${API_BASE_URL}/artists/public`);
+    return response.data;
+  },
+
+  /** Public: one artist by slug, with their Sanhoti appearances. */
+  getPublicBySlug: async (
+    slug: string
+  ): Promise<{ artist: Artist; appearances: ArtistAppearances }> => {
+    const response = await axios.get(`${API_BASE_URL}/artists/public/${encodeURIComponent(slug)}`);
+    return response.data;
+  },
+
+  /** Absolute URL for an artist photo (also used as og:image). */
+  getImageUrl: (artistId: string): string => `${API_BASE_URL}/artists/${artistId}/image`,
+
+  // ---- admin ----
+  getAll: async (): Promise<Artist[]> => {
+    const response = await api.get('/artists');
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<Artist> => {
+    const response = await api.get(`/artists/${id}`);
+    return response.data;
+  },
+
+  /** Performer names on events that have no Artist record yet. */
+  getSuggestions: async (): Promise<ArtistSuggestion[]> => {
+    const response = await api.get('/artists/suggestions');
+    return response.data;
+  },
+
+  /**
+   * Create/update send multipart/form-data so an optional photo rides along with
+   * the fields. Array fields are JSON-encoded because form-data is string-only.
+   */
+  create: async (data: Partial<Artist>, image?: File | null): Promise<Artist> => {
+    const form = artistFormData(data, image);
+    const response = await api.post('/artists', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  update: async (id: string, data: Partial<Artist>, image?: File | null): Promise<Artist> => {
+    const form = artistFormData(data, image);
+    const response = await api.put(`/artists/${id}`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/artists/${id}`);
+  },
+};
+
+export const blogsAPI = {
+  getPublic: async (limit?: number): Promise<PublicBlog[]> => {
+    const response = await axios.get(`${API_BASE_URL}/blogs/public`, {
+      params: limit ? { limit } : undefined,
+    });
+    return response.data;
+  },
+
+  getPublicBySlug: async (
+    slug: string
+  ): Promise<{ blog: PublicBlog; related: PublicBlog[] }> => {
+    const response = await axios.get(`${API_BASE_URL}/blogs/public/${encodeURIComponent(slug)}`);
+    return response.data;
+  },
+
+  getCoverUrl: (blogId: string): string => `${API_BASE_URL}/blogs/${blogId}/cover`,
+
+  getAll: async (): Promise<Blog[]> => {
+    const response = await api.get('/blogs');
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<Blog> => {
+    const response = await api.get(`/blogs/${id}`);
+    return response.data;
+  },
+
+  create: async (data: Partial<Blog>, cover?: File | null): Promise<Blog> => {
+    const form = blogFormData(data, cover);
+    const response = await api.post('/blogs', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  update: async (id: string, data: Partial<Blog>, cover?: File | null): Promise<Blog> => {
+    const form = blogFormData(data, cover);
+    const response = await api.put(`/blogs/${id}`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/blogs/${id}`);
+  },
+
+  publish: async (id: string): Promise<Blog> => {
+    const response = await api.post(`/blogs/${id}/publish`);
+    return response.data;
+  },
+
+  unpublish: async (id: string): Promise<Blog> => {
+    const response = await api.post(`/blogs/${id}/unpublish`);
+    return response.data;
+  },
+
+  previewBody: async (markdown: string): Promise<string> => {
+    const response = await api.post('/blogs/preview-body', { markdown });
+    return response.data.html as string;
+  },
+};
+
+function blogFormData(data: Partial<Blog>, cover?: File | null): FormData {
+  const form = new FormData();
+  Object.entries(data).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    form.append(key, String(value));
+  });
+  if (cover) form.append('cover', cover);
+  return form;
+}
+
+/** Serialize artist fields into FormData, JSON-encoding the array fields. */
+function artistFormData(data: Partial<Artist>, image?: File | null): FormData {
+  const form = new FormData();
+  Object.entries(data).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    if (Array.isArray(value)) form.append(key, JSON.stringify(value));
+    else form.append(key, String(value));
+  });
+  if (image) form.append('image', image);
+  return form;
+}
 
 export { api };
 export default api;

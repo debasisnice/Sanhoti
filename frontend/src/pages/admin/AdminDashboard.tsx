@@ -1,13 +1,15 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Calendar, Bell, Image, BookOpen, Mail, Settings, MessageSquare, ClipboardList, Menu, X, FileText, FileCheck, Newspaper, HelpCircle, Sparkles, Ticket, BarChart3, QrCode, ListChecks, Users, AlertCircle, Clock, TrendingUp, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Calendar, Bell, Image, BookOpen, Mail, Settings, MessageSquare, ClipboardList, Menu, X, FileText, FileCheck, Newspaper, HelpCircle, Sparkles, Ticket, BarChart3, QrCode, ListChecks, Users, AlertCircle, Clock, TrendingUp, Mic2, type LucideIcon } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { eventsAPI, rsvpAPI, noticesAPI, subEventsAPI, messagesAPI, usersAPI, ticketingAPI, magazinesAPI, documentsAPI, newsAPI, auditAPI } from '../../services/api';
 import { Event, RSVP, SubEvent, AuditLog } from '../../types';
 import { formatDateWithTime } from '../../utils/dateUtils';
 import { getEventDetailPath } from '../../utils/eventSlug';
 import AdminEvents from './AdminEvents';
+import AdminArtists from './AdminArtists';
+import AdminBlogs from './AdminBlogs';
 import AdminGalleries from './AdminGalleries';
 import AdminMessages from './AdminMessages';
 import AdminNotices from './AdminNotices';
@@ -35,6 +37,7 @@ export default function AdminDashboard() {
     ],
     [
       { icon: Calendar, label: 'Events', path: '/admin/events' },
+      { icon: Mic2, label: 'Artists', path: '/admin/artists' },
       { icon: Sparkles, label: 'Durga Puja Page', path: '/admin/durga-puja' },
       { icon: Ticket, label: 'Ticket Settings', path: '/admin/book-your-seat' },
       { icon: ListChecks, label: 'Ticket Bookings', path: '/admin/ticket-bookings' },
@@ -45,6 +48,7 @@ export default function AdminDashboard() {
       { icon: Bell, label: 'Notices', path: '/admin/notices' },
       { icon: Image, label: 'Galleries', path: '/admin/galleries' },
       { icon: BookOpen, label: 'Magazines', path: '/admin/magazines' },
+      { icon: FileText, label: 'Blog', path: '/admin/blogs' },
       { icon: Newspaper, label: 'Media', path: '/admin/news' },
       { icon: FileText, label: 'Documents', path: '/admin/documents' },
     ],
@@ -125,6 +129,7 @@ export default function AdminDashboard() {
           <Routes>
             <Route path="/" element={<AdminOverview />} />
             <Route path="/events" element={<AdminEvents />} />
+            <Route path="/artists" element={<AdminArtists />} />
             <Route path="/durga-puja" element={<AdminDurgaPuja />} />
             <Route path="/book-your-seat" element={<AdminBookYourSeat />} />
             <Route path="/ticket-bookings" element={<AdminTicketBookings />} />
@@ -133,6 +138,7 @@ export default function AdminDashboard() {
             <Route path="/notices" element={<AdminNotices />} />
             <Route path="/galleries" element={<AdminGalleries />} />
             <Route path="/magazines" element={<AdminMagazines />} />
+            <Route path="/blogs" element={<AdminBlogs />} />
             <Route path="/news" element={<AdminNews />} />
             <Route path="/documents" element={<AdminDocuments />} />
             <Route path="/messages" element={<AdminMessages />} />

@@ -3,6 +3,27 @@ import { useEffect, useState } from 'react';
 import { settingsAPI } from '../services/api';
 import { Mail, Phone, MapPin, Star } from 'lucide-react';
 
+const QUICK_LINKS = [
+  { to: '/about', label: 'About Us' },
+  { to: '/events', label: 'Events' },
+  { to: '/durga-puja', label: 'Durga Puja in Orange County' },
+  { to: '/festivals', label: 'Bengali Festivals' },
+  { to: '/bengali-concerts', label: 'Bengali Concerts' },
+  { to: '/artists', label: 'Artists & Performers' },
+  { to: '/saraswati-puja', label: 'Saraswati Puja' },
+  { to: '/poila-boishakh', label: 'Poila Boishakh' },
+  { to: '/kali-puja', label: 'Kali Puja & Diwali' },
+  { to: '/bengali-food', label: 'Bengali Food' },
+  { to: '/charity', label: 'Charity & Community Service' },
+  { to: '/become-our-sponsor', label: 'Become a Sponsor' },
+  { to: '/corporate-partnerships', label: 'Corporate Partnerships & CSR' },
+  { to: '/notices', label: 'Notices' },
+  { to: '/galleries', label: 'Galleries' },
+  { to: '/magazines', label: 'Magazines' },
+] as const;
+
+const quickLinksMid = Math.ceil(QUICK_LINKS.length / 2);
+
 export default function Footer() {
   const [facebookLink, setFacebookLink] = useState<string>('https://m.facebook.com/groups/1379146276699787/?ref=share&mibextid=wwXIfr');
   const [whatsappLink, setWhatsappLink] = useState<string>('https://chat.whatsapp.com/HzI914nVyvGIZwarXzWzlH');
@@ -25,8 +46,8 @@ export default function Footer() {
   return (
     <footer className="bg-gray-900 text-gray-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="col-span-1 md:col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-[36%_1fr_25%] gap-8 md:gap-4">
+          <div className="col-span-1">
             <div className="flex items-center space-x-3 mb-4">
               <img 
                 src="/images/logo.png" 
@@ -64,64 +85,29 @@ export default function Footer() {
             </div>
           </div>
 
-          <div>
-            <h4 className="text-white font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2">
-              <li>
-                <Link to="/about" className="hover:text-white transition-colors">
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link to="/events" className="hover:text-white transition-colors">
-                  Events
-                </Link>
-              </li>
-              <li>
-                <Link to="/durga-puja" className="hover:text-white transition-colors">
-                  Durga Puja in Orange County
-                </Link>
-              </li>
-              <li>
-                <Link to="/festivals" className="hover:text-white transition-colors">
-                  Bengali Festivals
-                </Link>
-              </li>
-              <li>
-                <Link to="/bengali-concerts" className="hover:text-white transition-colors">
-                  Bengali Concerts
-                </Link>
-              </li>
-              <li>
-                <Link to="/become-our-sponsor" className="hover:text-white transition-colors">
-                  Become a Sponsor
-                </Link>
-              </li>
-              <li>
-                <Link to="/corporate-partnerships" className="hover:text-white transition-colors">
-                  Corporate Partnerships & CSR
-                </Link>
-              </li>
-              <li>
-                <Link to="/notices" className="hover:text-white transition-colors">
-                  Notices
-                </Link>
-              </li>
-              <li>
-                <Link to="/galleries" className="hover:text-white transition-colors">
-                  Galleries
-                </Link>
-              </li>
-              <li>
-                <Link to="/magazines" className="hover:text-white transition-colors">
-                  Magazines
-                </Link>
-              </li>
-            </ul>
+          <div className="col-span-1">
+            <h4 className="text-white font-semibold mb-4">
+              <span className="inline-block border-b border-gray-500 pb-1">Quick Links</span>
+            </h4>
+            <div className="grid grid-cols-2 gap-x-4 lg:gap-x-6 gap-y-2">
+              {[QUICK_LINKS.slice(0, quickLinksMid), QUICK_LINKS.slice(quickLinksMid)].map((column, colIdx) => (
+                <ul key={colIdx} className="space-y-2">
+                  {column.map(({ to, label }) => (
+                    <li key={to}>
+                      <Link to={to} className="hover:text-white transition-colors text-sm leading-snug">
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ))}
+            </div>
           </div>
 
-          <div>
-            <h4 className="text-white font-semibold mb-4">Community</h4>
+          <div className="col-span-1">
+            <h4 className="text-white font-semibold mb-4">
+              <span className="inline-block border-b border-gray-500 pb-1">Community</span>
+            </h4>
             <ul className="space-y-2">
               <li>
                 <a
@@ -179,7 +165,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
+        <div className="border-t border-gray-800 mt-8 pt-8 text-left text-sm text-gray-400">
           <p>&copy; {new Date().getFullYear()} Sanhoti (সংহতি) Bengali Association of Orange County. All rights reserved.</p>
         </div>
       </div>

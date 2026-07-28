@@ -29,6 +29,9 @@ import { DurgaPujaPageController } from '../controllers/DurgaPujaPageController.
 import { TicketingController } from '../controllers/TicketingController.js';
 import { TicketSetupController } from '../controllers/TicketSetupController.js';
 import { TheaterMapController } from '../controllers/TheaterMapController.js';
+import { ArtistController } from '../controllers/ArtistController.js';
+import { BlogController } from '../controllers/BlogController.js';
+import { MenuController } from '../controllers/MenuController.js';
 
 const router = Router();
 
@@ -57,6 +60,9 @@ const sitemapController = new SitemapController();
 const ticketingController = new TicketingController();
 const ticketSetupController = new TicketSetupController();
 const theaterMapController = new TheaterMapController();
+const artistController = new ArtistController();
+const blogController = new BlogController();
+const menuController = new MenuController();
 
 // Helper to bind controller methods
 function bindController(controller: any, methodName: string) {
@@ -104,6 +110,22 @@ router.get('/notices/:noticeId/images',
 router.get('/notices/:noticeId/images/:filename',
   bindController(noticeController, 'getNoticeImage')
 );
+
+// Menus - Public route backing /bengali-food. Same MenuService the /seo
+// prerender uses, so browsers and crawlers always see identical food.
+router.get('/menus/public', bindController(menuController, 'getPublicMenus'));
+
+// Artists - Public routes. These back the indexable /artists and
+// /artists/:slug pages, so they must stay above `router.use(authenticate)`.
+// Static/specific paths are registered before ":slug" so it cannot swallow them.
+router.get('/artists/public', bindController(artistController, 'getPublicArtists'));
+router.get('/artists/public/:slug', bindController(artistController, 'getPublicArtistBySlug'));
+router.get('/artists/:id/image', bindController(artistController, 'serveImage'));
+
+// Blogs - Public routes backing /blogs and /blogs/:slug
+router.get('/blogs/public', bindController(blogController, 'getPublicBlogs'));
+router.get('/blogs/public/:slug', bindController(blogController, 'getPublicBlogBySlug'));
+router.get('/blogs/:id/cover', bindController(blogController, 'serveCover'));
 
 // News - Public routes
 router.get('/news/public', bindController(newsController, 'getPublishedNews'));
@@ -330,6 +352,64 @@ router.delete('/notices/:noticeId/images/:filename',
   requireAdmin,
   auditLog('DELETE_IMAGE', 'notice'),
   bindController(noticeController, 'deleteNoticeImage')
+);
+
+// Artists - Admin routes
+router.get('/artists', requireAdmin, bindController(artistController, 'getAllArtists'));
+// Static path before the ":id" param route, or it would be swallowed.
+router.get('/artists/suggestions', requireAdmin, bindController(artistController, 'getSuggestions'));
+router.get('/artists/:id', requireAdmin, bindController(artistController, 'getArtistById'));
+router.post('/artists',
+  requireAdmin,
+  auditLog('CREATE', 'artist'),
+  artistController.uploadImage(),
+  bindController(artistController, 'createArtist')
+);
+router.put('/artists/:id',
+  requireAdmin,
+  auditLog('UPDATE', 'artist'),
+  artistController.uploadImage(),
+  bindController(artistController, 'updateArtist')
+);
+router.delete('/artists/:id',
+  requireAdmin,
+  auditLog('DELETE', 'artist'),
+  bindController(artistController, 'deleteArtist')
+);
+
+// Blogs - Admin routes
+router.post('/blogs/preview-body',
+  requireAdmin,
+  bindController(blogController, 'previewBody')
+);
+router.get('/blogs', requireAdmin, bindController(blogController, 'getAllBlogs'));
+router.get('/blogs/:id', requireAdmin, bindController(blogController, 'getBlogById'));
+router.post('/blogs',
+  requireAdmin,
+  auditLog('CREATE', 'blog'),
+  blogController.uploadCover(),
+  bindController(blogController, 'createBlog')
+);
+router.put('/blogs/:id',
+  requireAdmin,
+  auditLog('UPDATE', 'blog'),
+  blogController.uploadCover(),
+  bindController(blogController, 'updateBlog')
+);
+router.delete('/blogs/:id',
+  requireAdmin,
+  auditLog('DELETE', 'blog'),
+  bindController(blogController, 'deleteBlog')
+);
+router.post('/blogs/:id/publish',
+  requireAdmin,
+  auditLog('UPDATE', 'blog'),
+  bindController(blogController, 'publishBlog')
+);
+router.post('/blogs/:id/unpublish',
+  requireAdmin,
+  auditLog('UPDATE', 'blog'),
+  bindController(blogController, 'unpublishBlog')
 );
 
 // News - Admin routes
@@ -907,6 +987,11 @@ router.put('/settings/home-section-order',
   requireAdmin,
   auditLog('UPDATE', 'home_section_order'),
   bindController(settingsController, 'updateHomeSectionOrder')
+);
+router.put('/settings/navbar-menu-order',
+  requireAdmin,
+  auditLog('UPDATE', 'navbar_menu_order'),
+  bindController(settingsController, 'updateNavbarMenuOrder')
 );
 router.put('/settings/hero-slots',
   requireAdmin,

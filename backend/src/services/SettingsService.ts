@@ -109,6 +109,10 @@ export class SettingsService {
     return this.settingsDataHelper.updateHomeSectionOrder(order);
   }
 
+  async updateNavbarMenuOrder(order: string[]): Promise<Settings> {
+    return this.settingsDataHelper.updateNavbarMenuOrder(order);
+  }
+
   async updateHeroSlots(heroSlots: HeroSlots): Promise<Settings> {
     return this.settingsDataHelper.updateHeroSlots(heroSlots);
   }

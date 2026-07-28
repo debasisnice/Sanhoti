@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Award, ChevronLeft, ChevronRight, X, FileText } from 'lucide-react';
 import { sponsorsAPI, durgaPujaPageAPI } from '../services/api';
 import Seo from '../components/Seo';
+import PageHero from '../components/PageHero';
 
 interface SponsorImage {
   filename: string;
@@ -135,28 +136,18 @@ export default function Sponsors() {
   const visibleCards = getVisibleCards();
 
   return (
-    <div className="py-12 pb-32">
+    <div className="pb-32">
       <Seo
-        title="Sponsors | Sanhoti"
-        description="Thank you to sponsors who support Sanhoti Bengali Association of Orange County and our cultural and charity programs."
+        title="Sponsors & Partners | Sanhoti Bengali Association of Orange County, CA"
+        description="Sanhoti thanks the sponsors and partners who support Bengali cultural events — Durga Puja, concerts, and community programs — in Orange County and Southern California."
         path="/sponsors"
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Award className="w-8 h-8 text-primary-600" />
-            <h1 className="text-2xl font-bold text-gray-900">
-              Our Sponsors
-            </h1>
-          </div>
-          <p className="text-2xl text-gray-600">
-            Thank you to our generous sponsors for their support
-          </p>
-        </motion.div>
+<PageHero
+      icon={Award}
+      title="Sanhoti Sponsors &amp; Partners — Orange County, California"
+      subtitle="Our sponsors make Durga Puja, Bengali concerts and Sanhoti’s cultural programming in Orange County possible. We are grateful to every business and partner who invests in Bengali community life across Southern California."
+        />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
 
         {loading ? (
           <div className="text-center py-12">

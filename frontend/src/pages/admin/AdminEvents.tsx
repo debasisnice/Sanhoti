@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import SeoFieldsPanel from '../../components/admin/SeoFieldsPanel';
+import MenuEditor from '../../components/admin/MenuEditor';
+import type { SeoFaq, EventMenu } from '../../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Edit, Trash2, Eye, EyeOff, X, Image as ImageIcon, Star } from 'lucide-react';
@@ -39,6 +42,13 @@ interface Event {
   event_status?: 'Scheduled' | 'Cancelled' | 'Postponed' | 'Rescheduled';
   performers?: string;
   performer_type?: 'Person' | 'MusicGroup';
+  // ---- admin-authored SEO overrides + artist links ----
+  artist_ids?: string[];
+  meta_title?: string;
+  meta_description?: string;
+  image_alt?: string;
+  faqs?: SeoFaq[];
+  menu?: EventMenu;
 }
 
 interface EventForm {
@@ -65,6 +75,13 @@ interface EventForm {
   event_status?: 'Scheduled' | 'Cancelled' | 'Postponed' | 'Rescheduled';
   performers?: string;
   performer_type?: 'Person' | 'MusicGroup';
+  // ---- admin-authored SEO overrides + artist links ----
+  artist_ids?: string[];
+  meta_title?: string;
+  meta_description?: string;
+  image_alt?: string;
+  faqs?: SeoFaq[];
+  menu?: EventMenu;
 }
 
 interface EventImage {
@@ -114,6 +131,12 @@ export default function AdminEvents() {
     ticket_url: '',
     ticket_price: '',
     ticket_currency: 'USD',
+    artist_ids: [] as string[],
+    meta_title: '',
+    meta_description: '',
+    image_alt: '',
+    faqs: [] as SeoFaq[],
+    menu: undefined as EventMenu | undefined,
   });
   const [subEventStartTime, setSubEventStartTime] = useState('');
   const [subEventEndTime, setSubEventEndTime] = useState('');
@@ -140,6 +163,12 @@ export default function AdminEvents() {
     event_status: 'Scheduled',
     performers: '',
     performer_type: 'Person',
+    artist_ids: [] as string[],
+    meta_title: '',
+    meta_description: '',
+    image_alt: '',
+    faqs: [] as SeoFaq[],
+    menu: undefined as EventMenu | undefined,
   });
   const [eventStartTime, setEventStartTime] = useState('');
   const [eventEndTime, setEventEndTime] = useState('');
@@ -368,6 +397,12 @@ export default function AdminEvents() {
       event_status: event.event_status || 'Scheduled',
       performers: event.performers || '',
       performer_type: event.performer_type || 'Person',
+      artist_ids: event.artist_ids || [],
+      meta_title: event.meta_title || '',
+      meta_description: event.meta_description || '',
+      image_alt: event.image_alt || '',
+      faqs: event.faqs || [],
+      menu: event.menu,
     });
 
     // Set the time fields
@@ -462,6 +497,12 @@ export default function AdminEvents() {
       ticket_url: '',
       ticket_price: '',
       ticket_currency: 'USD',
+      artist_ids: [],
+      meta_title: '',
+      meta_description: '',
+      image_alt: '',
+      faqs: [],
+      menu: undefined,
     });
     setSubEventStartTime('');
     setSubEventEndTime('');
@@ -497,6 +538,12 @@ export default function AdminEvents() {
       venue_street: subEvent.venue_street || '',
       venue_postal: subEvent.venue_postal || '',
       venue_area: subEvent.venue_area || '',
+      artist_ids: subEvent.artist_ids || [],
+      meta_title: subEvent.meta_title || '',
+      meta_description: subEvent.meta_description || '',
+      image_alt: subEvent.image_alt || '',
+      faqs: subEvent.faqs || [],
+      menu: subEvent.menu,
       ticket_url: subEvent.ticket_url || '',
       ticket_price: subEvent.ticket_price || '',
       ticket_currency: subEvent.ticket_currency || 'USD',
@@ -555,6 +602,12 @@ export default function AdminEvents() {
         ticket_url: subEventFormData.ticket_url.trim(),
         ticket_price: subEventFormData.ticket_price.trim(),
         ticket_currency: subEventFormData.ticket_currency.trim() || 'USD',
+        artist_ids: subEventFormData.artist_ids,
+        meta_title: subEventFormData.meta_title.trim(),
+        meta_description: subEventFormData.meta_description.trim(),
+        image_alt: subEventFormData.image_alt.trim(),
+        faqs: subEventFormData.faqs,
+        menu: subEventFormData.menu,
       };
 
       if (editingSubEvent) {
@@ -659,6 +712,12 @@ export default function AdminEvents() {
       ticket_url: '',
       ticket_price: '',
       ticket_currency: 'USD',
+      artist_ids: [],
+      meta_title: '',
+      meta_description: '',
+      image_alt: '',
+      faqs: [],
+      menu: undefined,
     });
     setSubEventStartTime('');
     setSubEventEndTime('');
@@ -691,6 +750,12 @@ export default function AdminEvents() {
       event_status: 'Scheduled',
       performers: '',
       performer_type: 'Person',
+      artist_ids: [],
+      meta_title: '',
+      meta_description: '',
+      image_alt: '',
+      faqs: [],
+      menu: undefined,
     });
     setEventStartTime('');
     setEventEndTime('');
@@ -1097,6 +1162,35 @@ export default function AdminEvents() {
                     );
                   })()}
                 </div>
+
+                {/* Admin-authored SEO copy: title, description, image alt, FAQs,
+                    and the artist links that connect this event to /artists pages. */}
+                <SeoFieldsPanel
+                  value={{
+                    meta_title: formData.meta_title,
+                    meta_description: formData.meta_description,
+                    image_alt: formData.image_alt,
+                    faqs: formData.faqs,
+                    artist_ids: formData.artist_ids,
+                  }}
+                  onChange={(patch) => setFormData({ ...formData, ...patch })}
+                  fallbackTitle={formData.event_name || undefined}
+                  fallbackDescription={
+                    formData.event_description
+                      ? `${formData.event_description.slice(0, 120)}…`
+                      : undefined
+                  }
+                />
+
+                {/* Durga Puja events keep their menu on the Durga Puja page, so
+                    this renders a pointer there rather than a competing editor. */}
+                <MenuEditor
+                  value={formData.menu}
+                  onChange={menu => setFormData({ ...formData, menu })}
+                  durgaPujaLink={
+                    /durga/i.test(formData.event_name) ? '/admin/durga-puja' : undefined
+                  }
+                />
 
                 <div className="flex items-center space-x-2">
                   <input
@@ -1716,6 +1810,31 @@ export default function AdminEvents() {
                     Active
                   </label>
                 </div>
+
+                {/* Admin-authored SEO copy for this sub-event's public page. */}
+                <SeoFieldsPanel
+                  value={{
+                    meta_title: subEventFormData.meta_title,
+                    meta_description: subEventFormData.meta_description,
+                    image_alt: subEventFormData.image_alt,
+                    faqs: subEventFormData.faqs,
+                    artist_ids: subEventFormData.artist_ids,
+                  }}
+                  onChange={(patch) =>
+                    setSubEventFormData({ ...subEventFormData, ...patch })
+                  }
+                  fallbackTitle={subEventFormData.sub_event_name || undefined}
+                  fallbackDescription={
+                    subEventFormData.event_description
+                      ? `${subEventFormData.event_description.slice(0, 120)}…`
+                      : undefined
+                  }
+                />
+
+                <MenuEditor
+                  value={subEventFormData.menu}
+                  onChange={menu => setSubEventFormData({ ...subEventFormData, menu })}
+                />
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">

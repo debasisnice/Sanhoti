@@ -75,3 +75,26 @@ Images/PDFs (event flyers, gallery photos, magazines, documents, sponsor/homepag
 - `src/store/authStore.ts` — Zustand store (persisted to `localStorage` under `auth-storage`) holding `user`, `token`, `isAuthenticated`, `isAdmin`, `isMember`. `isAdmin`/`isMember` are derived once at login time from `user.role`, not recomputed reactively elsewhere.
 - `src/components/ProtectedRoute.tsx` gates admin/member-only routes client-side (the backend RBAC middleware is still the actual security boundary).
 - `src/seo/` + `src/components/Seo.tsx` (`react-helmet-async`) manage per-page meta tags; `SitemapController` on the backend generates `sitemap.xml`.
+
+## SEO architecture
+
+SEO is a primary product requirement here, not an afterthought. Three rules matter most when adding or changing public pages:
+
+1. **Every public route needs a matching `/seo` prerender.** Nginx rewrites search-bot requests for extension-less SPA routes to `/seo/<path>`, which `SeoPageController` renders as static HTML. A route that exists in `App.tsx` but not in `SeoPageController.renderPage` will 404 for Googlebot while serving 200 to users. Keep the two route lists in sync, and keep the prerendered content equivalent to what the React page shows — the prerender must not be a thinner stub.
+2. **Never return HTTP 200 for a URL that doesn't exist.** `staticPage()` returns `null` for unknown paths so `renderPage` emits a real 404; the SPA catch-all (`DurgaPujaYearRoute`) renders `NotFound` with `noindex` instead of redirecting to `/`. Both exist to prevent soft-404s and duplicate-canonical reports in Search Console. Routes that exist but shouldn't be indexed (login, register, dashboard, admin, RSVP forms) go through `isNoindexRoute` → 200 + `noindex`, *not* a 404.
+3. **New public pages must be added to `STATIC_ROUTES` in `SitemapController`,** and linked from the `Footer` — the sitemap alone is a weak discovery signal. Never list a robots.txt-disallowed URL in the sitemap.
+
+### Artists
+
+Artists are first-class entities (`Artist` in `models/types.ts`, `ArtistDataHelper` → `ArtistService` → `ArtistController`, stored in `backend/data/artists.json`, photos in `backend/data/Artists/`). Each becomes a crawlable `/artists/<slug>` page carrying schema.org `Person`/`MusicGroup` markup with `alternateName` (spelling variants), `sameAs` (Wikipedia/social profiles), and `performerIn`. This exists so that a search for a performer's name can surface Sanhoti — the legacy free-text `performers` string on an event gives search engines nothing to rank.
+
+- Slugs are the public URL and must stay stable. `ArtistDataHelper.update` retains the old slug in `previous_slugs` so a rename doesn't 404 an already-indexed URL; `findBySlug` resolves current slug → previous slug → id.
+- Events and sub-events link artists via `artist_ids`. `ArtistService.getAppearances` also falls back to matching the legacy `performers` text, so pre-existing records surface without a manual re-link.
+
+### Admin-authored SEO fields
+
+Events and sub-events carry `meta_title`, `meta_description`, `image_alt`, `faqs`, and `artist_ids`, edited through `components/admin/SeoFieldsPanel.tsx`. These override the generated title/description and emit `FAQPage` schema. Both the React page and the `/seo` prerender must honour them — if you add a field, wire it in both places or bots and users will see different metadata.
+
+### Structured data
+
+`SeoPageController.layout()` emits a single connected `@graph` (Organization + WebSite + WebPage + BreadcrumbList + page nodes) with stable `@id`s, rather than disconnected blocks. Page-specific nodes should reference `ORG_ID` / the artist `@id` instead of repeating entity data.

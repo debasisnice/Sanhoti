@@ -146,6 +146,12 @@ export class SubEventController {
         ticket_url,
         ticket_price,
         ticket_currency,
+        artist_ids,
+        meta_title,
+        meta_description,
+        image_alt,
+        faqs,
+        menu,
       } = req.body;
 
       if (!sub_event_name || !sub_event_start_dt || !sub_event_end_dt || !event_id) {
@@ -179,6 +185,12 @@ export class SubEventController {
         ticket_url,
         ticket_price,
         ticket_currency,
+        artist_ids,
+        meta_title,
+        meta_description,
+        image_alt,
+        faqs,
+        menu,
       });
 
       res.status(201).json(subEvent);

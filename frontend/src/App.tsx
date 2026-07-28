@@ -11,6 +11,13 @@ import DurgaPujaRedirect from './pages/DurgaPujaRedirect';
 import DurgaPujaYearRoute from './pages/DurgaPujaYearRoute';
 import BengaliConcerts from './pages/BengaliConcerts';
 import Festivals from './pages/Festivals';
+import Artists from './pages/Artists';
+import ArtistDetail from './pages/ArtistDetail';
+import Blogs from './pages/Blogs';
+import BlogDetail from './pages/BlogDetail';
+import Charity from './pages/Charity';
+import BengaliFood from './pages/BengaliFood';
+import FestivalLanding, { FESTIVAL_CONFIGS } from './pages/FestivalLanding';
 import BookYourSeat from './pages/BookYourSeat';
 import About from './pages/About';
 import Sponsors from './pages/Sponsors';
@@ -69,6 +76,27 @@ function App() {
           <Route path="/durga-puja" element={<DurgaPujaRedirect />} />
           <Route path="/bengali-concerts" element={<BengaliConcerts />} />
           <Route path="/festivals" element={<Festivals />} />
+          {/* Per-festival landing pages — each targets "<festival> Orange County",
+              which the single /festivals page could not rank for on its own. */}
+          <Route
+            path="/saraswati-puja"
+            element={<FestivalLanding config={FESTIVAL_CONFIGS.saraswatiPuja} />}
+          />
+          <Route
+            path="/poila-boishakh"
+            element={<FestivalLanding config={FESTIVAL_CONFIGS.poilaBoishakh} />}
+          />
+          <Route
+            path="/kali-puja"
+            element={<FestivalLanding config={FESTIVAL_CONFIGS.kaliPuja} />}
+          />
+          <Route path="/charity" element={<Charity />} />
+          <Route path="/bengali-food" element={<BengaliFood />} />
+          {/* Artist entity pages — what makes an artist-name search reach Sanhoti. */}
+          <Route path="/artists" element={<Artists />} />
+          <Route path="/artists/:slug" element={<ArtistDetail />} />
+          <Route path="/blogs" element={<Blogs />} />
+          <Route path="/blogs/:slug" element={<BlogDetail />} />
           <Route path="/book-your-seat" element={<BookYourSeat />} />
           <Route path="/about" element={<About />} />
           <Route path="/sponsors" element={<Sponsors />} />

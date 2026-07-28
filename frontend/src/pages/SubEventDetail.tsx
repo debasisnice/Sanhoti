@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, Music, Ticket, ChevronLeft } from 'lucide-react';
 import Seo from '../components/Seo';
+import MenuDisplay, { buildMenuJsonLd } from '../components/MenuDisplay';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import { subEventsAPI } from '../services/api';
 import { SubEvent } from '../types';
@@ -140,7 +141,22 @@ export default function SubEventDetail() {
 
   return (
     <div className="py-12 pb-24">
-      <Seo title={title} description={description} path={path} ogImage={banner} jsonLd={[jsonLd]} />
+      <Seo
+        title={title}
+        description={description}
+        path={path}
+        ogImage={banner}
+        jsonLd={[
+          jsonLd,
+          ...(() => {
+            const m = buildMenuJsonLd(se.menu, {
+              name: se.sub_event_name,
+              url: `${getSiteOrigin()}${path}`,
+            });
+            return m ? [m] : [];
+          })(),
+        ]}
+      />
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
           <Link
@@ -184,11 +200,22 @@ export default function SubEventDetail() {
             />
           )}
 
-          {se.event_description && (
-            <p className="text-gray-700 leading-relaxed mt-6 whitespace-pre-line">
-              {se.event_description}
-            </p>
-          )}
+          {/* Same treatment as the event page: real paragraphs rather than one
+              pre-line block, now that concert descriptions run several paragraphs. */}
+          {(se.event_description || '')
+            .split(/\n\s*\n/)
+            .map(t => t.trim())
+            .filter(Boolean)
+            .map((text, i) => (
+              <p
+                key={i}
+                className={`leading-relaxed ${i === 0 ? 'mt-6 text-lg text-gray-800' : 'mt-4 text-gray-700'}`}
+              >
+                {text}
+              </p>
+            ))}
+
+          <MenuDisplay menu={se.menu} className="mt-10" />
 
           <div className="flex flex-wrap gap-3 mt-8">
             {se.ticket_url && (

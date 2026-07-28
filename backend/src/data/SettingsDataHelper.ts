@@ -39,13 +39,21 @@ export class SettingsDataHelper extends DatabaseHelper {
     // (e.g. "durgaPuja") so new menu items default to visible.
     if (currentSettings.navbar) {
       const defaultNavbar = this.getDefaultSettings().navbar;
-      const hasMissingKey = Object.keys(defaultNavbar).some(
-        key => !(key in currentSettings.navbar)
-      );
-      if (hasMissingKey) {
+      const nav = { ...currentSettings.navbar } as Record<string, unknown>;
+      let migrated = false;
+      if (nav.resources !== undefined && nav.media === undefined) {
+        nav.media = nav.resources;
+        migrated = true;
+      }
+      if ('resources' in nav) {
+        delete nav.resources;
+        migrated = true;
+      }
+      const hasMissingKey = Object.keys(defaultNavbar).some(key => !(key in nav));
+      if (hasMissingKey || migrated) {
         currentSettings = {
           ...currentSettings,
-          navbar: { ...defaultNavbar, ...currentSettings.navbar },
+          navbar: { ...defaultNavbar, ...nav },
         };
         this.writeFile(this.filename, [currentSettings]);
       }
@@ -273,6 +281,22 @@ export class SettingsDataHelper extends DatabaseHelper {
     return updated;
   }
 
+  async updateNavbarMenuOrder(order: string[]): Promise<Settings> {
+    let current = await this.get();
+    if (!current) {
+      current = this.getDefaultSettings();
+    }
+
+    const updated: Settings = {
+      ...current,
+      navbarMenuOrder: order,
+      updated_at: new Date().toISOString(),
+    };
+
+    this.writeFile(this.filename, [updated]);
+    return updated;
+  }
+
   async updateHeroSlots(heroSlots: HeroSlots): Promise<Settings> {
     let current = await this.get();
     if (!current) {
@@ -345,10 +369,12 @@ export class SettingsDataHelper extends DatabaseHelper {
         sponsors: true,
         corporatePartnerships: true,
         events: true,
-        noticeBoard: true,
-        galleries: true,
-        magazines: true,
-        news: true,
+      noticeBoard: true,
+      media: true,
+      galleries: true,
+      magazines: true,
+      blogs: true,
+      news: true,
         contactUs: true,
         committee: true,
         documents: true,

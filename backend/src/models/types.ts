@@ -62,6 +62,27 @@ export interface Event {
   event_status?: 'Scheduled' | 'Cancelled' | 'Postponed' | 'Rescheduled';
   performers?: string; // Comma-separated performer name(s)
   performer_type?: 'Person' | 'MusicGroup';
+  /**
+   * Artist records featured at this event. Preferred over free-text
+   * `performers` — links the event to its /artists/<slug> page and lets the
+   * performer schema carry sameAs profiles instead of a bare name.
+   */
+  artist_ids?: string[];
+  // ---- Admin-authored SEO overrides ----
+  /** <title> override. Leave blank to use the generated, geo-qualified title. */
+  meta_title?: string;
+  /** Meta description override. Leave blank to derive from event_description. */
+  meta_description?: string;
+  /** Alt text for the event flyer/image (accessibility + Google Images). */
+  image_alt?: string;
+  /** Page-specific FAQs, emitted as schema.org FAQPage. */
+  faqs?: SeoFaq[];
+  /**
+   * Food served at this event. Durga Puja events are the exception: their
+   * menu lives on the Durga Puja page (durgaPujaPage.json, keyed by year) so
+   * there is only ever one place to edit it.
+   */
+  menu?: EventMenu;
   is_active: boolean;
   is_priority?: boolean;
   /**
@@ -281,6 +302,70 @@ export interface SubEvent {
   ticket_url?: string;
   ticket_price?: string; // numeric string; empty = omit price
   ticket_currency?: string; // default 'USD'
+  /**
+   * Artist records featured at this sub-event. Preferred over the free-text
+   * `performers` field: it links the event to a real /artists/<slug> page and
+   * lets the performer schema carry sameAs profiles instead of a bare name.
+   * `performers` remains as a fallback for artists with no Artist record.
+   */
+  artist_ids?: string[];
+  // ---- Admin-authored SEO overrides ----
+  /** <title> override. Leave blank to use the generated, geo-qualified title. */
+  meta_title?: string;
+  /** Meta description override. Leave blank to derive from the description. */
+  meta_description?: string;
+  /** Alt text for the sub-event image (accessibility + Google Images). */
+  image_alt?: string;
+  /** Page-specific FAQs, emitted as schema.org FAQPage. */
+  faqs?: SeoFaq[];
+  /** Food served at this sub-event (e.g. a dinner or a food stall session). */
+  menu?: EventMenu;
+}
+
+// ============================================================================
+// Event menus — food served at a specific event or sub-event.
+//
+// Structurally identical to the Durga Puja food shape (DurgaPujaMeal /
+// DurgaPujaMealCategory) so one editor component and one schema builder serve
+// both. Durga Puja keeps its own richer editor on the Durga Puja page; regular
+// events store their menu here.
+//
+// The SEO value is chiefly the on-page dish names — specific, unique text that
+// wins long-tail food searches. schema.org Event has no `hasMenu` property, so
+// the Menu node is emitted alongside the event rather than nested inside it.
+// ============================================================================
+
+/** A labelled group within a meal, e.g. "Veg", "Non-Veg", "Kids Meal". */
+export interface MenuCategory {
+  label: string;
+  items: string[];
+  /** Optional hex colour for the label on the public page. */
+  color?: string;
+}
+
+/** One meal service, e.g. "Saturday Lunch" with its serving hours. */
+export interface MenuMeal {
+  name: string;
+  description?: string;
+  hours?: string;
+  categories?: MenuCategory[];
+  bgColor?: string;
+}
+
+/** Food served at an event or sub-event. */
+export interface EventMenu {
+  /** Short intro shown above the meals. */
+  intro?: string;
+  meals?: MenuMeal[];
+  vegetarian?: string;
+  kidsMenu?: string;
+  allergyNotice?: string;
+}
+
+/** One question/answer pair emitted as schema.org FAQPage on a public page. */
+export interface SeoFaq {
+  question: string;
+  answer: string;
 }
 
 /** schema.org Event subtypes offered for sub-event SEO pages. */
@@ -1061,8 +1146,10 @@ export interface Settings {
     corporatePartnerships: boolean;
     events: boolean;
     noticeBoard: boolean;
+    media: boolean;
     galleries: boolean;
     magazines: boolean;
+    blogs: boolean;
     news: boolean;
     contactUs: boolean;
     committee: boolean;
@@ -1093,6 +1180,8 @@ export interface Settings {
   homePageVideos?: HomePageVideo[];
   /** Order of the reorderable home page content sections (e.g. ["charity","highlights","about","offer"]). */
   homeSectionOrder?: string[];
+  /** Order of main navbar menu links (excludes Donate / Join Us CTAs). */
+  navbarMenuOrder?: string[];
   /** Per-slot configuration for the two hero cards (left = event, right = charity). */
   heroSlots?: HeroSlots;
   /** When true, first-time human visitors to the home page are gently auto-forwarded to the Durga Puja page. */
@@ -1151,4 +1240,136 @@ export interface HomePageVideo {
   buttonLabel?: string;
   /** Optional URL the button opens. */
   buttonUrl?: string;
+}
+
+// ============================================================================
+// Artists — dedicated, crawlable entity pages (/artists/<slug>)
+//
+// Performers were previously only a comma-separated string on an event, which
+// gives Google nothing to rank when someone searches an artist's name. An
+// Artist record becomes its own indexable page carrying schema.org
+// Person/MusicGroup markup, so a search for the performer can surface Sanhoti.
+// ============================================================================
+
+/** One external profile used as schema.org `sameAs` (entity reconciliation). */
+export interface ArtistLink {
+  /** Display label, e.g. "Instagram", "Wikipedia", "Spotify". */
+  label: string;
+  url: string;
+}
+
+export interface Artist {
+  artist_id: string;
+  /**
+   * URL slug used at /artists/<slug>. Stable once published — changing it
+   * changes the indexed URL, so the service keeps the old slug as an alias.
+   */
+  slug: string;
+  /** Canonical display name, spelled the way people search for it. */
+  name: string;
+  /**
+   * Comma-separated spelling variants and transliterations
+   * (e.g. "Akriti Kakkar, Aakriti Kakar"). Emitted as schema.org
+   * `alternateName` and as previous-slug aliases so misspelled searches
+   * and old links still resolve.
+   */
+  alternate_names?: string;
+  /** schema.org type: a solo artist (Person) or a band/ensemble (MusicGroup). */
+  artist_type?: 'Person' | 'MusicGroup';
+  /** One-to-two sentence summary used for the meta description and cards. */
+  short_bio?: string;
+  /** Full biography (plain text or light HTML) rendered on the artist page. */
+  bio?: string;
+  /** Comma-separated genres, e.g. "Playback, Bollywood, Rabindra Sangeet". */
+  genres?: string;
+  /** Comma-separated roles/instruments, e.g. "Singer, Composer". */
+  roles?: string;
+  /** Place of origin, e.g. "Kolkata, West Bengal, India". */
+  origin?: string;
+  /** Filename inside data/Artists (served via /api/artists/:id/image). */
+  image_path?: string;
+  /** Descriptive alt text for the artist photo (accessibility + image search). */
+  image_alt?: string;
+  /** Official site — emitted as schema.org `url` on the Person/MusicGroup node. */
+  website_url?: string;
+  /**
+   * Wikipedia / Wikidata / MusicBrainz URL. The single strongest signal for
+   * letting Google reconcile this page with a known real-world entity.
+   */
+  wikipedia_url?: string;
+  /** Social and streaming profiles — emitted as schema.org `sameAs`. */
+  social_links?: ArtistLink[];
+  /** Performance video URLs (YouTube etc.) — emitted as schema.org VideoObject. */
+  video_urls?: string[];
+  /** Optional <title> override; falls back to a generated, geo-qualified title. */
+  meta_title?: string;
+  /** Optional meta description override; falls back to short_bio. */
+  meta_description?: string;
+  /** Hide from the public index and return 404 (and drop from the sitemap). */
+  is_active: boolean;
+  /** Surface near the top of /artists. */
+  is_featured?: boolean;
+  /** Previous slugs, kept so renamed artists 301 instead of 404. */
+  previous_slugs?: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * A long-form article published at /blogs/<slug>.
+ *
+ * Blogs exist to rank for the questions people actually type — "Durga Puja in
+ * Orange County", "Bengali community near me" — which event pages, tied to a
+ * single date, answer poorly. Unlike a magazine (a PDF Google cannot read) the
+ * body here is real indexable HTML.
+ */
+export interface Blog {
+  blog_id: string;
+  /**
+   * URL segment at /blogs/<slug>. Permanent once published — renaming moves an
+   * indexed URL, so the data helper retains the old one as a working alias.
+   */
+  slug: string;
+  title: string;
+  /**
+   * Markdown source as typed by the admin. Never rendered directly by a client:
+   * the service converts it to HTML so the React page and the crawler prerender
+   * cannot drift apart.
+   */
+  body: string;
+  /** One-to-two sentence summary for cards, meta description and og:description. */
+  excerpt?: string;
+  /** Optional byline. Blank attributes the post to Sanhoti itself. */
+  author_name?: string;
+  /** Optional public contact number for the author. */
+  author_contact?: string;
+  /** Filename inside data/Blogs (served via /api/blogs/:id/cover). */
+  cover_image_path?: string;
+  /** Descriptive alt text for the cover image (accessibility + image search). */
+  cover_image_alt?: string;
+  /** Comma-separated tags, shown on the card and emitted as schema keywords. */
+  tags?: string;
+  /**
+   * Publication date shown to readers and emitted as datePublished. Set the
+   * first time the post is published and preserved across later edits, so
+   * fixing a typo does not make an old post look brand new.
+   */
+  published_at?: string;
+  /** Optional <title> override; falls back to a generated, geo-qualified title. */
+  meta_title?: string;
+  /** Optional meta description override; falls back to the excerpt. */
+  meta_description?: string;
+  /** Visible to the public. Unpublished posts 404 rather than 200-with-noindex. */
+  is_published: boolean;
+  /**
+   * Withdraw without deleting. Same public effect as unpublishing, kept
+   * separate so an archived post can be restored without re-entering its date.
+   */
+  is_active: boolean;
+  /** Surface first on /blogs. */
+  is_featured?: boolean;
+  /** Previous slugs, kept so a renamed post keeps its indexed URL working. */
+  previous_slugs?: string[];
+  created_at: string;
+  updated_at: string;
 }

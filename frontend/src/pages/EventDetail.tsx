@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 import EventShareButtons from '../components/EventShareButtons';
 import { getCanonicalEventIdForShare, getEventSharePageUrl, getSiteOrigin } from '../utils/eventShareUrl';
 import Seo from '../components/Seo';
+import MenuDisplay, { buildMenuJsonLd } from '../components/MenuDisplay';
 import { seoPlainText } from '../seo/seoUtils';
 import { buildEventJsonLd } from '../seo/eventJsonLd';
 import { getEventPath } from '../utils/eventSlug';
@@ -266,6 +267,11 @@ export default function EventDetail() {
 
   // ---- Derived display values ----
   const eventDescription = event.event_description || event.description || '';
+  // Blank lines separate paragraphs in the admin textarea.
+  const descriptionParagraphs = eventDescription
+    .split(/\n\s*\n/)
+    .map(t => t.trim())
+    .filter(Boolean);
   const eventDate = event.event_start_dt || event.date || '';
   const eventLocation = event.location || '';
   const eventYear = event.year || (eventDate ? new Date(eventDate).getFullYear() : new Date().getFullYear());
@@ -292,7 +298,18 @@ export default function EventDetail() {
         path={getEventPath(event, detailEventId)}
         ogType="article"
         ogImage={detailAbsImage}
-        jsonLd={detailJsonLd}
+        jsonLd={[
+          ...(Array.isArray(detailJsonLd) ? detailJsonLd : [detailJsonLd]),
+          // Standalone Menu node: schema.org Event has no `hasMenu`, so the
+          // food is described alongside the event rather than nested in it.
+          ...(() => {
+            const m = buildMenuJsonLd(event.menu, {
+              name: detailEventName,
+              url: `${getSiteOrigin()}${getEventPath(event, detailEventId)}`,
+            });
+            return m ? [m] : [];
+          })(),
+        ]}
       />
 
       {/* ---- Hero ---- */}
@@ -404,21 +421,40 @@ export default function EventDetail() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
         {/* ---- About ---- */}
+        <MenuDisplay menu={event.menu} className="mb-12" />
+
         <div className="mb-12">
           <SectionHeading kicker="About">About This Event</SectionHeading>
-          {eventDescription && (
-            <p className="text-lg text-gray-700 leading-relaxed whitespace-pre-line border-l-4 border-primary-500 pl-4">
-              {eventDescription}
-            </p>
+          {/* Real <p> elements rather than one pre-line block: descriptions are
+              now several paragraphs long, and proper paragraphs read better and
+              are better semantics for screen readers and search engines. */}
+          {descriptionParagraphs.length > 0 && (
+            <div className="border-l-4 border-primary-500 pl-4 space-y-4">
+              {descriptionParagraphs.map((text, i) => (
+                <p
+                  key={i}
+                  className={`leading-relaxed ${
+                    i === 0 ? 'text-lg text-gray-800' : 'text-base text-gray-700'
+                  }`}
+                >
+                  {text}
+                </p>
+              ))}
+            </div>
           )}
 
-          <p className="mt-4 text-gray-600 leading-relaxed">
-            {detailEventName} {isUpcoming ? 'is' : 'was'} a Bengali {eventTypeWord} event organized by
-            Sanhoti Bengali Association of Orange County{eventLocation ? ` at ${eventLocation}` : ''} in
-            Orange County, California. Sanhoti is a 501(c)(3) non-profit celebrating Bengali culture
-            across Orange County and Southern California through Durga Puja, Saraswati Puja, Poila
-            Boishakh, Kali Puja, concerts, picnics, and community programs — open to everyone.
-          </p>
+          {/* Generic framing only when the admin's own description is too short to
+              carry the page. Mirrors the /seo prerender's RICH_DESCRIPTION_CHARS
+              rule so browsers and crawlers never see different content. */}
+          {eventDescription.replace(/\s+/g, ' ').trim().length < 300 && (
+            <p className="mt-4 text-gray-600 leading-relaxed">
+              {detailEventName} {isUpcoming ? 'is' : 'was'} a Bengali {eventTypeWord} event organized by
+              Sanhoti Bengali Association of Orange County{eventLocation ? ` at ${eventLocation}` : ''} in
+              Orange County, California. Sanhoti is a 501(c)(3) non-profit celebrating Bengali culture
+              across Orange County and Southern California through Durga Puja, Saraswati Puja, Poila
+              Boishakh, Kali Puja, concerts, picnics, and community programs — open to everyone.
+            </p>
+          )}
 
           {/* Key details */}
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">

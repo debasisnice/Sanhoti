@@ -389,6 +389,28 @@ export class SettingsController {
     }
   }
 
+  async updateNavbarMenuOrder(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { order } = req.body ?? {};
+      if (!Array.isArray(order) || order.some((k) => typeof k !== 'string')) {
+        res.status(400).json({ error: 'order must be an array of strings' });
+        return;
+      }
+
+      const seen = new Set<string>();
+      const clean = order
+        .map((k: string) => k.trim())
+        .filter((k: string) => k.length > 0 && !seen.has(k) && (seen.add(k), true))
+        .slice(0, 20);
+
+      const settings = await this.settingsService.updateNavbarMenuOrder(clean);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error updating navbar menu order:', error);
+      res.status(500).json({ error: 'Failed to update navbar menu order', details: error.message });
+    }
+  }
+
   async updateHeroSlots(req: AuthRequest, res: Response): Promise<void> {
     try {
       const body = (req.body?.heroSlots ?? req.body ?? {}) as Record<string, unknown>;

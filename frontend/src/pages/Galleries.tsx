@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Image, Lock, ArrowRight, ChevronDown, ChevronUp, Youtube } from 'lucide-react';
@@ -7,6 +7,8 @@ import { PhotoGallery } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal } from '../utils/dateUtils';
 import Seo from '../components/Seo';
+import PageHero from '../components/PageHero';
+import { getSiteOrigin } from '../utils/eventShareUrl';
 
 // Use relative API base in production to avoid mixed-content; absolute in dev
 const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5001/api');
@@ -148,29 +150,39 @@ export default function Galleries() {
     return eventName;
   };
 
+  // ItemList mirrors what the /seo prerender emits, so browsers and crawlers
+  // describe the same set of galleries.
+  const jsonLd = useMemo(() => {
+    const origin = getSiteOrigin();
+    if (galleries.length === 0) return undefined;
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: 'Sanhoti photo galleries',
+      numberOfItems: galleries.length,
+      itemListElement: galleries.map((g, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `${origin}/galleries/${g.id}`,
+        name: g.title,
+      })),
+    };
+  }, [galleries]);
+
   return (
-    <div className="py-12 pb-32">
+    <div className="pb-32">
       <Seo
-        title="Photo galleries | Sanhoti"
-        description="Photo galleries from Sanhoti Bengali Association events — Durga Puja, cultural programs, and community celebrations in Orange County, CA."
+        title="Photo Galleries | Sanhoti Bengali Association of Orange County, CA"
+        description="Photos from Sanhoti events in Orange County — Durga Puja, Saraswati Puja, Poila Boishakh, Bengali concerts, and community gatherings across Southern California."
         path="/galleries"
+        jsonLd={jsonLd}
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <div className="flex items-center justify-center gap-3 mb-4 flex-wrap">
-            <Image className="w-8 h-8 text-primary-600" />
-            <h1 className="text-2xl font-bold text-gray-900">
-              Photo Galleries
-            </h1>
-          </div>
-          <p className="text-2xl text-gray-600">
-            Explore memories from our community events
-          </p>
-        </motion.div>
+<PageHero
+      icon={Image}
+      title="Sanhoti Photo Galleries — Bengali Events in Orange County"
+      subtitle="Photos from Sanhoti celebrations across Orange County and Southern California — Durga Puja Durgotsav, Saraswati Puja, Poila Boishakh, Bengali concerts, picnics and community gatherings."
+        />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
 
         {loading ? (
           <div className="text-center py-12">

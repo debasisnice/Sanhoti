@@ -10,6 +10,25 @@ import Seo from '../components/Seo';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import { seoPlainText } from '../seo/seoUtils';
 
+/**
+ * Descriptive alt text for a gallery image.
+ *
+ * These were previously "Photo 1", "Photo 2" — useless to screen readers and
+ * invisible to Google Images, which is a real traffic source for event photos.
+ * Prefer the photographer's caption, then fall back to the gallery title plus
+ * the organisation and location.
+ */
+function photoAltText(
+  photo: { caption?: string },
+  galleryTitle: string,
+  index: number,
+  total: number
+): string {
+  const caption = (photo.caption ?? '').trim();
+  if (caption) return `${caption} — ${galleryTitle}, Sanhoti Bengali Association, Orange County, CA`;
+  return `${galleryTitle} — photo ${index + 1} of ${total}, Sanhoti Bengali Association event in Orange County, California`;
+}
+
 export default function GalleryDetail() {
   const { id } = useParams<{ id: string }>();
   const { isAuthenticated } = useAuthStore();
@@ -155,17 +174,51 @@ export default function GalleryDetail() {
       ? gallery.photos[0].url
       : `${getSiteOrigin()}${gallery.photos[0].url.startsWith('/') ? gallery.photos[0].url : `/${gallery.photos[0].url}`}`);
 
+  // ImageGallery + ImageObject markup: without it these photos are invisible to
+  // Google Images, which is a meaningful discovery channel for event pictures.
+  const origin = getSiteOrigin();
+  const absolute = (url: string) =>
+    /^https?:\/\//i.test(url) ? url : `${origin}${url.startsWith('/') ? url : `/${url}`}`;
+  const galleryJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ImageGallery',
+    name: gallery.title,
+    url: `${origin}/galleries/${gallery.id}`,
+    ...(gallery.description ? { description: seoPlainText(gallery.description) } : {}),
+    ...(gallery.updatedAt ? { dateModified: gallery.updatedAt } : {}),
+    isPartOf: { '@type': 'WebSite', url: origin },
+    author: {
+      '@type': 'Organization',
+      name: 'Sanhoti Bengali Association of Orange County',
+      url: origin,
+    },
+    associatedMedia: (gallery.photos ?? [])
+      .filter(p => p.type !== 'video' && (p.url || p.thumbnailUrl))
+      .slice(0, 100)
+      .map((photo, index) => ({
+        '@type': 'ImageObject',
+        contentUrl: absolute(photo.url || photo.thumbnailUrl || ''),
+        ...(photo.thumbnailUrl ? { thumbnailUrl: absolute(photo.thumbnailUrl) } : {}),
+        name: photoAltText(photo, gallery.title, index, gallery.photos.length),
+        description: photoAltText(photo, gallery.title, index, gallery.photos.length),
+        ...(photo.uploadedAt ? { uploadDate: photo.uploadedAt } : {}),
+        creditText: 'Sanhoti Bengali Association of Orange County',
+        contentLocation: { '@type': 'Place', name: 'Orange County, California' },
+      })),
+  };
+
   return (
     <div className="py-12 pb-32">
       <Seo
-        title={`${gallery.title} | Sanhoti`}
+        title={`${gallery.title} — Photos | Sanhoti Bengali Association of Orange County, CA`}
         description={
           seoPlainText(gallery.description || '') ||
-          `Photo gallery: ${gallery.title} — Sanhoti Bengali Association of Orange County, CA.`
+          `Photos from ${gallery.title} — a Sanhoti Bengali Association event in Orange County, California.`
         }
         path={`/galleries/${gallery.id}`}
         ogImage={firstPhotoUrl || undefined}
         ogType="article"
+        jsonLd={galleryJsonLd}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
@@ -220,7 +273,7 @@ export default function GalleryDetail() {
                   ) : (
                     <img
                       src={photo.thumbnailUrl || photo.url}
-                      alt={`Photo ${index + 1}`}
+                      alt={photoAltText(photo, gallery.title, index, gallery.photos.length)}
                       className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
                       loading="lazy"
                       decoding="async"
@@ -283,7 +336,12 @@ export default function GalleryDetail() {
               ) : (
                 <img
                   src={gallery.photos[selectedPhotoIndex].url || gallery.photos[selectedPhotoIndex].thumbnailUrl}
-                  alt={`Photo ${selectedPhotoIndex + 1}`}
+                  alt={photoAltText(
+                    gallery.photos[selectedPhotoIndex],
+                    gallery.title,
+                    selectedPhotoIndex,
+                    gallery.photos.length
+                  )}
                   className="max-w-full max-h-[85vh] object-contain"
                   onClick={(e) => e.stopPropagation()}
                 />

@@ -1,6 +1,6 @@
 import { EventDataHelper } from '../data/EventDataHelper.js';
 import { DurgaPujaPageService } from './DurgaPujaPageService.js';
-import { Event } from '../models/types.js';
+import { Event, SeoFaq, EventMenu } from '../models/types.js';
 
 const DURGA_NAME = /durga|durgotsav/i;
 
@@ -72,6 +72,13 @@ export class EventService {
     event_status?: 'Scheduled' | 'Cancelled' | 'Postponed' | 'Rescheduled';
     performers?: string;
     performer_type?: 'Person' | 'MusicGroup';
+    // ---- SEO: artist links + admin-authored metadata overrides ----
+    artist_ids?: string[];
+    meta_title?: string;
+    meta_description?: string;
+    image_alt?: string;
+    faqs?: SeoFaq[];
+    menu?: EventMenu;
   }): Promise<Event> {
     // Validate that end date is not before start date
     const startDate = new Date(data.event_start_dt);
@@ -123,6 +130,12 @@ export class EventService {
       event_status: data.event_status,
       performers: data.performers,
       performer_type: data.performer_type,
+      artist_ids: data.artist_ids,
+      meta_title: data.meta_title,
+      meta_description: data.meta_description,
+      image_alt: data.image_alt,
+      faqs: data.faqs,
+      menu: data.menu,
       is_active: true,
       is_priority: data.is_priority !== undefined ? data.is_priority : false,
       is_active_durga_puja_event: activeDurgaFlag,

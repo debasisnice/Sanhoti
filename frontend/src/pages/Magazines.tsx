@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { convertPSTToLocal } from '../utils/dateUtils';
 import PDFThumbnail from '../components/PDFThumbnail';
 import Seo from '../components/Seo';
+import PageHero from '../components/PageHero';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -153,28 +154,18 @@ export default function Magazines() {
   };
 
   return (
-    <div className="py-12 pb-32">
+    <div className="pb-32">
       <Seo
-        title="Community magazines | Sanhoti"
-        description="Read Sanhoti community magazines and publications — stories, updates, and highlights from the Bengali Association of Orange County."
+        title="Magazines & Souvenirs | Sanhoti Bengali Association of Orange County, CA"
+        description="Sanhoti's Bengali magazines and Durga Puja souvenir publications — stories, poems, and art from the Bengali community of Orange County and Southern California."
         path="/magazines"
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <BookOpen className="w-8 h-8 text-primary-600" />
-            <h1 className="text-2xl font-bold text-gray-900">
-              Community Magazines
-            </h1>
-          </div>
-          <p className="text-2xl text-gray-600">
-            Read our latest publications and community updates
-          </p>
-        </motion.div>
+<PageHero
+      icon={BookOpen}
+      title="Sanhoti Magazines &amp; Durga Puja Souvenirs"
+      subtitle="Our souvenir magazines collect Bengali writing, poetry, artwork and children’s contributions from the community in Orange County and Southern California."
+        />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
 
         {loading ? (
           <div className="text-center py-12">

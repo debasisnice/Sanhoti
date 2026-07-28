@@ -4,6 +4,7 @@ import { Settings, Users, Award, Home, Upload, Trash2, X, UserCircle, QrCode, Bo
 import { settingsAPI, usersAPI, sponsorsAPI, homepageAPI, boardMembersAPI, paymentQRAPI, durgaPujaPageAPI } from '../../services/api';
 import type { HomePageVideo, HeroSlots, HeroSlotConfig } from '../../services/api';
 import { HOME_SECTION_LABELS, resolveHomeSectionOrder } from '../../constants/homeSections';
+import { NAVBAR_MENU_LABELS, resolveNavbarMenuOrder } from '../../constants/navbarMenu';
 import { DEFAULT_CORPORATE_PARTNERSHIPS } from '../CorporatePartnerships';
 import type { CorporatePartnershipsContent } from '../../types';
 import toast from 'react-hot-toast';
@@ -18,8 +19,10 @@ interface NavbarSettings {
   corporatePartnerships: boolean;
   events: boolean;
   noticeBoard: boolean;
+  media: boolean;
   galleries: boolean;
   magazines: boolean;
+  blogs: boolean;
   news: boolean;
   contactUs: boolean;
   committee: boolean;
@@ -60,12 +63,14 @@ const menuItemLabels: Record<keyof NavbarSettings, string> = {
   corporatePartnerships: 'Corporate Partnerships',
   events: 'Events',
   noticeBoard: 'Notice Board',
-  galleries: 'Galleries',
-  magazines: 'Magazines',
-  news: 'Media',
+  media: 'Media (dropdown)',
+  galleries: '↳ Galleries',
+  magazines: '↳ Magazines',
+  blogs: '↳ Blogs',
+  news: 'News',
   contactUs: 'Contact Us',
   committee: 'Committee',
-  documents: 'Documents',
+  documents: '↳ Documents',
   donate: 'Donate',
   joinUs: 'Join Us',
 };
@@ -187,6 +192,7 @@ export default function AdminSettings() {
   const [homeHeroBannerMessage, setHomeHeroBannerMessage] = useState('');
   const [homePageVideos, setHomePageVideos] = useState<HomePageVideo[]>([]);
   const [homeSectionOrder, setHomeSectionOrder] = useState<string[]>(() => resolveHomeSectionOrder());
+  const [navbarMenuOrder, setNavbarMenuOrder] = useState<string[]>(() => resolveNavbarMenuOrder());
   const [heroSlots, setHeroSlots] = useState<HeroSlots>({});
   const [durgaPujaMode, setDurgaPujaMode] = useState(false);
   const [durgaPujaLogoUrl, setDurgaPujaLogoUrl] = useState('');
@@ -265,6 +271,9 @@ export default function AdminSettings() {
       );
       setHomeSectionOrder(
         resolveHomeSectionOrder((data as { homeSectionOrder?: string[] }).homeSectionOrder)
+      );
+      setNavbarMenuOrder(
+        resolveNavbarMenuOrder((data as { navbarMenuOrder?: string[] }).navbarMenuOrder)
       );
       setHeroSlots((data as { heroSlots?: HeroSlots }).heroSlots ?? {});
       setDurgaPujaMode((data as { durgaPujaMode?: boolean }).durgaPujaMode === true);
@@ -973,6 +982,73 @@ export default function AdminSettings() {
                     </button>
                   </div>
                 ))}
+              </div>
+
+              <div className="mb-8 p-6 bg-white rounded-lg border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Menu order</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Reorder the main navigation menu items. Donate and Join Us always appear as buttons
+                  at the end of the navbar and are not included here.
+                </p>
+                <div className="space-y-2">
+                  {navbarMenuOrder.map((key, i) => (
+                    <div
+                      key={key}
+                      className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
+                    >
+                      <span className="font-medium text-gray-800">
+                        {i + 1}. {NAVBAR_MENU_LABELS[key as keyof typeof NAVBAR_MENU_LABELS] ?? key}
+                      </span>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          disabled={i === 0 || saving}
+                          onClick={() => {
+                            const next = [...navbarMenuOrder];
+                            [next[i - 1], next[i]] = [next[i], next[i - 1]];
+                            setNavbarMenuOrder(next);
+                          }}
+                          className="px-2 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                          aria-label={`Move ${NAVBAR_MENU_LABELS[key as keyof typeof NAVBAR_MENU_LABELS] ?? key} up`}
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          disabled={i === navbarMenuOrder.length - 1 || saving}
+                          onClick={() => {
+                            const next = [...navbarMenuOrder];
+                            [next[i + 1], next[i]] = [next[i], next[i + 1]];
+                            setNavbarMenuOrder(next);
+                          }}
+                          className="px-2 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                          aria-label={`Move ${NAVBAR_MENU_LABELS[key as keyof typeof NAVBAR_MENU_LABELS] ?? key} down`}
+                        >
+                          ↓
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      setSaving(true);
+                      await settingsAPI.updateNavbarMenuOrder(navbarMenuOrder);
+                      toast.success('Menu order saved');
+                      await fetchSettings();
+                    } catch (error: any) {
+                      toast.error(error.response?.data?.error || 'Failed to save menu order');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
+                  disabled={saving}
+                  className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? 'Saving...' : 'Save order'}
+                </button>
               </div>
 
               {settings.updated_at && (

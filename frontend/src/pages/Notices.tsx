@@ -6,6 +6,7 @@ import { Notice } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal } from '../utils/dateUtils';
 import Seo from '../components/Seo';
+import PageHero from '../components/PageHero';
 
 interface NoticeImage {
   filename: string;
@@ -44,28 +45,18 @@ export default function Notices() {
   }, []);
 
   return (
-    <div className="py-12 pb-32">
+    <div className="pb-32">
       <Seo
-        title="Notices | Sanhoti"
-        description="Official notices and announcements from Sanhoti Bengali Association of Orange County."
+        title="Notices & Announcements | Sanhoti Bengali Association of Orange County, CA"
+        description="Latest notices and announcements from Sanhoti Bengali Association — event dates, tickets, and community updates for Orange County and Southern California."
         path="/notices"
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Bell className="w-8 h-8 text-primary-600" />
-            <h1 className="text-2xl font-bold text-gray-900">
-              Notice Board
-            </h1>
-          </div>
-          <p className="text-2xl text-gray-600">
-            Stay updated with the latest community announcements
-          </p>
-        </motion.div>
+<PageHero
+      icon={Bell}
+      title="Sanhoti Notices &amp; Announcements — Orange County, California"
+      subtitle="Event dates and ticket releases, Durga Puja announcements, volunteer calls and community updates for Bengali families across Orange County and Southern California."
+        />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
 
         {loading ? (
           <div className="text-center py-12">
