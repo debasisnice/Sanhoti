@@ -362,13 +362,29 @@ router.get('/artists/:id', requireAdmin, bindController(artistController, 'getAr
 router.post('/artists',
   requireAdmin,
   auditLog('CREATE', 'artist'),
-  artistController.uploadImage(),
+  (req, res, next) => {
+    artistController.uploadImage()(req, res, (err) => {
+      if (err) {
+        console.error('Artist image upload error:', err);
+        return res.status(400).json({ error: err.message || 'File upload error' });
+      }
+      next();
+    });
+  },
   bindController(artistController, 'createArtist')
 );
 router.put('/artists/:id',
   requireAdmin,
   auditLog('UPDATE', 'artist'),
-  artistController.uploadImage(),
+  (req, res, next) => {
+    artistController.uploadImage()(req, res, (err) => {
+      if (err) {
+        console.error('Artist image upload error:', err);
+        return res.status(400).json({ error: err.message || 'File upload error' });
+      }
+      next();
+    });
+  },
   bindController(artistController, 'updateArtist')
 );
 router.delete('/artists/:id',

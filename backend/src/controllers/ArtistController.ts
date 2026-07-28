@@ -1,6 +1,6 @@
 import express, { Response } from 'express';
 import multer from 'multer';
-import { existsSync, mkdirSync, renameSync, unlinkSync } from 'fs';
+import { existsSync, mkdirSync, renameSync, unlinkSync, statSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { AuthRequest } from '../middleware/auth.js';
@@ -126,7 +126,11 @@ export class ArtistController {
         : ext === 'webp' ? 'image/webp'
         : 'image/jpeg';
       res.setHeader('Content-Type', contentType);
-      res.setHeader('Cache-Control', 'public, max-age=31536000');
+      // Filename changes on every upload but the URL stays /artists/:id/image — use
+      // a short TTL plus ETag so replacements show up without disabling cache entirely.
+      const stat = statSync(filePath);
+      res.setHeader('ETag', `"${artist.image_path}-${stat.mtimeMs}"`);
+      res.setHeader('Cache-Control', 'public, max-age=3600, must-revalidate');
       res.sendFile(resolve(filePath));
     } catch (error) {
       console.error('Error serving artist image:', error);

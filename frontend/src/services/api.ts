@@ -19,6 +19,11 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Let the browser set multipart boundaries — a bare `multipart/form-data`
+  // header without boundary breaks file uploads (artist photos, flyers, etc.).
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
   return config;
 });
 
@@ -2190,8 +2195,15 @@ export const artistsAPI = {
     return response.data;
   },
 
-  /** Absolute URL for an artist photo (also used as og:image). */
-  getImageUrl: (artistId: string): string => `${API_BASE_URL}/artists/${artistId}/image`,
+  /**
+   * Absolute URL for an artist photo (also used as og:image).
+   * Pass image_path or updated_at as cacheKey — the endpoint URL is stable per
+   * artist, so without a bust param the browser keeps the old bytes for a year.
+   */
+  getImageUrl: (artistId: string, cacheKey?: string): string => {
+    const base = `${API_BASE_URL}/artists/${artistId}/image`;
+    return cacheKey ? `${base}?v=${encodeURIComponent(cacheKey)}` : base;
+  },
 
   // ---- admin ----
   getAll: async (): Promise<Artist[]> => {

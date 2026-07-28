@@ -317,7 +317,7 @@ export default function AdminArtists() {
                     <div className="flex items-center gap-3">
                       {a.image_path ? (
                         <img
-                          src={artistsAPI.getImageUrl(a.artist_id)}
+                          src={artistsAPI.getImageUrl(a.artist_id, a.image_path)}
                           alt={a.image_alt || a.name}
                           className="w-10 h-10 rounded-full object-cover"
                           width={40}
@@ -529,13 +529,25 @@ export default function AdminArtists() {
                   <label className={LABEL}>Photo</label>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
                     className={INPUT}
                     onChange={e => setImageFile(e.target.files?.[0] ?? null)}
                   />
+                  {(imageFile || editing?.image_path) && (
+                    <img
+                      src={
+                        imageFile
+                          ? URL.createObjectURL(imageFile)
+                          : artistsAPI.getImageUrl(editing!.artist_id, editing!.image_path)
+                      }
+                      alt="Photo preview"
+                      className="mt-2 h-24 w-24 rounded-lg object-cover border border-gray-200"
+                    />
+                  )}
                   {editing?.image_path && !imageFile && (
                     <p className={HINT}>A photo is already set. Choosing a file replaces it.</p>
                   )}
+                  <p className={HINT}>JPG, PNG, GIF or WebP up to 10 MB.</p>
                 </div>
                 <div>
                   <label className={LABEL}>Photo alt text</label>

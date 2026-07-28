@@ -85,7 +85,9 @@ export default function Artists() {
             '@id': `${origin}/artists/${a.slug}#artist`,
             name: a.name,
             url: `${origin}/artists/${a.slug}`,
-            ...(a.image_path ? { image: artistsAPI.getImageUrl(a.artist_id) } : {}),
+            ...(a.image_path
+              ? { image: artistsAPI.getImageUrl(a.artist_id, a.image_path) }
+              : {}),
             ...(splitList(a.genres).length ? { genre: splitList(a.genres) } : {}),
           },
         })),
@@ -136,7 +138,7 @@ export default function Artists() {
                   >
                     {a.image_path ? (
                       <img
-                        src={artistsAPI.getImageUrl(a.artist_id)}
+                        src={artistsAPI.getImageUrl(a.artist_id, a.image_path)}
                         alt={
                           a.image_alt ||
                           `${a.name} — performed with Sanhoti Bengali Association in Orange County, CA`

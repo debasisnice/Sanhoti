@@ -126,7 +126,9 @@ export default function ArtistDetail() {
     const canonical = `${origin}/artists/${artist.slug}`;
     const artistId = `${canonical}#artist`;
     const schemaType = artist.artist_type === 'MusicGroup' ? 'MusicGroup' : 'Person';
-    const imageUrl = artist.image_path ? artistsAPI.getImageUrl(artist.artist_id) : undefined;
+    const imageUrl = artist.image_path
+      ? artistsAPI.getImageUrl(artist.artist_id, artist.image_path)
+      : undefined;
     const alternates = splitList(artist.alternate_names);
     const genres = splitList(artist.genres);
     const roles = splitList(artist.roles);
@@ -250,7 +252,9 @@ export default function ArtistDetail() {
     );
   }
 
-  const imageUrl = artist.image_path ? artistsAPI.getImageUrl(artist.artist_id) : undefined;
+  const imageUrl = artist.image_path
+    ? artistsAPI.getImageUrl(artist.artist_id, artist.image_path)
+    : undefined;
   const roles = splitList(artist.roles);
   const genres = splitList(artist.genres);
   const alternates = splitList(artist.alternate_names);
