@@ -298,7 +298,7 @@ export const subEventsAPI = {
     return response.data;
   },
 
-  /** Public: opted-in, active concert/SEO sub-events for the /bengali-concerts hub. */
+  /** Public: opted-in, active concert/SEO sub-events for the /bollywood-concerts hub. */
   getPublicConcerts: async (): Promise<SubEvent[]> => {
     const response = await axios.get(`${API_BASE_URL}/sub-events/public`);
     return response.data;

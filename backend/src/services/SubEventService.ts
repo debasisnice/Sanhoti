@@ -25,7 +25,7 @@ export class SubEventService {
 
   /**
    * Opted-in, active sub-events that have a dedicated SEO page enabled
-   * (e.g. concerts), sorted soonest-first. Used by the public `/bengali-concerts`
+   * (e.g. concerts), sorted soonest-first. Used by the public `/bollywood-concerts`
    * hub page and its crawler prerender. Returns full records — the public
    * concert fields (name, date, venue, performers, ticket URL) are all safe to
    * expose since each already has an indexable `/sub-events/:id` page.

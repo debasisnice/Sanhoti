@@ -69,7 +69,7 @@ const STATIC_ROUTES: Array<Omit<SitemapEntry, 'lastmod'>> = [
   { path: '/saraswati-puja', changefreq: 'monthly', priority: '0.8' },
   { path: '/poila-boishakh', changefreq: 'monthly', priority: '0.8' },
   { path: '/kali-puja', changefreq: 'monthly', priority: '0.8' },
-  { path: '/bengali-concerts', changefreq: 'weekly', priority: '0.85' },
+  { path: '/bollywood-concerts', changefreq: 'weekly', priority: '0.85' },
   { path: '/artists', changefreq: 'weekly', priority: '0.85' },
   { path: '/blogs', changefreq: 'weekly', priority: '0.8' },
   { path: '/bengali-food', changefreq: 'monthly', priority: '0.75' },
@@ -165,7 +165,7 @@ export class SitemapController {
         '/galleries': galleriesLastmod,
         '/artists': artistsLastmod,
         '/blogs': blogsLastmod,
-        '/bengali-concerts': newest(allSubEvents.map(s => s.updated_at)),
+        '/bollywood-concerts': newest(allSubEvents.map(s => s.updated_at)),
       };
 
       for (const route of STATIC_ROUTES) {

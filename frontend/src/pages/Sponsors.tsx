@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Award, ChevronLeft, ChevronRight, X, FileText } from 'lucide-react';
+import { Award, X, FileText } from 'lucide-react';
 import { sponsorsAPI, durgaPujaPageAPI } from '../services/api';
 import Seo from '../components/Seo';
 import PageHero from '../components/PageHero';
@@ -12,29 +12,25 @@ interface SponsorImage {
   sponsorshipType?: string;
 }
 
+/**
+ * Sponsor tiers, highest first. `key` matches the filename prefix the upload
+ * writes (see SponsorController) — 'None' covers files uploaded before tiers
+ * existed, or with no tier chosen.
+ */
+const TIERS = [
+  { key: 'Grand',    label: 'Grand Sponsors',    accent: 'text-amber-700',  ring: 'ring-amber-300',  chip: 'bg-amber-100 text-amber-800' },
+  { key: 'Platinum', label: 'Platinum Sponsors', accent: 'text-slate-600',  ring: 'ring-slate-300',  chip: 'bg-slate-100 text-slate-700' },
+  { key: 'Gold',     label: 'Gold Sponsors',     accent: 'text-yellow-700', ring: 'ring-yellow-300', chip: 'bg-yellow-100 text-yellow-800' },
+  { key: 'Silver',   label: 'Silver Sponsors',   accent: 'text-gray-600',   ring: 'ring-gray-300',   chip: 'bg-gray-100 text-gray-700' },
+  { key: 'None',     label: 'Our Supporters',    accent: 'text-primary-700', ring: 'ring-primary-200', chip: 'bg-primary-50 text-primary-700' },
+] as const;
+
 export default function Sponsors() {
   const [sponsorImages, setSponsorImages] = useState<SponsorImage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedImage, setSelectedImage] = useState<SponsorImage | null>(null);
   const [prospectusYear, setProspectusYear] = useState<number | null>(null);
   const [prospectusVersion, setProspectusVersion] = useState<number>(0);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const touchStartX = useRef<number | null>(null);
-  const touchStartY = useRef<number | null>(null);
-
-  const sponsorCount = sponsorImages.length;
-
-  const restartAutoRotate = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    if (sponsorCount <= 2) return;
-    intervalRef.current = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % sponsorCount);
-    }, 3000);
-  }, [sponsorCount]);
 
   useEffect(() => {
     const fetchSponsors = async () => {
@@ -72,69 +68,12 @@ export default function Sponsors() {
     };
   }, []);
 
-  // Auto-rotate carousel every 3 seconds (more than 2 images only)
-  useEffect(() => {
-    restartAutoRotate();
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [restartAutoRotate]);
-
-  const goNext = useCallback(() => {
-    if (sponsorCount < 1) return;
-    setCurrentIndex((prev) => (prev + 1) % sponsorCount);
-    restartAutoRotate();
-  }, [sponsorCount, restartAutoRotate]);
-
-  const goPrev = useCallback(() => {
-    if (sponsorCount < 1) return;
-    setCurrentIndex((prev) => (prev - 1 + sponsorCount) % sponsorCount);
-    restartAutoRotate();
-  }, [sponsorCount, restartAutoRotate]);
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
-  };
-
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current == null || touchStartY.current == null || sponsorCount <= 1) return;
-    const endX = e.changedTouches[0].clientX;
-    const endY = e.changedTouches[0].clientY;
-    const dx = endX - touchStartX.current;
-    const dy = endY - touchStartY.current;
-    touchStartX.current = null;
-    touchStartY.current = null;
-    // Prefer vertical scrolling when gesture is mostly vertical
-    if (Math.abs(dy) > Math.abs(dx)) return;
-    const threshold = 48;
-    if (dx > threshold) goPrev();
-    else if (dx < -threshold) goNext();
-  };
-
-  // Get visible cards - show one card in front, with side cards for smooth scrolling effect
-  const getVisibleCards = () => {
-    if (sponsorImages.length === 0) return [];
-    
-    const visible: Array<{ image: SponsorImage; index: number; position: number }> = [];
-    
-    // Show 5 cards: 2 on left, 1 middle (front), 2 on right
-    for (let i = -2; i <= 2; i++) {
-      const imageIndex = (currentIndex + i + sponsorImages.length) % sponsorImages.length;
-      visible.push({
-        image: sponsorImages[imageIndex],
-        index: imageIndex,
-        position: i,
-      });
-    }
-    
-    return visible;
-  };
-
-  const visibleCards = getVisibleCards();
+  // Highest tier first. Anything uploaded without a tier prefix still has to
+  // appear — dropping it would silently hide a sponsor who paid.
+  const groups = TIERS.map(tier => ({
+    tier,
+    images: sponsorImages.filter(img => (img.sponsorshipType || 'None') === tier.key),
+  })).filter(g => g.images.length > 0);
 
   return (
     <div className="pb-32">
@@ -159,153 +98,56 @@ export default function Sponsors() {
             <p className="text-gray-500 text-lg">No sponsor images available at this time.</p>
           </div>
         ) : (
-          <div className="relative h-[600px] flex items-center justify-center overflow-hidden py-12">
-            {sponsorCount > 1 && (
-              <>
-                <button
-                  type="button"
-                  onClick={goPrev}
-                  className="absolute left-1 sm:left-4 top-1/2 z-30 -translate-y-1/2 rounded-full bg-white/95 p-2.5 sm:p-3 shadow-lg ring-1 ring-gray-200 hover:bg-primary-50 hover:ring-primary-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                  aria-label="Previous sponsor"
-                >
-                  <ChevronLeft className="h-7 w-7 sm:h-8 sm:w-8 text-gray-800" />
-                </button>
-                <button
-                  type="button"
-                  onClick={goNext}
-                  className="absolute right-1 sm:right-4 top-1/2 z-30 -translate-y-1/2 rounded-full bg-white/95 p-2.5 sm:p-3 shadow-lg ring-1 ring-gray-200 hover:bg-primary-50 hover:ring-primary-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                  aria-label="Next sponsor"
-                >
-                  <ChevronRight className="h-7 w-7 sm:h-8 sm:w-8 text-gray-800" />
-                </button>
-              </>
-            )}
-            <div
-              className="relative w-full h-full flex items-center justify-center touch-pan-y select-none"
-              style={{
-                perspective: '1200px',
-                perspectiveOrigin: 'center center',
-              }}
-              onTouchStart={onTouchStart}
-              onTouchEnd={onTouchEnd}
-              role="region"
-              aria-roledescription="carousel"
-              aria-label="Sponsor logos"
-            >
-              {visibleCards.map((card) => {
-                const isMiddle = card.position === 0;
-                const isLeft = card.position < 0;
-                const isRight = card.position > 0;
+          <div className="space-y-12">
+            {groups.map(({ tier, images }) => (
+              <section key={tier.key} aria-labelledby={`tier-${tier.key}`}>
+                <div className="flex items-center gap-3 mb-5">
+                  <h2 id={`tier-${tier.key}`} className={`text-2xl font-bold ${tier.accent}`}>
+                    {tier.label}
+                  </h2>
+                  <span className="flex-1 h-px bg-gray-200" />
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${tier.chip}`}>
+                    {images.length}
+                  </span>
+                </div>
 
-                // Calculate styles - cards flow from right to left
-                // Only position 0 is the front card
-                const scale = card.position === 0 ? 1.4 : 0.75;
-                
-                // Continuous horizontal positioning - cards move from right (+x) to left (-x)
-                // Base spacing of 280px for side cards
-                let xOffset;
-                if (card.position === 0) {
-                  xOffset = 0; // Front card centered
-                } else {
-                  // Side cards: maintain continuous spacing
-                  const baseSpacing = 280;
-                  if (card.position < 0) {
-                    // Left side cards
-                    xOffset = card.position * baseSpacing;
-                  } else {
-                    // Right side cards
-                    xOffset = card.position * baseSpacing;
-                  }
-                }
-                
-                // Create wheel effect: front card forward, side cards go back
-                const zOffset = isMiddle ? 100 : -Math.abs(card.position) * 80 - 50;
-                const rotateY = isLeft ? 15 : isRight ? -15 : 0;
-                const opacity = isMiddle ? 1 : 0.7;
-
-                return (
-                  <motion.div
-                    key={`sponsor-${card.image.filename}`}
-                    animate={{
-                      opacity,
-                      x: xOffset,
-                      scale,
-                      rotateY,
-                      z: zOffset,
-                    }}
-                    transition={{
-                      duration: 1.0,
-                      ease: [0.25, 0.1, 0.25, 1],
-                    }}
-                    style={{
-                      position: 'absolute',
-                      transformStyle: 'preserve-3d',
-                      zIndex: isMiddle ? 10 : 5 - Math.abs(card.position),
-                    }}
-                    className="will-change-transform cursor-pointer"
-                    onClick={() => setSelectedImage(card.image)}
-                  >
-                    <div className="flex flex-col items-center">
-                      <div
-                        className={`bg-white rounded-xl overflow-hidden transition-all duration-300 ${
-                          isMiddle
-                            ? 'shadow-2xl ring-4 ring-primary-200 ring-opacity-50'
-                            : 'shadow-lg'
-                        }`}
-                        style={{
-                          width: card.position === 0 ? '280px' : '200px',
-                          height: card.position === 0 ? '320px' : '240px',
-                        }}
-                      >
-                        <div className="w-full h-full bg-gray-50 relative overflow-hidden flex flex-col">
-                          <div className="flex-1 overflow-hidden">
-                            <img
-                              src={card.image.url}
-                              alt={card.image.filename}
-                              className="w-full h-full object-contain p-6"
-                              loading="lazy"
-                              decoding="async"
-                              onError={(e) => {
-                                console.error('Failed to load sponsor image:', card.image.url);
-                                (e.target as HTMLImageElement).style.display = 'none';
-                              }}
-                            />
-                          </div>
-                          {card.image.sponsorshipType && card.image.sponsorshipType !== 'None' && (
-                            <div className="md:hidden bg-white border-t border-gray-200 px-3 py-2">
-                              <p 
-                                className={`text-xs font-semibold text-center ${
-                                  card.image.sponsorshipType === 'Grand' ? 'text-yellow-600' :
-                                  card.image.sponsorshipType === 'Platinum' ? 'text-gray-400' :
-                                  card.image.sponsorshipType === 'Gold' ? 'text-yellow-500' :
-                                  'text-gray-500'
-                                }`}
-                              >
-                                {card.image.sponsorshipType} Sponsor
-                              </p>
-                            </div>
-                          )}
-                        </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+                  {images.map((image, i) => (
+                    <motion.button
+                      key={image.filename}
+                      type="button"
+                      onClick={() => setSelectedImage(image)}
+                      initial={{ opacity: 0, y: 16 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: Math.min(i * 0.04, 0.3) }}
+                      className={`group bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg
+                        ring-1 ring-transparent hover:${tier.ring} transition-all
+                        focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500`}
+                      aria-label={`View ${tier.label.replace(/s$/, '')} logo`}
+                    >
+                      {/* Fixed square keeps every card the same size whatever the
+                          logo's aspect ratio; object-contain means no logo is cropped. */}
+                      <div className="aspect-square p-5 flex items-center justify-center">
+                        <img
+                          src={image.url}
+                          alt={`${tier.label.replace(/s$/, '')} of Sanhoti Bengali Association, Orange County`}
+                          className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                          decoding="async"
+                          onError={(e) => {
+                            (e.currentTarget.closest('button') as HTMLElement | null)?.style.setProperty('display', 'none');
+                          }}
+                        />
                       </div>
-                      {card.image.sponsorshipType && card.image.sponsorshipType !== 'None' && (
-                        <p 
-                          className={`hidden md:block mt-3 text-sm font-semibold text-center ${
-                            card.image.sponsorshipType === 'Grand' ? 'text-yellow-600' :
-                            card.image.sponsorshipType === 'Platinum' ? 'text-gray-400' :
-                            card.image.sponsorshipType === 'Gold' ? 'text-yellow-500' :
-                            'text-gray-500'
-                          }`}
-                        >
-                          {card.image.sponsorshipType} Sponsor
-                        </p>
-                      )}
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
+                    </motion.button>
+                  ))}
+                </div>
+              </section>
+            ))}
           </div>
         )}
+
 
         {/* Sponsorship prospectus tile */}
         {prospectusYear && (

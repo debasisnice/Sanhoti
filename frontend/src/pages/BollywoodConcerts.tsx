@@ -57,12 +57,14 @@ const FAQ: { q: string; a: string }[] = [
 ];
 
 /**
- * Evergreen `/bengali-concerts` hub — targets "Bengali concert Southern California"
+ * Evergreen `/bollywood-concerts` hub. The URL leads on Bollywood (the higher-volume
+ * term) while the h1, meta and body keep "Bengali concert" too, so one page can rank
+ * for both. Renamed from /bengali-concerts; nginx 301s the old path.
  * and artist-name queries. Live from the public sub-events endpoint, so any concert
  * with "Generate SEO page" enabled appears here automatically. Crawlers get the
  * server-rendered `/seo` version.
  */
-export default function BengaliConcerts() {
+export default function BollywoodConcerts() {
   const [concerts, setConcerts] = useState<SubEvent[]>([]);
   const [images, setImages] = useState<Record<string, string>>({});
   const [loaded, setLoaded] = useState(false);
@@ -127,7 +129,7 @@ export default function BengaliConcerts() {
       {
         '@context': 'https://schema.org',
         '@type': 'ItemList',
-        name: 'Bengali concerts by Sanhoti in Orange County',
+        name: 'Bollywood and Bengali concerts by Sanhoti in Orange County',
         itemListElement: concerts.map((se, i) => ({
           '@type': 'ListItem',
           position: i + 1,
@@ -179,7 +181,7 @@ export default function BengaliConcerts() {
         {img ? (
           <img
             src={img}
-            alt={`${se.sub_event_name} — Bengali concert in Orange County`}
+            alt={`${se.sub_event_name} — Bollywood and Bengali concert in Orange County`}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
@@ -254,15 +256,15 @@ export default function BengaliConcerts() {
   return (
     <div className="pb-32">
       <Seo
-        title="Bengali Concerts in Orange County & Southern California | Sanhoti — Live Indian Music"
-        description="Live Bengali concerts in Orange County & Southern California with Sanhoti — Bollywood, contemporary Indian, and Rabindra Sangeet artists at Durga Puja and cultural nights near Irvine and Costa Mesa."
-        path="/bengali-concerts"
+        title="Bollywood & Bengali Concerts in Orange County, CA | Sanhoti"
+        description="Live Bollywood and Bengali concerts in Orange County, CA with Sanhoti — playback singers, Rabindra Sangeet and contemporary Indian artists near Irvine and Costa Mesa."
+        path="/bollywood-concerts"
         jsonLd={jsonLd}
       />
 
       <PageHero
         icon={Music}
-        title="Bengali Concerts in Orange County & Southern California"
+        title="Bollywood & Bengali Concerts in Orange County & Southern California"
         subtitle="Live Bollywood, contemporary Indian, and Rabindra Sangeet artists at Sanhoti Durga Puja and cultural nights in Costa Mesa — open to music lovers across Southern California."
       />
 

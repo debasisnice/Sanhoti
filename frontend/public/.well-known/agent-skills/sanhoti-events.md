@@ -33,7 +33,7 @@ Event fields: `event_id`, `event_name`, `event_start_dt`, `event_end_dt`, `locat
 
 ### Other
 - `GET /sitemap.xml` — full URL list.
-- Human/agent landing pages: `/durga-puja`, `/festivals`, `/bengali-concerts`, `/events`.
+- Human/agent landing pages: `/durga-puja`, `/festivals`, `/bollywood-concerts`, `/events`.
 
 ## Notes
 - All dates are ISO 8601; times are America/Los_Angeles (Pacific).

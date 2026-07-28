@@ -80,6 +80,14 @@ SNIPPET = f"""
             return 301 https://www.sanhoti.org/;
         }}
     }}
+    location = /bengali-concerts {{
+        # Renamed to /bollywood-concerts. A permanent redirect is what passes the
+        # old URL's accumulated ranking to the new one — without it the indexed
+        # path 404s and the new page starts from zero. Keep this rule
+        # indefinitely: Google's index and external links will reference the old
+        # path for years.
+        return 301 https://www.sanhoti.org/bollywood-concerts;
+    }}
     location = /sitemap.xml {{
         proxy_pass {backend}/sitemap.xml;
         proxy_set_header Host $host;

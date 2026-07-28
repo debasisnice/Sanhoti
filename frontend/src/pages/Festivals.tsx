@@ -304,7 +304,7 @@ export default function Festivals() {
             <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none" />
             <div className="relative z-10 p-6 text-white [text-shadow:_0_1px_4px_rgb(0_0_0_/_0.85)]">
               <h2 className="text-xl font-bold mb-2">
-                <Link to="/bengali-concerts" className="text-white hover:underline">
+                <Link to="/bollywood-concerts" className="text-white hover:underline">
                   Bengali Concerts
                 </Link>
               </h2>
@@ -314,7 +314,7 @@ export default function Festivals() {
                 {concertCount ? ` ${concertCount} on the calendar.` : ''}
               </p>
               <Link
-                to="/bengali-concerts"
+                to="/bollywood-concerts"
                 className="inline-flex items-center gap-1 text-white font-medium hover:underline"
               >
                 See all concerts <ArrowRight className="w-4 h-4" />

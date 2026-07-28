@@ -179,7 +179,7 @@ export default function Artists() {
             <Music className="w-10 h-10 text-primary-600 mx-auto mb-3" />
             <p>
               Our artist line-up for the coming season will be announced soon. See{' '}
-              <Link to="/bengali-concerts" className="text-primary-600 hover:underline font-medium">
+              <Link to="/bollywood-concerts" className="text-primary-600 hover:underline font-medium">
                 Bengali concerts
               </Link>{' '}
               and{' '}
@@ -208,7 +208,7 @@ export default function Artists() {
         <div className="bg-primary-50 rounded-2xl p-8 text-center">
           <h2 className="text-xl font-bold text-gray-900 mb-3">More from Sanhoti</h2>
           <div className="flex flex-wrap justify-center gap-4 text-primary-700 font-medium">
-            <Link to="/bengali-concerts" className="hover:underline">
+            <Link to="/bollywood-concerts" className="hover:underline">
               Bengali Concerts
             </Link>
             <Link to="/durga-puja" className="hover:underline">

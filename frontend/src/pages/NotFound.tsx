@@ -7,7 +7,7 @@ const SUGGESTIONS = [
   { to: '/events', label: 'All events' },
   { to: '/durga-puja', label: 'Durga Puja in Orange County' },
   { to: '/festivals', label: 'Bengali festivals' },
-  { to: '/bengali-concerts', label: 'Bengali concerts' },
+  { to: '/bollywood-concerts', label: 'Bollywood & Bengali concerts' },
   { to: '/artists', label: 'Artists' },
   { to: '/galleries', label: 'Photo galleries' },
   { to: '/charity', label: 'Charitable work' },

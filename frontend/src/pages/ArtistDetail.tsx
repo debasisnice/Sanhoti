@@ -386,7 +386,7 @@ export default function ArtistDetail() {
           ) : (
             <div className="bg-white rounded-xl shadow p-6 text-gray-600">
               No upcoming {artist.name} dates are announced right now. See{' '}
-              <Link to="/bengali-concerts" className="text-primary-600 hover:underline font-medium">
+              <Link to="/bollywood-concerts" className="text-primary-600 hover:underline font-medium">
                 upcoming Bengali concerts in Orange County
               </Link>{' '}
               for the current line-up.
@@ -465,7 +465,7 @@ export default function ArtistDetail() {
             <Link to="/artists" className="hover:underline">
               All Artists
             </Link>
-            <Link to="/bengali-concerts" className="hover:underline">
+            <Link to="/bollywood-concerts" className="hover:underline">
               Bengali Concerts
             </Link>
             <Link to="/durga-puja" className="hover:underline">

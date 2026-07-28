@@ -103,13 +103,13 @@ You don't need many — you need *independent* ones.
 - [ ] Ask a **partner temple / Indian grocery / restaurant** to list your Durga Puja on their events page.
 - [ ] Pitch a short **local blurb** to India-community outlets (IndiaCurrents, Little India, a local OC blog): "New Bengali association brings Durga Puja to Orange County."
 - [ ] **Cross-link** with any allied SoCal Bengali org you collaborate with.
-- [ ] Post your dedicated pages (`/durga-puja`, `/bengali-concerts`) in the **Facebook group + page + Instagram bio** — social citations count toward entity corroboration.
+- [ ] Post your dedicated pages (`/durga-puja`, `/bollywood-concerts`) in the **Facebook group + page + Instagram bio** — social citations count toward entity corroboration.
 
 ---
 
 ## 6. Content that makes you AI-quotable
 
-AI Overviews lift clean, factual sentences. Your site already has them (homepage, `/festivals`, `/bengali-concerts`, FAQ schema). Keep every listing's first sentence in the pattern the model wants to repeat:
+AI Overviews lift clean, factual sentences. Your site already has them (homepage, `/festivals`, `/bollywood-concerts`, FAQ schema). Keep every listing's first sentence in the pattern the model wants to repeat:
 > "Sanhoti Bengali Association of Orange County is a 501(c)(3) non-profit that hosts Durga Puja and Bengali cultural events across Orange County and Southern California."
 
 ---

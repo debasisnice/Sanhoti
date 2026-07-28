@@ -45,7 +45,13 @@ export default function PageHero({
             <h1 className="text-lg sm:text-2xl lg:text-[1.75rem] font-bold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
               {title}
             </h1>
-            <p className="mt-2 sm:mt-3 text-sm sm:text-base text-white/85 leading-snug line-clamp-3 min-h-[4.125rem] sm:min-h-[4.25rem] max-w-2xl">
+            {/* `-webkit-line-clamp` cuts at exactly N x line-height, so a tight
+                leading clips the descenders (g, y, p) off the last visible line.
+                Mobile gets `leading-relaxed` for the extra few pixels of room
+                and a 4th line, since the narrow column wraps sooner. The section
+                stays 280px tall either way — 4 relaxed lines is ~92px against
+                ~122px of total content, well inside the fixed height. */}
+            <p className="mt-2 sm:mt-3 text-sm sm:text-base text-white/85 leading-relaxed sm:leading-snug line-clamp-4 sm:line-clamp-3 min-h-[5.75rem] sm:min-h-[4.25rem] max-w-2xl">
               {subtitle}
             </p>
           </div>

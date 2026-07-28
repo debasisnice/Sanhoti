@@ -9,7 +9,7 @@ import WebMcpProvider from './components/WebMcpProvider';
 import Home from './pages/Home';
 import DurgaPujaRedirect from './pages/DurgaPujaRedirect';
 import DurgaPujaYearRoute from './pages/DurgaPujaYearRoute';
-import BengaliConcerts from './pages/BengaliConcerts';
+import BollywoodConcerts from './pages/BollywoodConcerts';
 import Festivals from './pages/Festivals';
 import Artists from './pages/Artists';
 import ArtistDetail from './pages/ArtistDetail';
@@ -78,7 +78,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/durga-puja" element={<DurgaPujaRedirect />} />
-          <Route path="/bengali-concerts" element={<BengaliConcerts />} />
+          <Route path="/bollywood-concerts" element={<BollywoodConcerts />} />
           <Route path="/festivals" element={<Festivals />} />
           {/* Per-festival landing pages — each targets "<festival> Orange County",
               which the single /festivals page could not rank for on its own. */}

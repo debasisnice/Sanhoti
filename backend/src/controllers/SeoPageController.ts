@@ -502,7 +502,7 @@ export class SeoPageController {
       if (path === '/') html = await this.homePage();
       else if (path === '/durga-puja') html = await this.durgaPujaRedirectPage();
       else if (durgaYear) html = await this.durgaPujaPage(durgaYear);
-      else if (path === '/bengali-concerts') html = await this.bengaliConcertsPage();
+      else if (path === '/bollywood-concerts') html = await this.bollywoodConcertsPage();
       else if (path === '/festivals') html = await this.festivalsPage();
       else if (path === '/corporate-partnerships') html = await this.corporatePartnershipsPage();
       else if (path === '/events') html = await this.eventsPage(typeof req.query.type === 'string' ? req.query.type : undefined);
@@ -647,7 +647,7 @@ ${jsonLdBlocks}
 <a href="/">${esc(ORG_NAME)}</a>
 <nav>
 <a href="/">Home</a> · <a href="/durga-puja">Durga Puja</a> · <a href="/festivals">Festivals</a> ·
-<a href="/bengali-concerts">Concerts</a> · <a href="/events">Events</a> · <a href="/about">About</a> ·
+<a href="/bollywood-concerts">Concerts</a> · <a href="/events">Events</a> · <a href="/about">About</a> ·
 <a href="/galleries">Galleries</a> · <a href="/magazines">Magazines</a> · <a href="/donate">Donate</a> ·
 <a href="/corporate-partnerships">Corporate Partnerships</a> · <a href="/contact">Contact</a>
 </nav>
@@ -1190,13 +1190,18 @@ ${faqsHtml}
   }
 
   /**
-   * Evergreen `/bengali-concerts` hub for the query "Bengali concert Southern
-   * California" (and artist-name queries, which are high-volume in themselves).
+   * Evergreen `/bollywood-concerts` hub.
+   *
+   * Leads on Bollywood in the URL and title — the higher-volume term — while the
+   * h1 and body keep "Bengali concert" too, so one page serves both queries plus
+   * artist-name searches. Renamed from `/bengali-concerts`, which nginx 301s here
+   * so the old URL's ranking carries over instead of 404ing.
+   *
    * Self-canonical, always valid — lists the opted-in concert sub-events and
    * links to each one's dedicated `/sub-events/:id` page. Even when there are no
    * upcoming concerts the page stays useful (evergreen intro + past line-ups).
    */
-  private async bengaliConcertsPage(): Promise<string> {
+  private async bollywoodConcertsPage(): Promise<string> {
     let concerts: SubEvent[] = [];
     try {
       concerts = await this.subEventService.getPublicSeoSubEvents();
@@ -1244,12 +1249,12 @@ ${se.ticket_url ? `<p><a href="${esc(se.ticket_url)}" rel="noopener noreferrer">
       .join('\n');
 
     const body = `
-<h1>Bengali Concerts in Orange County &amp; Southern California — Sanhoti</h1>
+<h1>Bollywood &amp; Bengali Concerts in Orange County &amp; Southern California — Sanhoti</h1>
 <p>Sanhoti brings live Bengali music to Orange County — Bollywood and contemporary
 Indian artists, Rabindra Sangeet, adhunik, and band nights, most often as part of our
 Durga Puja Durgotsav in Costa Mesa (minutes from Irvine). Concerts are open to Bengali
 and Indian families and music lovers from across Southern California.</p>
-${upcomingHtml ? `<h2>Upcoming Bengali concerts</h2>\n<ul>${upcomingHtml}</ul>` : `<p>Our next concert line-up will be announced soon — check our <a href="/durga-puja">Durga Puja page</a> and <a href="/events">Events</a> for dates and tickets.</p>`}
+${upcomingHtml ? `<h2>Upcoming Bollywood and Bengali concerts</h2>\n<ul>${upcomingHtml}</ul>` : `<p>Our next concert line-up will be announced soon — check our <a href="/durga-puja">Durga Puja page</a> and <a href="/events">Events</a> for dates and tickets.</p>`}
 ${pastHtml ? `<h2>Recent concerts</h2>\n<ul>${pastHtml}</ul>` : ''}
 <h2>About Sanhoti's concerts</h2>
 <p>Each concert has its own page with the artist, date, venue, and tickets. Sanhoti is a
@@ -1329,10 +1334,10 @@ and cultural evenings across Orange County and SoCal.</p>
     );
 
     return this.layout({
-      title: 'Bengali Concerts in Orange County & Southern California | Sanhoti — Live Indian Music',
+      title: 'Bollywood & Bengali Concerts in Orange County, CA | Sanhoti',
       description:
-        'Live Bengali concerts in Orange County & Southern California with Sanhoti — Bollywood, contemporary Indian, and Rabindra Sangeet artists at Durga Puja and cultural nights near Irvine and Costa Mesa.',
-      path: '/bengali-concerts',
+        'Live Bollywood and Bengali concerts in Orange County, CA with Sanhoti — playback singers, Rabindra Sangeet and contemporary Indian artists near Irvine and Costa Mesa.',
+      path: '/bollywood-concerts',
       body,
       jsonLd: [
         this.orgJsonLd(),
@@ -1341,7 +1346,7 @@ and cultural evenings across Orange County and SoCal.</p>
               {
                 '@context': 'https://schema.org',
                 '@type': 'ItemList',
-                name: 'Bengali concerts by Sanhoti in Orange County',
+                name: 'Bollywood and Bengali concerts by Sanhoti in Orange County',
                 itemListElement: listNodes,
               },
             ]
@@ -1439,14 +1444,14 @@ and cultural evenings across Orange County and SoCal.</p>
       })
       .join('\n');
 
-    const concertsCard = `<li><h2><a href="/bengali-concerts">Bengali concerts</a></h2><p>Live Bengali and Indian music nights with visiting artists — see the full concert line-up and tickets.</p></li>`;
+    const concertsCard = `<li><h2><a href="/bollywood-concerts">Bengali concerts</a></h2><p>Live Bengali and Indian music nights with visiting artists — see the full concert line-up and tickets.</p></li>`;
 
     const body = `
 <h1>Bengali Festivals in Orange County — Sanhoti</h1>
 <p>Sanhoti (সংহতি) celebrates the full Bengali festival calendar in Orange County and
 Southern California. From the grandeur of <a href="/durga-puja">Durga Puja ${durgaYear}</a>
 to Saraswati Puja, Poila Boishakh (Bengali New Year), Kali Puja, and live
-<a href="/bengali-concerts">Bengali concerts</a>, our festivals are open to Bengali and
+<a href="/bollywood-concerts">Bengali concerts</a>, our festivals are open to Bengali and
 Indian families — and everyone — across Costa Mesa, Irvine, Tustin, Rancho Santa Margarita,
 Mission Viejo, and the wider SoCal region.</p>
 <ul>${cards}
@@ -1617,7 +1622,7 @@ ${leadershipHtml}
 <p>${esc(intro)}</p>
 <ul>${this.eventListItems(events)}</ul>
 <p><a href="/durga-puja">Durga Puja in Orange County</a> · <a href="/festivals">Bengali festivals</a> ·
-<a href="/bengali-concerts">Bengali concerts</a></p>`;
+<a href="/bollywood-concerts">Bengali concerts</a></p>`;
 
     // ItemList of full Event nodes (built from admin fields) so the list page carries
     // valid structured data, plus a breadcrumb.
@@ -1750,7 +1755,7 @@ ${needsFraming ? `<h2>About ${esc(name)}</h2>\n<p>${esc(framing)}</p>` : ''}
 ${galleriesHtml}
 <h2>More Sanhoti events in Orange County</h2>
 <p><a href="/events">All Sanhoti events</a> · <a href="/durga-puja">Durga Puja in Orange County</a> ·
-<a href="/festivals">Bengali festivals</a> · <a href="/bengali-concerts">Bengali concerts</a> ·
+<a href="/festivals">Bengali festivals</a> · <a href="/bollywood-concerts">Bengali concerts</a> ·
 <a href="/galleries">Photo galleries</a> · <a href="/contact">Contact us</a></p>`;
     // Admin-authored overrides win over the generated title/description; the
     // admin knows which query this page should answer.
@@ -2043,12 +2048,12 @@ ${
   cards
     ? `<h2>Featured artists</h2>\n<ul>${cards}</ul>`
     : `<p>Our artist line-up for the coming season will be announced soon. See
-<a href="/bengali-concerts">Bengali concerts</a> and <a href="/durga-puja">Durga Puja</a> for the latest.</p>`
+<a href="/bollywood-concerts">Bengali concerts</a> and <a href="/durga-puja">Durga Puja</a> for the latest.</p>`
 }
 <h2>Booking and press</h2>
 <p>Each artist has a dedicated page listing upcoming and past Sanhoti performances, dates, and venues.
 For press, artist management, or performance enquiries, <a href="/contact">contact Sanhoti</a>.</p>
-<p><a href="/bengali-concerts">Bengali concerts in Orange County</a> ·
+<p><a href="/bollywood-concerts">Bengali concerts in Orange County</a> ·
 <a href="/durga-puja">Durga Puja</a> · <a href="/events">All events</a></p>`;
 
     const itemList = {
@@ -2229,7 +2234,7 @@ ${
   upcomingHtml
     ? `<h2>Upcoming ${esc(artist.name)} performances with Sanhoti</h2>\n<ul>${upcomingHtml}</ul>`
     : `<p>No upcoming ${esc(artist.name)} dates are announced right now. See
-<a href="/bengali-concerts">upcoming Bengali concerts in Orange County</a> for the current line-up.</p>`
+<a href="/bollywood-concerts">upcoming Bengali concerts in Orange County</a> for the current line-up.</p>`
 }
 ${pastHtml ? `<h2>Past performances with Sanhoti</h2>\n<ul>${pastHtml}</ul>` : ''}
 ${videosHtml}
@@ -2238,7 +2243,7 @@ ${profilesHtml}
 <p>Sanhoti is a 501(c)(3) non-profit Bengali cultural association serving Orange County and
 Southern California. We present Bengali and Indian artists at Durga Puja, Saraswati Puja,
 Poila Boishakh, and standalone concerts in Costa Mesa, Irvine, and across SoCal.</p>
-<p><a href="/artists">All artists</a> · <a href="/bengali-concerts">Bengali concerts</a> ·
+<p><a href="/artists">All artists</a> · <a href="/bollywood-concerts">Bengali concerts</a> ·
 <a href="/durga-puja">Durga Puja in Orange County</a> · <a href="/contact">Contact us</a></p>`;
 
     const artistNode: Record<string, unknown> = {
@@ -3284,7 +3289,7 @@ request — email ${esc(ORG_EMAIL)}.</p>
 <p>Sanhoti is entirely volunteer-run. Our executive committee and board members organise
 every festival, concert, and charity drive we hold in Orange County, California — from
 <a href="/durga-puja">Durga Puja</a> and <a href="/saraswati-puja">Saraswati Puja</a> to
-<a href="/bengali-concerts">live concerts</a> and community service.</p>
+<a href="/bollywood-concerts">live concerts</a> and community service.</p>
 
 <h2>How Sanhoti is governed</h2>
 <p>As a registered 501(c)(3) non-profit (EIN 39-2903777), Sanhoti is governed by an elected
@@ -3430,7 +3435,7 @@ accessibility? <a href="/contact">Contact us</a>.</p>`,
 <li><a href="/events">All events</a></li>
 <li><a href="/durga-puja">Durga Puja in Orange County</a></li>
 <li><a href="/festivals">Bengali festivals</a></li>
-<li><a href="/bengali-concerts">Bengali concerts</a></li>
+<li><a href="/bollywood-concerts">Bengali concerts</a></li>
 <li><a href="/artists">Artists &amp; performers at Sanhoti</a></li>
 <li><a href="/galleries">Photo galleries</a></li>
 <li><a href="/contact">Contact us</a></li>
