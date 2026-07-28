@@ -1528,7 +1528,12 @@ export default function Home() {
                     ) : (
                       /* Landscape or No Image Layout: Image on top, details on bottom */
                       <>
-                        <div className="h-80 relative overflow-hidden bg-gradient-to-br from-primary-400 to-primary-600">
+                        {/* Taller on desktop. The card runs the full max-w-7xl
+                            width, so at h-80 the box is roughly 4:1 while a
+                            typical flyer is 4:3 — `object-cover` was throwing
+                            away most of the picture's height. Mobile keeps h-80,
+                            where the box is already near-square. */}
+                        <div className="h-80 md:h-[26rem] lg:h-[32rem] relative overflow-hidden bg-gradient-to-br from-primary-400 to-primary-600">
                           {eventImage ? (
                             <img
                               src={eventImage}

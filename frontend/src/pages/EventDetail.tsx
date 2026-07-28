@@ -314,11 +314,19 @@ export default function EventDetail() {
         ]}
       />
 
-      {/* ---- Hero ---- */}
+      {/* ---- Hero ----
+          The flyer is a background, so this box's height comes from the text on
+          top of it. On a wide display the box is short and wide, and
+          `object-cover` centres the crop — slicing the flyer from both edges.
+          `object-top` moves the whole crop to the bottom so the title artwork
+          survives. No min-height here, unlike /durga-puja: this image sits under
+          a from-black/75 gradient and the readable flyer is rendered in full by
+          FlyerImage further down, so there is nothing to gain from making all
+          15 event heroes taller. */}
       <section className="relative overflow-hidden">
         {heroImg && (
           <div className="absolute inset-0">
-            <img src={heroImg} alt="" aria-hidden="true" className="w-full h-full object-cover" />
+            <img src={heroImg} alt="" aria-hidden="true" className="w-full h-full object-cover object-top" />
             <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/55 to-white" />
           </div>
         )}
