@@ -334,6 +334,12 @@ export default function AdminEvents() {
         event_status: formDataWithPST.event_status ?? 'Scheduled',
         performers: (formDataWithPST.performers ?? '').trim(),
         performer_type: formDataWithPST.performer_type ?? 'Person',
+        artist_ids: formDataWithPST.artist_ids ?? [],
+        meta_title: (formDataWithPST.meta_title ?? '').trim(),
+        meta_description: (formDataWithPST.meta_description ?? '').trim(),
+        image_alt: (formDataWithPST.image_alt ?? '').trim(),
+        faqs: formDataWithPST.faqs ?? [],
+        menu: formDataWithPST.menu,
       };
 
       let savedEvent: Event;
