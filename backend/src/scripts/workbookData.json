@@ -552,6 +552,64 @@
       "venue_city": "Costa Mesa",
       "venue_region": "CA",
       "venue_postal": "92626"
+    },
+    "ART6QV985EF3": {
+      "event_description": "Srijan is Sanhoti Bengali Association's year-long workshop initiative inviting people across Orange County and Southern California to explore Indian arts — with a special focus on painting.\n\nThe program began on January 1, 2026, welcoming participants of every skill level — from first-time painters to experienced artists — to learn techniques rooted in India's visual traditions while finding their own creative voice.\n\nThroughout the year, Sanhoti hosts guided sessions, studio meetups, and community critique circles where participants share progress, exchange ideas, and build friendships around art. Whether you grew up with rangoli and alpana at home or are discovering Indian art for the first time, Srijan is a welcoming space to create together.\n\nThe journey culminates in October 2026 with a public exhibition showcasing works from every participant — a celebration of creativity, culture, and the spirit of srijana (creation) that gives the program its name.\n\nSrijan reflects Sanhoti's broader mission: celebrating Bengali and Indian heritage while opening our doors to everyone in the Orange County community who wants to learn, create, and connect.",
+      "image_alt": "Srijan Indian art and painting workshop by Sanhoti Bengali Association in Orange County, California",
+      "venue_city": "Rancho Santa Margarita",
+      "venue_region": "CA",
+      "meta_title": "Srijan — Indian Painting Workshop | Sanhoti, Orange County",
+      "meta_description": "Join Srijan, Sanhoti's year-long Indian arts workshop in Orange County. Painting sessions from January 2026, culminating in a public exhibition in October 2026.",
+      "faqs": [
+        {
+          "question": "What is Srijan?",
+          "answer": "Srijan is Sanhoti Bengali Association's year-long workshop program focused on Indian arts, especially painting. Participants create throughout the year and showcase their work at a public exhibition in October 2026."
+        },
+        {
+          "question": "Do I need painting experience to join Srijan?",
+          "answer": "No. Srijan welcomes beginners and experienced artists alike. Sessions are designed for every skill level across Orange County and Southern California."
+        },
+        {
+          "question": "When is the Srijan exhibition?",
+          "answer": "The culminating exhibition of participant artwork is planned for October 2026. Program sessions run from January 1, 2026 through the exhibition date."
+        },
+        {
+          "question": "How do I get involved with Srijan?",
+          "answer": "Contact Sanhoti at info@sanhoti.org or watch this event page for registration details and upcoming session dates."
+        }
+      ],
+      "fixes": {
+        "performer_type": ""
+      }
+    },
+    "TRVPNUWDDCBI": {
+      "event_description": "Srijan is Sanhoti Bengali Association's year-long workshop initiative inviting people across Orange County and Southern California to explore Indian arts — with a special focus on painting.\n\nThe program began on January 1, 2026, welcoming participants of every skill level — from first-time painters to experienced artists — to learn techniques rooted in India's visual traditions while finding their own creative voice.\n\nThroughout the year, Sanhoti hosts guided sessions, studio meetups, and community critique circles where participants share progress, exchange ideas, and build friendships around art. Whether you grew up with rangoli and alpana at home or are discovering Indian art for the first time, Srijan is a welcoming space to create together.\n\nThe journey culminates in October 2026 with a public exhibition showcasing works from every participant — a celebration of creativity, culture, and the spirit of srijana (creation) that gives the program its name.\n\nSrijan reflects Sanhoti's broader mission: celebrating Bengali and Indian heritage while opening our doors to everyone in the Orange County community who wants to learn, create, and connect.",
+      "image_alt": "Srijan Indian art and painting workshop by Sanhoti Bengali Association in Orange County, California",
+      "venue_city": "Rancho Santa Margarita",
+      "venue_region": "CA",
+      "meta_title": "Srijan — Indian Painting Workshop | Sanhoti, Orange County",
+      "meta_description": "Join Srijan, Sanhoti's year-long Indian arts workshop in Orange County. Painting sessions from January 2026, culminating in a public exhibition in October 2026.",
+      "faqs": [
+        {
+          "question": "What is Srijan?",
+          "answer": "Srijan is Sanhoti Bengali Association's year-long workshop program focused on Indian arts, especially painting. Participants create throughout the year and showcase their work at a public exhibition in October 2026."
+        },
+        {
+          "question": "Do I need painting experience to join Srijan?",
+          "answer": "No. Srijan welcomes beginners and experienced artists alike. Sessions are designed for every skill level across Orange County and Southern California."
+        },
+        {
+          "question": "When is the Srijan exhibition?",
+          "answer": "The culminating exhibition of participant artwork is planned for October 2026. Program sessions run from January 1, 2026 through the exhibition date."
+        },
+        {
+          "question": "How do I get involved with Srijan?",
+          "answer": "Contact Sanhoti at info@sanhoti.org or watch this event page for registration details and upcoming session dates."
+        }
+      ],
+      "fixes": {
+        "performer_type": ""
+      }
     }
   },
   "artists": [

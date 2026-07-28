@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, ArrowRight, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { eventsAPI, galleriesAPI } from '../services/api';
-import { Event } from '../types';
+import { Event, PhotoGallery } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal, generateCalendarUrl, formatDateWithTime, getEventLifecycleStatus } from '../utils/dateUtils';
 import {
@@ -17,6 +17,27 @@ import Seo from '../components/Seo';
 import { getEventDetailPath } from '../utils/eventSlug';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import { buildEventJsonLd } from '../seo/eventJsonLd';
+
+type EventsGalleryPhoto = { eventId?: string; galleryId: string; url: string; alt: string };
+
+function galleryToPhotoEntries(g: PhotoGallery): EventsGalleryPhoto[] {
+  return (g.photos || [])
+    .filter((p) => p && p.type !== 'video' && (p.thumbnailUrl || p.url))
+    .map((p) => ({
+      eventId: g.eventId,
+      galleryId: g.id,
+      url: (p.thumbnailUrl || p.url) as string,
+      alt: (p.caption || '').trim()
+        ? (p.caption as string).trim()
+        : `${g.title || 'Sanhoti event'} — photo from a Sanhoti Bengali event in Orange County, CA`,
+    }));
+}
+
+function isEventsTypeScope(
+  scope: ReturnType<typeof parseEventsTypeQueryParam>
+): scope is 'Festival' | 'Charity' | 'Workshop' | 'Other' {
+  return scope === 'Festival' || scope === 'Charity' || scope === 'Workshop' || scope === 'Other';
+}
 
 /** Durga-Puja-style section heading with a kicker and accent underline. */
 function SectionHeading({ kicker, children }: { kicker?: string; children: React.ReactNode }) {
@@ -43,9 +64,7 @@ export default function Events() {
   const [eventImageOrientations, setEventImageOrientations] = useState<Record<string, 'portrait' | 'landscape'>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [expandedYear, setExpandedYear] = useState<string | null>(null);
-  const [galleryPhotos, setGalleryPhotos] = useState<
-    { eventId?: string; galleryId: string; url: string; alt: string }[]
-  >([]);
+  const [galleryPhotos, setGalleryPhotos] = useState<EventsGalleryPhoto[]>([]);
 
   // Function to detect image orientation
   const detectImageOrientation = (imageUrl: string): Promise<'portrait' | 'landscape'> => {
@@ -118,37 +137,60 @@ export default function Events() {
     fetchEventsAndImages();
   }, []);
 
-  // Public gallery photos — used to fill the hero collage when there are few flyers.
+  // Public gallery photos fill the hero when there are few flyers. On type-scoped
+  // pages (/events?type=Workshop etc.), also pull event-linked folders via
+  // getPublicForEvent so unpublished galleries still appear in the hero.
   useEffect(() => {
     let cancelled = false;
-    galleriesAPI
-      .getPublic()
-      .then(galleries => {
-        if (cancelled) return;
-        // Keep each photo tagged with its event so the hero can show galleries
-        // that match the current event-type page.
-        const photos = galleries.flatMap(g =>
-          (g.photos || [])
-            .filter(p => p && p.type !== 'video' && (p.thumbnailUrl || p.url))
-            .map(p => ({
-              eventId: g.eventId,
-              galleryId: g.id,
-              url: (p.thumbnailUrl || p.url) as string,
-              // Descriptive, unique alt: photo caption if set, else the gallery title.
-              alt: (p.caption || '').trim()
-                ? (p.caption as string).trim()
-                : `${g.title || 'Sanhoti event'} — photo from a Sanhoti Bengali event in Orange County, CA`,
-            }))
+
+    const loadGalleryPhotos = async () => {
+      const publicGalleries = await galleriesAPI.getPublic().catch(() => [] as PhotoGallery[]);
+      if (cancelled) return;
+
+      const photos = publicGalleries.flatMap(galleryToPhotoEntries);
+      const seenUrls = new Set(photos.map((p) => p.url));
+
+      if (isEventsTypeScope(eventTypeScope) && allEvents.length > 0) {
+        const scopedEvents = allEvents.filter(
+          (e) => getEffectiveEventType(e) === eventTypeScope
         );
-        setGalleryPhotos(photos);
-      })
-      .catch(() => {
-        /* galleries optional */
-      });
+        const publicEventIds = new Set(
+          publicGalleries.map((g) => g.eventId).filter(Boolean) as string[]
+        );
+
+        const extraGalleries = await Promise.all(
+          scopedEvents
+            .filter((e) => {
+              const id = e.event_id || e.id;
+              return id && e.photo_gallery_link && !publicEventIds.has(id);
+            })
+            .map(async (e) => {
+              try {
+                return await galleriesAPI.getPublicForEvent(e.event_id || e.id!);
+              } catch {
+                return null;
+              }
+            })
+        );
+
+        for (const gallery of extraGalleries) {
+          if (!gallery) continue;
+          for (const photo of galleryToPhotoEntries(gallery)) {
+            if (seenUrls.has(photo.url)) continue;
+            seenUrls.add(photo.url);
+            photos.push(photo);
+          }
+        }
+      }
+
+      if (!cancelled) setGalleryPhotos(photos);
+    };
+
+    loadGalleryPhotos();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [allEvents, eventTypeScope]);
 
   const scopedPriorityEvent = useMemo(
     () => getScopedPriorityEvent(allEvents, eventTypeScope),
@@ -312,11 +354,7 @@ export default function Events() {
       ? `Browse ${getEventTypePublicLabel(eventTypeScope).toLowerCase()} from Sanhoti Bengali Association in Orange County & Southern California, CA — dates, locations, and how to join.`
       : 'Browse upcoming and past cultural events from Sanhoti Bengali Association of Orange County & Southern California — festivals, charity programs, workshops, and gatherings for the Bengali community.';
 
-  const isTypeScoped =
-    eventTypeScope === 'Festival' ||
-    eventTypeScope === 'Charity' ||
-    eventTypeScope === 'Workshop' ||
-    eventTypeScope === 'Other';
+  const isTypeScoped = isEventsTypeScope(eventTypeScope);
   // Festival filter consolidates onto the dedicated /festivals hub (avoids cannibalization);
   // Charity/Other have no hub, so they stay self-canonical.
   const canonicalPath =
