@@ -109,12 +109,24 @@ jobs:
           # Build backend
           echo "🔨 Building backend..."
           cd "$BACKEND_DIR"
+          export NODE_OPTIONS="--max-old-space-size=1536"
           npm ci --production=false
           npm run build
           
           # Build frontend
           echo "🎨 Building frontend..."
           cd "$FRONTEND_DIR"
+          # vite-plugin-pwa / workbox post-build can OOM on small EC2 instances (~1 GB RAM).
+          if ! swapon --show 2>/dev/null | grep -q .; then
+            echo "💾 Enabling 2G swap for frontend build (low-RAM instance)..."
+            if [ ! -f /swapfile ]; then
+              sudo fallocate -l 2G /swapfile 2>/dev/null || sudo dd if=/dev/zero of=/swapfile bs=1M count=2048 status=none
+              sudo chmod 600 /swapfile
+              sudo mkswap /swapfile
+            fi
+            sudo swapon /swapfile 2>/dev/null || true
+          fi
+          export NODE_OPTIONS="--max-old-space-size=2048"
           npm ci --production=false
           npm run build
           
@@ -162,9 +174,11 @@ jobs:
                 sleep "$delay"
               fi
             done
-            echo "❌ SSH failed after $max attempts."
-            echo "   Check: EC2 instance running, security group allows SSH (port 22) from 0.0.0.0/0,"
-            echo "   EC2_HOST secret matches the instance public IP, and ~/.ssh/authorized_keys has the deploy key."
+            echo "❌ Remote deploy failed after $max attempts (SSH dropped or script exited non-zero)."
+            echo "   If logs show 'heap out of memory' / 'Aborted (core dumped)', the EC2 instance ran out of"
+            echo "   RAM during npm run build — retry after deploy.yml NODE_OPTIONS fix or add swap on the server."
+            echo "   For SSH issues: EC2 running, security group allows port 22, EC2_HOST matches public IP,"
+            echo "   and ~/.ssh/authorized_keys has the deploy key."
             echo "   See docs/FIX_SSH_TIMEOUT_NOW.md and docs/TROUBLESHOOT_CICD.md"
             return 1
           }
