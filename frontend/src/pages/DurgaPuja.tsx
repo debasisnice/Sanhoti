@@ -948,23 +948,29 @@ export default function DurgaPuja() {
         jsonLd={jsonLd}
       />
 
-      {/* ---- Section 1: Hero ---- */}
+      {/* ---- Section 1: Hero ----
+          The image is a background, so its box height comes from the text on
+          top of it. On a very wide display that box is short and wide, and
+          `object-cover` crops most of the image away. Two guards below:
+          `object-top` takes the crop off the bottom, keeping the idol's face
+          and crown — the part that matters — always visible; and the section
+          grows taller at large breakpoints so there is less to crop at all. */}
       {show('hero') && (
-        <section className="relative overflow-hidden">
+        <section className="relative overflow-hidden flex items-center min-h-[26rem] lg:min-h-[32rem] 2xl:min-h-[38rem]">
           {heroImageUrl && (
             <div className="absolute inset-0">
               <img
                 src={heroImageUrl}
                 alt=""
                 aria-hidden="true"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-top"
                 onError={() => setHasImage(false)}
               />
               <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-white" />
             </div>
           )}
           <div
-            className={`relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center ${
+            className={`relative w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center ${
               heroImageUrl ? 'text-white' : 'text-gray-900'
             }`}
           >
