@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Sparkles } from 'lucide-react';
 import Seo from '../components/Seo';
+import PageHero from '../components/PageHero';
 import { eventsAPI } from '../services/api';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import { getEventDetailPath } from '../utils/eventSlug';
@@ -13,6 +14,8 @@ export interface FestivalLandingConfig {
   title: string;
   description: string;
   h1: string;
+  /** Two-line hero blurb under the h1 (location + value prop for SEO pages). */
+  heroSubtitle: string;
   intro: string;
   highlights: { title: string; text: string }[];
   /** Matches live events (by name/description) that belong on this page. */
@@ -33,7 +36,9 @@ export const FESTIVAL_CONFIGS: Record<string, FestivalLandingConfig> = {
     title: 'Saraswati Puja in Orange County, CA | Sanhoti Bengali Association',
     description:
       'Saraswati Puja in Orange County, California with Sanhoti — pushpanjali, hatekhori for children, Bengali bhog, and cultural programs open to all families across Southern California.',
-    h1: 'Saraswati Puja in Orange County, California',
+    h1: 'Saraswati Puja in Orange County, California — Sanhoti',
+    heroSubtitle:
+      'Spring pushpanjali, hatekhori for children, Bengali bhog, and cultural programmes open to families across Orange County and Southern California.',
     intro:
       'Saraswati Puja — Basant Panchami — honours the goddess of knowledge, music, and the arts. Sanhoti celebrates it every spring in Orange County with traditional pushpanjali, hatekhori for young children, Bengali bhog, and a cultural programme of song, recitation, and dance.',
     highlights: [
@@ -80,7 +85,9 @@ export const FESTIVAL_CONFIGS: Record<string, FestivalLandingConfig> = {
     title: 'Poila Boishakh (Bengali New Year) in Orange County, CA | Sanhoti',
     description:
       'Celebrate Poila Boishakh — Bengali New Year — in Orange County, California with Sanhoti. Bengali food, live music, cultural programs, and community for families across Southern California.',
-    h1: 'Poila Boishakh — Bengali New Year in Orange County, California',
+    h1: 'Poila Boishakh in Orange County, California — Sanhoti',
+    heroSubtitle:
+      'Welcome the Bengali New Year with a full feast, live music, and cultural programmes for families across Orange County and Southern California.',
     intro:
       'Poila Boishakh (পয়লা বৈশাখ) marks the first day of the Bengali calendar and is the biggest secular celebration of the Bengali year. Sanhoti celebrates it each April in Orange County with a full Bengali feast, live music, and a cultural programme.',
     highlights: [
@@ -127,7 +134,9 @@ export const FESTIVAL_CONFIGS: Record<string, FestivalLandingConfig> = {
     title: 'Kali Puja & Diwali in Orange County, CA | Sanhoti Bengali Association',
     description:
       'Kali Puja and Diwali in Orange County, California with Sanhoti Bengali Association — evening puja, anjali, Bengali prasad, and cultural programs for families across Southern California.',
-    h1: 'Kali Puja & Diwali in Orange County, California',
+    h1: 'Kali Puja & Diwali in Orange County — Sanhoti',
+    heroSubtitle:
+      'Evening puja, anjali, prasad, and community gathering for Bengali and Indian families across Orange County and Southern California.',
     intro:
       'Kali Puja is celebrated on the new-moon night of Kartik, coinciding with Diwali, and is one of the most important observances in the Bengali calendar. Sanhoti marks it in Orange County with an evening puja and anjali, traditional prasad, and a community gathering.',
     highlights: [
@@ -304,15 +313,7 @@ export default function FestivalLanding({ config }: { config: FestivalLandingCon
         jsonLd={jsonLd}
       />
 
-      <section className="bg-gradient-to-br from-primary-700 via-primary-800 to-gray-900 text-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 mb-5">
-            <Sparkles className="w-8 h-8" />
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4">{config.h1}</h1>
-          <p className="text-lg text-white/85 max-w-3xl mx-auto">{config.intro}</p>
-        </div>
-      </section>
+      <PageHero icon={Sparkles} title={config.h1} subtitle={config.heroSubtitle} />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
         <section className="mb-14">

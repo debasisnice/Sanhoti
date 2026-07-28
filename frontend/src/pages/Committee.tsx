@@ -4,6 +4,7 @@ import { Phone, Mail, Users } from 'lucide-react';
 import { settingsAPI } from '../services/api';
 import { fetchCommitteeMembers, type CommitteeMemberDisplay } from '../utils/fetchCommitteeMembers';
 import Seo from '../components/Seo';
+import PageHero from '../components/PageHero';
 
 export default function Committee() {
   const [committeeMembers, setCommitteeMembers] = useState<CommitteeMemberDisplay[]>([]);
@@ -31,31 +32,20 @@ export default function Committee() {
   }, []);
 
   return (
-    <div className="py-12 pb-32">
+    <div className="pb-32">
       <Seo
-        title="Committee & leadership | Sanhoti"
-        description="Meet the committee and board of Sanhoti Bengali Association of Orange County, CA — volunteers serving the Bengali community."
+        title="Committee & Board | Sanhoti Bengali Association of Orange County, CA"
+        description="Meet the volunteer committee and board of Sanhoti Bengali Association — organising Durga Puja, Saraswati Puja, concerts, and charity drives in Orange County, California."
         path="/committee"
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Users className="w-8 h-8 text-primary-600" />
-            <h1 className="text-2xl font-bold text-gray-900">
-              Meet our Team
-            </h1>
-          </div>
-          <p className="text-2xl text-gray-600 mb-6">
-            Executive Committee {committeeYear}
-          </p>
-          
-          {/* Contact Information */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-gray-700">
+      <PageHero
+        icon={Users}
+        title="Sanhoti Committee & Board — Orange County, California"
+        subtitle={`Volunteers who organise every festival, concert, and charity drive Sanhoti holds in Orange County — Executive Committee ${committeeYear}.`}
+      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        {/* Contact Information */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-gray-700 mb-12">
             <div className="flex items-center space-x-2">
               <Phone className="w-5 h-5 text-primary-600" />
               <a href="tel:+19493786425" className="hover:text-primary-600 transition-colors font-medium">
@@ -69,7 +59,6 @@ export default function Committee() {
               </a>
             </div>
           </div>
-        </motion.div>
 
         {/* Committee Members Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">

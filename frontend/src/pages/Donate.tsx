@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Heart, CreditCard, Mail } from 'lucide-react';
 import { paymentQRAPI, settingsAPI } from '../services/api';
 import Seo from '../components/Seo';
+import PageHero from '../components/PageHero';
 import StripeBuyButtonEmbed from '../components/StripeBuyButtonEmbed';
 
 export default function Donate() {
@@ -47,29 +48,18 @@ export default function Donate() {
     fetchData();
   }, []);
   return (
-    <div className="py-12 pb-32">
+    <div className="pb-32">
       <Seo
-        title="Donate | Sanhoti"
-        description="Support Sanhoti Bengali Association of Orange County — donations help fund cultural events, charity programs, and community services."
+        title="Donate to Sanhoti | 501(c)(3) Non-Profit in Orange County, CA"
+        description="Donate to Sanhoti Bengali Association — a 501(c)(3) non-profit in Orange County, California. Your gift funds cultural events, charity programs, and community services."
         path="/donate"
       />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Heart className="w-8 h-8 text-primary-600" />
-            <h1 className="text-2xl font-bold text-gray-900">
-              Donate
-            </h1>
-          </div>
-          <p className="text-2xl text-gray-600">
-            Support our community initiatives
-          </p>
-        </motion.div>
-
+      <PageHero
+        icon={Heart}
+        title="Donate to Sanhoti — 501(c)(3) Orange County, California"
+        subtitle="Your tax-deductible gift funds Durga Puja, cultural programmes, charity drives, and youth education for the Bengali community across Orange County and Southern California."
+      />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
         <div className="space-y-8">
           {/* Main Donate Section */}
           <motion.div

@@ -144,8 +144,8 @@ export default function Sponsors() {
       />
 <PageHero
       icon={Award}
-      title="Sanhoti Sponsors &amp; Partners — Orange County, California"
-      subtitle="Our sponsors make Durga Puja, Bengali concerts and Sanhoti’s cultural programming in Orange County possible. We are grateful to every business and partner who invests in Bengali community life across Southern California."
+      title="Sanhoti Sponsors & Partners — Orange County, California"
+      subtitle="Our sponsors make Durga Puja, Bengali concerts, and Sanhoti cultural programming in Orange County possible. We are grateful to every business and partner investing in Bengali community life across Southern California."
         />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
 

@@ -162,8 +162,8 @@ export default function Magazines() {
       />
 <PageHero
       icon={BookOpen}
-      title="Sanhoti Magazines &amp; Durga Puja Souvenirs"
-      subtitle="Our souvenir magazines collect Bengali writing, poetry, artwork and children’s contributions from the community in Orange County and Southern California."
+      title="Sanhoti Magazines & Souvenirs — Orange County, California"
+      subtitle="Souvenir magazines collect Bengali writing, poetry, artwork, and children's contributions from our community in Orange County and Southern California."
         />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
 

@@ -6,6 +6,7 @@ import { Document as PDFDocument, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import Seo from '../components/Seo';
+import PageHero from '../components/PageHero';
 import { durgaPujaPageAPI } from '../services/api';
 import { durgaPujaPagePath } from '../utils/durgaPuja';
 
@@ -139,13 +140,18 @@ export default function SponsorshipProspectus() {
   const pdfUrl = year ? `${durgaPujaPageAPI.sponsorshipPdfUrl(year)}?v=${pdfVersion}` : '';
 
   return (
-    <div className="py-12 pb-24">
+    <div className="pb-24">
       <Seo
-        title={`Become a Sponsor — Sanhoti Durga Puja ${year ?? ''} | Sponsorship Prospectus`}
-        description={`Partner with Sanhoti Durga Puja ${year ?? ''} in Orange County. View our sponsorship prospectus and contact us to become a sponsor.`}
+        title={`Become a Sponsor | Sanhoti Durga Puja ${year ?? ''} | Orange County, CA`}
+        description={`Partner with Sanhoti Durga Puja ${year ?? ''} in Orange County, California. View our sponsorship prospectus and contact us to become a sponsor.`}
         path="/become-our-sponsor"
       />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <PageHero
+        icon={FileText}
+        title={`Become a Sanhoti Sponsor — Orange County, California${year ? ` · ${year}` : ''}`}
+        subtitle="Partner with Orange County's largest Bengali celebration — brand visibility, souvenir magazine placement, and tax-deductible support for Sanhoti cultural programming."
+      />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
           {year && (
             <Link
@@ -156,12 +162,6 @@ export default function SponsorshipProspectus() {
             </Link>
           )}
 
-          <div className="flex items-center gap-3 mb-2">
-            <FileText className="w-7 h-7 text-primary-600" />
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              Become a Sponsor{year ? ` — Durga Puja ${year}` : ''}
-            </h1>
-          </div>
           <p className="text-gray-700 leading-relaxed mb-6">
             Partnering with Sanhoti puts your brand in front of ~1,000 attendees across three days of
             Orange County&apos;s biggest Bengali celebration. Review our prospectus below for

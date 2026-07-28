@@ -6,6 +6,7 @@ import { News } from '../types';
 import { format } from 'date-fns';
 import { convertPSTToLocal } from '../utils/dateUtils';
 import Seo from '../components/Seo';
+import PageHero from '../components/PageHero';
 
 export default function NewsPage() {
   const [news, setNews] = useState<News[]>([]);
@@ -136,28 +137,18 @@ export default function NewsPage() {
   };
 
   return (
-    <div className="py-12 pb-32">
+    <div className="pb-32">
       <Seo
-        title="Media & news | Sanhoti"
-        description="Media coverage, stories, and news about Sanhoti Bengali Association of Orange County and Bengali community programs."
+        title="News & Media | Sanhoti Bengali Association of Orange County, CA"
+        description="News, coverage, and updates from Sanhoti Bengali Association — Durga Puja, concerts with visiting artists, charity work, and cultural programs across Orange County and Southern California."
         path="/news"
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Newspaper className="w-8 h-8 text-primary-600" />
-            <h1 className="text-2xl font-bold text-gray-900">
-              News
-            </h1>
-          </div>
-          <p className="text-2xl text-gray-600">
-            Stay updated with the latest coverage and stories
-          </p>
-        </motion.div>
+      <PageHero
+        icon={Newspaper}
+        title="Sanhoti News & Media — Orange County, California"
+        subtitle="News, coverage, and updates from Sanhoti — Durga Puja, concerts with visiting artists, charity work, and cultural programmes across Orange County and Southern California."
+      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
 
         {loading ? (
           <div className="text-center py-12">

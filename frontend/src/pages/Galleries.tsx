@@ -179,8 +179,8 @@ export default function Galleries() {
       />
 <PageHero
       icon={Image}
-      title="Sanhoti Photo Galleries — Bengali Events in Orange County"
-      subtitle="Photos from Sanhoti celebrations across Orange County and Southern California — Durga Puja Durgotsav, Saraswati Puja, Poila Boishakh, Bengali concerts, picnics and community gatherings."
+      title="Sanhoti Photo Galleries — Orange County, California"
+      subtitle="Photos from Durga Puja, Saraswati Puja, Poila Boishakh, Bengali concerts, and community gatherings across Orange County and Southern California."
         />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
 

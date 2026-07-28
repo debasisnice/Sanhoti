@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart, Gift, Users, Mail, Phone, Building2 } from 'lucide-react';
 import Seo from '../components/Seo';
+import PageHero from '../components/PageHero';
 import { settingsAPI } from '../services/api';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import { fetchCommitteeMembers, type CommitteeMemberDisplay } from '../utils/fetchCommitteeMembers';
@@ -115,17 +116,17 @@ export default function CorporatePartnerships() {
         jsonLd={jsonLd}
       />
 
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-primary-700 via-primary-800 to-gray-900 text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 mb-5">
-            <Building2 className="w-8 h-8" />
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4">{c.heroTitle}</h1>
-          <p className="text-lg text-white/85 max-w-2xl mx-auto">{c.heroSubtitle}</p>
+      <PageHero
+        icon={Building2}
+        title="Corporate Partnerships & CSR — Sanhoti, Orange County"
+        subtitle="Invest in Bengali culture, diversity, and community across Orange County and Southern California through sponsorship, matching gifts, and employee volunteer programmes."
+      />
+
+      <div className="bg-gray-50 border-b border-gray-200">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <nav
             aria-label="Page sections"
-            className="mt-6 inline-flex flex-wrap justify-center gap-1 bg-white/10 rounded-full p-1"
+            className="inline-flex flex-wrap gap-1 bg-white rounded-full p-1 shadow-sm border border-gray-200"
           >
             {[
               ['#why-partner', 'Why Partner'],
@@ -137,22 +138,20 @@ export default function CorporatePartnerships() {
               <a
                 key={href}
                 href={href}
-                className="px-4 py-2 rounded-full text-sm font-semibold text-white/90 hover:bg-white/15 transition-colors"
+                className="px-4 py-2 rounded-full text-sm font-semibold text-gray-700 hover:bg-primary-50 hover:text-primary-800 transition-colors"
               >
                 {label}
               </a>
             ))}
           </nav>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <a
-              href={`mailto:${c.contactEmail}`}
-              className="inline-flex items-center gap-2 bg-white text-primary-800 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-            >
-              <Mail className="w-5 h-5" /> Become a partner
-            </a>
-          </div>
+          <a
+            href={`mailto:${c.contactEmail}`}
+            className="inline-flex items-center justify-center gap-2 bg-primary-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-primary-700 transition-colors shrink-0"
+          >
+            <Mail className="w-5 h-5" /> Become a partner
+          </a>
         </div>
-      </section>
+      </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 space-y-10">
         {/* Why partner */}

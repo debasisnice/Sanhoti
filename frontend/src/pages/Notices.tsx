@@ -53,8 +53,8 @@ export default function Notices() {
       />
 <PageHero
       icon={Bell}
-      title="Sanhoti Notices &amp; Announcements — Orange County, California"
-      subtitle="Event dates and ticket releases, Durga Puja announcements, volunteer calls and community updates for Bengali families across Orange County and Southern California."
+      title="Sanhoti Notices & Announcements — Orange County, California"
+      subtitle="Event dates and ticket releases, Durga Puja announcements, volunteer calls, and community updates for Bengali families across Orange County and Southern California."
         />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
 

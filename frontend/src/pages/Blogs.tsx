@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, Calendar, Clock, ArrowRight } from 'lucide-react';
 import Seo from '../components/Seo';
+import PageHero from '../components/PageHero';
 import { blogsAPI } from '../services/api';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import type { PublicBlog } from '../types';
@@ -76,18 +77,11 @@ export default function Blogs() {
         jsonLd={jsonLd}
       />
 
-      <section className="bg-gradient-to-br from-primary-700 via-primary-800 to-gray-900 text-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 mb-5">
-            <BookOpen className="w-8 h-8" />
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4">Sanhoti Blog</h1>
-          <p className="text-lg text-white/85 max-w-2xl mx-auto">
-            Stories from our Bengali community in Orange County — festival recaps, cultural
-            reflections, charity highlights, and news from Sanhoti events across Southern California.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        icon={BookOpen}
+        title="Sanhoti Blog — Orange County, California"
+        subtitle="Event recaps, cultural reflections, charity highlights, and news from Sanhoti Bengali Association across Orange County and Southern California."
+      />
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {loaded && posts.length === 0 && (

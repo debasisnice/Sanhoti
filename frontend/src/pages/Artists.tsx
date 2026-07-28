@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mic2, Music, ArrowRight, MapPin } from 'lucide-react';
 import Seo from '../components/Seo';
+import PageHero from '../components/PageHero';
 import { artistsAPI } from '../services/api';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import type { Artist } from '../types';
@@ -105,21 +106,11 @@ export default function Artists() {
         jsonLd={jsonLd}
       />
 
-      <section className="bg-gradient-to-br from-primary-700 via-primary-800 to-gray-900 text-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 mb-5">
-            <Mic2 className="w-8 h-8" />
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4">
-            Artists Who Have Performed with Sanhoti
-          </h1>
-          <p className="text-lg text-white/85 max-w-2xl mx-auto">
-            Sanhoti brings singers, musicians, and performers from India and the Bengali diaspora to
-            Orange County and Southern California — most often as part of our Durga Puja Durgotsav
-            and cultural evenings in Costa Mesa, minutes from Irvine.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        icon={Mic2}
+        title="Sanhoti Artists & Performers — Orange County, California"
+        subtitle="Singers and musicians from India and the Bengali diaspora who have performed at Sanhoti events in Orange County — Bollywood, Rabindra Sangeet, and live concerts across Southern California."
+      />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
         {artists.length > 0 && (

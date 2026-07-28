@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Music, Ticket, MapPin, Calendar, Mic2, ArrowRight } from 'lucide-react';
 import Seo from '../components/Seo';
+import PageHero from '../components/PageHero';
 import { subEventsAPI } from '../services/api';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import type { SubEvent } from '../types';
@@ -260,32 +261,23 @@ export default function BengaliConcerts() {
         jsonLd={jsonLd}
       />
 
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-primary-700 via-primary-800 to-gray-900 text-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 mb-5">
-            <Music className="w-8 h-8" />
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4">
-            Bengali Concerts in Orange County &amp; Southern California
-          </h1>
-          <p className="text-lg text-white/85 max-w-2xl mx-auto">
-            Sanhoti brings live Bengali music to Orange County — Bollywood and contemporary Indian
-            artists, Rabindra Sangeet, and band nights, most often as part of our Durga Puja
-            Durgotsav in Costa Mesa, minutes from Irvine. Open to music lovers across SoCal.
-          </p>
-          {upcoming.length > 0 && (
+      <PageHero
+        icon={Music}
+        title="Bengali Concerts in Orange County & Southern California"
+        subtitle="Live Bollywood, contemporary Indian, and Rabindra Sangeet artists at Sanhoti Durga Puja and cultural nights in Costa Mesa — open to music lovers across Southern California."
+      />
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+        {upcoming.length > 0 && (
+          <div className="mb-8 -mt-4">
             <a
               href="#upcoming"
-              className="inline-flex items-center gap-2 mt-6 bg-white text-primary-800 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              className="inline-flex items-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
             >
               <Ticket className="w-5 h-5" /> See upcoming concerts
             </a>
-          )}
-        </div>
-      </section>
-
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+          </div>
+        )}
         {upcoming.length > 0 && (
           <section id="upcoming" className="mb-14 scroll-mt-24">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Upcoming concerts</h2>

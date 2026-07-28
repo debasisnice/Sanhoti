@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, Calendar, MapPin, ArrowRight, Music } from 'lucide-react';
 import Seo from '../components/Seo';
+import PageHero from '../components/PageHero';
 import { eventsAPI, subEventsAPI } from '../services/api';
 import { getEventDetailPath } from '../utils/eventSlug';
 import { getSiteOrigin } from '../utils/eventShareUrl';
@@ -286,21 +287,11 @@ export default function Festivals() {
         jsonLd={jsonLd}
       />
 
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-primary-700 via-primary-800 to-gray-900 text-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 mb-5">
-            <Sparkles className="w-8 h-8" />
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4">Bengali Festivals in Orange County</h1>
-          <p className="text-lg text-white/85 max-w-2xl mx-auto">
-            Sanhoti (সংহতি) celebrates the full Bengali festival calendar across Orange County and
-            Southern California — from the grandeur of Durga Puja to Saraswati Puja, Poila Boishakh,
-            Kali Puja, and live Bengali concerts. Open to everyone, from Costa Mesa and Irvine to
-            Rancho Santa Margarita and the wider SoCal region.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        icon={Sparkles}
+        title="Bengali Festivals in Orange County — Sanhoti"
+        subtitle="Durga Puja, Saraswati Puja, Poila Boishakh, Kali Puja, and live Bengali concerts for families across Orange County and Southern California — open to everyone."
+      />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
         <div className="grid gap-8 md:grid-cols-2">

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { UtensilsCrossed, Leaf, Fish, Candy, Info } from 'lucide-react';
 import Seo from '../components/Seo';
+import PageHero from '../components/PageHero';
 import { getSiteOrigin } from '../utils/eventShareUrl';
 import { menusAPI } from '../services/api';
 import type { PublicMenu } from '../services/api';
@@ -128,21 +129,11 @@ export default function BengaliFood() {
         jsonLd={jsonLd}
       />
 
-      <section className="bg-gradient-to-br from-primary-700 via-primary-800 to-gray-900 text-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 mb-5">
-            <UtensilsCrossed className="w-8 h-8" />
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4">
-            Bengali Food in Orange County, California
-          </h1>
-          <p className="text-lg text-white/85 max-w-3xl mx-auto">
-            Food is at the heart of every Bengali celebration. Sanhoti serves authentic, home-style
-            Bengali cooking at our events across Orange County — from Durga Puja bhog to Poila
-            Boishakh feasts, prepared for the community by the community.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        icon={UtensilsCrossed}
+        title="Bengali Food in Orange County, California — Sanhoti"
+        subtitle="Authentic home-style Bengali cooking at Sanhoti events — Durga Puja bhog, Poila Boishakh feasts, and festival meals prepared for the community across Southern California."
+      />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
         {/* Real menus from every event, newest first with Durga Puja pinned on

@@ -6,6 +6,7 @@ import { contactAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import { useState, useEffect } from 'react';
 import Seo from '../components/Seo';
+import PageHero from '../components/PageHero';
 
 interface ContactForm {
   firstName: string;
@@ -82,26 +83,18 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen py-12 pb-32 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen pb-32">
       <Seo
-        title="Contact us | Sanhoti"
-        description="Contact Sanhoti Bengali Association of Orange County & Southern California — questions about events, membership, volunteering, or partnerships."
+        title="Contact Sanhoti | Bengali Association of Orange County, CA"
+        description="Contact Sanhoti Bengali Association of Orange County, California — questions about events, tickets, sponsorship, volunteering, or membership."
         path="/contact"
       />
-      <div className="max-w-3xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Mail className="w-8 h-8 text-primary-600" />
-            <h1 className="text-2xl font-bold text-gray-900">Contact Us</h1>
-          </div>
-          <p className="text-2xl text-gray-600">
-            We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-          </p>
-        </motion.div>
+      <PageHero
+        icon={Mail}
+        title="Contact Sanhoti — Orange County, California"
+        subtitle="Questions about events, tickets, sponsorship, volunteering, or membership? We are happy to hear from Bengali and Indian families across Orange County and Southern California."
+      />
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
