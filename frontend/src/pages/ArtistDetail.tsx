@@ -41,6 +41,22 @@ interface NormalizedAppearance {
   city?: string;
   region?: string;
   schemaType: 'Event' | 'MusicEvent';
+  description?: string;
+  imageUrl?: string;
+}
+
+/**
+ * Same shape as the prerender's `stripHtml` so the Event `description` this
+ * page emits is character-for-character what `SeoPageController` emits. Two
+ * different truncations of the same text would be a schema mismatch between
+ * what a bot sees and what a browser sees.
+ */
+function schemaDescription(s: string | undefined | null, maxLen = 300): string {
+  const t = String(s ?? '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return t.length <= maxLen ? t : `${t.slice(0, maxLen - 1).trimEnd()}…`;
 }
 
 function normalize(entry: ArtistAppearance): NormalizedAppearance {
@@ -60,6 +76,9 @@ function normalize(entry: ArtistAppearance): NormalizedAppearance {
       city: se.venue_city,
       region: se.venue_region,
       schemaType: se.seo_event_type === 'MusicEvent' ? 'MusicEvent' : 'Event',
+      // SubEvent reuses the `event_description` field name.
+      description: se.event_description,
+      imageUrl: entry.imageUrl,
     };
   }
   const e = entry.event as Event;
@@ -77,6 +96,8 @@ function normalize(entry: ArtistAppearance): NormalizedAppearance {
     city: e.venue_city,
     region: e.venue_region,
     schemaType: 'Event',
+    description: e.event_description,
+    imageUrl: entry.imageUrl,
   };
 }
 
@@ -192,6 +213,14 @@ export default function ArtistDetail() {
           addressCountry: 'US',
         },
       },
+      description:
+        schemaDescription(a.description) ||
+        `${a.name} — presented by Sanhoti Bengali Association${
+          a.venueName || a.where ? ` at ${a.venueName || a.where}` : ''
+        } in Orange County, California, featuring ${artist.name}.`,
+      // The event's own flyer. Falls back to the org logo rather than the
+      // artist's portrait: Event.image should depict the event.
+      image: [a.imageUrl ? `${origin}${a.imageUrl}` : `${origin}/images/logo.png`],
     }));
 
     const videoNodes = (artist.video_urls ?? [])

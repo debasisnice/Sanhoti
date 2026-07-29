@@ -342,6 +342,13 @@ export interface Artist {
 export interface ArtistAppearance {
   kind: 'event' | 'sub-event';
   event: Event | SubEvent;
+  /**
+   * Site-relative URL of the event's own flyer, resolved server-side by
+   * ArtistService so this page and the crawler prerender emit one identical
+   * `image` on the Event schema node. This is the event's artwork, not the
+   * performer's portrait — the portrait belongs to the Person node.
+   */
+  imageUrl?: string;
 }
 
 export interface ArtistAppearances {

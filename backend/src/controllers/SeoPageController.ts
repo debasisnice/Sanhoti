@@ -158,7 +158,12 @@ function menuJsonLd(
 }
 
 /** One appearance returned by ArtistService.getAppearances. */
-type ArtistAppearanceEntry = { kind: 'event' | 'sub-event'; event: Event | SubEvent };
+type ArtistAppearanceEntry = {
+  kind: 'event' | 'sub-event';
+  event: Event | SubEvent;
+  /** Site-relative flyer URL resolved by ArtistService — see ArtistAppearance. */
+  imageUrl?: string;
+};
 
 /**
  * Dedicated per-festival landing pages. Each Bengali festival previously shared
@@ -2147,6 +2152,9 @@ For press, artist management, or performance enquiries, <a href="/contact">conta
           city: se.venue_city,
           region: se.venue_region,
           type: se.seo_event_type === 'MusicEvent' ? 'MusicEvent' : 'Event',
+          // SubEvent reuses the `event_description` field name.
+          description: se.event_description,
+          image: entry.imageUrl ? `${ORIGIN}${entry.imageUrl}` : undefined,
         };
       }
       const e = entry.event as Event;
@@ -2164,6 +2172,8 @@ For press, artist management, or performance enquiries, <a href="/contact">conta
         city: e.venue_city,
         region: e.venue_region,
         type: 'Event',
+        description: e.event_description,
+        image: entry.imageUrl ? `${ORIGIN}${entry.imageUrl}` : undefined,
       };
     };
 
@@ -2302,6 +2312,14 @@ Poila Boishakh, and standalone concerts in Costa Mesa, Irvine, and across SoCal.
             addressCountry: 'US',
           },
         },
+        description:
+          stripHtml(d.description) ||
+          `${d.name} — presented by ${ORG_NAME}${
+            d.venueName || d.where ? ` at ${d.venueName || d.where}` : ''
+          } in Orange County, California, featuring ${artist.name}.`,
+        // The event's own flyer. Falls back to the org logo rather than the
+        // artist's portrait: Event.image should depict the event.
+        image: [d.image || `${ORIGIN}/images/logo.png`],
       };
     });
 

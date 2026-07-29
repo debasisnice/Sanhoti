@@ -17,10 +17,26 @@ export function slugifyArtistName(name: string | undefined | null): string {
     .replace(/^-+|-+$/g, '');
 }
 
+export interface ArtistAppearance {
+  kind: 'event' | 'sub-event';
+  event: Event | SubEvent;
+  /**
+   * Site-relative URL of the event's own flyer, resolved here so the React page
+   * and the crawler prerender emit one identical `image` on the Event schema
+   * node. The flyer is stored on disk under a generated filename, so neither
+   * renderer can derive this URL by itself — and without it the Event node
+   * carries no image at all.
+   *
+   * This is the *event's* artwork, not the performer's portrait: the portrait
+   * belongs to the Person node and does not satisfy Event.image.
+   */
+  imageUrl?: string;
+}
+
 /** Every event and sub-event an artist has appeared in, split by time. */
 export interface ArtistAppearances {
-  upcoming: Array<{ kind: 'event' | 'sub-event'; event: Event | SubEvent }>;
-  past: Array<{ kind: 'event' | 'sub-event'; event: Event | SubEvent }>;
+  upcoming: ArtistAppearance[];
+  past: ArtistAppearance[];
 }
 
 /** A performer name found on an event that has no Artist record yet. */
@@ -289,9 +305,38 @@ export class ArtistService {
       .filter(m => !(Number.isFinite(m.when) && m.when >= now))
       .sort((a, b) => b.when - a.when);
 
-    return {
-      upcoming: upcoming.map(({ kind, event }) => ({ kind, event })),
-      past: past.map(({ kind, event }) => ({ kind, event })),
+    // Resolve each appearance's flyer. A missing or unreadable image must never
+    // fail the page, so every lookup degrades to `undefined` on its own.
+    const withImage = async (
+      entry: { kind: 'event' | 'sub-event'; event: Event | SubEvent }
+    ): Promise<ArtistAppearance> => {
+      try {
+        if (entry.kind === 'event') {
+          const e = entry.event as Event;
+          const flyer = await this.eventService.getEventFlyerFilename(e.event_id);
+          return flyer
+            ? { ...entry, imageUrl: `/api/events/${e.event_id}/image/${encodeURIComponent(flyer)}` }
+            : entry;
+        }
+        const se = entry.event as SubEvent;
+        const paths = await this.subEventService.getSubEventImages(se.sub_event_id);
+        const filename = (paths[0] ?? '').split('/').pop();
+        return filename
+          ? {
+              ...entry,
+              imageUrl: `/api/sub-events/${se.sub_event_id}/image/${encodeURIComponent(filename)}`,
+            }
+          : entry;
+      } catch {
+        return entry;
+      }
     };
+
+    const [upcomingOut, pastOut] = await Promise.all([
+      Promise.all(upcoming.map(({ kind, event }) => withImage({ kind, event }))),
+      Promise.all(past.map(({ kind, event }) => withImage({ kind, event }))),
+    ]);
+
+    return { upcoming: upcomingOut, past: pastOut };
   }
 }
