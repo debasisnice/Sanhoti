@@ -162,16 +162,18 @@ export default function ArtistDetail() {
         : artist.origin
           ? { foundingLocation: { '@type': 'Place', name: artist.origin } }
           : {}),
-      performerIn: all.map(a => ({
-        '@type': a.schemaType,
-        name: a.name,
-        url: `${origin}${a.href}`,
-        ...(a.start ? { startDate: a.start } : {}),
-      })),
+      // Reference the standalone Event nodes below by @id rather than
+      // repeating a partial copy of each. Google validates every Event-typed
+      // node it finds, so an inline copy carrying only name/url/startDate was
+      // reported as `Missing field "location"` — one error per appearance.
+      performerIn: all.map(a => ({ '@id': `${origin}${a.href}#event` })),
     };
 
     const eventNodes = all.map(a => ({
       '@type': a.schemaType,
+      // Suffixed so it cannot collide with the WebPage node that uses the bare
+      // canonical URL as its @id on the event's own page.
+      '@id': `${origin}${a.href}#event`,
       name: a.name,
       url: `${origin}${a.href}`,
       ...(a.start ? { startDate: a.start } : {}),

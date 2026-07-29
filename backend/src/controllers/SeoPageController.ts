@@ -2266,10 +2266,13 @@ Poila Boishakh, and standalone concerts in Costa Mesa, Irvine, and across SoCal.
         : {
             ...(artist.origin ? { foundingLocation: { '@type': 'Place', name: artist.origin } } : {}),
           }),
-      performerIn: [...appearances.upcoming, ...appearances.past].slice(0, 25).map(entry => {
-        const d = describe(entry);
-        return { '@type': d.type, name: d.name, url: d.url, ...(d.start ? { startDate: d.start } : {}) };
-      }),
+      // Reference the standalone Event nodes below by @id rather than
+      // repeating a partial copy of each. Google validates every Event-typed
+      // node it finds, so an inline copy carrying only name/url/startDate was
+      // reported as `Missing field "location"` — one error per appearance.
+      performerIn: [...appearances.upcoming, ...appearances.past]
+        .slice(0, 25)
+        .map(entry => ({ '@id': `${describe(entry).url}#event` })),
     };
 
     // Each appearance is also a standalone Event node whose performer points at
@@ -2278,6 +2281,9 @@ Poila Boishakh, and standalone concerts in Costa Mesa, Irvine, and across SoCal.
       const d = describe(entry);
       return {
         '@type': d.type,
+        // Suffixed so it cannot collide with the WebPage node that uses the
+        // bare canonical URL as its @id on the event's own page.
+        '@id': `${d.url}#event`,
         name: d.name,
         url: d.url,
         ...(d.start ? { startDate: d.start } : {}),
